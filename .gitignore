@@ -1,0 +1,8 @@
+*.pdf
+*.docx
+*.docx#
+*.doc
+*.tex
+*.tar.gz
+test.json
+spread_data_simple_example.json
