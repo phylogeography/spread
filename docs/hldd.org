@@ -11,13 +11,12 @@
 * DONE Current System
 # Instructions: If applicable, this section describes the current system that is being replaced, enhanced, or upgraded.
 Most recent version of Spread in use today is a classic desktop application, packaged and distributed as an executable Java JAR.
-
 The home tab of the user interface allows for parsing 4 distinct types of input.
 
 #+CAPTION: Tab for parsing discrete traits tree
 file:current_system1.png
 
-A detailed tutorial along with more screenshots is hosted [[https://rega.kuleuven.be/cev/ecv/software/SpreaD3_tutorial][here]].
+A detailed tutorial, along with more screenshots is hosted [[https://rega.kuleuven.be/cev/ecv/software/SpreaD3_tutorial][here]].
 
 ** DONE Functional Description
 [[https://rega.kuleuven.be/cev/ecv/software/SpreaD3][SpreaD3]] is an application to analyze and visualize pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes.
@@ -80,8 +79,8 @@ Spreads main responsibility is parsing and processing of BEAST output files:
 - Log files containing a posterior distribution of rate indicators from a Bayesian stochastic search variable selection procedure.
 
 The information found in those files, combined with a geographical coordinates data (in the case of discretely annotated trees) is used to parse and represent the hierarchical tree structures as primitives (such as points or lines) on a map.
-
 These primitives will typically have associated geographical (latitide / longitude coordinates), temporal (timestamps) and various other meta-data associated with them.
+An exmaple of such a data-set (an MCC tree file with continuous annotations) can be found file:236_subG_PT_cauchy_geo.mcc.tre.
 
 Parsing step produces a JSON file with a following schema:
 
@@ -198,7 +197,12 @@ root.properties.layers.tree.lines.line -|> root.properties.lineAttributes.attrib
 #+RESULTS:
 [[file:json_schema.png]]
 
-Parsed JSON data is than loaded into the program once again to produce a visualisation:
+An example of output generated from the program can be found here file:spread_data_example.json (it does not include the geoJSON layer which creates the map on which the estimates are displayed).
+A minimal subset of this data : file:spread_data_example_minimal.json .
+This subset contains a single branch joining two nodes and their corresponding meta-data (attributes).
+
+
+Such JSON file is than loaded into the program once again to produce a visualisation:
 
 #+begin_src plantuml :file subsystems.png
 state Input {
@@ -234,7 +238,7 @@ We can divide the application into three major components:
 Spread is a desktop application, relying on end-user operating system for data storage, thread management etc.
 The parsing engine and the graphical user-interface are both written in Java, with the visualization engine using a set of JavaScript libraries to create essentially a static web page which can be (locally) opened in the users browser.
 
-* IN-PROGRESS Goals, Objectives, and Rationale for New or Significantly Modified System
+* DONE Goals, Objectives, and Rationale for New or Significantly Modified System <<rationale>>
 
 The most-recent version Spread (SemVer 0.9.7) was released in year 2016.
 Since than it has attracted many users, and although individual downloads were not tracked, the joint number of citations with an earlier version of the software package is well over 600.
@@ -278,9 +282,9 @@ New system should simplify and streamline the process of obtaining a visualizati
 
 =use of D3.js library=
 Even today D3.js is still a great way for creating one-off visualizations on the web.
-However it makes a poor fit with modern web application framework such as [[https://reactjs.org/][React]] or [[https://reagent-project.github.io/][Reagent]], directly overlapping with how these frameworks manipulate the browsers DOM.
+However it makes a poor fit with modern web application frameworks, directly overlapping with how these frameworks manipulate the browsers DOM.
 It is also a fairly low-level library, providing mainly graph primitives and not offering any built-in capabilities for working with maps and geo-data.
-The modfied system should utilize a library with an API directly aimed at working with maps to produce the visualizations (such as [[https://docs.kepler.gl/docs/api-reference][Kepler]] or [[https://vega.github.io/vega-lite/examples/][Vega]]).
+The modfied system should utilize a library with an API directly aimed at working with maps to produce the visualizations.
 
 ** DONE Project Purpose
 
@@ -392,9 +396,36 @@ The deployment environment will be changed from a desktop-based application to a
 The exact infrastructure will most probably be coming form a cloud provider, with instances of a Compute Cloud for hosting the server and the client server to the users browsers, RDS for Relational storage and S3 or similar solution used for the object storage.
 
 * IN-PROGRESS Factors Influencing Technical Design
-** TODO Relevant Standards
-** TODO Assumptions and Dependencies
-** TODO Constraints
+# Instructions: This section describes the standards, assumptions, and constraints that influence the technical design of the proposed system.
+** +Relevant Standards+
+** IN-PROGRESS Assumptions and Dependencies
+# Instructions: Describe any assumptions or dependencies regarding the system and its use.
+
+Due to the specialized nature of the system, we do not expect the application to be subject to a significant network traffic.
+Nonetheless the size of the files and the associated meta-data used in the application can be quite significant, and the architecture needs to take into account that fact when uplaoding them in http requests.
+
+The client part of the system, runing in the browser environment will most likely be viewed only on large screen sizes, which can influence the design.
+
+** IN-PROGRESS Constraints
+
+# Instructions: Describe any limitations or constraints that have a significant impact on the design of the system. Such constraints may be imposed by any of the following (the list is not exhaustive):
+#     • Hardware or software environment
+#     • End-user environment
+#     • Availability of resources
+#     • Interoperability requirements
+#     • Interface/protocol requirements
+#     • Data repository and distribution requirements
+#     • Other requirements described in the Requirements Document
+
+Chosing the server-client over a previous desktop based architecture lifts many of the constraints of the legacy system, previous mentioned in [[rationale][Goals, Objectives, and Rationale for New or Significantly Modified System]].
+The client part of the application will consist of static content running in the end-users browser environment, therefore simply needs to meet a standard set of requirements for a browser-based application and be inter-operable with modern browsers.
+
+
+# TODO : querying the JSON
+
+
+
+
 ** TODO Design Goals
 * TODO Proposed System
 * TODO High-Level Operational Requirements and Characteristics
@@ -405,6 +436,10 @@ The exact infrastructure will most probably be coming form a cloud provider, wit
 *** TODO Information Architecture
 *** TODO Interface Architecture
 *** TODO Technology Architecture
+
+[[https://reactjs.org/][React]] or [[https://reagent-project.github.io/][Reagent]]
+[[https://docs.kepler.gl/docs/api-reference][Kepler]] or [[https://vega.github.io/vega-lite/examples/][Vega]]
+
 *** TODO Security and Privacy Architecture
 * TODO Analysis of the Proposed System
 ** TODO Impact Analysis

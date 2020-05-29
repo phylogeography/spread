@@ -1,0 +1,791 @@
+﻿{
+  "timeLine": {
+    "startTime": "1988/10/30",
+    "endTime": "2020/05/27"
+  },
+  "axisAttributes": {
+    "xCoordinate": "location2",
+    "yCoordinate": "location1"
+  },
+  "lineAttributes": [
+    {
+      "id": "location2_median",
+      "scale": "linear",
+      "range": [
+        -9.4,
+        -7.87
+      ]
+    },
+    {
+      "id": "nodeName",
+      "scale": "ordinal",
+      "domain": [
+        "internal",
+        "external"
+      ]
+    },
+    {
+      "id": "location1_median",
+      "scale": "linear",
+      "range": [
+        37.13,
+        39.43
+      ]
+    },
+    {
+      "id": "length",
+      "scale": "linear",
+      "range": [
+        0.1,
+        25.12
+      ]
+    },
+    {
+      "id": "posterior",
+      "scale": "linear",
+      "range": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "height_median",
+      "scale": "linear",
+      "range": [
+        0,
+        31.34
+      ]
+    },
+    {
+      "id": "rate",
+      "scale": "linear",
+      "range": [
+        0,
+        2.26
+      ]
+    },
+    {
+      "id": "location1",
+      "scale": "linear",
+      "range": [
+        36.98,
+        39.47
+      ]
+    },
+    {
+      "id": "location2",
+      "scale": "linear",
+      "range": [
+        -9.47,
+        -7.86
+      ]
+    },
+    {
+      "id": "rate_median",
+      "scale": "linear",
+      "range": [
+        0,
+        1.57
+      ]
+    },
+    {
+      "id": "length_median",
+      "scale": "linear",
+      "range": [
+        0.08,
+        25.14
+      ]
+    },
+    {
+      "id": "location_80HPD_modality",
+      "scale": "ordinal",
+      "domain": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "height",
+      "scale": "linear",
+      "range": [
+        0,
+        31.35
+      ]
+    }
+  ],
+  "pointAttributes": [
+    {
+      "id": "location2_median",
+      "scale": "linear",
+      "range": [
+        -9.4,
+        -7.87
+      ]
+    },
+    {
+      "id": "nodeName",
+      "scale": "ordinal",
+      "domain": [
+        "root",
+        "internal",
+         "external"
+      ]
+    },
+    {
+      "id": "location1_median",
+      "scale": "linear",
+      "range": [
+        37.13,
+        39.43
+      ]
+    },
+    {
+      "id": "length",
+      "scale": "linear",
+      "range": [
+        0,
+        25.12
+      ]
+    },
+    {
+      "id": "posterior",
+      "scale": "linear",
+      "range": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "height_median",
+      "scale": "linear",
+      "range": [
+        0,
+        31.62
+      ]
+    },
+    {
+      "id": "rate",
+      "scale": "linear",
+      "range": [
+        0,
+        2.26
+      ]
+    },
+    {
+      "id": "location1",
+      "scale": "linear",
+      "range": [
+        36.98,
+        39.47
+      ]
+    },
+    {
+      "id": "location2",
+      "scale": "linear",
+      "range": [
+        -9.47,
+        -7.86
+      ]
+    },
+    {
+      "id": "rate_median",
+      "scale": "linear",
+      "range": [
+        0,
+        1.57
+      ]
+    },
+    {
+      "id": "length_median",
+      "scale": "linear",
+      "range": [
+        0.08,
+        25.14
+      ]
+    },
+    {
+      "id": "location_80HPD_modality",
+      "scale": "ordinal",
+      "domain": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "height",
+      "scale": "linear",
+      "range": [
+        0,
+        31.61
+      ]
+    }
+  ],
+  "areaAttributes": [
+    {
+      "id": "location2_median",
+      "scale": "linear",
+      "range": [
+        -9.4,
+        -7.87
+      ]
+    },
+    {
+      "id": "nodeName",
+      "scale": "ordinal",
+      "domain": [
+        "internal",
+        "external"
+      ]
+    },
+    {
+      "id": "location1_median",
+      "scale": "linear",
+      "range": [
+        37.13,
+        39.43
+      ]
+    },
+    {
+      "id": "length",
+      "scale": "linear",
+      "range": [
+        0.1,
+        12.25
+      ]
+    },
+    {
+      "id": "posterior",
+      "scale": "linear",
+      "range": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "height_median",
+      "scale": "linear",
+      "range": [
+        1,
+        31.34
+      ]
+    },
+    {
+      "id": "rate",
+      "scale": "linear",
+      "range": [
+        0,
+        2.26
+      ]
+    },
+    {
+      "id": "location1",
+      "scale": "linear",
+      "range": [
+        37.14,
+        39.43
+      ]
+    },
+    {
+      "id": "location2",
+      "scale": "linear",
+      "range": [
+        -9.41,
+        -7.87
+      ]
+    },
+    {
+      "id": "rate_median",
+      "scale": "linear",
+      "range": [
+        0,
+        1.43
+      ]
+    },
+    {
+      "id": "length_median",
+      "scale": "linear",
+      "range": [
+        0.08,
+        12.02
+      ]
+    },
+    {
+      "id": "HPD",
+      "scale": "ordinal",
+      "domain": [
+        "80"
+      ]
+    },
+    {
+      "id": "location_80HPD_modality",
+      "scale": "ordinal",
+      "domain": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "height",
+      "scale": "linear",
+      "range": [
+        1,
+        31.35
+      ]
+    }
+  ],
+  "layers": [
+    {
+      "type": "tree",
+      "id": "236_subG_PT_cauchy_geo.mcc.tre",
+      "description": "Tree layer",
+      "points": [{
+        "id": "508416129",
+        "coordinate": {
+          "xCoordinate": -9.163543545845442,
+          "yCoordinate": 38.724909113572956,
+          "altitude": 0
+        },
+        "startTime": "1995/07/15",
+        "attributes": {
+          "location2_median": -9.163467149045646,
+          "location1_median": 38.72437387991223,
+          "length": 0.8704618671796099,
+          "posterior": 0.37402885682574916,
+          "height_median": 25.52922209111923,
+          "location_80HPD_modality": 1,
+          "rate": 1.1076120689627729,
+          "location1": 38.724909113572956,
+          "location2": -9.163543545845442,
+          "rate_median": 0.6045253384935272,
+          "length_median": 0.6455388367829364,
+          "height": 25.506594909593957,
+          "nodeName": "internal"
+        }
+      },
+
+                 {"id": "1843478402",
+                  "coordinate": {
+                    "xCoordinate": -9.157355426427149,
+                    "yCoordinate": 38.722247289826925,
+                    "altitude": 0
+                  },
+                  "startTime": "1996/08/15",
+                  "attributes": {
+                    "location2_median": -9.158638323276092,
+                    "location1_median": 38.720975795386806,
+                    "length": 2.591923054365129,
+                    "posterior": 0.9900110987791343,
+                    "height_median": 23.28525897884088,
+                    "location_80HPD_modality": 1,
+                    "rate": 1.2571699324796899,
+                    "location1": 38.722247289826925,
+                    "location2": -9.157355426427149,
+                    "rate_median": 0.7205084268453171,
+                    "length_median": 2.4097520315972734,
+                    "height": 23.302734303008613,
+                    "nodeName": "internal"
+                  }
+                 }
+                ],
+      "lines": [
+        {
+          "startPointId": "508416129",
+          "endPointId": "1843478402",
+          "startTime": "1995/07/15",
+          "endTime": "1996/08/15",
+          "attributes": {
+            "location2_median": -9.158638323276092,
+            "location1_median": 38.720975795386806,
+            "length": 2.591923054365129,
+            "posterior": 0.9900110987791343,
+            "height_median": 23.28525897884088,
+            "location_80HPD_modality": 1,
+            "rate": 1.2571699324796899,
+            "location1": 38.722247289826925,
+            "location2": -9.157355426427149,
+            "rate_median": 0.7205084268453171,
+            "length_median": 2.4097520315972734,
+            "height": 23.302734303008613,
+            "nodeName": "internal"
+          }
+        }],
+
+      "areas": [{
+        "startTime": "1996/08/15",
+        "attributes": {
+          "location2_median": -9.158638323276092,
+          "nodeName": "internal",
+          "location1_median": 38.720975795386806,
+          "length": 2.591923054365129,
+          "posterior": 0.9900110987791343,
+          "height_median": 23.28525897884088,
+          "rate": 1.2571699324796899,
+          "location1": 38.722247289826925,
+          "location2": -9.157355426427149,
+          "rate_median": 0.7205084268453171,
+          "length_median": 2.4097520315972734,
+          "HPD": "80",
+          "location_80HPD_modality": 1,
+          "height": 23.302734303008613
+        },
+        "polygon": {
+          "coordinates": [
+            {
+              "xCoordinate": -9.17507373,
+              "yCoordinate": 38.69261451,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17544274,
+              "yCoordinate": 38.69300439,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17825761,
+              "yCoordinate": 38.69512729,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18019381,
+              "yCoordinate": 38.69759188,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18144149,
+              "yCoordinate": 38.69945658,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18300334,
+              "yCoordinate": 38.70217936,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18462538,
+              "yCoordinate": 38.70533367,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18576677,
+              "yCoordinate": 38.70676685,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18780926,
+              "yCoordinate": 38.70888457,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18974056,
+              "yCoordinate": 38.71135434,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.19065368,
+              "yCoordinate": 38.71594182,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18995684,
+              "yCoordinate": 38.72052931,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18887011,
+              "yCoordinate": 38.7251168,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18788879,
+              "yCoordinate": 38.72970428,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18780926,
+              "yCoordinate": 38.72986429,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18547677,
+              "yCoordinate": 38.73429177,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18462538,
+              "yCoordinate": 38.73522453,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18144149,
+              "yCoordinate": 38.73867262,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.18124066,
+              "yCoordinate": 38.73887926,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.1782726,
+              "yCoordinate": 38.74346674,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17825761,
+              "yCoordinate": 38.74350071,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17507373,
+              "yCoordinate": 38.74804759,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17506735,
+              "yCoordinate": 38.74805423,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17188984,
+              "yCoordinate": 38.75066602,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.16873887,
+              "yCoordinate": 38.75264172,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.16870596,
+              "yCoordinate": 38.75265757,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.16552208,
+              "yCoordinate": 38.75345543,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.1623382,
+              "yCoordinate": 38.75334584,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.15915431,
+              "yCoordinate": 38.75293794,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.15597043,
+              "yCoordinate": 38.75304776,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.15278655,
+              "yCoordinate": 38.75362673,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14960266,
+              "yCoordinate": 38.75388343,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14641878,
+              "yCoordinate": 38.75303003,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14572368,
+              "yCoordinate": 38.75264172,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.1432349,
+              "yCoordinate": 38.75174008,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14005101,
+              "yCoordinate": 38.75068194,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13686713,
+              "yCoordinate": 38.74922589,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13528285,
+              "yCoordinate": 38.74805423,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13368325,
+              "yCoordinate": 38.74577293,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13234647,
+              "yCoordinate": 38.74346674,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.131103,
+              "yCoordinate": 38.73887926,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13049936,
+              "yCoordinate": 38.73770509,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.12826844,
+              "yCoordinate": 38.73429177,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.127435,
+              "yCoordinate": 38.72970428,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.12959473,
+              "yCoordinate": 38.7251168,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.12929534,
+              "yCoordinate": 38.72052931,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.12817008,
+              "yCoordinate": 38.71594182,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.12903865,
+              "yCoordinate": 38.71135434,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13049936,
+              "yCoordinate": 38.70939761,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13368325,
+              "yCoordinate": 38.70709684,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13405642,
+              "yCoordinate": 38.70676685,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.136272,
+              "yCoordinate": 38.70217936,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13686713,
+              "yCoordinate": 38.7011368,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.13978227,
+              "yCoordinate": 38.69759188,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14005101,
+              "yCoordinate": 38.69741866,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.1432349,
+              "yCoordinate": 38.69487615,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14641878,
+              "yCoordinate": 38.6930666,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14653588,
+              "yCoordinate": 38.69300439,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.14960266,
+              "yCoordinate": 38.69123618,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.15278655,
+              "yCoordinate": 38.69004282,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.15597043,
+              "yCoordinate": 38.68973802,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.15915431,
+              "yCoordinate": 38.69018427,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.1623382,
+              "yCoordinate": 38.69040486,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.16552208,
+              "yCoordinate": 38.68997081,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.16870596,
+              "yCoordinate": 38.68965204,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17188984,
+              "yCoordinate": 38.69025761,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17507373,
+              "yCoordinate": 38.69261451,
+              "altitude": 0
+            },
+            {
+              "xCoordinate": -9.17507373,
+              "yCoordinate": 38.69261451,
+              "altitude": 0
+            }
+          ],
+          "altitude": 0
+        }
+      }]
+
+    }
+  ]
+}
