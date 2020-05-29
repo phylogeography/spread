@@ -234,7 +234,7 @@ We can divide the application into three major components:
 Spread is a desktop application, relying on end-user operating system for data storage, thread management etc.
 The parsing engine and the graphical user-interface are both written in Java, with the visualization engine using a set of JavaScript libraries to create essentially a static web page which can be (locally) opened in the users browser.
 
-* DONE Goals, Objectives, and Rationale for New or Significantly Modified System
+* IN-PROGRESS Goals, Objectives, and Rationale for New or Significantly Modified System
 
 The most-recent version Spread (SemVer 0.9.7) was released in year 2016.
 Since than it has attracted many users, and although individual downloads were not tracked, the joint number of citations with an earlier version of the software package is well over 600.
@@ -296,7 +296,7 @@ The tool should be able to load both discrete and continuous phylogeographic est
 It will replace the existing system and allevite all of the problems plaguing it, namely the data persistance problems, the usability issues and the problems with sharing of the produced visualisations.
 It will provide ways for users to manage, store and revisit their data and visualisations
 
-** IN-PROGRESS Proposed System
+** DONE Proposed System
 # Instructions: Provide a succinct description of the proposed system. Sections 5 and 6 will describe the proposed system in more detail.
 *** DONE System Scope
 Here we outline the responsibilities and boundaries of the proposed system.
@@ -360,9 +360,10 @@ edit --> "edit parsing settings"
 
 They can generally be divided into a process of user login and authentication and the process of analysing and visualizing the data.
 
-*** IN-PROGRESS High-Level Functional Requirements
+*** DONE High-Level Functional Requirements
 
 General user-interface requirements:
+
 - A minimal number of steps to obtain a good quality visualization
 - Animated visualization of phylogenies projected on maps (with the ability to freeze and export)
 - The ability to select and highlight taxa (based on string content) and locations
@@ -374,8 +375,23 @@ General user-interface requirements:
 - Sharing of analyses through URLs
 - User authentication and management
 
-*** Summary of Changes
-* TODO Factors Influencing Technical Design
+*** DONE Summary of Changes
+# Instructions: If changing an existing system, briefly summarize the changes that this project will make to the system (e.g., functionality changes, technology changes, environment changes.
+
+The majority of the changes will be focused on creating a client-server architecture.
+
+The new system, although requires substantial changes that warrant a new code-base, will be able to re-use some parts of the previous releases.
+Specifically the numerical methods and algorithms responsible for the parsing of the tree files as well as computing the various statistics can be used with the new application, providing it also uses JVM as it's runtime environment.
+
+# Depending on the exact programming language chosen
+
+User authentication and management, webserver endpoints for interacting with the application as well as Object and Relational storage will have to be developed.
+The visualization engine, responsible for displaying the analyzed data will also be developed anew, with a different set of technologies.
+
+The deployment environment will be changed from a desktop-based application to a server / client architecture.
+The exact infrastructure will most probably be coming form a cloud provider, with instances of a Compute Cloud for hosting the server and the client server to the users browsers, RDS for Relational storage and S3 or similar solution used for the object storage.
+
+* IN-PROGRESS Factors Influencing Technical Design
 ** TODO Relevant Standards
 ** TODO Assumptions and Dependencies
 ** TODO Constraints
