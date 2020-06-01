@@ -18,7 +18,7 @@ file:current_system1.png
 
 A detailed tutorial, along with more screenshots is hosted [[https://rega.kuleuven.be/cev/ecv/software/SpreaD3_tutorial][here]].
 
-** DONE Functional Description
+** DONE Functional Description <<previous_functional_desc>>
 [[https://rega.kuleuven.be/cev/ecv/software/SpreaD3][SpreaD3]] is an application to analyze and visualize pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes.
 
 As such it places itself at the end of a file-mediated pipeline and is geared towards analyzing and displaying the outputs of analysis from a popular Bayesian phylogenetic inference software [[https://github.com/beast-dev/beast-mcmc][BEAST]].
@@ -80,8 +80,6 @@ Spreads main responsibility is parsing and processing of BEAST output files:
 
 The information found in those files, combined with a geographical coordinates data (in the case of discretely annotated trees) is used to parse and represent the hierarchical tree structures as primitives (such as points or lines) on a map.
 These primitives will typically have associated geographical (latitide / longitude coordinates), temporal (timestamps) and various other meta-data associated with them.
-An exmaple of such a data-set (an MCC tree file with continuous annotations) can be found file:236_subG_PT_cauchy_geo.mcc.tre.
-
 Parsing step produces a JSON file with a following schema:
 
 #+begin_src plantuml :file json_schema.png
@@ -197,10 +195,15 @@ root.properties.layers.tree.lines.line -|> root.properties.lineAttributes.attrib
 #+RESULTS:
 [[file:json_schema.png]]
 
-An example of output generated from the program can be found here file:spread_data_example.json (it does not include the geoJSON layer which creates the map on which the estimates are displayed).
-A minimal subset of this data : file:spread_data_example_minimal.json .
-This subset contains a single branch joining two nodes and their corresponding meta-data (attributes).
+---
+*NOTE*
 
+An exmaple of a data-set that can be analyzed and visualised by Spread: [[https://github.com/fbielejec/SPREAD/blob/master/docs/236_subG_PT_cauchy_geo.mcc.tre][MCC tree file with continuous annotations]].
+The output generated from the program after parsing this data can be found [[https://github.com/fbielejec/SPREAD/blob/master/docs/spread_data_example.json][here]].
+For brevity it does not include the geoJSON layer which creates the map on which the estimates are displayed.
+A minimal subset of this data, containing a single branch joining two nodes and their corresponding meta-data (attributes) can be found [[https://github.com/fbielejec/SPREAD/blob/master/docs/spread_data_example_minimal.json][here]].
+
+---
 
 Such JSON file is than loaded into the program once again to produce a visualisation:
 
@@ -398,39 +401,68 @@ The exact infrastructure will most probably be coming form a cloud provider, wit
 * IN-PROGRESS Factors Influencing Technical Design
 # Instructions: This section describes the standards, assumptions, and constraints that influence the technical design of the proposed system.
 ** +Relevant Standards+
-** IN-PROGRESS Assumptions and Dependencies
+** DONE Assumptions and Dependencies
 # Instructions: Describe any assumptions or dependencies regarding the system and its use.
 
-Due to the specialized nature of the system, we do not expect the application to be subject to a significant network traffic.
-Nonetheless the size of the files and the associated meta-data used in the application can be quite significant, and the architecture needs to take into account that fact when uplaoding them in http requests.
+Due to the specialized nature of the system, we do not expect the application to be subject to a significant network traffic or needing to scale horizontally over time.
+Nonetheless the size of the files and the associated meta-data used in the application can be quite significant, and the architecture needs to take into account the requirement of uploading these large files in http requests as well as storing them over-time.
 
-The client part of the system, runing in the browser environment will most likely be viewed only on large screen sizes, which can influence the design.
+The client part of the system, runing in the browser environment will most likely be viewed only on large screen sizes, which can influence the UI/UX design, i.e. there is no requirement for displaying those on tablets or mobile devices.
 
-** IN-PROGRESS Constraints
+After the initial phase of development we expect the system to be complete and functional in a way that allows it to be used for at least next coupel of years without significant maintenance required, which is in line with how most scientific software is being used today.
+This means limiting the number of components making the system, using cloud providers and automation whenever possible.
+The system should be relatively low-cost over time, although because it enters the public domain and will be used solely for research, we can search for solution alleviating at least parts of the running costs (see [[https://aws.amazon.com/research-credits/][AWS Cloud Credits for Research]]).
 
-# Instructions: Describe any limitations or constraints that have a significant impact on the design of the system. Such constraints may be imposed by any of the following (the list is not exhaustive):
-#     • Hardware or software environment
-#     • End-user environment
-#     • Availability of resources
-#     • Interoperability requirements
-#     • Interface/protocol requirements
-#     • Data repository and distribution requirements
-#     • Other requirements described in the Requirements Document
+** DONE Constraints
 
 Chosing the server-client over a previous desktop based architecture lifts many of the constraints of the legacy system, previous mentioned in [[rationale][Goals, Objectives, and Rationale for New or Significantly Modified System]].
-The client part of the application will consist of static content running in the end-users browser environment, therefore simply needs to meet a standard set of requirements for a browser-based application and be inter-operable with modern browsers.
+The client part of the application will consist of static content running in the end-users browser environment, therefore simply needs to meet a standard set of requirements for a browser-based application and be inter-operable with modern browsers and typical hardware environment of a desktop or laptop PC.
+This part of the system will need to be written from the ground up and the works can be divided into two sub-parts:
+
+1. The interface responsible for parsing an analyzing the data.
+2. The visualization engine, responsible for the display of the analyzed data.
+
+There are no restrictions on the programming language or specific frameworks / libraries to build them although typically JavaScript and languages with JS as their compilation target are the natural choices when building Web-based user intefaces.
+Server part of the system should favour code re-use as much as it is practically possible, favouring languages with JVM as their runtime, interoperable with a Java 6 typ of codebase.
+This does not preclude a hybrid-codebase solution, as long as these requiremenets are met.
+
+The storage tier solution should be chosen to support storing and retrieving potentially large BEAST output files, as described by the [[previous_functional_desc][Functional description]] of the legacy system.
+The uploaded resources should remain availiable over-time and therefore the Object storage solution which presents high availiability is prefferable.
+The database tier should be well suited for querying both the user session management data, as well as the results of parsing and analyzing these files (see [[previous_tech_arch][Technical Architecture]] of the legacy system), which wil most likely remain object-based in the new system as well.
+Login and authorization process should be streamlined and favour usability rather than privacy.
+Allthough the system definitely doesn not need to maintain a high uptime and availiability, basic monitoring and error logging solution should be put in place, to facilitate bugfixing and post-mortems.
+
+** DONE Design Goals
+
+The technical design should be guided by these principles:
+
+- the storage solutions should minimize the long term running costs and be suitable for storing and efficiently querying object-based data
+- the server tier of the application should favour code re-use
+- interface should maintain minimal number of steps for obtaining a visualization.
+- the part of the interface which displays the visualizations should be customizable and interacitve, to support a vast amount of meta-data that these analysis can contain.
+
+* IN-PROGRESS Proposed System
+** IN-PROGRESS High-Level Operational Requirements and Characteristics
+# *** User Community Description
+# *** Non-Functional Requirements
+
+=Security and Privacy=
+
+# We do not consider the system to be storing any type of highly valuable
+# The system will be accessed via the Internet, with
 
 
-# TODO : querying the JSON
+# Instructions: Discuss the key security and privacy considerations that will influence the technical design. Questions to consider for this subsection include, but are not limited to:
+#     • Will the system store Personal Health Information or Personally Identifiable Information?
+#     • Will the system distribute information outside of CMS? If so, to what entities?
+#     • What are the user access requirements (e.g., Internet, Extranet)?
+#     • What are the business risks of this system from a security and privacy perspective?
+#     • What security and privacy rules must this system meet?
 
+=Availability=
 
+=Volume and Performance Expectations=
 
-
-** TODO Design Goals
-* TODO Proposed System
-* TODO High-Level Operational Requirements and Characteristics
-*** TODO User Community Description
-*** TODO Non-Functional Requirements
 ** TODO High-Level Architecture
 *** TODO Application Architecture
 *** TODO Information Architecture
