@@ -442,48 +442,148 @@ The technical design should be guided by these principles:
 - the part of the interface which displays the visualizations should be customizable and interacitve, to support a vast amount of meta-data that these analysis can contain.
 
 * IN-PROGRESS Proposed System
-** IN-PROGRESS High-Level Operational Requirements and Characteristics
+** DONE High-Level Operational Requirements and Characteristics
 # *** User Community Description
 # *** Non-Functional Requirements
 
+=User Community Description=
+We expect users to be coming from different geographical IP locations, and uses the systems in longer sessions, but spread out over large periods of time.
+We do not expect more than 20-30 users to be logged within the system concurrently.
+
 =Security and Privacy=
-
-# We do not consider the system to be storing any type of highly valuable
-# The system will be accessed via the Internet, with
-
-
-# Instructions: Discuss the key security and privacy considerations that will influence the technical design. Questions to consider for this subsection include, but are not limited to:
-#     • Will the system store Personal Health Information or Personally Identifiable Information?
-#     • Will the system distribute information outside of CMS? If so, to what entities?
-#     • What are the user access requirements (e.g., Internet, Extranet)?
-#     • What are the business risks of this system from a security and privacy perspective?
-#     • What security and privacy rules must this system meet?
+The system will be accessed via the Internet, and although we do not consider any of the stored data as highly critical, it should deploy measure protecting it from the most common vulnerabilities, as per secure coding guidelines such as the [[https://owasp.org/www-project-proactive-controls/][Open Web Application Security Project]] (OWASP) guidelines.
+Most of the data in the system will be accessed from the authorized user sessions, however as per requirements the visualizations will be distributed outside of the CMS to anyone holding a URL link.
 
 =Availability=
+The anticipated uptime for the service is 24/7, yet some downtime of up to due to maintainance or external circumstances is acceptable for the system.
+There are no strict requirements for how quickly should the system come back up after an outage, yet we can specify a 48H time window as the maximal accepted length of an outage.
 
 =Volume and Performance Expectations=
+We expect no more than 30 users transacting with the system at any given point in time, with the anticipated traffic spread out uniformly, without any expected peaks of processing in specific time periods.
+Average transaction size should be moderate, and limited to a single upload transmission, albeit of a potentially large data-file (see [[previous_functional_desc][Functional description]] of the legacy system).
 
-** TODO High-Level Architecture
-*** TODO Application Architecture
-*** TODO Information Architecture
-*** TODO Interface Architecture
-*** TODO Technology Architecture
+** DONE High-Level Architecture
 
-[[https://reactjs.org/][React]] or [[https://reagent-project.github.io/][Reagent]]
-[[https://docs.kepler.gl/docs/api-reference][Kepler]] or [[https://vega.github.io/vega-lite/examples/][Vega]]
+# Instructions: Provide a high-level overview of how system functionality will be allocated to logical subsystems or components. This section should not go into the detail that the SDD deliverable will cover later in the project. Rather, this section should identify the logical user groups, application components, data components, and interfacing systems. Illustrate the collaboration and interaction between the major components. Identify any relevant design patterns or reuse relevant to the design.
+# Insert diagram here.
+# In a table similar to the one below, identify the alternatives considered for the overall architecture. For example, discuss any decision making around building a brand new system versus enhancing an existing system. This alternatives discussion is intended to differentiate between the fundamental options for designing a technical solution. If more detailed alternatives analysis was completed for specific architectural layers, discuss those in one of the following subsections.
 
-*** TODO Security and Privacy Architecture
-* TODO Analysis of the Proposed System
-** TODO Impact Analysis
-*** TODO Operational Impacts
-*** TODO Organizational Impacts
-** TODO Risks
-** TODO Issues to Resolve
-** TODO Critical Success Factors for Remainder of Project
+#+begin_src plantuml :file components.png
+actor "user"
+
+package "public-subnet" {
+
+  package "user interface" {
+    [data upload and parsing]
+    [visualizations]
+  }
+
+}
+
+cloud {
+  [filestore S3] as S3
+}
+
+package "private-subnet" {
+
+  database "Database" {
+    [DB] as db
+  }
+
+  [API server] as API
+
+}
+
+user ..> [data upload and parsing] : https
+user <.. [visualizations] : https
+
+[data upload and parsing] -left-> S3 : file upload
+
+API <-- S3 : file read
+API <-> db : CRUD
+
+[data upload and parsing] <--> API : graphql
+[visualizations] --> API : graphql
+#+end_src
+#+RESULTS:
+[[file:components.png]]
+
+*** DONE Application Architecture
+
+| Component               | Description                                                                                          | Strategy                                                                                    | Alternatives                                                                                                      |
+|-------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------|
+| API server              | Application business logic + API endpoints                                                           | Spring Boot + Graphql webserver built around business logic, reuse parts of legacy codebase | Rewrite business logic (parsers) using a hybrid Clojure + Java codebase, use interop with Java whenever possible. |
+| Database                | User session data, parser settings, JSON based results for visualizations                            | Use DynamoDB NoSQL database                                                                 | PostgreSQL RDS with [[https://www.postgresql.org/docs/9.4/datatype-json.html][JSONB]] used for storing and querying JSON results                                              |
+| Filestore               | Store Input files                                                                                    | Amazon S3                                                                                   | Use IPFS, requires running and maintaing own node                                                                 |
+| Data upload and parsing | Web-based interfaces                                                                                 | [[https://reagent-project.github.io/][Reagent]] + reframe codebase                                                                  | _                                                                                                                 |
+| Visualizations          | Used to display the outputs on the map in geogroahical coordinatesm, interactive, animated over time | Use reactive library such as [[https://docs.kepler.gl/docs/api-reference][Kepler]]                                                         | [[https://vega.github.io/vega-lite/examples/][Vega]] library                                                                                                      |
+
+# *** TODO Information Architecture
+# *** TODO Interface Architecture
+*** DONE Technology Architecture <<tech_arch>>
+
+=System Hosting=
+System components will be hosted using Amazon Web Services.
+The API server along with the Databse component will be hosted on an EC2 instance within the private part of the cloud network, the user and visualization interface will be in a public exposed to the outside world via an Internet Gateway.
+Both the server and the user-facing interfaces will be deployed into the QA and PRODUCTION environments as docker images.
+
+=Modes of Operation=
+The system will need three environments, the DEV, QA and a PRODUCTION environment.
+The development environment will consist of a database, server and interface components running inside a docker containers deployed ot AWS EC2, and an S3 bucket provisioned on the AWS.
+The QA environment will be entirely provisioned on the AWS, and be an exact copy of the PRODUCTION environment.
+
+*** DONE Security and Privacy Architecture
+
+=Authentication=
+The system will use emails as a method of verifying user identity.
+No other user information will be stored.
+This approach simplifies authentication concerns and moves them to the email service provider.
+
+Users will simply provide their email addresses, after which an email with a single-use, 15-minute short-lived token will be sent to that address.
+An address in the email will bring the user back ti the application, and if the token can be verified user is issued a long-lived 60 day token which the client can save in the browser storage.
+Application will track the id field of these tokens.
+A [[https://jwt.io/][JWT]] tokens signed with a private key stored in the applications database will be sufficient to cover these use-cases.
+
+=Authorization=
+User will authorize to the service by including the issued tokens in the header of every request.
+
+* DONE Analysis of the Proposed System
+# ** Impact Analysis
+# *** Operational Impacts
+# *** Organizational Impacts
+# ** Risks
+# ** Issues to Resolve
+# ** Critical Success Factors for Remainder of Project
+
+=Issues to Resolve=
+We can name the following remaining open issues:
+
+- the choice of programming language for the implementation of the server component.
+The requirement of code re-use mandates a use of JVM-based language.
+Since the original codebas targetted Java 1.6, a web-server writen with the current Long-Term Support Version og the Java programming language and using an enterprise level framework such as [[https://spring.io/projects/spring-boot][Spring Boot]] seems like a natural choice.
+However we could also explore a possibility of developing the endpoints, persistance and other parts of the new system in a powerful general-purpose language [[https://clojure.org/][Clojure]], while re-using the old code-base with it's [[https://clojure.org/reference/java_interop][Java interop]].
+Clojure is particularly suited for web-based applications and rapid REPL-driven development.
+
+- the choice of the database technology
+The object-based nature of the output data produced by the system suggest a use of a noSQL, document-store database such as Amazon [[https://aws.amazon.com/dynamodb/][DynamoDB]].
+Since the [[tech_arch][System Hosting]] specifies AWS as a cloud provider, it is worth mentioning that this particular database ties natively into the rest of the infrastructure and provides a virtualy maintainence-free service.
+On the other hand it comes with a handfull of tradeoffs (DynamoDB: [[https://blog.yugabyte.com/11-things-you-wish-you-knew-before-starting-with-dynamodb/][strengths and weaknesses]]).
+
+# This particular data-base has some
+At the same time a relational database is much more suitable for storing other types of data, such as the user session state, parser settings per analysis and others and are a de-facto standard database for most applications, with different choices of database, and a wide support for all of them.
+A PostgreSQL database can be provisioned by the AWS, in the form of their [[https://aws.amazon.com/rds/][RDS]] service.
+Lately SQL databases have extended their support for storing and querying JSON based data, introducing a [[https://clojure.org/reference/java_interop][JSONB]] format for storing the data, which can make be leverage for this use-case.
+
+- the choice of the data query and manipulation language for the communication between the user interface and the server
+This issue ties to the first one.
+The development of the server codebase in the Java language makes using GraphQL as a natural choice, mainly due to the larger number of developer tools.
+Going the Clojure route, would make it possible to use am EQL query language implementation like [[https://github.com/wilkerlucio/pathom][Pathom]] possible on both the server and the client component of the system.
+Finally with Clojure at the backend it is possible to create a GraphQL API, yet implement a client which uses [[https://wilkerlucio.github.io/pathom/v2/pathom/2.2.0/graphql.html][Pathom GraphQL integration]] for querying it.
+
+=Critical Success Factors=
+Implementation of the visualization engine is definitely the sole factor defining the success of the system.
+The principle of de-risking would suggest tackling this problem early on and coming up with at least a working prototype of a solution.
+
 * Appendix A: Glossary
 - BEAST: software package for phylogenetic analysis with an emphasis on time-scaled trees.
-- phylodynamics:
-- phylogenetics
-- Bayesian inference
 - phylogenetic tree: directed, bifurcating graph depicting ancestral relationship.
-- MCMC
