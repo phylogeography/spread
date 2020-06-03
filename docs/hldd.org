@@ -7,16 +7,30 @@
 #+LANGUAGE: en
 #+STARTUP: overview
 
-* TODO Introduction
+* DONE Introduction
+
+Software package for visualizing phylogeographic reconstructions resulting from Bayesian inference of viral diffusion processes called SPREAD (Spatial Phylogenetic Reconstruction of Evolutionary Dynamics) has been first developed and published in 2011 (see [[https://academic.oup.com/bioinformatics/article/27/20/2910/202157][Bioinformatics]]) and since seen one major version upgrade in 2016 (see [[https://academic.oup.com/mbe/article/33/8/2167/2579258][Molecular Biology and Evolution]]).
+
+This particular program has proven to be quite popular, mainly due to the unprecedented quantity in which the viral data and accompanying meta-data is now availiable.
+Making sense of these data is virtually impossible without the proper context, i.e. projecting the findings in the geographic space.
+
+This document describes the proposed conceptual design of a system meant to replace the existing legacy software.
+It's target audience is the stakeholders, UI/UX designers and developers of the new system.
+This document provides a framework for a more detailed requirements and design activities in later phases of the project, and is subject to change.
+
 * DONE Current System
-# Instructions: If applicable, this section describes the current system that is being replaced, enhanced, or upgraded.
 Most recent version of Spread in use today is a classic desktop application, packaged and distributed as an executable Java JAR.
 The home tab of the user interface allows for parsing 4 distinct types of input.
 
 #+CAPTION: Tab for parsing discrete traits tree
-file:current_system1.png
+file:home_tab.png
 
+This software package is a part of larger group of related programs jointly knows as [[https://github.com/beast-dev/beast-mcmc][BEAST]].
+It provides visualization and summarizing capabilities by projecting the findings in geographical coordinates.
+
+# It produces outputs in
 A detailed tutorial, along with more screenshots is hosted [[https://rega.kuleuven.be/cev/ecv/software/SpreaD3_tutorial][here]].
+The details of algorithms and procedures for producing said projections can be found in the [[https://lirias.kuleuven.be/1956532?limo%3D0][Section 5.3 of Thesis]].
 
 ** DONE Functional Description <<previous_functional_desc>>
 [[https://rega.kuleuven.be/cev/ecv/software/SpreaD3][SpreaD3]] is an application to analyze and visualize pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes.
@@ -278,7 +292,7 @@ This file had to be than loaded into the program again to generate the visualiza
 This was driven by the idea that users might want to combine different data-sets, by merging these JSON files together.
 
 #+CAPTION: merging data in the previous version of SPREAD
-file:current_system1.png
+file:merge_tab.png
 
 In practice this turned out to be of marginal importance for the users.
 New system should simplify and streamline the process of obtaining a visualization, within a minimal number of steps needed.
@@ -395,12 +409,11 @@ Specifically the numerical methods and algorithms responsible for the parsing of
 User authentication and management, webserver endpoints for interacting with the application as well as Object and Relational storage will have to be developed.
 The visualization engine, responsible for displaying the analyzed data will also be developed anew, with a different set of technologies.
 
-The deployment environment will be changed from a desktop-based application to a server / client architecture.
+The deployment environment will be changed from a desktop-based application to a server - client architecture.
 The exact infrastructure will most probably be coming form a cloud provider, with instances of a Compute Cloud for hosting the server and the client server to the users browsers, RDS for Relational storage and S3 or similar solution used for the object storage.
 
-* IN-PROGRESS Factors Influencing Technical Design
+* DONE Factors Influencing Technical Design
 # Instructions: This section describes the standards, assumptions, and constraints that influence the technical design of the proposed system.
-** +Relevant Standards+
 ** DONE Assumptions and Dependencies
 # Instructions: Describe any assumptions or dependencies regarding the system and its use.
 
@@ -441,7 +454,7 @@ The technical design should be guided by these principles:
 - interface should maintain minimal number of steps for obtaining a visualization.
 - the part of the interface which displays the visualizations should be customizable and interacitve, to support a vast amount of meta-data that these analysis can contain.
 
-* IN-PROGRESS Proposed System
+* DONE Proposed System
 ** DONE High-Level Operational Requirements and Characteristics
 # *** User Community Description
 # *** Non-Functional Requirements
