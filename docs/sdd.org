@@ -27,7 +27,11 @@ package "user interface" {
 
 [API] as api
 
-[parsing and analysis] as business
+package "competing consumers" {
+  [worker-1] as w1
+  [worker-2] as w2
+  [worker-n] as wn
+}
 
 [Messaging Queue] as messaging
 
@@ -49,9 +53,14 @@ api <--> messaging
 
 api <-> db :CRUD
 
-messaging <--> business
+messaging <--> w1
+w1 <-- S3
 
-business <-- S3 : read input files
+messaging <--> w2
+w2 <-- S3
+
+messaging <--> wn
+wn <-- S3 : read input files
 
 #+end_src
 #+RESULTS:
