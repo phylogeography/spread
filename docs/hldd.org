@@ -17,7 +17,7 @@ SPREAD has been first developed and published in 2011 (see [[https://academic.ou
 This particular program has proven to be quite popular, mainly due to the unprecedented quantity in which the viral data and accompanying meta-data is now availiable.
 Making sense of these data is virtually impossible without the proper context, i.e. projecting the findings in the geographic space.
 
-We higlight the areas of improvement which mandate the development of this new system as well as a high-level overview of the proposed architecture and infrastructure.
+We higlight the areas of improvement which mandate the development of this new system and a provide high-level overview of the proposed architecture and infrastructure.
 
 * DONE Current System
 Most recent version of Spread in use today is a desktop application, packaged and distributed as an executable Java archive (JAR).
@@ -279,7 +279,7 @@ Below we higlight major shortcoming and ills plaguing the current version of Spr
 #+LATEX: \newline
 
 All previous versions of Spread were a classic GUI desktop applications, installed on a personal or work computers.
-yThey relied on the user Operating System to store, retrieve and analyze data.
+They relied on the user Operating System to store, retrieve and analyze data.
 Major shortcoming was the inability to easily retrieve and edit previous analyses, especially between different workstations.
 
 It also hindered the development, as the major prevalent Jave Runtime Environment (JRE) installed across desktop computers at that time was version 6, making it impossible to use modern features of the programming language.

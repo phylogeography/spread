@@ -1,0 +1,60 @@
+#+TITLE: Spread: Software Design Specification
+#+AUTHOR: F. Bielejec
+#+EMAIL: fbielejec@gmail.com
+#+TEXINFO_PRINTED_TITLE: Spread: Software Design Specification
+#+SUBTITLE: version {{{version}}}, {{{updated}}}
+#+OPTIONS: ':t toc:t author:t email:t
+#+LANGUAGE: en
+#+STARTUP: overview
+
+* TODO Introduction
+* TODO System Overview
+* TODO Design Considerations
+* TODO Assumptions and Dependencies
+* TODO Goals and Guidelines
+* TODO Architectural Strategies
+* IN-PROGRESS System Architecture
+
+#+CAPTION: High level diagram
+#+LABEL: fig:example-fig
+#+ATTR_LATEX: :placement [th]
+#+begin_src plantuml :file system_architecture.png
+
+package "user interface" {
+    [visualizations] as vis
+    [data upload and parsing] as interface
+}
+
+[API] as api
+
+[parsing and analysis] as business
+
+[Messaging Queue] as messaging
+
+cloud {
+  [filestore S3] as S3
+}
+
+database "Database" {
+  [DB] as db
+}
+
+interface <--> api : EQL communication
+
+interface -> S3 : upload input files
+
+vis <-- api : EQL
+
+api <--> messaging
+
+api <-> db :CRUD
+
+messaging <--> business
+
+business <-- S3 : read input files
+
+#+end_src
+#+RESULTS:
+[[file:system_architecture.png]]
+
+* TODO Detailed SubSystem Design
