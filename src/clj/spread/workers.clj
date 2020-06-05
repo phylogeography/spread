@@ -11,14 +11,10 @@
   (thread
     (messaging/create-listener queue-name
                                (fn [channel meta message-type body]
-
                                  (log/debug "worker received message" {:worker-id id
-                                                                       ;; :channel channel
-                                                                       ;; :meta meta
-                                                                       ;; :message-type message-type
                                                                        :body body})
-
-                                 ))))
+                                 (Thread/sleep (:sleep body))
+                                 (log/debug "Worker finished processing message" {:worker-id id})))))
 
 (defn stop [all-workers]
   (doall (for [worker all-workers]

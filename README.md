@@ -42,6 +42,8 @@ chmod +x linux-install-1.10.1.536.sh
 sudo ./linux-install-1.10.1.536.sh
 ```
 
+Invoke the `main` alias:
+
 ```bash
 clj -A:main
 ```
@@ -53,4 +55,30 @@ M+x cider-jack-in
 M+n spread.core
 C-c C-k
 (start)
+```
+
+## Interacting with the backend ##
+
+Put a message on a queue:
+
+```bash
+curl -X POST 127.0.0.1:3001/query
+```
+
+Get a shell to the running rabbitMQ instance:
+
+```bash
+docker exec -it rabbitmq /bin/bash
+```
+
+Once you have a shell you can see how many unprocessed messages are there on the queue:
+
+```bash
+rabbitmqadmin list queues messages
+```
+
+Read (and requeue) the first message in the queue:
+
+```bash
+rabbitmqadmin get queue=spread ackmode=ack_requeue_true
 ```
