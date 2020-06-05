@@ -1,0 +1,17 @@
+version: "3.5"
+services:
+
+  rabbitmq:
+    image: rabbitmq:3.8.4-management
+    container_name: rabbitmq
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - /home/$USER/rabbitmq-docker/data:/var/lib/rabbitmq/
+      - /home/$USER/rabbitmq-docker/logs:/var/log/rabbitmq/
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "secret_cookie"
+      # RABBITMQ_DEFAULT_USER: "guest"
+      # RABBITMQ_DEFAULT_PASS: "guest"
+    ports:
+      - 127.0.0.1:5672:5672
+      - 127.0.0.1:15672:15672
