@@ -52,15 +52,17 @@
                                                   :reply-code reply-code}))
 
 (defn open-channel
-  "Open a channel using the application unique broker connection
+  "Open a channel using the application unique broker connection or one provided.
   A return listener function can be provided for specific behavior in case of failure
 
   In most cases this should only be used to publish messages directly without using rpc
   Listeners should be created using the make-queue-listener function"
   ([]
-   (open-channel default-return-listener))
-  ([return-listener]
-   (doto (channel/open @*connection*)
+   (open-channel @*connection*))
+  ([conn]
+   (open-channel conn default-return-listener))
+  ([conn return-listener]
+   (doto (channel/open conn)
      (basic/add-return-listener return-listener)
      (confirm/select))))
 
@@ -126,11 +128,11 @@
   Handler is a function with following signature:
   fn [channel meta message-type body]
   Each listener opens it's own channel because channel instances must not be shared between threads"
-  ([queue handler]
-   (create-listener queue handler {}))
-  ([queue handler {:keys [return-listener no-ack? transient? qos] :as options :or {qos 10}}]
+  ([conn queue handler]
+   (create-listener conn queue handler {}))
+  ([conn queue handler {:keys [return-listener no-ack? transient? qos] :as options :or {qos 10}}]
    (assert (string? queue))
-   (let [channel (open-channel (or return-listener default-return-listener))]
+   (let [channel (open-channel conn (or return-listener default-return-listener))]
      (when qos
        (basic/qos channel qos))
      (let [queue (if transient?
