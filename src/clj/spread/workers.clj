@@ -14,7 +14,9 @@
                                  (log/debug "worker received message" {:worker-id id
                                                                        :body body})
                                  (Thread/sleep (:sleep body))
-                                 (log/debug "Worker finished processing message" {:worker-id id})))))
+                                 (log/debug "Worker finished processing message" {:worker-id id}))
+                               ;; tell broker to push no more messages before this one is acked
+                               {:qos 1})))
 
 (defn stop [all-workers]
   (doall (for [worker all-workers]
