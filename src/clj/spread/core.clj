@@ -14,7 +14,7 @@
                     #'messaging/messaging
                     #'workers/workers
                     #'config/config})
-   (mount/with-args {:config (or path "./config/config.dev.edn")})
+      (mount/with-args {:config (or path "./config/config.dev.edn")})
       (mount/start)
       (as-> $ (log/warn "Started" {:components $
                                    :config config/config}))))
