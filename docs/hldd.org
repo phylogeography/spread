@@ -744,3 +744,9 @@ Product release date.
 # | visualization engine deployed to QA environment |                  |                  |
 # | Production environment                          |                  |                  |
 # | Product Release                                 |                  |                  |
+
+* Appendix C: Intelectual Property and Licensing
+
+For any computer programs created in the course of implementing the designs specified in this document, the stakeholders are entitled to choose the software license that subsequently governs the copyrights and intellectual property of the software.
+
+In practice we encourage the use of a suitable Copyleft license, which allows the software authors to reproduce, adapt or distribute copies of the work, but the resulting copies will be bound to the certain permissive license agreements (usually the [[https://www.gnu.org/licenses/gpl-3.0.en.html][General Public License]] or the [[https://www.gnu.org/licenses/lgpl-3.0.en.html][Lesser General Public License]] if the softwar eor its sub-routines are to be incorporated into proprietary programs).
