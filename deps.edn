@@ -1,4 +1,4 @@
-{:paths ["src"]
+{:paths ["src/" "resources/"]
  :deps {;; CORE
         org.clojure/clojure {:mvn/version "1.10.1"}
         org.clojure/core.async {:mvn/version "1.2.603"}

@@ -8,10 +8,8 @@
 
 (defn start []
   (let [config (config/load)]
-    (-> (mount/only #{
-                      #'logging/logging
-                      #'server/server
-                      })
+    (-> (mount/only #{#'logging/logging
+                      #'server/server})
         (mount/with-args config)
         (mount/start)
         (as-> $ (log/warn "Started" {:components $

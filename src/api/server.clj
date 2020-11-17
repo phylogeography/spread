@@ -1,28 +1,37 @@
 (ns api.server
   (:require
-   [io.pedestal.http :as http]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
    [com.walmartlabs.lacinia.pedestal2 :as pedestal]
    [com.walmartlabs.lacinia.schema :as schema]
+   [com.walmartlabs.lacinia.util :as lacinia-util]
+   [io.pedestal.http :as http]
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]
    ))
 
-(def schema
-  (schema/compile
-   {:queries
-    {:hello
-     ;; String is quoted here; in EDN the quotation is not required
-     {:type 'String
-      :resolve (constantly "world")}}}))
+(defn load-schema []
+  (-> (io/resource "schema.edn")
+      slurp
+      edn/read-string))
+
+(defn resolver-map
+  []
+  {:query/game-by-id (fn [context args value]
+                       nil)})
 
 (defn stop [this]
-  (.stop this))
+  (http/stop this))
 
 (defn start [config]
   (let [{:keys [port] :as args} (:api config)
-        service (pedestal/default-service schema {:port (Integer/parseInt port)})
+        schema (load-schema)
+        compiled-schema (-> schema
+                            (lacinia-util/attach-resolvers (resolver-map))
+                            schema/compile)
+        service (pedestal/default-service compiled-schema {:port (Integer/parseInt port)})
         runnable-service (http/create-server service)]
-    (log/info "Starting server" args)
+    (log/info "Starting server" {:a args :r runnable-service})
     (http/start runnable-service)
     runnable-service))
 
