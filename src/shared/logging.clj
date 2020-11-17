@@ -1,9 +1,8 @@
-(ns spread.logging
+(ns shared.logging
   (:require [clojure.pprint :as pprint]
             [clojure.set :as set]
             [clojure.string :as string]
             [mount.core :as mount :refer [defstate]]
-            [spread.config :as config]
             [taoensso.timbre :as timbre]))
 
 (defn- logline [data]
@@ -53,15 +52,11 @@
   [data]
   (merge data (decode-vargs (:vargs data))))
 
-(defn start []
-  (let [{:keys [:level :console? :file] :as args} (:logging config/config)]
+(defn start [config]
+  (let [{:keys [level] :as args} (:logging config)]
     (timbre/merge-config!
      {:level (keyword level)
       :middleware [wrap-decode-vargs]
-      :appenders {:console (when console?
-                             (console-appender))
-                  ;; :file (when file
-                  ;;         (file-appender file))
-                  }})))
+      :appenders {:console (console-appender)}})))
 
-(defstate logging :start (start))
+(defstate logging :start (start (mount/args)))

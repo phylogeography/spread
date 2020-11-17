@@ -1,4 +1,4 @@
-# [SPREAD](https://github.com/fbielejec/SPREAD)
+# [SPREAD](https://github.com/fbielejec/SPREAD)[SPREAD](https://github.com/fbielejec/SPREAD)
 
 SPREAD is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes.
 
@@ -29,10 +29,11 @@ Start the containers:
 
 ```bash
 cd deployments/dev
+source ../../env/dev
 docker-compose -f docker-compose.yml up
 ```
 
-## Start the backend locally ##
+## Backend services
 
 Make sure you have clojure and clojure cli-tools installed locally:
 
@@ -42,43 +43,23 @@ chmod +x linux-install-1.10.1.536.sh
 sudo ./linux-install-1.10.1.536.sh
 ```
 
-Invoke the `main` alias:
+### API
+
+Invoke the `api` alias:
 
 ```bash
-clj -A:main
+clj -A:run-api
 ```
 
 If you're using [emacs](https://www.gnu.org/software/emacs/) and [cider](https://docs.cider.mx/cider/index.html) you can simply:
 
 ```
 M+x cider-jack-in
-M+n spread.core
+M+n api.main
 C-c C-k
 (start)
 ```
 
-## Interacting with the backend ##
+Graphiql IDE is than started at:
 
-Put a message on a queue:
-
-```bash
-curl -X POST 127.0.0.1:3001/query
-```
-
-Get a shell to the running rabbitMQ instance:
-
-```bash
-docker exec -it rabbitmq /bin/bash
-```
-
-Once you have a shell you can see how many unprocessed messages are there on the queue:
-
-```bash
-rabbitmqadmin list queues messages
-```
-
-Read (and requeue) the first message in the queue:
-
-```bash
-rabbitmqadmin get queue=spread ackmode=ack_requeue_true
-```
+http://127.0.0.1:3001/ide
