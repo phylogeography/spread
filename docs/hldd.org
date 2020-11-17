@@ -87,11 +87,11 @@ bssvs -down-> [SPREAD]
 [[file:functional.png]]
 
 When analyzing trees annotated with the discrete data SPREAD needs additional inputs in the form of delimited text-files matching discrete traits with the geographical coordinates, typicaly it also needs user-supplied map data in the form of [[https://geojson.org/][geoJSON]] files.
-The final visualisation comes in a form of an interactive map, with the data overlayed on top of it, where the user has control over various aspects of color coding, the attributes associated with each map component and color choices.
+The final visualisation comes in a form of an interactive map, with the data overlayed on top of it, where the user has control over various aspects of color coding, the attributes associated with each map component and various other components of the visualisation.
 
 ** DONE User Community Description
-Primary users of the Spread software are researchers in the fields of epidemiology, virology, phylogenetics and bioinformatics.
-The visualisations stemming frm SPREAD can be used to inform medical workers, health care officials, decision-makers etc.
+Primary users of the SPREAD software are researchers in the fields of epidemiology, virology, phylogenetics and bioinformatics.
+The visualisations stemming form SPREAD can be used to inform medical workers, health care officials, decision-makers etc.
 ** DONE Technical Architecture <<previous_tech_arch>>
 In this section we identify and describe the architecture of the current system.
 
@@ -223,7 +223,7 @@ root.properties.layers.tree.lines.line -|> root.properties.lineAttributes.attrib
 
 An example of a data-set that can be analyzed and visualised by Spread: [[https://github.com/fbielejec/SPREAD/blob/master/docs/236_subG_PT_cauchy_geo.mcc.tre][MCC tree file with continuous annotations]].
 The output generated from the program after parsing this data can be found [[https://github.com/fbielejec/SPREAD/blob/master/docs/spread_data_example.json][here]].
-For brevity it does not include the geoJSON layer which creates the map on which the estimates are displayed.
+For brevity it does not include the geoJSON layer, which creates the map for the displayed of the estimates.
 A minimal subset of this data, containing a single branch joining two nodes and their corresponding meta-data (attributes) can be found [[https://github.com/fbielejec/SPREAD/blob/master/docs/spread_data_example_minimal.json][here]].
 
 ---
@@ -266,19 +266,19 @@ The parsing engine and the graphical user-interface are both written in Java, wi
 
 * DONE Goals, Objectives, and Rationale for New or Significantly Modified System <<rationale>>
 
-The most-recent version Spread (SemVer 0.9.7) was released in year 2016.
-Since than it has attracted many users, and although individual downloads were not tracked, the joint number of citations with an earlier version of the software package is well over 600.
-This highlights a need for user-friendly tool for visual display of pathogen dispersal.
+The most-recent version of SPREAD (SemVer 0.9.7) was released in the year 2016.
+Since than it has attracted many users, and although individual downloads were not tracked, the joint number of citations with an even earlier version of the software package, released in 2011, is well over 600.
+This highlights a need for a user-friendly tool to visually display pathogen dispersal.
 
 At the same time not only is it a significant time-span for any software system to go without major maintenance, but a majority of the design and architecture was simply carried from the earlier version.
-Below we higlight major shortcoming and ills plaguing the current version of Spread.
+Below we higlight major shortcoming and ills plaguing the current version of SPREAD.
 #+LATEX: \newline
 
 #+LATEX: \noindent
 =Desktop Application=
 #+LATEX: \newline
 
-All previous versions of Spread were a classic GUI desktop applications, installed on a personal or work computers.
+All previous versions of SPREAD were a classic GUI desktop applications, installed on a personal or work computers.
 They relied on the user Operating System to store, retrieve and analyze data.
 Major shortcoming was the inability to easily retrieve and edit previous analyses, especially between different workstations.
 
@@ -288,19 +288,20 @@ In our opinion this necessitates a move to a classic server / client architectur
 #+LATEX: \newline
 
 #+LATEX: \noindent
-=Data Persistance=
+=Data Persistance= <<data_presistance>>
 #+LATEX: \newline
 
 This point ties to the previous one, yet due to it's importance it is discussed separately.
-As already mentioned desktop version of Spread relied solely on the end user to store the inputs, outputs and results of the analysis.
+As already mentioned desktop version of SPREAD relied solely on the end-user to store the inputs, outputs and the results.
 It made it also her responsibility to move the data between different workstation, and maintain the file structure to be revisited should he want to re-analyse the data.
-All of these concerns can be moved to the software itself with a use of Relational Database for storage.
+All of these concerns can be moved to the software itself, with the use of Relational or noSQL Database for storage.
 
-In the previous software versions the generated visualisations came in a form of a static website created in a singel directory on the end-users computer.
-The rendering step would simply bundle together the generated JSON data, the bundled JavaScript D3 [[https://github.com/phylogeography/d3-renderer][plotting scripts]] and the HTML entry-point.
-It made it user responsibility to create and host this website or view it locally, by opening the index page in the browser.
-In recent years many browsers stopped supporting accessing local data files, for security reasons. and users had to resort to using cumbersome command-line arguments to turn browsers unsafe features on.
-By creating a classic client-server architecture we can use object-based storage architectures such as [[https://aws.amazon.com/s3/][Amazon S3]] or [[https://ipfs.io/][IPFS]] for hosting created websites.
+In the previous versions the generated visualisations came in the form of a static website, created in a singel directory on the users computer.
+The rendering step would then simply bundle together the generated JSON data, the D3 based JavaScript [[https://github.com/phylogeography/d3-renderer][plotting scripts]] and the HTML entry-point.
+It made it the users responsibility to create and host this website or view it locally, by opening the index page in the browser.
+In the recent years many browsers stopped supporting accessing local data-files, for security reasons.
+The users, without technical know-how to serve the content via a web-server, have to resort to using cumbersome command-line arguments to turn the browsers unsafe features on.
+By creating a classic client-server architecture we can use object-based storage architectures such as [[https://aws.amazon.com/s3/][S3]] or [[https://ipfs.io/][IPFS]] for hosting created websites.
 #+LATEX: \newline
 
 #+LATEX: \noindent
@@ -308,15 +309,15 @@ By creating a classic client-server architecture we can use object-based storage
 #+LATEX: \newline
 
 One of the major user feedbacks was the inconvenience of the two-step analysis of the data.
-User would load the initial data, manipulate the settings and generate an internal representation in a form of a JSON file (see [[previous_tech_arch][Technical Architecture]]).
-This file had to be than loaded into the program again to generate the visualization, when in fact this step simply created a directory with the files bundled together.
-This was driven by the idea that users might want to combine different data-sets, by mergig these JSON files together.
+User would load the initial data, manipulate the settings and generate an internal representation in the form of a JSON file (see [[previous_tech_arch][Technical Architecture]]).
+This file had to be loaded into the program again to generate the visualization, when in fact this step simply created a directory with the files mentioned in [[data_presistance][data presistance]] bundled together.
+This was driven by the lack of persistance options other than the users file-system, as well as the idea that the users might want to combine different data-sets, by merging the results of multiple analysis together.
 
 #+CAPTION: Merging data in the previous version of SPREAD
 file:merge_tab.png
 
-In practice this turned out to be of marginal importance for the users.
-New system should simplify and streamline the process of obtaining a visualization, within a minimal number of steps needed.
+In practice this feature turned out to be of marginal importance for the users, instead burdening them with an extra step needed to obtain the results.
+New system should simplify and streamline the process of obtaining a visualization, within a minimal number of steps.
 #+LATEX: \newline
 
 #+LATEX: \noindent
@@ -339,8 +340,8 @@ Large parts of the codebase, providing the parsing and analysis capabilities can
 New system ought to provide a functional, user-friendly web-based tool that will serve as successor to the [[https://rega.kuleuven.be/cev/ecv/software/spread][SPREAD software]] to visualize Bayesian phylogeographic estimates.
 The tool should be able to load both discrete and continuous phylogeographic estimates produced by BEAST and interactively visualize them as projections on geographic maps, based on the annotated and user-provided information.
 
-It will replace the existing system and allevite all of the problems plaguing it, namely the data persistance problems, the usability issues and the problems with sharing of the produced visualisations.
-It will provide ways for users to manage, store and revisit their data and visualisations
+It will replace the existing system and alleviate all of the problems plaguing it, namely the data persistance problems, the usability issues and the problems with sharing of the produced visualisations.
+It will provide ways for users to manage, store and revisit their data and the results.
 
 ** DONE Proposed System
 # Instructions: Provide a succinct description of the proposed system. Sections 5 and 6 will describe the proposed system in more detail.
@@ -349,13 +350,12 @@ Here we outline the responsibilities and boundaries of the proposed system.
 #+LATEX: \newline
 
 #+LATEX: \noindent
-=Processed Inputs=
+=Processed Inputs= <<processed_inputs>>
 #+LATEX: \newline
-
 This version of Spread should be capable of processing the following inputs:
-- Summary tree files with discrete annotations
-- Summary tree files with continuous annotations
-- Files with distribution of trees with continuous trait annotations
+- Summary tree files with discrete annotations.
+- Summary tree files with continuous annotations.
+- Files with distribution of trees with continuous trait annotations.
 - Log files containing a posterior distribution of rate indicators from a Bayesian stochastic search variable selection procedure. \\
 
 #+LATEX: \noindent
@@ -364,8 +364,8 @@ This version of Spread should be capable of processing the following inputs:
 
 Another responsibility of the system is to maintains user sessions.
 Specifically software will handle
-- Email based (i.e. magic links) login and sign-on on multiple devices
-- Session and management (cookie based)
+- Email based (i.e. [[https://auth0.com/docs/connections/passwordless/guides/email-magic-link][magic links]]) login and sign-on across multiple devices.
+- Session management (cookie based).
 #+LATEX: \newline
 
 #+LATEX: \noindent
@@ -373,9 +373,9 @@ Specifically software will handle
 #+LATEX: \newline
 
 Data persistance for every user's account means storing:
-- BEAST input files per analysis
-- Settings used to parse those files
-- Resulting visualisations, with the ability to share them (through URLs)
+- BEAST input files per analysis.
+- Settings used to parse those files.
+- Resulting visualisations, with the ability to share them (through URLs).
 #+LATEX: \newline
 
 #+LATEX: \noindent
@@ -384,12 +384,12 @@ Data persistance for every user's account means storing:
 
 The end-product of the software will be the map-based interactive visualisations.
 They should maintain have the following features:
-- Interactive, with time based animation
-- Overlayed on maps
-- Zoom-in and zoom-out on the details
-- Interactive /detail-on-demand/: select and highlight taxa (based on string content) and locations
-- Ability to hide elements of visualisation: nodes, branches, polygons, map elements etc
-- Export to svg graphics
+- Interactive, with time based animation.
+- Overlayed on maps.
+- Zoom-in and zoom-out on the details.
+- Interactive /detail-on-demand/: select and highlight taxa (based on string content) and locations.
+- Ability to hide elements of visualisation: nodes, branches, polygons, map elements etc.
+- Export to svg graphics.
 
 *** DONE Business Processes Supported
 
@@ -424,17 +424,16 @@ They can generally be divided into a process of user login and authentication an
 *** DONE High-Level Functional Requirements
 
 General user-interface requirements:
-
-- A minimal number of steps to obtain a good quality visualization
-- Animated visualization of phylogenies projected on maps (with the ability to freeze and export)
-- The ability to select and highlight taxa (based on string content) and locations
-- Custom coloring and styling
-- The ability to zoom in on parts of the projection
-- Good export capabilities (vector-based graphics)
-- Ensure browser compatibility with popular browsers
-- The ability to retrieve and edit previous analyses
-- Sharing of analyses through URLs
-- User authentication and management
+- A minimal number of steps to obtain a good quality visualization.
+- Animated visualization of phylogenies projected on maps (with the ability to freeze and export).
+- The ability to select and highlight taxa (based on string content) and locations.
+- Custom coloring and styling.
+- The ability to zoom in on parts of the projection.
+- Good export capabilities (vector-based graphics).
+- Ensure browser compatibility with popular browsers.
+- The ability to retrieve and edit previous analyses.
+- Sharing of analyses through URLs.
+- User authentication and management.
 
 *** DONE Summary of Changes
 # Instructions: If changing an existing system, briefly summarize the changes that this project will make to the system (e.g., functionality changes, technology changes, environment changes.
@@ -460,11 +459,15 @@ The exact infrastructure will most probably be coming form a cloud provider, wit
 Due to the specialized nature of the system, we do not expect the application to be subject to a significant network traffic or needing to scale horizontally over time.
 Nonetheless the size of the files and the associated meta-data used in the application can be quite significant, and the architecture needs to take into account the requirement of uploading these large files in http requests as well as storing them over-time.
 
+Another factor is that the various possible analysis, especially the analysis requiring parsing a tree-distribution file (see [[processed_inputs][processed inputs]]) can be CPU-intensive.
+In a system with multiple concurrent users, this mandates a use of a queuing system, such that the quality-of-service is maintained, and the users don't compete for the limited server resources.
+
 The client part of the system, runing in the browser environment will most likely be viewed only on large screen sizes, which can influence the UI/UX design, i.e. there is no requirement for displaying those on tablets or mobile devices.
 
-After the initial phase of development we expect the system to be complete and functional in a way that allows it to be used for at least next coupel of years without significant maintenance required, which is in line with how most scientific software is being used today.
+After the initial phase of development we expect the system to be complete and functional in a way that allows it to be used for at least next couple of years without significant maintenance required, which is in line with how most scientific software is being used today.
 This means limiting the number of components making the system, using cloud providers and automation whenever possible.
-The system should be relatively low-cost over time, although because it enters the public domain and will be used solely for research, we can search for solution alleviating at least parts of the running costs (see [[https://aws.amazon.com/research-credits/][AWS Cloud Credits for Research]]).
+The system should be relatively low-cost over time, although because it enters the public domain and will be used solely for research, we can search for solution alleviating at least parts of the running costs.
+ # (see [[https://aws.amazon.com/research-credits/][AWS Cloud Credits for Research]]).
 
 ** DONE Constraints
 
@@ -476,13 +479,13 @@ This part of the system will need to be written from the ground up and the works
 2. The visualization engine, responsible for the display of the analyzed data.
 
 There are no restrictions on the programming language or specific frameworks / libraries to build them although typically JavaScript and languages with JS as their compilation target are the natural choices when building Web-based user intefaces.
-Server part of the system should favour code re-use as much as it is practically possible, favouring languages with JVM as their runtime, interoperable with a Java 6 typ of codebase.
-This does not preclude a hybrid-codebase solution, as long as these requiremenets are met.
+Server part of the system should favour code re-use as much as it is practically possible, favouring languages with JVM as their runtime, interoperable with the Java 1.6 codebase of the previous release of SPREAD.
+This does not preclude a hybrid-codebase solution, as long as these requirements are met.
 
 The storage tier solution should be chosen to support storing and retrieving potentially large BEAST output files, as described by the [[previous_functional_desc][Functional description]] of the legacy system.
-The uploaded resources should remain availiable over-time and therefore the Object storage solution which presents high availiability is prefferable.
-The database tier should be well suited for querying both the user session management data, as well as the results of parsing and analyzing these files (see [[previous_tech_arch][Technical Architecture]] of the legacy system), which wil most likely remain object-based in the new system as well.
-Login and authorization process should be streamlined and favour usability rather than privacy.
+The uploaded resources should remain availiable over-time and therefore the Object Storage solution which presents high availiability is prefferable.
+The database tier should be well suited for querying both the user session management data, as well as the results of parsing and analyzing these files (see [[previous_tech_arch][Technical Architecture]] of the legacy system), which will most likely remain object-based in the new system as well.
+Login and authorization process should be streamlined and favour usability and quick access.
 Allthough the system definitely doesn not need to maintain a high uptime and availiability, basic monitoring and error logging solution should be put in place, to facilitate bugfixing and post-mortems.
 
 ** DONE Design Goals
@@ -492,7 +495,7 @@ The technical design should be guided by these principles:
 - The storage solutions should minimize the long term running costs and be suitable for storing and efficiently querying object-based data.
 - The server tier of the application should favour code re-use.
 - Interface should maintain minimal number of steps for obtaining a visualization.
-- The part of the interface which displays the visualizations should be customizable and interacitve, to support a vast amount of meta-data that these analysis can contain.
+- The part of the interface which displays the visualizations should be customizable and interactive, to support a vast amount of meta-data that these analysis can contain.
 
 * DONE Proposed System
 ** DONE High-Level Operational Requirements and Characteristics
@@ -503,15 +506,15 @@ The technical design should be guided by these principles:
 =User Community Description=
 #+LATEX: \newline
 
-We expect users to be coming from different geographical IP locations, and uses the systems in longer sessions, but spread out over large periods of time.
-We do not expect more than 20-30 users to be logged within the system concurrently.
+We expect users to be coming from different geographical IP locations, and use the systems in longer sessions, but spread out over large periods of time, meaning that the system will remain idle for longer periods of time with a spikes of usage, however
+we do not expect more than 20-30 users to be logged within the system concurrently.
 #+LATEX: \newline
 
 #+LATEX: \noindent
 =Security and Privacy=
 #+LATEX: \newline
 
-The system will be accessed via the Internet, and although we do not consider any of the stored data as highly critical, it should deploy measure protecting it from the most common vulnerabilities, as per secure coding guidelines such as the [[https://owasp.org/www-project-proactive-controls/][Open Web Application Security Project]] (OWASP) guidelines.
+The system will be accessed over the Internet, and although we do not consider any of the stored data as highly critical, it should deploy measure protecting it from the most common vulnerabilities, as per secure coding guidelines such as the [[https://owasp.org/www-project-proactive-controls/][Open Web Application Security Project]] (OWASP) guidelines.
 Most of the data in the system will be accessed from the authorized user sessions, however as per requirements the visualizations will be distributed outside of the CMS to anyone holding a URL link.
 #+LATEX: \newline
 
@@ -519,15 +522,16 @@ Most of the data in the system will be accessed from the authorized user session
 =Availability=
 #+LATEX: \newline
 
-The anticipated uptime for the service is 24/7, yet some downtime of up to due to maintainance or external circumstances is acceptable for the system.
-There are no strict requirements for how quickly should the system come back up after an outage, yet we can specify a 48H time window as the maximal accepted length of an outage.
+The anticipated uptime for the service is 24/7, yet some downtime due to maintainance or external circumstances is acceptable.
+There are no strict requirements for how quickly should the system come back up after an outage, yet we can specify a 48H time window as the maximal accepted length of such an outage.
 #+LATEX: \newline
 
 #+LATEX: \noindent
 =Volume and Performance Expectations=
 #+LATEX: \newline
 
-We expect no more than 30 users transacting with the system at any given point in time, with the anticipated traffic spread out uniformly, without any expected peaks of processing in specific time periods.
+We expect no more than 30 users transacting with the system at any given point in time, with the anticipated traffic spread out uniformly.
+We can anticipate some expected peaks of usage during e.g. hosted workshops.
 Average transaction size should be moderate, and limited to a single upload transmission, albeit of a potentially large data-file (see [[previous_functional_desc][Functional description]] of the legacy system).
 
 ** DONE High-Level Architecture
@@ -545,7 +549,7 @@ package "public-subnet" {
 }
 
 cloud {
-  [filestore S3] as S3
+  [filestore] as S3
 }
 
 package "private-subnet" {
@@ -583,9 +587,9 @@ API <-> db : CRUD
 |-------------------------+--------------------------------------------------------------+---------------------------------+----------------------------------------------------------------------|
 | API server              | Business logic + API endpoints                               | Spring Boot + Graphql webserver | Hybrid Clojure + Java codebase                                       |
 | Database                | User session data, parser settings, JSON results             | Use DynamoDB NoSQL database     | PostgreSQL RDS with [[https://www.postgresql.org/docs/9.4/datatype-json.html][JSONB]] used for storing and querying JSON results |
-| Filestore               | Store Input files                                            | Amazon S3                       | Use IPFS, requires running and maintaing own node                    |
+| Filestore               | Store Input files                                            | Object Storage solution         | Use IPFS (requires running and maintaing own node)                   |
 | Data upload and parsing | Web-based interfaces                                         | [[https://reagent-project.github.io/][Reagent]] + reframe codebase      | _                                                                    |
-| Visualizations          | Interactive display of results in a geographical coordinates  | Reactive library such as [[https://docs.kepler.gl/docs/api-reference][Kepler]] | [[https://vega.github.io/vega-lite/examples/][Vega]] library                                                         |
+| Visualizations          | Interactive display of results in a geographical coordinates | Reactive library such as [[https://docs.kepler.gl/docs/api-reference][Kepler]] | [[https://vega.github.io/vega-lite/examples/][Vega]] library                                                         |
 
 # *** TODO Information Architecture
 # *** TODO Interface Architecture
@@ -595,9 +599,10 @@ API <-> db : CRUD
 =System Hosting=
 #+LATEX: \newline
 
-System components will be hosted using Amazon Web Services.
-The API server along with the Databse component will be hosted on an EC2 instance within the private part of the cloud network, the user and visualization interface will be in a public exposed to the outside world via an Internet Gateway.
-Both the server and the user-facing interfaces will be deployed into the QA and PRODUCTION environments as docker images.
+System components will be ideally be hosted in a cloud-provider data-center (such as [[https://aws.amazon.com/][Amazon Web Services]] or [[https://www.exoscale.com/][exoscale]]).
+The API server along with the Database component will be hosted on server instances within the private part of the cloud network, the user and visualization interfaces will be in a public part, exposed to the outside world via an Internet Gateway and having with a provate IPv4 address resolved with a DNS entry.
+
+Both the server and the user-facing interfaces will be deployed into the QA and PRODUCTION environments as virtualized images such as [[https://www.docker.com/][docker]].
 #+LATEX: \newline
 
 #+LATEX: \noindent
@@ -605,8 +610,8 @@ Both the server and the user-facing interfaces will be deployed into the QA and 
 #+LATEX: \newline
 
 The system will need three environments, the DEV, QA and a PRODUCTION environment.
-The development environment will consist of a database, server and interface components running inside a docker containers deployed ot AWS EC2, and an S3 bucket provisioned on the AWS.
-The QA environment will be entirely provisioned on the AWS, and be an exact copy of the PRODUCTION environment.
+The development environment will consist of a database, server and interface components running inside a virtualized containers deployed to the cloud servers, and a provisioned Object Storage bucket.
+The QA environment will be entirely provisioned, and be an exact copy of the PRODUCTION environment.
 
 *** DONE Security and Privacy Architecture
 
@@ -616,10 +621,10 @@ The QA environment will be entirely provisioned on the AWS, and be an exact copy
 
 The system will use emails as a method of verifying user identity.
 No other user information will be stored.
-This approach simplifies authentication concerns and moves them to the email service provider.
+This approach simplifies user-authentication concerns and moves them to the email service provider.
 
-Users will simply provide their email addresses, after which an email with a single-use, 15-minute short-lived token will be sent to that address.
-An address in the email will bring the user back ti the application, and if the token can be verified user is issued a long-lived 60 day token which the client can save in the browser storage.
+Users will provide their email addresses, after which an email with a single-use, short-lived token will be sent to that address.
+An address in the email will bring the user back to the application with that token, and if it can be verified the users identity is confirmed and she is issued a long-lived multi-use token, which the client can save in the browser storage.
 Application will track the id field of these tokens.
 A [[https://jwt.io/][JWT]] tokens signed with a private key stored in the applications database will be sufficient to cover these use-cases.
 #+LATEX: \newline
@@ -629,7 +634,7 @@ A [[https://jwt.io/][JWT]] tokens signed with a private key stored in the applic
 #+LATEX: \newline
 
 User will authorize to the service by including the issued tokens in the header of every request.
-
+This passwordless mechanism is build upon the so-called [[https://auth0.com/docs/connections/passwordless/guides/email-magic-link][magic links]].
 * DONE Analysis of the Proposed System
 # ** Impact Analysis
 # *** Operational Impacts
@@ -654,29 +659,94 @@ However we could also explore a possibility of developing the endpoints, persist
 Clojure is particularly suited for web-based applications and rapid REPL-driven development.
 
 - *The choice of the database technology*
-The object-based nature of the output data produced by the system suggest a use of a noSQL, document-store database such as Amazon [[https://aws.amazon.com/dynamodb/][DynamoDB]].
-Since the [[tech_arch][System Hosting]] specifies AWS as a cloud provider, it is worth mentioning that this particular database ties natively into the rest of the infrastructure and provides a virtualy maintainence-free service.
-On the other hand it comes with a handfull of tradeoffs (DynamoDB: [[https://blog.yugabyte.com/11-things-you-wish-you-knew-before-starting-with-dynamodb/][strengths and weaknesses]]).
+The object-based nature of the output data produced by the system suggest a use of a noSQL, document-store database such as the [[https://aws.amazon.com/dynamodb/][DynamoDB]], [[https://www.mongodb.com/][MongoDB]] or [[https://couchdb.apache.org/][Apache CouchDB]].
+# Since the [[tech_arch][System Hosting]] specifies AWS as a cloud provider, it is worth mentioning that this particular database ties natively into the rest of the infrastructure and provides a virtualy maintainence-free service.
+On the other hand these types of storage comes with a handfull of tradeoffs (see DynamoDB: [[https://blog.yugabyte.com/11-things-you-wish-you-knew-before-starting-with-dynamodb/][strengths and weaknesses]]).
 
 # This particular data-base has some
-At the same time a relational database is much more suitable for storing other types of data, such as the user session state, parser settings per analysis and others and are a de-facto standard database for most applications, with different choices of database, and a wide support for all of them.
-A PostgreSQL database can be provisioned by the AWS, in the form of their [[https://aws.amazon.com/rds/][RDS]] service.
-Lately SQL databases have extended their support for storing and querying JSON based data, introducing a [[https://clojure.org/reference/java_interop][JSONB]] format for storing the data, which can make be leverage for this use-case.
+At the same time a relational database is much more suitable for storing other types of data, such as the user session state, parser settings per analysis and others, and are a de-facto standard database for most most web applications.
+# , with different choices of database, and a wide support for all of them.
+# A [[https://www.postgresql.org/][PostgreSQL]] database can be provisioned by the AWS, in the form of their [[https://aws.amazon.com/rds/][RDS]] service.
+Lately SQL databases have extended their support for storing and querying JSON based data, introducing a [[https://clojure.org/reference/java_interop][JSONB]] format for storing the data, which can be leveraged for this use-case.
 
 - *The choice of the data query and manipulation language for the communication between the user interface and the server*
 This issue ties to the first one.
-The development of the server codebase in the Java language makes using GraphQL as a natural choice, mainly due to the larger number of developer tools.
-Going the Clojure route, would make it possible to use am EQL query language implementation like [[https://github.com/wilkerlucio/pathom][Pathom]] possible on both the server and the client component of the system.
-Finally with Clojure at the backend it is possible to create a GraphQL API, yet implement a client which uses [[https://wilkerlucio.github.io/pathom/v2/pathom/2.2.0/graphql.html][Pathom GraphQL integration]] for querying it.
+The development of the server codebase in the Java language makes using GraphQL as a natural choice, mainly due to the larger number of availiable developer tools.
+Going the Clojure route, would make it possible to use an EQL query language implementation, like [[https://github.com/wilkerlucio/pathom][Pathom,]] on both the server and the client components of the system.
+Finally with Clojure at the backend it is possible to create a GraphQL API, yet implement a client which uses teh [[https://wilkerlucio.github.io/pathom/v2/pathom/2.2.0/graphql.html][Pathom GraphQL integration]] for querying it.
 #+LATEX: \newline
 
 #+LATEX: \noindent
 =Critical Success Factors=
 #+LATEX: \newline
 
-Implementation of the visualization engine is definitely the sole factor defining the success of the system.
+Implementation of the visualization engine is definitely one of the core factors defining the success of the system.
 The principle of de-risking would suggest tackling this problem early on, and coming up with at least a working prototype of a solution.
 
 * Appendix A: Glossary
 - BEAST: software package for phylogenetic analysis with an emphasis on time-scaled trees.
 - phylogenetic tree: directed, bifurcating graph depicting ancestral relationship.
+* Appendix B: Expected timeline
+
+The expected start date of the project is <2020-07-01 Wed>.
+The projected time from the design to implementation is 12 months.
+Below we specify expected deliverables on monthly basis.
+
+** =July=
+We start collecting requirements and model the software architecture.
+This should results in a software design document (SDD) as a deliverable for both the backend and teh user-facing components of the system.
+** =August=
+We expect to have the majority of the backend software architecture designed and specified.
+The development of the backend can take off.
+The deliverable should come in a form of a working basic backend architecture, with the components stubbed but not yet fully implemented.
+** =September=
+We hope to start implementing the API architecture.
+The deliverable is a complete API schema and stubbed API endpoints.
+** =October=
+We expect at this point to start working on the storage solutions, in the form of both the database and the Object Storage.
+** =November=
+We can start integrating the business processes.
+This part will mostly re-use parts of the legacy code-base, called from the API endpoints.
+** =December=
+Session management and security will be implemented in this month.
+** =January=
+We hope the design process takes place during this month.
+We don't expect to implement a lot of designs this first month, rather work closely with the UI/UX designer on the set of complete wireframes.
+** =February=
+The front-end development can take off, starting with the user-interfaces.
+** =April=
+We expect to have the majority of user interfaces complete and start working on the visualization engine.
+** =May=
+We reserve this month on solving possible problems with the visualization engine, which is the largest unknown in the system implemenation.
+The backend might see some changes, expecially to the db modelling, covering much of this months work.
+** =June=
+We expect to have a working system implementation deployed to a QA environment.
+Mid-month we create and deploy a Production environment, at first in a form of private beta release.
+** =July=
+Product release date.
+
+# | Deliverable                                     | start time       | end time         |
+# |-------------------------------------------------+------------------+------------------|
+# | software design document                        | <2020-07-01 Wed> | <2020-07-15 Wed> |
+# | backend architecture                            | <2020-07-16 Thu> | <2020-08-03 Mon> |
+# | queuing implementation                          | <2020-08-03 Mon> | <2020-08-17 Mon> |
+# | API architecture                                | <2020-08-17 Mon> | <2020-09-16 Wed> |
+# | data storage and object storage                 |                  |                  |
+# | user authentification and management            |                  |                  |
+# | business logic implementation                   |                  |                  |
+# | working backend solution                        |                  |                  |
+# | working QA environment                          |                  |                  |
+# | user interface and visualization designs        |                  |                  |
+# | user interface architecture                     |                  |                  |
+# | visualization engine architecture               |                  |                  |
+# | working user interface                          |                  |                  |
+# | user interfaces deployed to QA environment      |                  |                  |
+# | visualization engine deployed to QA environment |                  |                  |
+# | Production environment                          |                  |                  |
+# | Product Release                                 |                  |                  |
+
+* Appendix C: Intelectual Property and Licensing
+
+For any computer programs created in the course of implementing the designs specified in this document, the stakeholders are entitled to choose the software license that subsequently governs the copyrights and intellectual property of the software.
+
+In practice we encourage the use of a suitable Copyleft license, which allows the software authors to reproduce, adapt or distribute copies of the work, but the resulting copies will be bound to the certain permissive license agreements (usually the [[https://www.gnu.org/licenses/gpl-3.0.en.html][General Public License]] or the [[https://www.gnu.org/licenses/lgpl-3.0.en.html][Lesser General Public License]] if the softwar eor its sub-routines are to be incorporated into proprietary programs).
