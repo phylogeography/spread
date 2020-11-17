@@ -10,15 +10,28 @@
    [taoensso.timbre :as log]
    ))
 
+(defn get_parser_execution
+  [_ {:keys [id] :as args} _]
+  (log/debug "get_parser_execution" {:a args})
+  {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
+   :status :SUCCEEDED
+   :output "s3://spread-dev-uploads/4d07edcf-4b4b-4190-8cea-38daece8d4aa"})
+
+;; TODO : publish worker message
+(defn start_parser_execution
+  [context args value]
+  (log/debug "start_parser_execution" {:a args})
+  {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
+   :status :RUNNING})
+
 (defn load-schema []
   (-> (io/resource "schema.edn")
       slurp
       edn/read-string))
 
-(defn resolver-map
-  []
-  {:query/game-by-id (fn [context args value]
-                       nil)})
+(defn resolver-map []
+  {:query/get_parser_execution get_parser_execution
+   :mutation/start_parser_execution start_parser_execution})
 
 (defn stop [this]
   (http/stop this))
