@@ -12,3 +12,4 @@ spread_data_simple_example.json
 *.log
 *.out
 *.toc
+.minio.sys

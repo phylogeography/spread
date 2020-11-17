@@ -1,0 +1,10 @@
+export SPREAD_ENV="dev"
+export LOGGING_LEVEL="debug"
+
+export AWS_REGION="spread-dev-1"
+export S3_ENDPOINT="http://127.0.0.1:9000"
+export AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
+export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+export AWS_BUCKET_NAME="spread-dev-uploads"
+
+export WORKERS_QUEUE_URL="http://localhost:9324/queue/workers"
