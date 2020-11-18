@@ -26,9 +26,4 @@
      ;;      :password  (get-env-variable "DB_PASSWORD" :required)
      ;;      :host (get-env-variable "DB_HOST" :required)}
 
-     ;; :flow-storm (when (get-env-variable "FLOW_STORM")
-     ;;               {:host "localhost" :port 7722})
-
-
-
      }))

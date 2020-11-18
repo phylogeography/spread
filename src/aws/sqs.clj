@@ -1,4 +1,4 @@
-(ns api.aws.sqs
+(ns aws.sqs
   (:require [cognitect.aws.client.api :as aws]
             [cognitect.aws.credentials :as credentials]
             [shared.utils :refer [decode-transit encode-transit]]
@@ -23,8 +23,10 @@
                 ;; if we are in testing lets smash a real region
                 ;; the aws/invoke fails with "No region found by any region provider."
                 ;; if we don't provide a real one.
-                sqs-host (assoc :region "us-east-1")
-                )))
+                sqs-host (assoc :region "us-east-1"))))
+
+(defn stop-client [client]
+  (aws/stop client))
 
 (defn send-message
 

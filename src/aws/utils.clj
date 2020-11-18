@@ -1,4 +1,4 @@
-(ns api.aws.utils)
+(ns aws.utils)
 
 (defn throw-on-error
   "Checks aws/invoke response, if it contains a error, throw
