@@ -8,16 +8,11 @@
 
 ;; (defonce control-ch (async/chan))
 
-;; TODO : invoke parser, process message body
+;; TODO : invoke java parser, process message body
 (defn handle-message [body]
   (log/info "Handling message" {:msg body} )
   (Thread/sleep (or (:sleep body) 3000)) ;; long process
   )
-
-;; TODO : implement
-(defn stop [this]
-  (log/debug "@@@ stop" {:t this})
-  (close! this))
 
 (defn start [config]
   (let [{:keys [aws]} config
@@ -38,5 +33,4 @@
            (recur)))))
 
 (defstate listener
-  :start (start (mount/args))
-  :stop (stop listener))
+  :start (start (mount/args)))
