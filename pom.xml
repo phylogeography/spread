@@ -11,10 +11,22 @@
   <description>Spread parsers library</description>
   <packaging>jar</packaging>
 
+  <properties>
+    <!-- <java.version>1.8</java.version> -->
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+    <jebl.version>2.0</jebl.version>
+  </properties>
+
   <dependencies>
 
-  </dependencies>
+    <dependency>
+      <groupId>jebl</groupId>
+      <artifactId>jebl</artifactId>
+      <version>${jebl.version}</version>
+    </dependency>
 
+  </dependencies>
 
   <build>
     <plugins>
@@ -26,11 +38,21 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>2.5</version>
+        <version>3.1.0</version>
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
     </plugins>
   </build>
+
+  <repositories>
+
+    <repository>
+      <id>jebl</id>
+      <url>https://www.stat.ubc.ca/~bouchard/maven/</url>
+    </repository>
+
+  </repositories>
+
 </project>

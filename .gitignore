@@ -1,16 +1,29 @@
-*.pdf
+## -- ORG
+*.aux
+*.doc
 *.docx
 *.docx#
-*.doc
-*.tex
-*.tar.gz
-test.json
-spread_data_simple_example.json
-.cpcache/
-.nrepl-port
-*.aux
 *.log
 *.out
+*.pdf
+*.tex
 *.toc
+
+## -- EMACS
+.cpcache/
+.nrepl-port
+
+## -- DOCKER
 .minio.sys
+
+## -- JAVA
 target/
+.settings/
+.classpath
+.project
+
+
+## TEST / DEV
+test.json
+spread_data_simple_example.json
+*.tar.gz
