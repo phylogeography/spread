@@ -1,7 +1,7 @@
 {:enums
  {:Parser {:description "Parser types."
            :values [:CONTINUOUS_TREE :DISCRETE_TREE :BSSVS_LOG :CONTINUOUS_TREE_DISTRIBUTION]}
-  :ParserStatus {:values [:QUERIED :RUNNING :SUCCEEDED :ERROR]}}
+  :ParserStatus {:values [:QUEUED :RUNNING :SUCCEEDED :ERROR]}}
 
  :objects
  {:ParserResult {:description "A result of a parser."

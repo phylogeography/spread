@@ -13,3 +13,4 @@ spread_data_simple_example.json
 *.out
 *.toc
 .minio.sys
+target/

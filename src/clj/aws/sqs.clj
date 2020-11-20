@@ -39,8 +39,8 @@
 
   [sqs queue msg-body]
   (-> (aws/invoke sqs {:op :SendMessage
-                    :request {:QueueUrl queue
-                              :MessageBody (encode-transit msg-body)}})
+                       :request {:QueueUrl queue
+                                 :MessageBody (encode-transit msg-body)}})
       (throw-on-error {:api :sqs :fn ::send-message})))
 
 (defn get-next-message

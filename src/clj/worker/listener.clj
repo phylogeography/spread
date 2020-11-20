@@ -3,7 +3,8 @@
    [aws.sqs :as aws-sqs]
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]
-   ))
+   )
+  (:import (io.nodrama ContinuousTreeParser)) )
 
 ;; TODO : invoke java parser, process message body
 (defn handle-message [body]
@@ -11,15 +12,18 @@
   (Thread/sleep (or (:sleep body) 3000)) ;; long process
   )
 
-(defn start [config]
-  (let [{:keys [aws]} config
-        {:keys [workers-queue-url]} aws
-        sqs (aws-sqs/create-client aws)]
-    (log/info "Starting worker listener")
+(defn start [{:keys [aws] :as config}]
+  (let [{:keys [workers-queue-url]} aws
+        sqs (aws-sqs/create-client aws)
+        parser (new ContinuousTreeParser)]
+    (log/info "Starting worker listener" {:class parser})
+
+    (.parseTree parser)
+
     (loop []
       (try
         ;; If the queue is empty, wait for 2 seconds and poll again
-        (log/debug "Polling...")
+        ;; (log/debug "Polling...")
         (if-let [{:keys [body receipt-handle]} (aws-sqs/get-next-message sqs workers-queue-url)]
           (do
             (handle-message body)

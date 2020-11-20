@@ -1,4 +1,4 @@
-{:paths ["src/" "resources/"]
+{:paths ["src/clj" "resources/"]
  :deps {;; CORE
         org.clojure/clojure {:mvn/version "1.10.1"}
         org.clojure/core.async {:mvn/version "1.2.603"}
@@ -24,7 +24,8 @@
         com.cognitect.aws/sqs {:mvn/version "801.2.702.0"}
 
         ;; PARSERS
-        jebl {:mvn/version "2.0"}
+        libspread {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
+        ;; jebl {:mvn/version "2.0"}
 
         ;; UTILS
         mount {:mvn/version "0.1.16"}
