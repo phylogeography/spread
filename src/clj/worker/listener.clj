@@ -8,17 +8,28 @@
 
 ;; TODO : invoke java parser, process message body
 (defn handle-message [body]
-  (log/info "Handling message" {:msg body} )
-  (Thread/sleep (or (:sleep body) 3000)) ;; long process
-  )
+  (let [parser (doto (new ContinuousTreeParser)
+
+                 (.setTreeFilePath "bla")
+
+
+                 )]
+
+    (log/info "Handling message" {:msg body
+                                  :parser parser})
+
+    (.parseTree parser)
+
+     ;; long process
+    (Thread/sleep (or (:sleep body) 3000))
+
+    ))
 
 (defn start [{:keys [aws] :as config}]
   (let [{:keys [workers-queue-url]} aws
         sqs (aws-sqs/create-client aws)
-        parser (new ContinuousTreeParser)]
-    (log/info "Starting worker listener" {:class parser})
-
-    (.parseTree parser)
+        ]
+    (log/info "Starting worker listener")
 
     (loop []
       (try
