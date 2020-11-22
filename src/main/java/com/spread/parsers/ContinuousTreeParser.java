@@ -53,6 +53,8 @@ public class ContinuousTreeParser {
     public ContinuousTreeParser() {
     }
 
+    // TODO : setter constructor
+
     public String parse() throws IOException, ImportException, SpreadException {
 
         RootedTree rootedTree = ParsersUtils.importRootedTree(treeFilePath);
@@ -102,10 +104,11 @@ public class ContinuousTreeParser {
                     nodeCoordinateY = (Double) ParsersUtils.getObjectNodeAttribute(node, yCoordinateAttributeName);
 
                 } catch (SpreadException e) {
-                    // String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateAttributeName : yCoordinateAttributeName);
-                    // String nodeType = (rootedTree.isExternal(node) ? "external" : "internal");
-                    // String message = coordinateName + " attribute could not be found on the " + nodeType
-                    //     + " child node. Resulting visualisation may be incomplete!";
+                    String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateAttributeName : yCoordinateAttributeName);
+                    String nodeType = (rootedTree.isExternal(node) ? "external" : "internal");
+                    String message = coordinateName + " attribute could not be found on the " + nodeType
+                        + " child node. Resulting visualisation may be incomplete!";
+                    System.out.println (message);
                     continue;
                 } // END: try-catch
 
@@ -117,10 +120,8 @@ public class ContinuousTreeParser {
 
                 Point nodePoint = pointsMap.get(node);
                 if (nodePoint == null) {
-
                     nodePoint = createPoint(node, nodeCoordinate, rootedTree, timeParser);
                     pointsMap.put(node, nodePoint);
-
                 } // END: null check
 
                 // parent node parsed second
@@ -136,23 +137,18 @@ public class ContinuousTreeParser {
                 tryingCoordinate = 0;
 
                 try {
-
                     tryingCoordinate = ParsersUtils.X_INDEX;
                     parentCoordinateX = (Double) ParsersUtils.getObjectNodeAttribute(parentNode, xCoordinateAttributeName);
 
                     tryingCoordinate = ParsersUtils.Y_INDEX;
                     parentCoordinateY = (Double) ParsersUtils.getObjectNodeAttribute(parentNode, yCoordinateAttributeName);
-
                 } catch (SpreadException e) {
-
-                    // String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateAttributeName
-                    //                          : yCoordinateAttributeName);
-
-                    // String nodeType = (rootedTree.isExternal(parentNode) ? "external" : "internal");
-
-                    // String message = coordinateName + " attribute was found on the " + nodeType
-                    //     + " child node but could not be found on the " + nodeType
-                    //     + " parent node. Resulting visualisation may be incomplete!";
+                    String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateAttributeName : yCoordinateAttributeName);
+                    String nodeType = (rootedTree.isExternal(parentNode) ? "external" : "internal");
+                    String message = coordinateName + " attribute was found on the " + nodeType
+                        + " child node but could not be found on the " + nodeType
+                        + " parent node. Resulting visualisation may be incomplete!";
+                    System.out.println (message);
                     continue;
                 } // END: try-catch
 
@@ -161,10 +157,8 @@ public class ContinuousTreeParser {
                                                              );
                 Point parentPoint = pointsMap.get(parentNode);
                 if (parentPoint == null) {
-
                     parentPoint = createPoint(parentNode, parentCoordinate, rootedTree, timeParser);
                     pointsMap.put(parentNode, parentPoint);
-
                 } // END: null check
 
                 // ---LINES PARSED SECOND DO NOT CHANGE ORDER---//
@@ -182,7 +176,6 @@ public class ContinuousTreeParser {
 
                 boolean parseNode = true;
                 if (rootedTree.isExternal(node)) {
-
                     parseNode = false;
                     if (externalAnnotations) {
                         parseNode = true;
@@ -201,13 +194,10 @@ public class ContinuousTreeParser {
                         modality = (Integer) ParsersUtils.getObjectNodeAttribute(node, modalityAttributeName);
 
                     } catch (SpreadException e) {
-
-                        // String nodeType = (rootedTree.isExternal(node) ? "external" : "internal");
-
-                        // String message = modalityAttributeName + " attribute could not be found on the " + nodeType
-                        //     + " node. Resulting visualisation may be incomplete!";
-
-                        // logger.log(message, ILogger.WARNING);
+                        String nodeType = (rootedTree.isExternal(node) ? "external" : "internal");
+                        String message = modalityAttributeName + " attribute could not be found on the " + nodeType
+                            + " node. Resulting visualisation may be incomplete!";
+                        System.out.println (message);
                         continue;
                     }
 
@@ -233,12 +223,11 @@ public class ContinuousTreeParser {
                             yCoordinateHPD = ParsersUtils.getObjectArrayNodeAttribute(node, yCoordinateHPDName);
 
                         } catch (SpreadException e) {
-
-                            // String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateHPDName
-                            //                          : yCoordinateHPDName);
-                            // String message = coordinateName
-                            //     + " attribute could not be found on the child node. Resulting visualisation may be incomplete!";
-                            // logger.log(message, ILogger.WARNING);
+                            String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateHPDName
+                                                     : yCoordinateHPDName);
+                            String message = coordinateName
+                                + " attribute could not be found on the child node. Resulting visualisation may be incomplete!";
+                            System.out.println (message);
                             continue;
                         } // END: try-catch
 
@@ -286,14 +275,10 @@ public class ContinuousTreeParser {
                     rootCoordinateY = (Double) ParsersUtils.getObjectNodeAttribute(node, yCoordinateAttributeName);
 
                 } catch (SpreadException e) {
-
-                    String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateAttributeName
-                                             : yCoordinateAttributeName);
-
+                    String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateAttributeName : yCoordinateAttributeName);
                     String message = coordinateName + " attribute was found on the root node."
                         + "Resulting visualisation may be incomplete!";
-
-                    // logger.log(message, ILogger.WARNING);
+                    System.out.println (message);
                     continue;
                 } // END: try-catch
 

@@ -21,7 +21,7 @@ target/
 .settings/
 .classpath
 .project
-
+.factorypath
 
 ## TEST / DEV
 test.json
