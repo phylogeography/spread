@@ -12,6 +12,9 @@ import java.util.Map.Entry;
 
 import com.google.gson.GsonBuilder;
 import com.spread.data.Attribute;
+import com.spread.data.AxisAttributes;
+import com.spread.data.Layer;
+import com.spread.data.SpreadData;
 import com.spread.data.TimeLine;
 import com.spread.data.attributable.Area;
 import com.spread.data.attributable.Line;
@@ -20,10 +23,6 @@ import com.spread.data.primitive.Coordinate;
 import com.spread.data.primitive.Polygon;
 import com.spread.exceptions.SpreadException;
 import com.spread.utils.ParsersUtils;
-import com.spread.parsers.TimeParser;
-import com.spread.data.AxisAttributes;
-import com.spread.data.Layer;
-import com.spread.data.SpreadData;
 
 import jebl.evolution.graphs.Node;
 import jebl.evolution.io.ImportException;

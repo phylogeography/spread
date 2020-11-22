@@ -12,7 +12,6 @@
   <packaging>jar</packaging>
 
   <properties>
-    <!-- <java.version>1.8</java.version> -->
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <jebl.version>2.0</jebl.version>
@@ -77,7 +76,7 @@
       <!--   </configuration> -->
       <!-- </plugin> -->
 
-      <!-- watch for file changes and rerun test -->
+      <!-- watch for file changes and rerun tests -->
       <plugin>
         <groupId>com.fizzed</groupId>
         <artifactId>fizzed-watcher-maven-plugin</artifactId>
