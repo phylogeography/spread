@@ -52,6 +52,23 @@ public class ContinuousTreeParser {
     public ContinuousTreeParser() {
     }
 
+    public ContinuousTreeParser(String treeFilePath,
+                                String xCoordinateAttributeName,
+                                String yCoordinateAttributeName,
+                                String hpdLevel,
+                                boolean hasExternalAnnotations,
+                                double timescaleMultiplier,
+                                String mostRecentSamplingDate
+                                ) {
+        this.treeFilePath = treeFilePath;
+        this.xCoordinateAttributeName = xCoordinateAttributeName;
+        this.yCoordinateAttributeName = yCoordinateAttributeName;
+        this.hpdLevel = hpdLevel;
+        this.hasExternalAnnotations = hasExternalAnnotations;
+        this.timescaleMultiplier = timescaleMultiplier;
+        this.mostRecentSamplingDate = mostRecentSamplingDate;
+    }
+
     // TODO : setter constructor
 
     public String parse() throws IOException, ImportException, SpreadException {

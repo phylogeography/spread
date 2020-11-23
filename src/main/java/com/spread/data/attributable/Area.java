@@ -1,37 +1,34 @@
 package com.spread.data.attributable;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.spread.data.primitive.Polygon;
 
-public class Area {
-	
-	private final String startTime;
-	private final Map<String, Object> attributes = new LinkedHashMap<String, Object>();
-	private final Polygon polygon;
-	
-	public Area( Polygon polygon, String startTime, Map<String, Object> attributes) {
-		
-		this.polygon = polygon;
-		this.startTime = startTime;
-		
-		if (attributes != null) {
-			this.attributes.putAll(attributes);
-		}
-		
-	}//END: Constructor
-	
-	public Polygon getPolygon() {
-		return polygon;
-	}
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-	public String getStartTime() {
-		return startTime;
-	}
-	
-	public Map<String, Object> getAttributes() {
-		return attributes;
-	}
-	
-}//END: class
+@EqualsAndHashCode
+@ToString(includeFieldNames=true)
+public class Area {
+
+    @Getter
+    private final String startTime;
+    @Getter
+    private final Map<String, Object> attributes;// = new LinkedHashMap<String, Object>();
+    @Getter
+    private final Polygon polygon;
+
+    public Area( Polygon polygon, String startTime, Map<String, Object> attributes) {
+
+        this.polygon = polygon;
+        this.startTime = startTime;
+
+        this.attributes = attributes;
+        // if (attributes != null) {
+        //     this.attributes.putAll(attributes);
+        // }
+
+    }
+
+}

@@ -2,33 +2,17 @@ package com.spread.data.primitive;
 
 import java.util.List;
 
+import lombok.ToString;
+import lombok.Getter;
+
+@ToString(includeFieldNames=true)
 public class Polygon {
 
-	private final List<Coordinate> coordinates;
-	private final double altitude;
+    @Getter
+    private final List<Coordinate> coordinates;
 
-	public Polygon(List<Coordinate> coordinates, //
-			double altitude //
-	) {
+    public Polygon(List<Coordinate> coordinates) {
+        this.coordinates = coordinates;
+    }
 
-		this.coordinates = coordinates;
-		this.altitude = altitude;
-
-	}// END: Constructor
-
-	public Polygon(List<Coordinate> coordinates) {
-
-		this.coordinates = coordinates;
-		this.altitude = 0;
-
-	}// END: Constructor
-
-	public List<Coordinate> getCoordinates() {
-		return coordinates;
-	}
-
-	public double getAltitude() {
-		return altitude;
-	}
-
-}// END: class
+}
