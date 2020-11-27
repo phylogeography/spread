@@ -1,5 +1,6 @@
 (ns api.server
   (:require
+   [api.auth :as auth]
    [aws.sqs :as aws-sqs]
    [aws.s3 :as aws-s3]
    [clojure.edn :as edn]
@@ -28,13 +29,30 @@
 ;;                                  :expires 300})))))
 ;;       urls)))
 
-
 (defn get_upload_urls
-  [{:keys [s3]} {:keys [files] :as args} _]
-  (log/debug "get_upload_urls" {:a args})
-  {
-   :urls ["foo" "bar"]
-   })
+  [{:keys [s3 authed-user-id] :as ctx} {:keys [files] :as args} _]
+  (log/debug "get_upload_urls" {:user/id authed-user-id})
+
+  #_(let [;; TODO auth from header
+        authed-user-id "ffffffff-ffff-ffff-ffff-ffffffffffff"]
+    (go-loop [files files
+              urls []]
+      (if-let [file (first files)]
+        (let [{:keys [extension]} file
+              ;; uuid (<! (db/new-uuid db))
+              ]
+          (recur (rest files)
+                 (conj urls (aws-s3/get-signed-url
+                             s3
+                             "putObject"
+                             {:bucket (get-in config [:aws :bucket-name])
+                              :key (str authed-user-id "/" uuid "." extension)
+                              :expires 300}))))
+        urls)))
+
+
+  ;; ["foo" "bar"]
+   )
 
 
 (defn get_parser_execution
@@ -53,6 +71,13 @@
   {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
    :status :QUEUED})
 
+;; TODO require-auth decorator
+(defn auth-decorator [resolver-fn]
+  (fn [{:keys [headers] :as application-context} args value]
+    (if-let [user-id (auth/token->user-id (get headers "Authorization"))]
+      (resolver-fn (merge application-context {:authed-user-id user-id}) args value)
+      (throw (Exception. "Authorization required")))))
+
 (defn context-decorator [resolver-fn context]
   (fn [application-context args value]
     (resolver-fn (merge application-context context) args value)))
@@ -65,13 +90,12 @@
 (defn resolver-map [context]
   {:query/get_parser_execution get_parser_execution
    :mutation/start_parser_execution (context-decorator start_parser_execution context)
-   :mutation/get_upload_urls (context-decorator get_upload_urls context)
+   :mutation/get_upload_urls (auth-decorator (context-decorator get_upload_urls context))
    })
 
 (defn stop [this]
   (http/stop this))
 
-;; TODO : ensure bucket exists
 (defn start [{:keys [api aws] :as config}]
   (let [{:keys [port]} api
         {:keys [workers-queue-url bucket-name]} aws
@@ -79,7 +103,8 @@
         sqs (aws-sqs/create-client aws)
         s3 (aws-s3/create-client aws)
         context {:sqs sqs
-                 :workers-queue-url workers-queue-url}
+                 :workers-queue-url workers-queue-url
+                 :bucket-name bucket-name}
         compiled-schema (-> schema
                             (lacinia-util/attach-resolvers (resolver-map context))
                             schema/compile)

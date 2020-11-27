@@ -4,7 +4,8 @@
   :ParserStatus {:values [:QUEUED :RUNNING :SUCCEEDED :ERROR]}}
 
  :objects
- {:ParserResult {:description "A result of a parser."
+ {;;:UploadUrls {:fields {:urls {:type (list String)}}}
+  :ParserResult {:description "A result of a parser."
                  :fields {:id {:type (non-null ID)}
                           :status {:type (non-null :ParserStatus)}}}}
 
