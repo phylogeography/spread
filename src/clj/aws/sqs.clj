@@ -12,18 +12,12 @@
   (aws/client (cond-> {:api :sqs
                        :credentials-provider (credentials/basic-credentials-provider
                                               {:access-key-id access-key-id
-                                               :secret-access-key secret-access-key})
-                       :region region}
-
+                                               :secret-access-key secret-access-key})}
+                region (assoc :region region)
                 ;; only for dev
                 sqs-host (assoc :endpoint-override {:protocol :http
                                                     :hostname sqs-host
-                                                    :port sqs-port})
-
-                ;; if we are in testing lets smash a real region
-                ;; the aws/invoke fails with "No region found by any region provider."
-                ;; if we don't provide a real one.
-                sqs-host (assoc :region "us-east-1"))))
+                                                    :port sqs-port}))))
 
 (defn stop-client [client]
   (aws/stop client))

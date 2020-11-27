@@ -11,6 +11,34 @@
    [taoensso.timbre :as log]
    ))
 
+
+
+;; (defn get-urls
+;;   [db s3 config authed-user-id files]
+;;   (go-loop [files files
+;;             urls []]
+;;     (if-let [file (first files)]
+;;       (let [{:keys [extension]} file
+;;             uuid (<! (db/new-uuid db))]
+;;         (recur (rest files)
+;;                (conj urls (<!p (s3-api/get-signed-url
+;;                                 s3
+;;                                 "putObject"
+;;                                 {:bucket (get-in config [:aws :bucket-name])
+;;                                  :key (str authed-user-id "/" uuid "." extension)
+;;                                  :expires 300})))))
+;;       urls)))
+
+
+
+
+
+
+
+
+
+
+
 (defn get_parser_execution
   [_ {:keys [id] :as args} _]
   (log/debug "get_parser_execution" {:a args})

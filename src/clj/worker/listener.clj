@@ -4,11 +4,11 @@
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]
    )
-  (:import (io.nodrama ContinuousTreeParser)) )
+  (:import (com.spread.parsers ContinuousTreeParser)) )
 
 ;; TODO : invoke java parser, process message body
 (defn handle-message [body]
-  (let [parser (doto (new ContinuousTreeParser)
+  (let [parser nil #_(doto (new ContinuousTreeParser)
 
                  (.setTreeFilePath "bla")
 
@@ -18,7 +18,7 @@
     (log/info "Handling message" {:msg body
                                   :parser parser})
 
-    (.parseTree parser)
+    ;; (.parseTree parser)
 
      ;; long process
     (Thread/sleep (or (:sleep body) 3000))
