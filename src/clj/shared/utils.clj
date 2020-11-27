@@ -29,7 +29,7 @@
     (transit/write writer x)
     (.toString out)))
 
-
+(defn new-uuid [] (str (java.util.UUID/randomUUID)))
 
 (comment
 

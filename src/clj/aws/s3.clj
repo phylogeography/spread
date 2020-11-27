@@ -3,7 +3,16 @@
             [clojure.java.io :as io]
             [cognitect.aws.client.api :as aws]
             [cognitect.aws.credentials :as credentials]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log])
+  (:import (software.amazon.awssdk.services.s3.model PutObjectRequest)
+           (software.amazon.awssdk.services.s3.presigner.model PutObjectPresignRequest)
+           (software.amazon.awssdk.services.s3.presigner S3Presigner)
+           (software.amazon.awssdk.auth.credentials AwsBasicCredentials)
+           (software.amazon.awssdk.auth.credentials StaticCredentialsProvider)
+           (software.amazon.awssdk.regions Region)
+           (java.time Duration)
+           (java.net URI)
+           ))
 
 (defn create-client
 
@@ -27,8 +36,94 @@
   (aws/invoke s3 {:op :CreateBucket :request {:Bucket bucket-name}}))
 
 
-(defn get-signed-url [s3 {:keys []}]
+(defn get-signed-url [s3 {:keys [bucket-name key expires]
+                          :or {expires 300}}]
 
+  ;; // put
+  ;; GetObjectRequest getObjectRequest =
+  ;;               GetObjectRequest.builder()
+  ;;                       .bucket(bucketName)
+  ;;                       .key(keyName)
+  ;;                       .build();
+
+  ;;  // Create a PutObjectPresignRequest to specify the signature duration
+  ;;  PutObjectPresignRequest putObjectPresignRequest =
+  ;;      PutObjectPresignRequest.builder()
+  ;;                             .signatureDuration(Duration.ofMinutes(10))
+  ;;                             .putObjectRequest(request)
+  ;;                             .build();
+
+        ;; S3Presigner presigner = S3Presigner.create();
+
+  ;; // Generate the presigned request
+  ;;  PresignedPutObjectRequest presignedPutObjectRequest =
+  ;;      presigner.presignPutObject(putObjectPresignRequest);
+
+  ;; System.out.println("Presigned URL: " + presignedGetObjectRequest.url());
+
+  (let [putObjectRequest (-> (PutObjectRequest/builder)
+                             (.bucket bucket-name)
+                             (.key key)
+                             (.build))
+
+        duration (-> (Duration/ofMinutes 15))
+
+        putObjectPresignRequest (-> (PutObjectPresignRequest/builder)
+                                    (.signatureDuration duration)
+                                    (.putObjectRequest putObjectRequest)
+                                    (.build))
+
+        credentials (AwsBasicCredentials/create "AKIAIOSFODNN7EXAMPLE" "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
+
+        uri (URI/create "http://127.0.0.1:9000")
+
+        credentialsProvider (StaticCredentialsProvider/create credentials)
+
+        presigner (-> (S3Presigner/builder)
+                      (.region (Region/of "us-east-2"))
+                      (.endpointOverride uri)
+                      (.credentialsProvider credentialsProvider)
+                      (.build))
+        ]
+
+    (log/debug "@@@ SIGNED-URL" {
+                                 :presigner presigner
+                                 ;; :uri uri
+                                 :credentials credentials
+                                 :credentialsProvider credentialsProvider
+                                 ;; :duration duration
+                                 ;; :presigned-url putObjectRequest
+                                 ;; :putObjectPresignRequest putObjectPresignRequest
+                                 }))
+
+
+;; https://github.com/aws/aws-sdk-java-v2/blob/master/services/s3/src/main/java/software/amazon/awssdk/services/s3/presigner/S3Presigner.java
+
+;; https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html
+
+  ;; For example, to configure the Amazon EC2 client to use the Europe (Ireland) Region, use the following code.
+
+
+
+  #_(aws/invoke s3
+
+              {:op            :ListBuckets
+               :workflow      :cognitect.aws.alpha.workflow/presigned-url
+               :presigned-url {:expires 300}}
+
+              #_{:op            :GetSignedUrl ;;PutObject
+               ;; :request       {:Bucket bucket-name
+               ;;                 :Key key}
+               :workflow      :cognitect.aws.alpha.workflow/presigned-url
+               :presigned-url {:expires 300
+                               :Bucket bucket-name
+                               :Key key}}
+
+
+              #_{:op :fu :request {:Bucket bucket-name
+                                           :method "putObject"
+                                           :Key key
+                                           :Expires expires}})
 
   )
 

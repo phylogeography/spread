@@ -1,54 +1,42 @@
 (ns api.server
-  (:require
-   [api.auth :as auth]
-   [aws.sqs :as aws-sqs]
-   [aws.s3 :as aws-s3]
-   [clojure.edn :as edn]
-   [clojure.java.io :as io]
-   [com.walmartlabs.lacinia.pedestal2 :as pedestal]
-   [com.walmartlabs.lacinia.schema :as schema]
-   [com.walmartlabs.lacinia.util :as lacinia-util]
-   [io.pedestal.http :as http]
-   [mount.core :as mount :refer [defstate]]
-   [taoensso.timbre :as log]
-   ))
+  (:require [api.auth :as auth]
+            [aws.s3 :as aws-s3]
+            [shared.utils :refer [new-uuid]]
+            [aws.sqs :as aws-sqs]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [com.walmartlabs.lacinia.pedestal2 :as pedestal]
+            [com.walmartlabs.lacinia.schema :as schema]
+            [com.walmartlabs.lacinia.util :as lacinia-util]
+            [io.pedestal.http :as http]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :as log]))
 
-;; (defn get-urls
-;;   [db s3 config authed-user-id files]
-;;   (go-loop [files files
-;;             urls []]
-;;     (if-let [file (first files)]
-;;       (let [{:keys [extension]} file
-;;             uuid (<! (db/new-uuid db))]
-;;         (recur (rest files)
-;;                (conj urls (<!p (s3-api/get-signed-url
-;;                                 s3
-;;                                 "putObject"
-;;                                 {:bucket (get-in config [:aws :bucket-name])
-;;                                  :key (str authed-user-id "/" uuid "." extension)
-;;                                  :expires 300})))))
-;;       urls)))
-
+;; https://github.com/cognitect-labs/aws-api/issues/5
+;; https://github.com/gkarthiks/s3-presigned-url
 (defn get_upload_urls
-  [{:keys [s3 authed-user-id] :as ctx} {:keys [files] :as args} _]
-  (log/debug "get_upload_urls" {:user/id authed-user-id})
+  [{:keys [s3 authed-user-id bucket-name] :as ctx} {:keys [files] :as args} _]
 
-  #_(let [;; TODO auth from header
-        authed-user-id "ffffffff-ffff-ffff-ffff-ffffffffffff"]
-    (go-loop [files files
-              urls []]
-      (if-let [file (first files)]
-        (let [{:keys [extension]} file
-              ;; uuid (<! (db/new-uuid db))
-              ]
-          (recur (rest files)
-                 (conj urls (aws-s3/get-signed-url
-                             s3
-                             "putObject"
-                             {:bucket (get-in config [:aws :bucket-name])
-                              :key (str authed-user-id "/" uuid "." extension)
-                              :expires 300}))))
-        urls)))
+  (log/info "get_upload_urls" {:s3 s3
+                               :user/id authed-user-id
+                                :files files})
+
+  (log/debug "WUUT" {:wut? (aws-s3/get-signed-url
+                            s3
+                            {:bucket-name bucket-name
+                             :key "fu.bar"})})
+
+  #_(loop [files files
+            urls []]
+    (if-let [file (first files)]
+      (let [{:keys [extension]} file
+            uuid (new-uuid)]
+        (recur (rest files)
+               (conj urls (aws-s3/get-signed-url
+                           s3
+                           {:bucket-name bucket-name
+                            :key (str authed-user-id "/" uuid "." extension)}))))
+      urls))
 
 
   ;; ["foo" "bar"]
@@ -57,7 +45,7 @@
 
 (defn get_parser_execution
   [_ {:keys [id] :as args} _]
-  (log/debug "get_parser_execution" {:a args})
+  (log/info "get_parser_execution" {:a args})
   {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
    :status :SUCCEEDED
    :output "s3://spread-dev-uploads/4d07edcf-4b4b-4190-8cea-38daece8d4aa"})
@@ -65,7 +53,7 @@
 ;; TODO : message schema
 (defn start_parser_execution
   [{:keys [sqs workers-queue-url]} args _]
-  (log/debug "start_parser_execution" {:a args})
+  (log/info "start_parser_execution" {:a args})
   (aws-sqs/send-message sqs workers-queue-url {:tree "s3://bla/bla"})
 
   {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
@@ -82,16 +70,17 @@
   (fn [application-context args value]
     (resolver-fn (merge application-context context) args value)))
 
-(defn load-schema []
-  (-> (io/resource "schema.edn")
-      slurp
-      edn/read-string))
 
 (defn resolver-map [context]
   {:query/get_parser_execution get_parser_execution
    :mutation/start_parser_execution (context-decorator start_parser_execution context)
    :mutation/get_upload_urls (auth-decorator (context-decorator get_upload_urls context))
    })
+
+(defn load-schema []
+  (-> (io/resource "schema.edn")
+      slurp
+      edn/read-string))
 
 (defn stop [this]
   (http/stop this))
@@ -103,6 +92,7 @@
         sqs (aws-sqs/create-client aws)
         s3 (aws-s3/create-client aws)
         context {:sqs sqs
+                 :s3 s3
                  :workers-queue-url workers-queue-url
                  :bucket-name bucket-name}
         compiled-schema (-> schema
