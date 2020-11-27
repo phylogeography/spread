@@ -15,15 +15,9 @@
 (defn get_upload_urls
   [{:keys [s3-presigner authed-user-id bucket-name] :as ctx} {:keys [files] :as args} _]
 
-  (log/info "get_upload_urls" {:user/id authed-user-id
-                               :files files})
+  (log/info "get_upload_urls" {:user/id authed-user-id :files files})
 
-  (log/debug "WUUT" {:wut? (aws-s3/get-signed-url
-                            s3-presigner
-                            {:bucket-name bucket-name
-                             :key "fu.bar"})})
-
-  #_(loop [files files
+  (loop [files files
          urls []]
     (if-let [file (first files)]
       (let [{:keys [extension]} file
@@ -33,11 +27,9 @@
                            s3-presigner
                            {:bucket-name bucket-name
                             :key (str authed-user-id "/" uuid "." extension)}))))
-      urls))
+      urls)))
 
-
-   )
-
+;; TODO : read status (from RDS)
 (defn get_parser_execution
   [_ {:keys [id] :as args} _]
   (log/info "get_parser_execution" {:a args})
@@ -46,6 +38,7 @@
    :output "s3://spread-dev-uploads/4d07edcf-4b4b-4190-8cea-38daece8d4aa"})
 
 ;; TODO : message schema
+;; TODO : invoke parser
 (defn start_parser_execution
   [{:keys [sqs workers-queue-url]} args _]
   (log/info "start_parser_execution" {:a args})

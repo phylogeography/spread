@@ -3,9 +3,12 @@
            :values [:CONTINUOUS_TREE :DISCRETE_TREE :BSSVS_LOG :CONTINUOUS_TREE_DISTRIBUTION]}
   :ParserStatus {:values [:QUEUED :RUNNING :SUCCEEDED :ERROR]}}
 
+ :input-objects
+ {:File {:fields {:name {:type String}
+                  :extension {:type String}}}}
+
  :objects
- {;;:UploadUrls {:fields {:urls {:type (list String)}}}
-  :ParserResult {:description "A result of a parser."
+ {:ParserResult {:description "A result of a parser."
                  :fields {:id {:type (non-null ID)}
                           :status {:type (non-null :ParserStatus)}}}}
 
@@ -18,7 +21,7 @@
  :mutations
  {:get_upload_urls {:type (list String)
                     :description "Returns one-time POST urls"
-                    :args {:files {:type (list String)}}
+                    :args {:files {:type (list :File)}}
                     :resolve :mutation/get_upload_urls}
 
   :start_parser_execution {:type :ParserResult
