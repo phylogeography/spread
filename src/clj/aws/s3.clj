@@ -84,13 +84,20 @@
                       (.endpointOverride uri)
                       (.credentialsProvider credentialsProvider)
                       (.build))
+
+        presignedPutObjectRequest (-> presigner
+                                      (.presignPutObject putObjectPresignRequest))
+
+        url (-> presignedPutObjectRequest (.url))
+
         ]
 
-    (log/debug "@@@ SIGNED-URL" {
+    (log/debug "@@@ SIGNED-URL" {:url url
                                  :presigner presigner
-                                 ;; :uri uri
+                                 :uri uri
                                  :credentials credentials
                                  :credentialsProvider credentialsProvider
+                                 :presignedPutObjectRequest presignedPutObjectRequest
                                  ;; :duration duration
                                  ;; :presigned-url putObjectRequest
                                  ;; :putObjectPresignRequest putObjectPresignRequest

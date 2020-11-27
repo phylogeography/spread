@@ -15,6 +15,7 @@
 
 ## -- DOCKER
 .minio.sys
+spread-dev-uploads/
 
 ## -- JAVA
 target/
