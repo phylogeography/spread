@@ -15,7 +15,12 @@
                          :resolve :query/get_parser_execution}}
 
  :mutations
- {:start_parser_execution {:type :ParserResult
+ {:get_upload_urls {:type (list String)
+                    :description "Returns one-time POST urls"
+                    :args {:files {:type (list String)}}
+                    :resolve :mutation/get_upload_urls}
+
+  :start_parser_execution {:type :ParserResult
                            :description "Starts executing a parser of a given type. Returns a Result with id."
                            :args {:parser {:type (non-null :Parser)}}
                            :resolve :mutation/start_parser_execution}}

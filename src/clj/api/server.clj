@@ -1,6 +1,7 @@
 (ns api.server
   (:require
    [aws.sqs :as aws-sqs]
+   [aws.s3 :as aws-s3]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [com.walmartlabs.lacinia.pedestal2 :as pedestal]
@@ -10,8 +11,6 @@
    [mount.core :as mount :refer [defstate]]
    [taoensso.timbre :as log]
    ))
-
-
 
 ;; (defn get-urls
 ;;   [db s3 config authed-user-id files]
@@ -30,13 +29,12 @@
 ;;       urls)))
 
 
-
-
-
-
-
-
-
+(defn get_upload_urls
+  [{:keys [s3]} {:keys [files] :as args} _]
+  (log/debug "get_upload_urls" {:a args})
+  {
+   :urls ["foo" "bar"]
+   })
 
 
 (defn get_parser_execution
@@ -66,16 +64,20 @@
 
 (defn resolver-map [context]
   {:query/get_parser_execution get_parser_execution
-   :mutation/start_parser_execution (context-decorator start_parser_execution context)})
+   :mutation/start_parser_execution (context-decorator start_parser_execution context)
+   :mutation/get_upload_urls (context-decorator get_upload_urls context)
+   })
 
 (defn stop [this]
   (http/stop this))
 
+;; TODO : ensure bucket exists
 (defn start [{:keys [api aws] :as config}]
   (let [{:keys [port]} api
-        {:keys [workers-queue-url]} aws
+        {:keys [workers-queue-url bucket-name]} aws
         schema (load-schema)
         sqs (aws-sqs/create-client aws)
+        s3 (aws-s3/create-client aws)
         context {:sqs sqs
                  :workers-queue-url workers-queue-url}
         compiled-schema (-> schema
@@ -84,6 +86,10 @@
         service (pedestal/default-service compiled-schema {:port (Integer/parseInt port)})
         runnable-service (http/create-server service)]
     (log/info "Starting server" config)
+
+    (when-not (contains? (set (:Buckets (aws-s3/list-buckets s3))) bucket-name)
+      (aws-s3/create-bucket s3 {:bucket-name bucket-name}))
+
     (http/start runnable-service)
     runnable-service))
 
