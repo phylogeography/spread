@@ -11,8 +11,7 @@
            (software.amazon.awssdk.auth.credentials StaticCredentialsProvider)
            (software.amazon.awssdk.regions Region)
            (java.time Duration)
-           (java.net URI)
-           ))
+           (java.net URI)))
 
 (defn create-client
 
@@ -29,110 +28,44 @@
                                                    :hostname s3-host
                                                    :port s3-port}))))
 
+(defn create-presigner
+
+  "Creates a aws S3 url presigner. Needed for generating presigned URLs."
+
+  [{:keys [access-key-id secret-access-key region s3-host s3-port]}]
+  (let [credentials (AwsBasicCredentials/create access-key-id secret-access-key)
+        credentialsProvider (StaticCredentialsProvider/create credentials)]
+    (if region
+      (-> (S3Presigner/builder)
+          (.region (Region/of region))
+          (.credentialsProvider credentialsProvider)
+          (.build))
+      ;; only for dev
+      (-> (S3Presigner/builder)
+          ;; hack, else it throws
+          (.region (Region/of "us-east-2"))
+          (.endpointOverride (URI/create (str "http://" s3-host ":" s3-port)))
+          (.credentialsProvider credentialsProvider)
+          (.build)))))
+
 (defn list-buckets [s3]
   (aws/invoke s3 {:op :ListBuckets}))
 
 (defn create-bucket [s3 {:keys [bucket-name]}]
   (aws/invoke s3 {:op :CreateBucket :request {:Bucket bucket-name}}))
 
-
-(defn get-signed-url [s3 {:keys [bucket-name key expires]
-                          :or {expires 300}}]
-
-  ;; // put
-  ;; GetObjectRequest getObjectRequest =
-  ;;               GetObjectRequest.builder()
-  ;;                       .bucket(bucketName)
-  ;;                       .key(keyName)
-  ;;                       .build();
-
-  ;;  // Create a PutObjectPresignRequest to specify the signature duration
-  ;;  PutObjectPresignRequest putObjectPresignRequest =
-  ;;      PutObjectPresignRequest.builder()
-  ;;                             .signatureDuration(Duration.ofMinutes(10))
-  ;;                             .putObjectRequest(request)
-  ;;                             .build();
-
-        ;; S3Presigner presigner = S3Presigner.create();
-
-  ;; // Generate the presigned request
-  ;;  PresignedPutObjectRequest presignedPutObjectRequest =
-  ;;      presigner.presignPutObject(putObjectPresignRequest);
-
-  ;; System.out.println("Presigned URL: " + presignedGetObjectRequest.url());
-
+(defn get-signed-url [s3-presigner {:keys [bucket-name key]}]
   (let [putObjectRequest (-> (PutObjectRequest/builder)
                              (.bucket bucket-name)
                              (.key key)
                              (.build))
-
-        duration (-> (Duration/ofMinutes 15))
-
         putObjectPresignRequest (-> (PutObjectPresignRequest/builder)
-                                    (.signatureDuration duration)
+                                    (.signatureDuration (Duration/ofMinutes 15))
                                     (.putObjectRequest putObjectRequest)
                                     (.build))
-
-        credentials (AwsBasicCredentials/create "AKIAIOSFODNN7EXAMPLE" "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
-
-        uri (URI/create "http://127.0.0.1:9000")
-
-        credentialsProvider (StaticCredentialsProvider/create credentials)
-
-        presigner (-> (S3Presigner/builder)
-                      (.region (Region/of "us-east-2"))
-                      (.endpointOverride uri)
-                      (.credentialsProvider credentialsProvider)
-                      (.build))
-
-        presignedPutObjectRequest (-> presigner
-                                      (.presignPutObject putObjectPresignRequest))
-
-        url (-> presignedPutObjectRequest (.url))
-
-        ]
-
-    (log/debug "@@@ SIGNED-URL" {:url url
-                                 :presigner presigner
-                                 :uri uri
-                                 :credentials credentials
-                                 :credentialsProvider credentialsProvider
-                                 :presignedPutObjectRequest presignedPutObjectRequest
-                                 ;; :duration duration
-                                 ;; :presigned-url putObjectRequest
-                                 ;; :putObjectPresignRequest putObjectPresignRequest
-                                 }))
-
-
-;; https://github.com/aws/aws-sdk-java-v2/blob/master/services/s3/src/main/java/software/amazon/awssdk/services/s3/presigner/S3Presigner.java
-
-;; https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html
-
-  ;; For example, to configure the Amazon EC2 client to use the Europe (Ireland) Region, use the following code.
-
-
-
-  #_(aws/invoke s3
-
-              {:op            :ListBuckets
-               :workflow      :cognitect.aws.alpha.workflow/presigned-url
-               :presigned-url {:expires 300}}
-
-              #_{:op            :GetSignedUrl ;;PutObject
-               ;; :request       {:Bucket bucket-name
-               ;;                 :Key key}
-               :workflow      :cognitect.aws.alpha.workflow/presigned-url
-               :presigned-url {:expires 300
-                               :Bucket bucket-name
-                               :Key key}}
-
-
-              #_{:op :fu :request {:Bucket bucket-name
-                                           :method "putObject"
-                                           :Key key
-                                           :Expires expires}})
-
-  )
+        presignedPutObjectRequest (-> s3-presigner
+                                      (.presignPutObject putObjectPresignRequest))]
+    (-> presignedPutObjectRequest (.url))))
 
 (defn upload-file
 

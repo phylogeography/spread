@@ -12,36 +12,31 @@
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
-;; https://github.com/cognitect-labs/aws-api/issues/5
-;; https://github.com/gkarthiks/s3-presigned-url
 (defn get_upload_urls
-  [{:keys [s3 authed-user-id bucket-name] :as ctx} {:keys [files] :as args} _]
+  [{:keys [s3-presigner authed-user-id bucket-name] :as ctx} {:keys [files] :as args} _]
 
-  (log/info "get_upload_urls" {:s3 s3
-                               :user/id authed-user-id
-                                :files files})
+  (log/info "get_upload_urls" {:user/id authed-user-id
+                               :files files})
 
   (log/debug "WUUT" {:wut? (aws-s3/get-signed-url
-                            s3
+                            s3-presigner
                             {:bucket-name bucket-name
                              :key "fu.bar"})})
 
   #_(loop [files files
-            urls []]
+         urls []]
     (if-let [file (first files)]
       (let [{:keys [extension]} file
             uuid (new-uuid)]
         (recur (rest files)
                (conj urls (aws-s3/get-signed-url
-                           s3
+                           s3-presigner
                            {:bucket-name bucket-name
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls))
 
 
-  ;; ["foo" "bar"]
    )
-
 
 (defn get_parser_execution
   [_ {:keys [id] :as args} _]
@@ -59,7 +54,6 @@
   {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
    :status :QUEUED})
 
-;; TODO require-auth decorator
 (defn auth-decorator [resolver-fn]
   (fn [{:keys [headers] :as application-context} args value]
     (if-let [user-id (auth/token->user-id (get headers "Authorization"))]
@@ -91,8 +85,10 @@
         schema (load-schema)
         sqs (aws-sqs/create-client aws)
         s3 (aws-s3/create-client aws)
+        s3-presigner (aws-s3/create-presigner aws)
         context {:sqs sqs
                  :s3 s3
+                 :s3-presigner s3-presigner
                  :workers-queue-url workers-queue-url
                  :bucket-name bucket-name}
         compiled-schema (-> schema
