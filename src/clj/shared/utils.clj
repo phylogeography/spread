@@ -1,5 +1,6 @@
 (ns shared.utils
-  (:require [cognitect.transit :as transit])
+  (:require [cognitect.transit :as transit]
+            [clojure.string :as string])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]))
 
 (defn get-env-variable
@@ -31,8 +32,17 @@
 
 (defn new-uuid [] (str (java.util.UUID/randomUUID)))
 
+(defn transform-keys [m f]
+  (into {} (map #(update-in % [0] f) m)))
+
+(defn ->camelCase [^String s]
+  (string/replace s #"-(\w)"
+                  #(string/upper-case (second %1))))
+
+(defn clj->gql
+  [m]
+  (transform-keys m (comp keyword ->camelCase name)))
+
 (comment
-
   (decode-transit (encode-transit {:a 1}))
-
-  )
+  (clj->gql {:tree-id "fubar"}))

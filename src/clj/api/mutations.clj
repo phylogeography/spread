@@ -3,7 +3,7 @@
             [aws.sqs :as aws-sqs]
             [api.models.continuous-tree :as continuous-tree-model]
             [clojure.string :as string]
-            [shared.utils :refer [new-uuid]]
+            [shared.utils :refer [new-uuid clj->gql]]
             [taoensso.timbre :as log]))
 
 (defn s3-url->id
@@ -37,19 +37,22 @@
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
+                                        ; TODO
 (defn upload-continuous-tree [{:keys [bucket-name authed-user-id db] :as ctx} {tree-file-url :treeFileUrl
                                                                                :as args} _]
-  (log/info "upload-continuous-tree" {:b bucket-name :au authed-user-id :db db})
+  (log/info "upload-continuous-tree" {:user/id authed-user-id :tree-file-url tree-file-url})
   (let [tree-id (s3-url->id tree-file-url bucket-name authed-user-id)
         continuous-tree {:tree-id tree-id
                          :user-id authed-user-id
                          :tree-file-url tree-file-url}]
 
-    #_ (continuous-tree-model/upsert-tree db continuous-tree)
-    ;; TODO : RDS persistance
+    (log/info "@@@ upload-continuous-tree response" (clj->gql continuous-tree))
 
-    ;; TODO : to graphql
-    continuous-tree))
+    ;; TODO : RDS persistance
+    (continuous-tree-model/upsert-tree db continuous-tree)
+
+    ;; TODO : to graphql middleware
+    (clj->gql continuous-tree)))
 
 ;; TODO : message schema
 ;; TODO : invoke parser
@@ -57,7 +60,6 @@
   [{:keys [sqs workers-queue-url]} args _]
   (log/info "start-parser-execution" {:a args})
   (aws-sqs/send-message sqs workers-queue-url {:tree "s3://bla/bla"})
-
   {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
    :status :QUEUED})
 

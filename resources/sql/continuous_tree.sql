@@ -4,7 +4,7 @@
 insert into continuous_tree(
 tree_id,
 user_id,
-tree_file_path,
+tree_file_url,
 x_coordinate_attribute_name,
 y_coordinate_attribute_name,
 hpd_level,
@@ -15,7 +15,7 @@ most_recent_sampling_date
 values (
 :tree-id,
 :user-id,
-:tree-file-path,
+:tree-file-url,
 :x-coordinate-attribute-name,
 :y-coordinate-attribute-name,
 :hpd-level,
@@ -24,11 +24,11 @@ values (
 :most-recent-sampling-date
 )
 on duplicate key update
-most_recent_sampling_date = :x-coordinate-attribute-name,
-most_recent_sampling_date = :y-coordinate-attribute-name,
-most_recent_sampling_date = :hpd-level,
-most_recent_sampling_date = :has-external-annotations,
-most_recent_sampling_date = :timescale-multiplier,
+x_coordinate_attribute_name = :x-coordinate-attribute-name,
+y_coordinate_attribute_name = :y-coordinate-attribute-name,
+hpd_level = :hpd-level,
+has_external_annotations = :has-external-annotations,
+timescale_multiplier = :timescale-multiplier,
 most_recent_sampling_date = :most-recent-sampling-date
 
 -- :name delete-tree :! :n

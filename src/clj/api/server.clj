@@ -22,22 +22,11 @@
       (resolver-fn (merge application-context {:authed-user-id user-id}) args value)
       (throw (Exception. "Authorization required")))))
 
-#_(defn context-decorator [resolver-fn context]
-  (fn [application-context args value]
-    (resolver-fn (merge application-context context) args value)))
-
-#_(defn resolver-map [context]
-  {:query/getParserExecution (auth-decorator (context-decorator resolvers/get-parser-execution context))
-   :mutation/getUploadUrls (auth-decorator (context-decorator mutations/get-upload-urls context))
-   :mutation/uploadContinuousTree (auth-decorator (context-decorator mutations/upload-continuous-tree context))
-   :mutation/startParserExecution (auth-decorator (context-decorator mutations/start-parser-execution context))
-   })
-
 (defn resolver-map [context]
-  {:query/getParserExecution (auth-decorator resolvers/get-parser-execution )
-   :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls )
-   :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree )
-   :mutation/startParserExecution (auth-decorator mutations/start-parser-execution )
+  {:query/getParserExecution (auth-decorator resolvers/get-parser-execution)
+   :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
+   :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree)
+   :mutation/startParserExecution (auth-decorator mutations/start-parser-execution)
    })
 
 (defn ^:private context-interceptor
@@ -45,17 +34,27 @@
   (interceptor
    {:name ::extra-context
     :enter (fn [context]
+             (assoc-in context [:request :lacinia-app-context] extra-context))}))
 
-             ;; (log/debug "@@@ context-interceptor" {:ctx extra-context})
+#_(def ^:private graphql-response-interceptor
+  (interceptor
+   {:name ::graphql-response
+    :leave (fn [context]
+             (let [body (get-in context [:response :body])]
 
-             (assoc-in context [:request :lacinia-app-context] extra-context)
+               (log/debug "@@@ RESP BODY" {:r (get-in context [:response])
+                                           :b (get-in context [:response :body])})
 
-             #_(merge lacinia-context extra-context))}))
+               )
+             context
+             )}))
 
 (defn ^:private interceptors
   [schema extra-context]
   (-> (pedestal/default-interceptors schema nil)
-      (inject (context-interceptor extra-context) :after ::pedestal/inject-app-context)))
+      (inject (context-interceptor extra-context) :after ::pedestal/inject-app-context)
+      #_(inject graphql-response-interceptor :before ::pedestal/query-executor)
+      ))
 
 (defn load-schema []
   (-> (io/resource "schema.edn")
@@ -66,7 +65,8 @@
   (http/stop this))
 
 (defn start [{:keys [api aws db env] :as config}]
-  (let [{:keys [port]} api
+  (let [dev? (= "dev" env)
+        {:keys [port]} api
         {:keys [workers-queue-url bucket-name]} aws
         schema (load-schema)
         sqs (aws-sqs/create-client aws)
@@ -82,50 +82,20 @@
         compiled-schema (-> schema
                             (lacinia-util/attach-resolvers (resolver-map context))
                             schema/compile)
-
         interceptors (interceptors compiled-schema context)
-        routes #{["/api" :post interceptors :route-name ::api]}
+        ;; TODO : when dev?
+        routes (into #{["/api" :post interceptors :route-name ::api]
+                       ["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
+                     (pedestal/graphiql-asset-routes "/assets/graphiql"))
+        opts (cond-> {::http/routes routes
+                      ::http/port port
+                      ::http/type :jetty
+                      ::http/join? false}
+               dev? (merge {:env (keyword env)
+                            ::http/secure-headers nil}))
+        runnable-service (-> (http/create-server opts)
+                             http/start)]
 
-        ;; service (pedestal2/default-service compiled-schema {:port (Integer/parseInt port)})
-        ;; runnable-service (http/create-server service)
-
-        runnable-service
-        (-> {:env (keyword env)
-             ::http/routes routes
-             ::http/port (Integer/parseInt port)
-             ::http/type :jetty
-             ::http/join? false}
-            http/create-server
-            http/start)
-
-        ]
-    (log/info "Starting server" config)
-
-    (when-not (contains? (set (:Buckets (aws-s3/list-buckets s3))) bucket-name)
-      (aws-s3/create-bucket s3 {:bucket-name bucket-name}))
-
-    (http/start runnable-service)
-    runnable-service))
-
-#_(defn start [{:keys [api aws db] :as config}]
-  (let [{:keys [port]} api
-        {:keys [workers-queue-url bucket-name]} aws
-        schema (load-schema)
-        sqs (aws-sqs/create-client aws)
-        s3 (aws-s3/create-client aws)
-        s3-presigner (aws-s3/create-presigner aws)
-        db (db/init db)
-        context {:sqs sqs
-                 :s3 s3
-                 :s3-presigner s3-presigner
-                 :db db
-                 :workers-queue-url workers-queue-url
-                 :bucket-name bucket-name}
-        compiled-schema (-> schema
-                            (lacinia-util/attach-resolvers (resolver-map context))
-                            schema/compile)
-        service (pedestal/default-service compiled-schema {:port (Integer/parseInt port)})
-        runnable-service (http/create-server service)]
     (log/info "Starting server" config)
 
     (when-not (contains? (set (:Buckets (aws-s3/list-buckets s3))) bucket-name)

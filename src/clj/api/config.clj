@@ -6,7 +6,7 @@
         dev-env? (= "dev" environment)]
     {:env environment
      :logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug)}
-     :api {:port (or (get-env-variable "API_PORT") "3001")}
+     :api {:port (Integer/parseInt (or (get-env-variable "API_PORT") "3001"))}
      :aws (cond-> {:region (get-env-variable "AWS_REGION")
                    :access-key-id  (or (get-env-variable "API_AWS_ACCESS_KEY_ID") "AKIAIOSFODNN7EXAMPLE")
                    :secret-access-key (or (get-env-variable "API_AWS_SECRET_ACCESS_KEY") "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
