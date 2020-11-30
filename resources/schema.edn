@@ -5,28 +5,48 @@
 
  :input-objects
  {:File {:fields {:name {:type String}
-                  :extension {:type String}}}}
+                  :extension {:type String}}}
+  }
 
  :objects
  {:ParserResult {:description "A result of a parser."
                  :fields {:id {:type (non-null ID)}
-                          :status {:type (non-null :ParserStatus)}}}}
+                          :status {:type (non-null :ParserStatus)}}}
+  :ContinuousTree {:description "Represents ContinuousTree entity."
+                   :fields {:treeId {:type (non-null ID)}
+                            :userId {:type (non-null ID)}
+                            :treeFileUrl {:type (non-null String)}
+                            :xCoordinateAttributeName {:type String}
+                            :yCoordinateAttributeName {:type String}
+                            :hpdLevel {:type String}
+                            :hasExternalAnnotations {:type Boolean}
+                            :timescaleMultiplier {:type Float}
+                            :mostRecentSamplingDate {:type String}}}
+
+  }
 
  :queries
- {:get_parser_execution {:type :ParserResult
-                         :description "Returns a Result with current status of query execution."
-                         :args {:id {:type (non-null ID)}}
-                         :resolve :query/get_parser_execution}}
+ {:getParserExecution {:type :ParserResult
+                       :description "Returns a Result with current status of query execution."
+                       :args {:id {:type (non-null ID)}}
+                       :resolve :query/getParserExecution}
+
+  }
 
  :mutations
- {:get_upload_urls {:type (list String)
-                    :description "Returns one-time POST urls"
-                    :args {:files {:type (list :File)}}
-                    :resolve :mutation/get_upload_urls}
+ {:getUploadUrls {:type (list String)
+                  :description "Returns one-time POST urls"
+                  :args {:files {:type (list :File)}}
+                  :resolve :mutation/getUploadUrls}
 
-  :start_parser_execution {:type :ParserResult
-                           :description "Starts executing a parser of a given type. Returns a Result with id."
-                           :args {:parser {:type (non-null :Parser)}}
-                           :resolve :mutation/start_parser_execution}}
+  :uploadContinuousTree {:type (non-null :ContinuousTree)
+                         :description "Persists continuous tree. Returns tree id."
+                         :args {:treeFileUrl {:type (non-null String)}}
+                         :resolve :mutation/uploadContinuousTree}
+
+  :startParserExecution {:type :ParserResult
+                         :description "Starts executing a parser of a given type. Returns a Result with id."
+                         :args {:parser {:type (non-null :Parser)}}
+                         :resolve :mutation/startParserExecution}}
 
  }

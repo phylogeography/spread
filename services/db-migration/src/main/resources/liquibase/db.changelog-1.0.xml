@@ -28,7 +28,10 @@
         <constraints nullable="false" />
       </column>
 
-      <column name="tree_file_path" type="VARCHAR(200)"/>
+      <column name="tree_file_url" type="VARCHAR(200)">
+        <constraints nullable="false" />
+      </column>
+      
       <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="y_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="hpd_level" type="VARCHAR(3)"/>
