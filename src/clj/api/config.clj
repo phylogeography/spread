@@ -4,7 +4,8 @@
 (defn load []
   (let [environment (or (get-env-variable "SPREAD_ENV") "dev")
         dev-env? (= "dev" environment)]
-    {:logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug)}
+    {:env environment
+     :logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug)}
      :api {:port (or (get-env-variable "API_PORT") "3001")}
      :aws (cond-> {:region (get-env-variable "AWS_REGION")
                    :access-key-id  (or (get-env-variable "API_AWS_ACCESS_KEY_ID") "AKIAIOSFODNN7EXAMPLE")

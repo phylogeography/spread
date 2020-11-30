@@ -23,7 +23,7 @@
         (throw (Exception. message))))))
 
 (defn get-upload-urls
-  [{:keys [s3-presigner authed-user-id bucket-name] :as ctx} {:keys [files] :as args} _]
+  [{:keys [s3-presigner authed-user-id bucket-name]} {:keys [files] :as args} _]
   (log/info "get-upload-urls" {:user/id authed-user-id :files files})
   (loop [files files
          urls []]
@@ -37,18 +37,18 @@
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-(defn upload-continuous-tree [{:keys [bucket-name authed-user-id db]} {tree-file-url :treeFileUrl
-                                                                       :as args} _]
-  (log/info "upload-continuous-tree" args)
+(defn upload-continuous-tree [{:keys [bucket-name authed-user-id db] :as ctx} {tree-file-url :treeFileUrl
+                                                                               :as args} _]
+  (log/info "upload-continuous-tree" {:b bucket-name :au authed-user-id :db db})
   (let [tree-id (s3-url->id tree-file-url bucket-name authed-user-id)
         continuous-tree {:tree-id tree-id
                          :user-id authed-user-id
                          :tree-file-url tree-file-url}]
 
-   #_ (continuous-tree-model/upsert-tree db continuous-tree)
+    #_ (continuous-tree-model/upsert-tree db continuous-tree)
     ;; TODO : RDS persistance
 
-   ;; TODO : to graphql
+    ;; TODO : to graphql
     continuous-tree))
 
 ;; TODO : message schema
