@@ -27,13 +27,13 @@ public class Handler implements RequestHandler<Object, String> {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            final String API_DB_HOST = Optional.ofNullable(System.getenv("API_DB_HOST")).orElse("localhost");
-            final String API_DB_DATABASE = Optional.ofNullable(System.getenv("API_DB_DATABASE")).orElse("spread");
-            final String API_DB_PORT = Optional.ofNullable(System.getenv("API_DB_PORT")).orElse("3306");
-            final String API_DB_USER = Optional.ofNullable(System.getenv("API_DB_USER")).orElse("root");
-            final String API_DB_PASSWORD = Optional.ofNullable(System.getenv("API_DB_PASSWORD")).orElse("Pa55w0rd");
+            final String API_DB_HOST = Optional.ofNullable(System.getenv("DB_HOST")).orElse("localhost");
+            final String API_DB_DATABASE = Optional.ofNullable(System.getenv("DB_DATABASE")).orElse("spread");
+            final String API_DB_PORT = Optional.ofNullable(System.getenv("DB_PORT")).orElse("3306");
+            final String API_DB_USER = Optional.ofNullable(System.getenv("DB_USER")).orElse("root");
+            final String API_DB_PASSWORD = Optional.ofNullable(System.getenv("DB_PASSWORD")).orElse("Pa55w0rd");
 
-            logger.log("[INFO] Connecting to database " + " API_DB_HOST=" + API_DB_HOST + "\n");
+            logger.log("[INFO] Connecting to database " + " DB_HOST=" + DB_HOST + "\n");
 
             connection = DriverManager.getConnection("jdbc:mysql://" +
                                                      API_DB_HOST + ":" + API_DB_PORT + "/" + API_DB_DATABASE +

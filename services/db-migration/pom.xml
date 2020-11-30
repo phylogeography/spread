@@ -62,9 +62,9 @@
           <changeLogFile>liquibase/db.changelog-master.xml</changeLogFile>
           <verbose>false</verbose>
           <driver>com.mysql.cj.jdbc.Driver</driver>
-          <url>jdbc:mysql://${env.API_DB_HOST}:${env.API_DB_PORT}/${env.API_DB_DATABASE}?createDatabaseIfNotExist=true</url>
-          <username>${env.API_DB_USER}</username>
-          <password>${env.API_DB_PASSWORD}</password>
+          <url>jdbc:mysql://${env.DB_HOST}:${env.DB_PORT}/${env.DB_DATABASE}?createDatabaseIfNotExist=true</url>
+          <username>${env.DB_USER}</username>
+          <password>${env.DB_PASSWORD}</password>
         </configuration>
       </plugin>
 
