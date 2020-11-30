@@ -57,7 +57,6 @@
   (fn [application-context args value]
     (resolver-fn (merge application-context context) args value)))
 
-
 (defn resolver-map [context]
   {:query/get_parser_execution get_parser_execution
    :mutation/start_parser_execution (context-decorator start_parser_execution context)

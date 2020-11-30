@@ -1,0 +1,187 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+  <changeSet author="filip" id="1">
+    <createTable tableName="comments">
+      <column autoIncrement="true" name="comment_SLASH_id" type="INT">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="video_SLASH_id" type="VARCHAR(32)"/>
+      <column name="user_SLASH_id" type="VARCHAR(36)"/>
+      <column name="comment_SLASH_text" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="comment_SLASH_created_on" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="2">
+    <createTable tableName="drops">
+      <column autoIncrement="true" name="drop_SLASH_id" type="INT">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="drop_SLASH_amount" type="FLOAT(12)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="user_SLASH_supported_id" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="user_SLASH_supporter_id" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="3">
+    <createTable tableName="follows">
+      <column defaultValue="" name="user_SLASH_follower_id" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValue="" name="user_SLASH_followed_id" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="follow_SLASH_created_on" type="BIGINT"/>
+      <column defaultValueNumeric="0" name="follow_SLASH_delete" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="4">
+    <createTable tableName="likes">
+      <column defaultValue="" name="video_SLASH_id" type="VARCHAR(32)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column defaultValue="" name="user_SLASH_id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="like_SLASH_created_on" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
+      <column defaultValueNumeric="0" name="like_SLASH_delete" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="5">
+    <createTable tableName="tags">
+      <column name="tag_SLASH_name" type="VARCHAR(10)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="6">
+    <createTable tableName="users">
+      <column name="user_SLASH_id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="user_SLASH_display_name" type="VARCHAR(20)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="user_SLASH_name" type="VARCHAR(20)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="user_SLASH_photo" type="VARCHAR(200)"/>
+      <column name="user_SLASH_bio" type="VARCHAR(200)"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="7">
+    <createTable tableName="video_tags">
+      <column defaultValue="" name="video_SLASH_id" type="VARCHAR(32)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column defaultValue="" name="tag_SLASH_name" type="VARCHAR(10)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="8">
+    <createTable tableName="videos">
+      <column name="video_SLASH_id" type="VARCHAR(32)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="video_SLASH_creator_id" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="video_SLASH_created_on" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="video_SLASH_url" type="VARCHAR(200)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="video_SLASH_placeholder_url" type="VARCHAR(200)"/>
+      <column name="video_SLASH_description" type="VARCHAR(200)"/>
+      <column defaultValueNumeric="0" name="video_SLASH_shares_count" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="filip" id="9">
+    <addPrimaryKey columnNames="user_SLASH_followed_id, user_SLASH_follower_id" constraintName="PRIMARY" tableName="follows"/>
+  </changeSet>
+  <changeSet author="filip" id="10">
+    <createIndex indexName="tag_SLASH_name" tableName="video_tags">
+      <column name="tag_SLASH_name"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="11">
+    <createIndex indexName="user_SLASH_follower_id" tableName="follows">
+      <column name="user_SLASH_follower_id"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="12">
+    <createIndex indexName="user_SLASH_id" tableName="comments">
+      <column name="user_SLASH_id"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="13">
+    <createIndex indexName="user_SLASH_id" tableName="likes">
+      <column name="user_SLASH_id"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="14">
+    <createIndex indexName="user_SLASH_supported_id" tableName="drops">
+      <column name="user_SLASH_supported_id"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="15">
+    <createIndex indexName="user_SLASH_supporter_id" tableName="drops">
+      <column name="user_SLASH_supporter_id"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="16">
+    <createIndex indexName="video_SLASH_creator_id" tableName="videos">
+      <column name="video_SLASH_creator_id"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="17">
+    <createIndex indexName="video_SLASH_id" tableName="comments">
+      <column name="video_SLASH_id"/>
+    </createIndex>
+  </changeSet>
+  <changeSet author="filip" id="18">
+    <addForeignKeyConstraint baseColumnNames="video_SLASH_id" baseTableName="comments" constraintName="comments_ibfk_1" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="video_SLASH_id" referencedTableName="videos" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="19">
+    <addForeignKeyConstraint baseColumnNames="user_SLASH_id" baseTableName="comments" constraintName="comments_ibfk_2" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="user_SLASH_id" referencedTableName="users" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="20">
+    <addForeignKeyConstraint baseColumnNames="user_SLASH_supported_id" baseTableName="drops" constraintName="drops_ibfk_1" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="user_SLASH_id" referencedTableName="users" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="21">
+    <addForeignKeyConstraint baseColumnNames="user_SLASH_supporter_id" baseTableName="drops" constraintName="drops_ibfk_2" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="user_SLASH_id" referencedTableName="users" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="22">
+    <addForeignKeyConstraint baseColumnNames="user_SLASH_followed_id" baseTableName="follows" constraintName="follows_ibfk_1" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="user_SLASH_id" referencedTableName="users" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="23">
+    <addForeignKeyConstraint baseColumnNames="user_SLASH_follower_id" baseTableName="follows" constraintName="follows_ibfk_2" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="user_SLASH_id" referencedTableName="users" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="24">
+    <addForeignKeyConstraint baseColumnNames="video_SLASH_id" baseTableName="likes" constraintName="likes_ibfk_1" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="video_SLASH_id" referencedTableName="videos" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="25">
+    <addForeignKeyConstraint baseColumnNames="user_SLASH_id" baseTableName="likes" constraintName="likes_ibfk_2" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="user_SLASH_id" referencedTableName="users" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="26">
+    <addForeignKeyConstraint baseColumnNames="video_SLASH_id" baseTableName="video_tags" constraintName="video_tags_ibfk_1" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="video_SLASH_id" referencedTableName="videos" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="27">
+    <addForeignKeyConstraint baseColumnNames="tag_SLASH_name" baseTableName="video_tags" constraintName="video_tags_ibfk_2" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="tag_SLASH_name" referencedTableName="tags" validate="true"/>
+  </changeSet>
+  <changeSet author="filip" id="28">
+    <addForeignKeyConstraint baseColumnNames="video_SLASH_creator_id" baseTableName="videos" constraintName="videos_ibfk_1" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="RESTRICT" referencedColumnNames="user_SLASH_id" referencedTableName="users" validate="true"/>
+  </changeSet>
+</databaseChangeLog>

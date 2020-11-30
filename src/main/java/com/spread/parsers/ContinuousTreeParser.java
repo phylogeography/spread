@@ -69,7 +69,7 @@ public class ContinuousTreeParser {
         this.mostRecentSamplingDate = mostRecentSamplingDate;
     }
 
-    // TODO : setter constructor
+    // TODO : builder
 
     public String parse() throws IOException, ImportException, SpreadException {
 

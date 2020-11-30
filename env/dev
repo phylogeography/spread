@@ -2,14 +2,12 @@ export SPREAD_ENV="dev"
 export LOGGING_LEVEL="debug"
 export FLOW_STORM=true
 
-# export AWS_REGION="spread-dev-1"
-# export S3_ENDPOINT="http://127.0.0.1:9000"
 export API_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
 export API_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 export BUCKET_NAME="spread-dev-uploads"
 
 export DB_HOST="127.0.0.1"
-export DB_DATABASE="clash"
+export DB_DATABASE="spread"
 export DB_PORT=3306
 export DB_USER="root"
 export DB_PASSWORD="Pa55w0rd"

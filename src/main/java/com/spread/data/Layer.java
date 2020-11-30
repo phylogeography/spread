@@ -29,7 +29,6 @@ public class Layer {
     @Getter
     private final List<Area> areas;
 
-
     @Accessors(fluent = true)
     @Getter
     private final boolean hasPoints;

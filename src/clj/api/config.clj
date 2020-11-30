@@ -15,11 +15,9 @@
                             :sqs-port 9324
                             :s3-host "127.0.0.1"
                             :s3-port 9000))
-
-     ;; :db {:dbname (get-env-variable "DB_DATABASE" :required)
-     ;;      :port (get-env-variable "DB_PORT" :required)
-     ;;      :user (get-env-variable "DB_USER" :required)
-     ;;      :password  (get-env-variable "DB_PASSWORD" :required)
-     ;;      :host (get-env-variable "DB_HOST" :required)}
-
+     :db {:dbname (or (get-env-variable "DB_DATABASE") "spread")
+          :port (or (get-env-variable "DB_PORT") 3306)
+          :user (or (get-env-variable "DB_USER") "root")
+          :password  (or (get-env-variable "DB_PASSWORD") "Pa55w0rd")
+          :host (or (get-env-variable "DB_HOST") "127.0.0.1")}
      }))
