@@ -49,7 +49,7 @@
     (log/info "@@@ upload-continuous-tree response" (clj->gql continuous-tree))
 
     ;; TODO : RDS persistance
-    (continuous-tree-model/upsert-tree db continuous-tree)
+    (continuous-tree-model/upsert-tree! db continuous-tree)
 
     ;; TODO : to graphql middleware
     (clj->gql continuous-tree)))

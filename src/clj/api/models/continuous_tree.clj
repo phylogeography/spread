@@ -1,5 +1,6 @@
 (ns api.models.continuous-tree
-  (:require [hugsql.core :as hugsql]))
+  (:require [hugsql.core :as hugsql]
+            [taoensso.timbre :as log]))
 
 ;; This are just so clj-kondo doesn't complain
 (declare upsert-tree)
@@ -9,19 +10,18 @@
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-tree
-  {
-   ;; :tree-id nil
-   ;; :user-id nil
-   ;; :tree-file-url nil
+  {:tree-id nil
+   :user-id nil
+   :tree-file-url nil
    :x-coordinate-attribute-name nil
    :y-coordinate-attribute-name nil
    :hpd-level nil
    :has-external-annotations nil
    :timescale-multiplier nil
-   :most-recent-sampling-date nil
-   }
-
-  )
+   :most-recent-sampling-date nil})
 
 (defn upsert-tree! [db tree]
+
+  (log/debug "@@@ upsert-tree!" (merge nil-tree tree))
+
   (upsert-tree db (merge nil-tree tree)))
