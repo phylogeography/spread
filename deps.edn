@@ -1,4 +1,5 @@
 {:paths ["src/clj" "resources/"]
+
  :deps  {;; CORE
          org.clojure/clojure    {:mvn/version "1.10.1"}
          org.clojure/core.async {:mvn/version "1.2.603"}
@@ -10,6 +11,7 @@
 
          ;; LOGGING
          com.taoensso/timbre {:mvn/version "5.1.0"}
+
 
          ;; DB
          seancorfield/next.jdbc                 {:mvn/version "1.1.588"}
@@ -29,10 +31,12 @@
          jebl                  {:mvn/version "2.0"}
          libspread             {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
          org.clojure/data.json {:mvn/version "1.0.0"}
-
-         ;; UTILS
+         org.clojure/data.xml  {:mvn/version "0.0.8"}
+         
+         ;; UTILS         
          mount                 {:mvn/version "0.1.16"}
          jpmonettas/flow-storm {:mvn/version "0.2.6"}}
+ 
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}
              "jebl2"   {:url           "http://www.stat.ubc.ca/~bouchard/maven/"
@@ -40,31 +44,25 @@
                         :sign-releases false
                         :checksum      :fail
                         :update        :never}}
- :aliases   {:test
-             {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}
-                           clj-http/clj-http   {:mvn/version "3.11.0"}}}
+ :aliases   {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}
+                                 clj-http/clj-http   {:mvn/version "3.11.0"}}}
 
-             :run-api
-             {:main-opts ["-m" "api.main"]}
+             :dev {:extra-deps {jpmonettas/flow-storm {:mvn/version "0.5.0"}}}
+             
+             :run-api {:main-opts ["-m" "api.main"]}
+             
+             :run-worker {:main-opts ["-m" "worker.main"]}
 
-             :run-worker
-             {:main-opts ["-m" "worker.main"]}
+             :uberjar {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
+                       :main-opts  ["-m" "hf.depstar.uberjar"]}
 
-             :uberjar
-             {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
-              :main-opts  ["-m" "hf.depstar.uberjar"]}
+             :clj-kondo {:extra-deps {clj-kondo {:mvn/version "2021.01.20"}}
+                         :main-opts  ["-m" "clj-kondo.main"]}
 
-             :clj-kondo
-             {:extra-deps {clj-kondo {:mvn/version "2021.01.20"}}
-              :main-opts  ["-m" "clj-kondo.main"]}
+             :repl {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}
 
-             :repl
-             {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}
+             :graph {:extra-deps {org.clojure/tools.deps.graph {:mvn/version "1.0.56"}}
+                     :main-opts    ["-m" "clojure.tools.deps.graph"]}
 
-             :graph
-             {:extra-deps {org.clojure/tools.deps.graph {:mvn/version "1.0.56"}}
-              :main-opts    ["-m" "clojure.tools.deps.graph"]}
-
-             :outdated
-             {:extra-deps {olical/depot {:mvn/version "1.8.4"}}
-              :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}
+             :outdated {:extra-deps {olical/depot {:mvn/version "1.8.4"}}
+                        :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}
