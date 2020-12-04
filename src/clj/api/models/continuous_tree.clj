@@ -2,8 +2,9 @@
   (:require [hugsql.core :as hugsql]
             [taoensso.timbre :as log]))
 
-;; This are just so clj-kondo doesn't complain
+;; This are just not to upset clj-kondo
 (declare upsert-tree)
+(declare insert-attribute)
 
 (hugsql/def-db-fns "sql/continuous_tree.sql")
 (hugsql/def-sqlvec-fns "sql/continuous_tree.sql")
@@ -21,7 +22,8 @@
    :most-recent-sampling-date nil})
 
 (defn upsert-tree! [db tree]
-
-  (log/debug "@@@ upsert-tree!" (merge nil-tree tree))
-
   (upsert-tree db (merge nil-tree tree)))
+
+(defn insert-attributes! [db tree-id attributes]
+  (doseq [att attributes]
+    (insert-attribute db {:tree-id tree-id :attribute-name att})))

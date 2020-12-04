@@ -36,3 +36,9 @@ most_recent_sampling_date = :most-recent-sampling-date
 delete
 from continuous_tree
 where tree_id = :tree-id
+
+-- :name insert-attribute :! :n
+-- :doc Insert an attribute 
+
+insert ignore into continuous_tree_attributes (tree_id, attribute_name)
+values (:tree-id, :attribute-name)

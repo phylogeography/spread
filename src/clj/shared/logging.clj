@@ -59,4 +59,5 @@
       :middleware [wrap-decode-vargs]
       :appenders {:console (console-appender)}})))
 
-(defstate logging :start (start (mount/args)))
+(defstate logging
+  :start (start (mount/args)))

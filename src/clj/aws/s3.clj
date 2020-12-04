@@ -89,6 +89,7 @@
   (log/info "Downloading file from s3" {:bucket bucket
                                         :key key
                                         :saving-in dest-path})
+  (io/make-parents dest-path)
   (-> (aws/invoke s3 {:op :GetObject
                       :request {:Bucket bucket
                                 :Key key}})

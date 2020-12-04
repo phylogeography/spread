@@ -8,7 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import com.google.gson.GsonBuilder;
 import com.spread.data.Attribute;
@@ -531,28 +533,28 @@ public class ContinuousTreeParser {
         return new GsonBuilder().create().toJson(spreadData);
     }
 
-    //  return tuple of attributes and hpd levels
-    public void parseTree()  {
+    //  return attributes set and hpd levels
+    public String parseAttributesAndHpdLevels() throws IOException, ImportException  {
 
-        // RootedTree tree = ParsersUtils.importRootedTree(model.getTreeFilename());
+        RootedTree tree = ParsersUtils.importRootedTree(this.treeFilePath);
 
-        // Set<String> uniqueAttributes = continuousTreeModel.getAttributes().stream().map(attribute -> {
-        //         return attribute.getName();
-        //     }).collect(Collectors.toSet());
+        Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
+            .flatMap(node -> node.getAttributeNames().stream()).map(name -> {
+                    return name;
+                }).collect(Collectors.toSet());
 
-        // Set<ContinuousAttributeEntity> attributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
-        //     .flatMap(node -> node.getAttributeNames().stream()).map(name -> {
-        //             return new ContinuousAttributeEntity(name, model);
-        //         }).collect(Collectors.toSet());
+        Set<String> hpdLevels = uniqueAttributes.stream().filter(attributeName -> attributeName.contains("HPD_modality"))
+            .map(hpdString -> {
+                    return hpdString.replaceAll("\\D+", "");
+                })
+            .collect(Collectors.toSet());
 
-        // Set<HpdLevelEntity> hpdLevels = attributes.stream().map(attribute -> {
-        //         return attribute.getName();
-        //     }).filter(attributeName -> attributeName.contains("HPD_modality"))
-        //     .map(hpdString -> {
-        //             return new HpdLevelEntity(hpdString.replaceAll("\\D+", ""), model);
-        //         }).collect(Collectors.toSet());
+        Object pair = new Object[] {uniqueAttributes, hpdLevels};
 
+        return new GsonBuilder().create().toJson(pair);
     }
+
+    //  return hpd levels vector
 
     private Point createPoint(Node node, Coordinate coordinate, RootedTree rootedTree, TimeParser timeParser) throws SpreadException {
 

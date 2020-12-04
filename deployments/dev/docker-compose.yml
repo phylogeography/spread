@@ -36,5 +36,5 @@ services:
     volumes:
       - ./s3:/data
     environment:
-      MINIO_ACCESS_KEY: $ACCESS_KEY_ID
-      MINIO_SECRET_KEY: $SECRET_ACCESS_KEY
+      MINIO_ACCESS_KEY: $API_AWS_ACCESS_KEY_ID
+      MINIO_SECRET_KEY: $API_AWS_SECRET_ACCESS_KEY

@@ -2,6 +2,16 @@
   (:require [api.db :as db]
             [taoensso.timbre :as log]))
 
+;; TODO: query RDS
+(defn continuous-tree->attributes
+  [{:keys [db]} _ {tree-id :treeId}]
+
+  (log/info "continuous-tree->attributes" {:tree/id tree-id})
+
+  ["att1" "att2"]
+
+  )
+
 ;; TODO : read status (from RDS)
 (defn get-parser-execution
   [_ {:keys [id db] :as args} _]

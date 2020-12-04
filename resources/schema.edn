@@ -21,7 +21,10 @@
                             :hpdLevel {:type String}
                             :hasExternalAnnotations {:type Boolean}
                             :timescaleMultiplier {:type Float}
-                            :mostRecentSamplingDate {:type String}}}
+                            :mostRecentSamplingDate {:type String}
+                            :attributes {:type (list String)
+                                         :resolve :resolve/continuous-tree->attributes}
+                            }}
 
   }
 

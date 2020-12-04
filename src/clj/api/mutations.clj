@@ -37,20 +37,20 @@
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-                                        ; TODO
-(defn upload-continuous-tree [{:keys [bucket-name authed-user-id db] :as ctx} {tree-file-url :treeFileUrl
-                                                                               :as args} _]
+;; TODO : return and let nested resolver resolve the atts field
+;; TODO : or custom return type?
+;; TODO : human-readable name (use file name)
+(defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db] :as ctx} {tree-file-url :treeFileUrl} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id :tree-file-url tree-file-url})
   (let [tree-id (s3-url->id tree-file-url bucket-name authed-user-id)
         continuous-tree {:tree-id tree-id
                          :user-id authed-user-id
                          :tree-file-url tree-file-url}]
-
-    (log/info "@@@ upload-continuous-tree response" (clj->gql continuous-tree))
-
-    ;; TODO : RDS persistance
     (continuous-tree-model/upsert-tree! db continuous-tree)
-
+    ;; sends message to worker to parse hpd evels and attributes
+    (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
+                                                 :tree-id tree-id
+                                                 :user-id user-id})
     ;; TODO : to graphql middleware
     (clj->gql continuous-tree)))
 
@@ -62,7 +62,6 @@
   (aws-sqs/send-message sqs workers-queue-url {:tree "s3://bla/bla"})
   {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
    :status :QUEUED})
-
 
 (comment
   (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"

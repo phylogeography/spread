@@ -23,7 +23,8 @@
       (throw (Exception. "Authorization required")))))
 
 (defn resolver-map [context]
-  {:query/getParserExecution (auth-decorator resolvers/get-parser-execution)
+  {:resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
+   :query/getParserExecution (auth-decorator resolvers/get-parser-execution)
    :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
    :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree)
    :mutation/startParserExecution (auth-decorator mutations/start-parser-execution)

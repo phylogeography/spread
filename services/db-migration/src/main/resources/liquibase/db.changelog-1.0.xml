@@ -5,21 +5,18 @@
 
   <changeSet author="filip" id="1.0-1">
     <createTable tableName="user">
-
       <column name="user_id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
 
-      <column  name="user_email" type="VARCHAR(50)">
+      <column name="user_email" type="VARCHAR(50)">
         <constraints nullable="false"/>
       </column>
-
     </createTable>
   </changeSet>
 
   <changeSet author="filip" id="1.0-2">
     <createTable tableName="continuous_tree">
-
       <column name="tree_id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
@@ -38,10 +35,9 @@
       <column name="has_external_annotations" type="${RealBooleanType}"/>
       <column name="timescale_multiplier" type="float"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
-
     </createTable>
   </changeSet>
-
+  
   <changeSet author="filip" id="1.0-3">
     <createIndex indexName="continuous_tree_SLASH_user_id_INDEX" tableName="continuous_tree">
       <column name="user_id"/>
@@ -60,5 +56,56 @@
                              initiallyDeferred="false"
                              validate="true"/>
   </changeSet>
+  
+  <changeSet author="filip" id="1.0-5">
+    <createTable tableName="continuous_tree_attributes">
+      <column name="tree_id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
 
+      <column name="attribute_name" type="VARCHAR(200)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="filip" id="1.0-6">
+    <addForeignKeyConstraint constraintName="continuous_tree_attributes_SLASH_continuous_tree_FK"
+                             baseColumnNames="tree_id"
+                             baseTableName="continuous_tree_attributes"
+                             referencedColumnNames="tree_id"
+                             referencedTableName="continuous_tree"
+                             onDelete="CASCADE"
+                             onUpdate="RESTRICT"
+                             deferrable="false"
+                             initiallyDeferred="false"
+                             validate="true"/>
+  </changeSet>
+    
+  <changeSet author="filip" id="1.0-7">
+    <createTable tableName="continuous_tree_hpd_levels">
+      <column name="tree_id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+
+      <column name="level" type="VARCHAR(3)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="filip" id="1.0-8">
+    <addForeignKeyConstraint constraintName="continuous_tree_hpd_levels_SLASH_continuous_tree_FK"
+                             baseColumnNames="tree_id"
+                             baseTableName="continuous_tree_hpd_levels"
+                             referencedColumnNames="tree_id"
+                             referencedTableName="continuous_tree"
+                             onDelete="CASCADE"
+                             onUpdate="RESTRICT"
+                             deferrable="false"
+                             initiallyDeferred="false"
+                             validate="true"/>
+  </changeSet>
+
+  
 </databaseChangeLog>
