@@ -19,8 +19,7 @@
   [{:message/keys [type]} _]
   (log/warn (str "No handler for message type " type)))
 
-;; TODO : persist attributes
-;; TODO : persist hpd levels
+;; TODO : update status
 (defmethod handler :continuous-tree-upload
   [{:keys [tree-id user-id tree-file-url] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling continuous-tree-upload" args)
@@ -30,16 +29,12 @@
         _ (aws-s3/download-file s3 bucket-name tree-object-key tree-file-path)
         parser (doto (new ContinuousTreeParser)
                  (.setTreeFilePath tree-file-path))
-        [attributes hpd-levels] (json/read-str (.parseAttributesAndHpdLevels parser))
-
-        ]
-
-    (log/info "handling continuous-tree-upload" {:atts attributes
-                                                 :lvls hpd-levels})
-
+        [attributes hpd-levels] (json/read-str (.parseAttributesAndHpdLevels parser))]
+    (log/info "Parsed attributes and hpd-levels" {:tree-id tree-id
+                                                  :attributes attributes
+                                                  :hpd-levels hpd-levels})
     (continuous-tree-model/insert-attributes! db tree-id attributes)
-
-    ))
+    (continuous-tree-model/insert-hpd-levels! db tree-id hpd-levels)))
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws

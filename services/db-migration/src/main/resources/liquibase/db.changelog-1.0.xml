@@ -28,7 +28,13 @@
       <column name="tree_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-      
+
+      <column name="status" type="VARCHAR(50)">
+        <constraints nullable="false" />
+      </column>
+
+      <column name="output_file_url" type="VARCHAR(200)"/>      
+      <column name="name" type="VARCHAR(200)"/>      
       <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="y_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="hpd_level" type="VARCHAR(3)"/>
@@ -107,5 +113,22 @@
                              validate="true"/>
   </changeSet>
 
+  <changeSet author="filip" id="1.0-9">
+    <createTable tableName="status">
+      
+      <column name="id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+
+      <column name="status" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+
+
+
+  
   
 </databaseChangeLog>

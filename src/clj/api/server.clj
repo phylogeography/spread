@@ -24,10 +24,12 @@
 
 (defn resolver-map [context]
   {:resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
-   :query/getParserExecution (auth-decorator resolvers/get-parser-execution)
+   :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
+   :query/getParserStatus resolvers/get-parser-status
+   :query/getContinuousTree resolvers/get-continuous-tree
    :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
    :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree)
-   :mutation/startParserExecution (auth-decorator mutations/start-parser-execution)
+   :mutation/startContinuousTreeParser (auth-decorator mutations/start-parser-execution)
    })
 
 (defn ^:private context-interceptor

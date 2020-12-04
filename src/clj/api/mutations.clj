@@ -37,31 +37,36 @@
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-;; TODO : return and let nested resolver resolve the atts field
-;; TODO : or custom return type?
-;; TODO : human-readable name (use file name)
-(defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db] :as ctx} {tree-file-url :treeFileUrl} _]
+;; TODO : add human-readable name (use file name)
+(defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db] :as ctx}
+                              {tree-file-url :treeFileUrl :as args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id :tree-file-url tree-file-url})
   (let [tree-id (s3-url->id tree-file-url bucket-name authed-user-id)
         continuous-tree {:tree-id tree-id
+                         :name (:name args)
                          :user-id authed-user-id
-                         :tree-file-url tree-file-url}]
+                         :tree-file-url tree-file-url
+                         :status :INIT}]
     (continuous-tree-model/upsert-tree! db continuous-tree)
-    ;; sends message to worker to parse hpd evels and attributes
+    ;; sends message to worker to parse hpd levels and attributes
     (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
                                                  :tree-id tree-id
-                                                 :user-id user-id})
-    ;; TODO : to graphql middleware
-    (clj->gql continuous-tree)))
+                                                 :user-id authed-user-id})
+    {:id tree-id
+     :status :SENT}
 
-;; TODO : message schema
-;; TODO : invoke parser
-(defn start-parser-execution
+    ))
+
+;; TODO : update Tree mutation (to set atts etc)
+
+;; TODO : resposne schema
+;; TODO : invoke worker
+(defn start-continuous-tree-parser
   [{:keys [sqs workers-queue-url]} args _]
   (log/info "start-parser-execution" {:a args})
   (aws-sqs/send-message sqs workers-queue-url {:tree "s3://bla/bla"})
   {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
-   :status :QUEUED})
+   :status :SENT})
 
 (comment
   (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"

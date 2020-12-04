@@ -2,9 +2,13 @@
   (:require [hugsql.core :as hugsql]
             [taoensso.timbre :as log]))
 
-;; This are just not to upset clj-kondo
+;; These are just not to upset clj-kondo
 (declare upsert-tree)
 (declare insert-attribute)
+(declare insert-hpd-level)
+(declare get-tree)
+(declare get-attributes)
+(declare get-hpd-levels)
 
 (hugsql/def-db-fns "sql/continuous_tree.sql")
 (hugsql/def-sqlvec-fns "sql/continuous_tree.sql")
@@ -19,11 +23,22 @@
    :hpd-level nil
    :has-external-annotations nil
    :timescale-multiplier nil
-   :most-recent-sampling-date nil})
+   :most-recent-sampling-date nil
+   :status nil
+   :output-file-url nil
+   })
 
 (defn upsert-tree! [db tree]
-  (upsert-tree db (merge nil-tree tree)))
+  (let [tree (->> tree
+                  (merge nil-tree)
+                  (#(update % :status name)))]
+    (log/debug "upsert-tree!" tree)
+    (upsert-tree db tree)))
 
 (defn insert-attributes! [db tree-id attributes]
   (doseq [att attributes]
     (insert-attribute db {:tree-id tree-id :attribute-name att})))
+
+(defn insert-hpd-levels! [db tree-id levels]
+  (doseq [lvl levels ]
+    (insert-hpd-level db {:tree-id tree-id :level lvl})))
