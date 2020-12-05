@@ -1,0 +1,199 @@
+#+TITLE: Spread: UI/UX document
+#+AUTHOR: F. Bielejec
+#+EMAIL: fbielejec@gmail.com
+#+TEXINFO_PRINTED_TITLE: Spread: UI/UX document
+#+OPTIONS: ':t toc:t author:t email:t ^:nil
+#+LANGUAGE: en
+#+STARTUP: overview
+
+* DONE Introduction
+This document describes the main conceptual characteristics of the User Interface for the system meant to replace the existing legacy software package for visualizing phylogeographic reconstructions called SPREAD.
+It's target audience are the stakeholders, UI/UX designers and the developers of the new system.
+This document is subject to change.
+
+* DONE System architecture overview
+
+The diagram below presents the main components making up the system: 
+
+#+begin_src plantuml :file system_architecture.png
+
+package "browser" {
+  [user interface]
+}
+
+[API server] as API
+
+[Messaging Queue] as SQS
+
+cloud {
+  [objectstore] as S3
+}
+
+database "Database" {
+  [DB] as db
+}
+
+[worker] as w1
+[worker] as w2
+[worker] as w3
+
+[user interface] .> S3 : upload inputs
+
+[user interface] <.> API : authentication / queries / mutations
+API ..> SQS : publish message
+
+API <..> db : CRUD operations
+
+SQS -down-> w1 : listen
+SQS -down-> w2 : listen
+SQS -down-> w3 : listen
+
+S3 ..> w1 : download inputs
+S3 <.. w1 : upload results
+db <..> w1 : CRUD operations
+#+end_src
+#+RESULTS:
+[[file:system_architecture.png]]
+
+As can be seen from the system architecture SPREAD is a queue based system, with the Server component responsible for reading and writing to the Database as well as publishing messages to the queue. 
+A configurable number of workers compete for these messages and act on them. 
+Once a worker picks up a message, it updates the state accordingly by performing a Database write and starts the compute-intensive parsing and analysis.
+After it's done it writes the state to the Database and uploads the resulting objects to the S3 Object storage.
+System can be scaled horizontally by increasing the number of workers.
+
+The User Interface is responsible for keeping this architecture transparent to the end-user.
+It acts as a facade for comunicating with the server and facilitates interacting with the server by displaying the database state as it comes by querying the server.
+It is also responsible for uploading input files that are used by the workers in the analysis.
+
+* DONE User-interface functional requirements
+** DONE General considerations
+
+- User authentication and management.
+- A minimal number of steps to obtain visualization.
+- The ability to retrieve and edit previous analyses.
+- Sharing of visualizations through URLs.
+
+# - Animated visualization of phylogenies projected on maps (with the ability to freeze and export).
+# - The ability to select and highlight taxa (based on string content) and locations.
+# - Custom coloring and styling.
+# - The ability to zoom in on parts of the projection.
+# - Good export capabilities (vector-based graphics).
+
+** DONE authentication
+
+User authentication will be implemented by a mechanism knows as "magic links", where the email is used as a sole identity provider (system will not track nor need other fields).
+
+When the user first comes into the interface he/she is greeted with a login / signup form which takes user email as the only credential.
+Regardless of whether this is a signup or login of an already existing user, an email is sent containing a link with an attached token.
+Clicking on the link takes the user back to the interface and confirms the identity. 
+A long-lived auth cookie is set in browser for future sessions.
+After the validity of this cookie runs out user needs to authenticate again with the system.
+
+#+CAPTION: Example login / signup form
+#+NAME:   fig:EXAMPLE_LOGIN
+[[file:example_login.png]]
+
+** DONE Analysis and input types
+*** DONE General considerations
+System will be responsible for processing four distinct input types:
+
+- Visualizing an MCC tree annotated with continuous traits
+- Visualizing a distribution of trees annotated with continuous traits
+- Visualizing an MCC tree annotated with discrete traits
+- Identifying well-supported rates through Bayes factor tests
+
+These inputs are typically annotated with geographical coordinates in it's meta-data, and subsequently used for displaying the results on a map.
+A visualisation of an input means parsing and analyzing it to produce an intermediate format, which is then understood by the visualisation engine, which displays the results on a map.
+The interface should make this division transparent to the end user and guide him through the analysis that results in the visualisation, without exposing intermediate steps.
+
+#+attr_html: :width 800px
+#+CAPTION: Example visualisation
+#+NAME:   fig:EBOV
+[[file:ebov_final_cut.png]]
+
+Authenticated users should be able to come back to the previous analysis, retrieve, change or re-uplaod the inputs and the settings as well as create or delete content.
+
+The fact that system is using a queue for processing inputs means the results are not immediately availiable (the typical request / response pattern is not possible).
+Components of the system will keep track and update the current state of the analysis such that the server will be able to repond at any given point in time what is the status, by using enumerated response codes e.g : `:INIT`, `:SENT`, `:QUEUED`, `:RUNNING`, `:SUCCEEDED` or `:ERROR`.
+
+The interface should make it possible to query for updates or even establish a poll that reflects that.
+
+*** DONE Visualizing an MCC tree annotated with continuous traits
+
+#+attr_html: :width 800px
+#+CAPTION: Inputs tab in legacy software
+#+NAME:   fig:CONT
+[[file:continuous_tab.png]]
+
+This type of analysis accepts a file with a single tree (a graph) as an input.
+After uploading the file server component calls a worker to pre-traverse it and collect all unique attribute names.
+User than selects the attributes that carry geographical coordinates (longitude / latitude) and can change various other settings to obtain a visualisation. 
+
+#+ATTR_HTML: :controls controls :width 350
+#+BEGIN_video
+#+HTML: <source src="continuous_tree.mp4" type="video/mp4">
+*@@html:<font color = "red">@@Your browser does not support the video tag.@@html:</font>@@*
+#+END_video
+
+*** DONE Visualizing a distribution of trees annotated with continuous traits
+
+#+attr_html: :width 800px
+#+CAPTION:  legacy software
+#+NAME:   fig:DIST
+[[file:distribution_tab.png]]
+
+This analysis summarizes a distribution of trees. 
+To achieve this, SpreaD3 creates a time line by slicing through each tree graph at particular points in time, and computes the geographical locations in those slices.
+These time points can either be supplied by the user (as a list of decimal values), or generated based on a height of single tree (supplied in a file) or finally from the distribution of trees itself, by taking the maximal height and generating uniformly distributed numbers  between 0 and that number.
+
+The input files can be relatively large and the entire analysis can be relatively time-consuming (as well as CPU intensive).
+
+#+ATTR_HTML: :controls controls :width 350
+#+BEGIN_video
+#+HTML: <source src="continuous_trees.mp4" type="video/mp4">
+*@@html:<font color = "red">@@Your browser does not support the video tag.@@html:</font>@@*
+#+END_video
+
+*** DONE Visualizing an MCC tree annotated with discrete traits
+
+#+attr_html: :width 800px
+#+CAPTION: Inputs tab in legacy version
+#+NAME:   fig:EBOV
+[[file:discrete_tab.png]]
+
+In this type of analysis tree is annotated with a finite number of locations labelled by their names.
+To display it on the map, each one of these states needs to be associated with a geographical location (latitude and longitude coordinates).
+
+For this user can use a built-in editor and fill them in or load a previously prepared tab-delimited file including each location, its latitude and longitude.
+ 
+#+ATTR_HTML: :controls controls :width 350
+#+BEGIN_video
+#+HTML: <source src="discrete_tree.mp4" type="video/mp4">
+*@@html:<font color = "red">@@Your browser does not support the video tag.@@html:</font>@@*
+#+END_video
+
+*** DONE Identifying well-supported rates through Bayes factor tests
+
+#+attr_html: :width 800px
+#+CAPTION: Inputs tab in legacy version
+#+NAME:   fig:EBOV
+[[file:bssvs_tab.png]]
+
+This analysis takes a log file generates by the [[https://github.com/beast-dev/beast-mcmc][BEAST]] software package, and calculates a Bayes factor support for each pairwise rate of diffusion between locations from samples in that log file.
+Although this analysis too makes it possible to obtain a visualisations on a geographical map, most users are mainly interested in the support values calculated.
+
+If a visualisations is to be generated user needs to provide a mapping between locations and coordinates for a display on the map, in other case just the number of these locations is required.
+Resulting rates of support for pairwise connections look like this:
+
+| FROM      | TO    |        BAYES_FACTOR  | POSTERIOR PROBABILITY |
+|-----------+-------+---------------------+-----------------------|
+| Guangdong | Henan | 0.49024749921100813 |   0.18656302054414214 |
+| Guangdong | Hunan |  0.3020727841804354 |   0.12382009994447529 |
+| Guangxi   | Hebei |  0.5811807357716423 |   0.21377012770682954 |
+| Guangxi   | Hunan |  1.3275435166126814 |   0.38312048861743475 |
+
+#+ATTR_HTML: :controls controls :width 350
+#+BEGIN_video
+#+HTML: <source src="discrete_tree.mp4" type="video/mp4">
+*@@html:<font color = "red">@@Your browser does not support the video tag.@@html:</font>@@*
+#+END_video
