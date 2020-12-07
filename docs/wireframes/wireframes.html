@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2020-12-05 Sat 18:33 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Spread: UI/UX document</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="F. Bielejec" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Spread: UI/UX document</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#org679007c">1. <span class="done DONE">DONE</span> Introduction</a></li>
+<li><a href="#org9c40907">2. <span class="done DONE">DONE</span> System architecture overview</a></li>
+<li><a href="#org644c622">3. <span class="done DONE">DONE</span> User-interface functional requirements</a>
+<ul>
+<li><a href="#orgdcecdcb">3.1. <span class="done DONE">DONE</span> General considerations</a></li>
+<li><a href="#org5cd7e9c">3.2. <span class="done DONE">DONE</span> authentication</a></li>
+<li><a href="#org2be0716">3.3. <span class="done DONE">DONE</span> Analysis and input types</a>
+<ul>
+<li><a href="#org841d441">3.3.1. <span class="done DONE">DONE</span> General considerations</a></li>
+<li><a href="#orgd15b581">3.3.2. <span class="done DONE">DONE</span> Visualizing an MCC tree annotated with continuous traits</a></li>
+<li><a href="#org1c2df65">3.3.3. <span class="done DONE">DONE</span> Visualizing a distribution of trees annotated with continuous traits</a></li>
+<li><a href="#org2f5a1ed">3.3.4. <span class="done DONE">DONE</span> Visualizing an MCC tree annotated with discrete traits</a></li>
+<li><a href="#org45c71b6">3.3.5. <span class="done DONE">DONE</span> Identifying well-supported rates through Bayes factor tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org679007c" class="outline-2">
+<h2 id="org679007c"><span class="section-number-2">1</span> <span class="done DONE">DONE</span> Introduction</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+This document describes the main conceptual characteristics of the User Interface for the system meant to replace the existing legacy software package for visualizing phylogeographic reconstructions called SPREAD.
+It&rsquo;s target audience are the stakeholders, UI/UX designers and the developers of the new system.
+This document is subject to change.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9c40907" class="outline-2">
+<h2 id="org9c40907"><span class="section-number-2">2</span> <span class="done DONE">DONE</span> System architecture overview</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The diagram below presents the main components making up the system: 
+</p>
+
+
+<div class="figure">
+<p><img src="system_architecture.png" alt="system_architecture.png" />
+</p>
+</div>
+
+<p>
+As can be seen from the system architecture SPREAD is a queue based system, with the Server component responsible for reading and writing to the Database as well as publishing messages to the queue. 
+A configurable number of workers compete for these messages and act on them. 
+Once a worker picks up a message, it updates the state accordingly by performing a Database write and starts the compute-intensive parsing and analysis.
+After it&rsquo;s done it writes the state to the Database and uploads the resulting objects to the S3 Object storage.
+System can be scaled horizontally by increasing the number of workers.
+</p>
+
+<p>
+The User Interface is responsible for keeping this architecture transparent to the end-user.
+It acts as a facade for comunicating with the server and facilitates interacting with the server by displaying the database state as it comes by querying the server.
+It is also responsible for uploading input files that are used by the workers in the analysis.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org644c622" class="outline-2">
+<h2 id="org644c622"><span class="section-number-2">3</span> <span class="done DONE">DONE</span> User-interface functional requirements</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-orgdcecdcb" class="outline-3">
+<h3 id="orgdcecdcb"><span class="section-number-3">3.1</span> <span class="done DONE">DONE</span> General considerations</h3>
+<div class="outline-text-3" id="text-3-1">
+<ul class="org-ul">
+<li>User authentication and management.</li>
+<li>A minimal number of steps to obtain visualization.</li>
+<li>The ability to retrieve and edit previous analyses.</li>
+<li>Sharing of visualizations through URLs.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org5cd7e9c" class="outline-3">
+<h3 id="org5cd7e9c"><span class="section-number-3">3.2</span> <span class="done DONE">DONE</span> authentication</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+User authentication will be implemented by a mechanism knows as &ldquo;magic links&rdquo;, where the email is used as a sole identity provider (system will not track nor need other fields).
+</p>
+
+<p>
+When the user first comes into the interface he/she is greeted with a login / signup form which takes user email as the only credential.
+Regardless of whether this is a signup or login of an already existing user, an email is sent containing a link with an attached token.
+Clicking on the link takes the user back to the interface and confirms the identity. 
+A long-lived auth cookie is set in browser for future sessions.
+After the validity of this cookie runs out user needs to authenticate again with the system.
+</p>
+
+
+<div id="org043c51a" class="figure">
+<p><img src="example_login.png" alt="example_login.png" />
+</p>
+<p><span class="figure-number">Figure 2: </span>Example login / signup form</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2be0716" class="outline-3">
+<h3 id="org2be0716"><span class="section-number-3">3.3</span> <span class="done DONE">DONE</span> Analysis and input types</h3>
+<div class="outline-text-3" id="text-3-3">
+</div>
+<div id="outline-container-org841d441" class="outline-4">
+<h4 id="org841d441"><span class="section-number-4">3.3.1</span> <span class="done DONE">DONE</span> General considerations</h4>
+<div class="outline-text-4" id="text-3-3-1">
+<p>
+System will be responsible for processing four distinct input types:
+</p>
+
+<ul class="org-ul">
+<li>Visualizing an MCC tree annotated with continuous traits</li>
+<li>Visualizing a distribution of trees annotated with continuous traits</li>
+<li>Visualizing an MCC tree annotated with discrete traits</li>
+<li>Identifying well-supported rates through Bayes factor tests</li>
+</ul>
+
+<p>
+These inputs are typically annotated with geographical coordinates in it&rsquo;s meta-data, and subsequently used for displaying the results on a map.
+A visualisation of an input means parsing and analyzing it to produce an intermediate format, which is then understood by the visualisation engine, which displays the results on a map.
+The interface should make this division transparent to the end user and guide him through the analysis that results in the visualisation, without exposing intermediate steps.
+</p>
+
+
+<div id="org1580501" class="figure">
+<p><img src="ebov_final_cut.png" alt="ebov_final_cut.png" width="800px" />
+</p>
+<p><span class="figure-number">Figure 3: </span>Example visualisation</p>
+</div>
+
+<p>
+Authenticated users should be able to come back to the previous analysis, retrieve, change or re-uplaod the inputs and the settings as well as create or delete content.
+</p>
+
+<p>
+The fact that system is using a queue for processing inputs means the results are not immediately availiable (the typical request / response pattern is not possible).
+Components of the system will keep track and update the current state of the analysis such that the server will be able to repond at any given point in time what is the status, by using enumerated response codes e.g : `:INIT`, `:SENT`, `:QUEUED`, `:RUNNING`, `:SUCCEEDED` or `:ERROR`.
+</p>
+
+<p>
+The interface should make it possible to query for updates or even establish a poll that reflects that.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd15b581" class="outline-4">
+<h4 id="orgd15b581"><span class="section-number-4">3.3.2</span> <span class="done DONE">DONE</span> Visualizing an MCC tree annotated with continuous traits</h4>
+<div class="outline-text-4" id="text-3-3-2">
+
+<div id="org4201ab0" class="figure">
+<p><img src="continuous_tab.png" alt="continuous_tab.png" width="800px" />
+</p>
+<p><span class="figure-number">Figure 4: </span>Inputs tab in legacy software</p>
+</div>
+
+<p>
+This type of analysis accepts a file with a single tree (a graph) as an input.
+After uploading the file server component calls a worker to pre-traverse it and collect all unique attribute names.
+User than selects the attributes that carry geographical coordinates (longitude / latitude) and can change various other settings to obtain a visualisation. 
+</p>
+
+<div controls="controls" width="350" class="video">
+<source src="continuous_tree.mp4" type="video/mp4">
+<p>
+<b><font color = "red">Your browser does not support the video tag.</font></b>
+</p>
+
+</div>
+</div>
+</div>
+
+<div id="outline-container-org1c2df65" class="outline-4">
+<h4 id="org1c2df65"><span class="section-number-4">3.3.3</span> <span class="done DONE">DONE</span> Visualizing a distribution of trees annotated with continuous traits</h4>
+<div class="outline-text-4" id="text-3-3-3">
+
+<div id="org9203d05" class="figure">
+<p><img src="distribution_tab.png" alt="distribution_tab.png" width="800px" />
+</p>
+<p><span class="figure-number">Figure 5: </span>legacy software</p>
+</div>
+
+<p>
+This analysis summarizes a distribution of trees. 
+To achieve this, SpreaD3 creates a time line by slicing through each tree graph at particular points in time, and computes the geographical locations in those slices.
+These time points can either be supplied by the user (as a list of decimal values), or generated based on a height of single tree (supplied in a file) or finally from the distribution of trees itself, by taking the maximal height and generating uniformly distributed numbers  between 0 and that number.
+</p>
+
+<p>
+The input files can be relatively large and the entire analysis can be relatively time-consuming (as well as CPU intensive).
+</p>
+
+<div controls="controls" width="350" class="video">
+<source src="continuous_trees.mp4" type="video/mp4">
+<p>
+<b><font color = "red">Your browser does not support the video tag.</font></b>
+</p>
+
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2f5a1ed" class="outline-4">
+<h4 id="org2f5a1ed"><span class="section-number-4">3.3.4</span> <span class="done DONE">DONE</span> Visualizing an MCC tree annotated with discrete traits</h4>
+<div class="outline-text-4" id="text-3-3-4">
+
+<div id="org90d37e5" class="figure">
+<p><img src="discrete_tab.png" alt="discrete_tab.png" width="800px" />
+</p>
+<p><span class="figure-number">Figure 6: </span>Inputs tab in legacy version</p>
+</div>
+
+<p>
+In this type of analysis tree is annotated with a finite number of locations labelled by their names.
+To display it on the map, each one of these states needs to be associated with a geographical location (latitude and longitude coordinates).
+</p>
+
+<p>
+For this user can use a built-in editor and fill them in or load a previously prepared tab-delimited file including each location, its latitude and longitude.
+</p>
+
+<div controls="controls" width="350" class="video">
+<source src="discrete_tree.mp4" type="video/mp4">
+<p>
+<b><font color = "red">Your browser does not support the video tag.</font></b>
+</p>
+
+</div>
+</div>
+</div>
+
+<div id="outline-container-org45c71b6" class="outline-4">
+<h4 id="org45c71b6"><span class="section-number-4">3.3.5</span> <span class="done DONE">DONE</span> Identifying well-supported rates through Bayes factor tests</h4>
+<div class="outline-text-4" id="text-3-3-5">
+
+<div id="orgbd7aaec" class="figure">
+<p><img src="bssvs_tab.png" alt="bssvs_tab.png" width="800px" />
+</p>
+<p><span class="figure-number">Figure 7: </span>Inputs tab in legacy version</p>
+</div>
+
+<p>
+This analysis takes a log file generates by the <a href="https://github.com/beast-dev/beast-mcmc">BEAST</a> software package, and calculates a Bayes factor support for each pairwise rate of diffusion between locations from samples in that log file.
+Although this analysis too makes it possible to obtain a visualisations on a geographical map, most users are mainly interested in the support values calculated.
+</p>
+
+<p>
+If a visualisations is to be generated user needs to provide a mapping between locations and coordinates for a display on the map, in other case just the number of these locations is required.
+Resulting rates of support for pairwise connections look like this:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">FROM</th>
+<th scope="col" class="org-left">TO</th>
+<th scope="col" class="org-right">BAYES_FACTOR</th>
+<th scope="col" class="org-right">POSTERIOR PROBABILITY</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Guangdong</td>
+<td class="org-left">Henan</td>
+<td class="org-right">0.49024749921100813</td>
+<td class="org-right">0.18656302054414214</td>
+</tr>
+
+<tr>
+<td class="org-left">Guangdong</td>
+<td class="org-left">Hunan</td>
+<td class="org-right">0.3020727841804354</td>
+<td class="org-right">0.12382009994447529</td>
+</tr>
+
+<tr>
+<td class="org-left">Guangxi</td>
+<td class="org-left">Hebei</td>
+<td class="org-right">0.5811807357716423</td>
+<td class="org-right">0.21377012770682954</td>
+</tr>
+
+<tr>
+<td class="org-left">Guangxi</td>
+<td class="org-left">Hunan</td>
+<td class="org-right">1.3275435166126814</td>
+<td class="org-right">0.38312048861743475</td>
+</tr>
+</tbody>
+</table>
+
+<div controls="controls" width="350" class="video">
+<source src="discrete_tree.mp4" type="video/mp4">
+<p>
+<b><font color = "red">Your browser does not support the video tag.</font></b>
+</p>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: F. Bielejec</p>
+<p class="email">Email: <a href="mailto:fbielejec@gmail.com">fbielejec@gmail.com</a></p>
+<p class="date">Created: 2020-12-05 Sat 18:33</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

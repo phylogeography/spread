@@ -1,0 +1,75 @@
+{:enums
+ {:Parser {:description "Parser types."
+           :values [:CONTINUOUS_TREE :DISCRETE_TREE :BSSVS_LOG :CONTINUOUS_TREE_DISTRIBUTION]}
+  :Status {:values [:INIT :SENT :QUEUED :RUNNING :SUCCEEDED :ERROR]}}
+
+ :input-objects
+ {:File {:fields {:name {:type String}
+                  :extension {:type String}}}
+  }
+
+ :objects
+ {:ParserStatus {:description "Represents current status of analysis"
+                 :fields {:id {:type (non-null ID)}
+                          ;; :parser {:type :Parser}
+                          :status {:type (non-null :Status)}}}
+
+  :ContinuousTree {:description "Represents ContinuousTree entity."
+                   :fields {:treeId {:type (non-null ID)}
+                            :userId {:type (non-null ID)}
+                            :name {:description "human-readable name. Usually tree file name"
+                                   :type String}
+                            :treeFileUrl {:type (non-null String)}
+                            :xCoordinateAttributeName {:type String}
+                            :yCoordinateAttributeName {:type String}
+                            :hpdLevel {:type String}
+                            :hasExternalAnnotations {:type Boolean}
+                            :timescaleMultiplier {:type Float}
+                            :mostRecentSamplingDate {:type String}
+                            :status {:type :Status
+                                     :resolver :resolve/continuous-tree->status}
+                            :attributeNames {:type (list String)
+                                             :resolve :resolve/continuous-tree->attributes}
+                            :hpdLevels {:type (list String)
+                                        :resolve :resolve/continuous-tree->hpd-levels}}}
+
+  }
+
+ :queries
+ {:getParserStatus {:type :ParserStatus
+                    :description "Returns a current status of analysis execution."
+                    :args {:parser {:type :Parser}
+                           :id {:type (non-null ID)}}
+                    :resolve :query/getParserStatus}
+
+  :getContinuousTree {:type :ContinuousTree
+                      :description "Returns a ContinuousTree entity by id."
+                      :args {:treeId {:type (non-null ID)}}
+                      :resolve :query/getContinuousTree}
+
+  }
+
+ :mutations
+ {:getUploadUrls {:type (list String)
+                  :description "Returns one-time POST urls."
+                  :args {:files {:type (list :File)}}
+                  :resolve :mutation/getUploadUrls}
+
+  :uploadContinuousTree {:type :ParserStatus
+                         :description "Persists continuous tree. Returns a ParserStatus with id for querying the status."
+                         :args {:name {:type String}
+                                :treeFileUrl {:type (non-null String)}}
+                         :resolve :mutation/uploadContinuousTree
+                         }
+
+  :updateContinuousTree {;;:type :ParserStatus
+
+                         :resolve :mutation/updateContinuousTree
+                         }
+
+  :startContinuousTreeParser {:type (non-null :ParserStatus)
+                              :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
+                              :args {:parser {:type (non-null :Parser)}}
+                              :resolve :mutation/startContinuousTreeParser}}
+
+ }

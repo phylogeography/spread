@@ -1,22 +1,39 @@
-{:paths ["src/clj"]
- :deps {
-        com.cognitect/transit-clj {:mvn/version "1.0.324"}
-        com.novemberain/langohr {:mvn/version "5.1.0"}
-        com.taoensso/timbre {:mvn/version "4.10.0"}
-        ;; com.wsscode/pathom {:mvn/version "2.3.0-alpha4"}
-        honeysql {:mvn/version "1.0.444"}
-        jebl {:mvn/version "2.0"}
-        mount {:mvn/version "0.1.16"}
-        nilenso/honeysql-postgres {:mvn/version "0.2.6"}
+{:paths ["src/clj" "resources/"]
+ :deps {;; CORE
         org.clojure/clojure {:mvn/version "1.10.1"}
         org.clojure/core.async {:mvn/version "1.2.603"}
         org.clojure/core.match {:mvn/version "1.0.0"}
 
-        compojure {:mvn/version "1.6.1"}
-        ring/ring-core {:mvn/version "1.8.1"}
-        ring/ring-jetty-adapter {:mvn/version "1.8.1"}
-        ring-middleware-format {:mvn/version "0.7.4"}
+        ;; HTTP / NETWORKING
+        com.cognitect/transit-clj {:mvn/version "1.0.324"}
+        com.walmartlabs/lacinia-pedestal {:mvn/version "0.15.0-alpha-2"}
 
+        ;; LOGGING
+        com.taoensso/timbre {:mvn/version "5.1.0"}
+
+        ;; DB
+        seancorfield/next.jdbc {:mvn/version "1.1.588"}
+        com.layerware/hugsql-core {:mvn/version "0.5.1"}
+        com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.1"}
+        mysql/mysql-connector-java {:mvn/version "8.0.21"}
+
+        ;; AWS
+        com.cognitect.aws/api {:mvn/version "0.8.484"}
+        com.cognitect.aws/endpoints {:mvn/version "1.1.11.906"}
+        com.cognitect.aws/s3 {:mvn/version "809.2.797.0"}
+        com.cognitect.aws/sqs {:mvn/version "809.2.784.0"}
+        ;; com.amazonaws/aws-java-sdk-s3 {:mvn/version "1.11.908"}
+        software.amazon.awssdk/s3 {:mvn/version "2.15.35"}
+        software.amazon.awssdk/auth {:mvn/version "2.15.35"}
+
+        ;; PARSERS
+        libspread {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
+        org.clojure/data.json {:mvn/version "1.0.0"}
+        ;; jebl {:mvn/version "2.0"}
+
+        ;; UTILS
+        mount {:mvn/version "0.1.16"}
+        jpmonettas/flow-storm {:mvn/version "0.2.6"}
         }
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}
@@ -25,7 +42,8 @@
                       :sign-releases false
                       :checksum :fail
                       :update :never}}
- :aliases {:main {:main-opts ["-m" "spread.core" "./config/config.dev.edn"]}
+ :aliases {:run-api {:main-opts ["-m" "api.main"]}
+           :run-worker {:main-opts ["-m" "worker.main"]}
            :repl {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}
            :outdated {:extra-deps {olical/depot {:mvn/version "1.8.4"}}
                       :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}

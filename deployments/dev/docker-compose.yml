@@ -1,17 +1,40 @@
 version: "3.5"
 services:
 
-  rabbitmq:
-    image: rabbitmq:3.8.4-management
-    container_name: rabbitmq
-    volumes:
-      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-      - /home/$USER/rabbitmq-docker/data:/var/lib/rabbitmq/
-      - /home/$USER/rabbitmq-docker/logs:/var/log/rabbitmq/
-    environment:
-      RABBITMQ_ERLANG_COOKIE: "secret_cookie"
-      # RABBITMQ_DEFAULT_USER: "guest"
-      # RABBITMQ_DEFAULT_PASS: "guest"
+  mysql:
+    image: mysql:8.0.20
+    container_name: dev_mysql
+    command:
+      --default-authentication-plugin=mysql_native_password
+    expose:
+      - 3306
     ports:
-      - 127.0.0.1:5672:5672
-      - 127.0.0.1:15672:15672
+      - 127.0.0.1:3306:3306
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: Pa55w0rd
+
+  sqs:
+    image: softwaremill/elasticmq:latest
+    container_name: dev_sqs
+    ports:
+      - 127.0.0.1:9324:9324
+    volumes:
+      - ./sqs:/opt/custom
+      - ./sqs/elasticmq.conf:/opt/elasticmq.conf
+
+  # https://docs.min.io/docs/minio-docker-quickstart-guide.html
+  s3:
+    image: minio/minio:latest
+    container_name: dev_s3
+    command: server /data
+    ports:
+      - 9000:9000
+    volumes:
+      - ./s3:/data
+    environment:
+      MINIO_ACCESS_KEY: $API_AWS_ACCESS_KEY_ID
+      MINIO_SECRET_KEY: $API_AWS_SECRET_ACCESS_KEY
