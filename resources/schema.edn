@@ -62,6 +62,11 @@
                          :resolve :mutation/uploadContinuousTree
                          }
 
+  :updateContinuousTree {;;:type :ParserStatus
+
+                         :resolve :mutation/updateContinuousTree
+                         }
+
   :startContinuousTreeParser {:type (non-null :ParserStatus)
                               :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
                               :args {:parser {:type (non-null :Parser)}}

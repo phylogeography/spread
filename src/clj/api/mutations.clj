@@ -38,9 +38,11 @@
       urls)))
 
 ;; TODO : add human-readable name (use file name)
+;; TODO : parse atts and hpd directly here
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db] :as ctx}
                               {tree-file-url :treeFileUrl :as args} _]
-  (log/info "upload-continuous-tree" {:user/id authed-user-id :tree-file-url tree-file-url})
+  (log/info "upload-continuous-tree" {:user/id authed-user-id
+                                      :args args})
   (let [tree-id (s3-url->id tree-file-url bucket-name authed-user-id)
         continuous-tree {:tree-id tree-id
                          :name (:name args)
@@ -53,13 +55,11 @@
                                                  :tree-id tree-id
                                                  :user-id authed-user-id})
     {:id tree-id
-     :status :SENT}
+     :status :SENT}))
 
-    ))
+;; TODO : update tree mutation (to set atts etc)
 
-;; TODO : update Tree mutation (to set atts etc)
-
-;; TODO : resposne schema
+;; TODO : response schema
 ;; TODO : invoke worker
 (defn start-continuous-tree-parser
   [{:keys [sqs workers-queue-url]} args _]
