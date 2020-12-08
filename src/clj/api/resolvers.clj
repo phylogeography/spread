@@ -26,9 +26,12 @@
   (clj->gql (continuous-tree-model/get-tree db {:tree-id tree-id})))
 
 ;; TODO : read status (from RDS)
-(defn get-parser-status
+(defn get-continuous-tree-parser-status
   [{:keys [db]} _ args]
-  (log/info "get-parser-execution" {:args args})
-  {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
+  (log/info "get-continuous-tree-parser-status" {:args args})
+
+
+
+  #_{:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
    :status :SUCCEEDED
    :output "s3://spread-dev-uploads/4d07edcf-4b4b-4190-8cea-38daece8d4aa"})

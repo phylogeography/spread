@@ -37,36 +37,72 @@
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-;; TODO : add human-readable name (use file name)
-;; TODO : parse atts and hpd directly here
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db] :as ctx}
                               {tree-file-url :treeFileUrl :as args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args args})
-  (let [tree-id (s3-url->id tree-file-url bucket-name authed-user-id)
-        continuous-tree {:tree-id tree-id
+  (let [id (s3-url->id tree-file-url bucket-name authed-user-id)
+        status :TREE_UPLOADED
+        continuous-tree {:id id
                          :name (:name args)
                          :user-id authed-user-id
                          :tree-file-url tree-file-url
-                         :status :INIT}]
-    (continuous-tree-model/upsert-tree! db continuous-tree)
-    ;; sends message to worker to parse hpd levels and attributes
-    (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
-                                                 :tree-id tree-id
-                                                 :user-id authed-user-id})
-    {:id tree-id
-     :status :SENT}))
+                         :status status}]
+
+    (try
+      (continuous-tree-model/upsert-tree! db continuous-tree)
+      ;; sends message to worker to parse hpd levels and attributes
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
+                                                   :id id
+                                                   :user-id authed-user-id})
+      {:id id
+       :status status}
+      (catch Exception e
+        (log/error "Exception occured" {:error e})
+        (continuous-tree-model/upsert-tree! db {:id id
+                                                :status :ERROR})))))
 
 ;; TODO : update tree mutation (to set atts etc)
+(defn update-continuous-tree
+  [{:keys [authed-user-id db]} {id :id
+                                x-coordinate-attribute-name :xCoordinateAttributeName
+                                y-coordinate-attribute-name :yCoordinateAttributeName
+                                hpd-level :hpdLevel
+                                has-external-annotations :hasExternalAnnotations
+                                timescale-multiplier :timescaleMultiplier
+                                most-recent-sampling-date :mostRecentSamplingDate
+                                :as args} _]
+  (log/info "update continuous tree" {:user/id authed-user-id
+                                      :args args})
+  (try
+    (let [status :PARSER_ARGUMENTS_SET]
+      (continuous-tree-model/upsert-tree! db {:id id
+                                              :x-coordinate-attribute-name x-coordinate-attribute-name
+                                              :y-coordinate-attribute-name y-coordinate-attribute-name
+                                              :hpd-level hpd-level
+                                              :has-external-annotations has-external-annotations
+                                              :timescale-multiplier timescale-multiplier
+                                              :most-recent-sampling-date most-recent-sampling-date
+                                              :status status})
+      {:id id
+       :status status})
+    (catch Exception e
+      (log/error "Exception occured" {:error e})
+      (continuous-tree-model/upsert-tree! db {:id id
+                                              :status :ERROR}))))
 
 ;; TODO : response schema
 ;; TODO : invoke worker
 (defn start-continuous-tree-parser
-  [{:keys [sqs workers-queue-url]} args _]
+  [{:keys [sqs workers-queue-url authed-user-id]} {id :id} _]
+
   (log/info "start-parser-execution" {:a args})
-  (aws-sqs/send-message sqs workers-queue-url {:tree "s3://bla/bla"})
-  {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
-   :status :SENT})
+
+  (aws-sqs/send-message sqs workers-queue-url {:id id
+                                               :user-id authed-user-id})
+
+  #_{:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
+     :status :SENT})
 
 (comment
   (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"

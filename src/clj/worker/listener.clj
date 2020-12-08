@@ -6,6 +6,7 @@
    [aws.s3 :as aws-s3]
    [api.models.continuous-tree :as continuous-tree-model]
    [mount.core :as mount :refer [defstate]]
+   [shared.utils :refer [file-exists?]]
    [taoensso.timbre :as log])
   (:import (com.spread.parsers ContinuousTreeParser)))
 
@@ -19,22 +20,57 @@
   [{:message/keys [type]} _]
   (log/warn (str "No handler for message type " type)))
 
-;; TODO : update status
 (defmethod handler :continuous-tree-upload
-  [{:keys [tree-id user-id tree-file-url] :as args} {:keys [db s3 bucket-name]}]
+  [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling continuous-tree-upload" args)
-  (let [;; NOTE: make sure UI uploads always with the same extension
-        tree-object-key (str user-id "/" tree-id ".tree")
+  (try
+    (let [;; NOTE: make sure UI uploads always with the same extension
+          tree-object-key (str user-id "/" id ".tree")
+          tree-file-path (str tmp-dir "/" tree-object-key)
+          _ (aws-s3/download-file s3 bucket-name tree-object-key tree-file-path)
+          parser (doto (new ContinuousTreeParser)
+                   (.setTreeFilePath tree-file-path))
+          [attributes hpd-levels] (json/read-str (.parseAttributesAndHpdLevels parser))]
+      (log/info "Parsed attributes and hpd-levels" {:id id
+                                                    :attributes attributes
+                                                    :hpd-levels hpd-levels})
+      (continuous-tree-model/insert-attributes! db id attributes)
+      (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
+      (continuous-tree-model/upsert-tree! db {:id id
+                                              :status :ATTRIBUTES_AND_HPD_LEVELS_PARSED}))
+    (catch Exception e
+      (log/error "Exception" {:error e})
+      (continuous-tree-model/upsert-tree! db {:id id
+                                              :status :ERROR}))))
+
+;; TODO : parse ct handler
+;; TODO : upload results to S3
+(defmethod handler :parse-continuous-tree
+  [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
+  (let [tree-object-key (str user-id "/" id ".tree")
         tree-file-path (str tmp-dir "/" tree-object-key)
-        _ (aws-s3/download-file s3 bucket-name tree-object-key tree-file-path)
-        parser (doto (new ContinuousTreeParser)
-                 (.setTreeFilePath tree-file-path))
-        [attributes hpd-levels] (json/read-str (.parseAttributesAndHpdLevels parser))]
-    (log/info "Parsed attributes and hpd-levels" {:tree-id tree-id
-                                                  :attributes attributes
-                                                  :hpd-levels hpd-levels})
-    (continuous-tree-model/insert-attributes! db tree-id attributes)
-    (continuous-tree-model/insert-hpd-levels! db tree-id hpd-levels)))
+        ;; do we have it cached on disk?
+        _ (when-not (file-exists? tree-file-path)
+            (aws-s3/download-file s3 bucket-name tree-object-key tree-file-path))
+
+        ;; TODO : read settings from RDS
+        {:keys [] :as tree} (continuous-tree-model/get-tree db id)
+
+        _ (log/info "@@@ RDS" {:t tree})
+
+        ;; call all setters
+        ;; parser (doto (new ContinuousTreeParser)
+        ;;            (.setTreeFilePath tree-file-path))
+
+        ]
+
+
+
+
+
+
+
+    ))
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws

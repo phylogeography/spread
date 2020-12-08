@@ -43,6 +43,10 @@
   [m]
   (transform-keys m (comp keyword ->camelCase name)))
 
+(defn file-exists?
+  [path]
+  (.exists (clojure.java.io/file path)))
+
 (comment
   (decode-transit (encode-transit {:a 1}))
   (clj->gql {:tree-id "fubar"}))

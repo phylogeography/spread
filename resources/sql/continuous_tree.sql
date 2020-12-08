@@ -2,7 +2,7 @@
 -- :doc Upsert a continuous tree
 
 insert into continuous_tree(
-tree_id,
+id,
 user_id,
 tree_file_url,
 x_coordinate_attribute_name,
@@ -13,9 +13,10 @@ timescale_multiplier,
 most_recent_sampling_date,
 status,
 output_file_url
+name
 )
 values (
-:tree-id,
+:id,
 :user-id,
 :tree-file-url,
 :x-coordinate-attribute-name,
@@ -26,6 +27,7 @@ values (
 :most-recent-sampling-date,
 :status,
 :output-file-url
+:name
 )
 on duplicate key update
 x_coordinate_attribute_name = :x-coordinate-attribute-name,
@@ -36,12 +38,13 @@ timescale_multiplier = :timescale-multiplier,
 most_recent_sampling_date = :most-recent-sampling-date,
 status = :status,
 output_file_url = :output-file-url
+name = :name
 
 -- :name delete-tree :! :n
 -- :doc Delete a tree by id
 delete
 from continuous_tree
-where tree_id = :tree-id
+where id = :id
 
 -- :name insert-attribute :! :n
 -- :doc Insert an attribute
@@ -73,7 +76,7 @@ where :tree-id = tree_id
 -- :doc Get entity by id
 
 select
-tree_id,
+id,
 user_id,
 tree_file_url,
 x_coordinate_attribute_name,
@@ -85,4 +88,4 @@ most_recent_sampling_date,
 status,
 output_file_url
 from continuous_tree
-where :tree-id = tree_id
+where :id = id

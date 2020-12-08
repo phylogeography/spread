@@ -1,7 +1,16 @@
 {:enums
- {:Parser {:description "Parser types."
-           :values [:CONTINUOUS_TREE :DISCRETE_TREE :BSSVS_LOG :CONTINUOUS_TREE_DISTRIBUTION]}
-  :Status {:values [:INIT :SENT :QUEUED :RUNNING :SUCCEEDED :ERROR]}}
+ {
+  :ContinuousTreeStatus {:values [
+                                  :TREE_UPLOADED
+                                  :ATTRIBUTES_AND_HPD_LEVELS_PARSED
+                                  :PARSER_ARGUMENTS_SET
+
+                                  ;; :QUEUED
+                                  ;; :RUNNING
+                                  ;; :SUCCEEDED
+
+                                  :ERROR
+                                  ]}}
 
  :input-objects
  {:File {:fields {:name {:type String}
@@ -9,15 +18,15 @@
   }
 
  :objects
- {:ParserStatus {:description "Represents current status of analysis"
-                 :fields {:id {:type (non-null ID)}
-                          ;; :parser {:type :Parser}
-                          :status {:type (non-null :Status)}}}
+ {:ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
+                               :fields {:id {:type (non-null ID)}
+                                        :status {:type (non-null :ContinuousTreeStatus)}}}
 
   :ContinuousTree {:description "Represents ContinuousTree entity."
-                   :fields {:treeId {:type (non-null ID)}
+                   :fields {:id {:description "Unique identifier."
+                                 :type (non-null ID)}
                             :userId {:type (non-null ID)}
-                            :name {:description "human-readable name. Usually tree file name"
+                            :name {:description "Human-readable name. Usually tree file name."
                                    :type String}
                             :treeFileUrl {:type (non-null String)}
                             :xCoordinateAttributeName {:type String}
@@ -26,25 +35,25 @@
                             :hasExternalAnnotations {:type Boolean}
                             :timescaleMultiplier {:type Float}
                             :mostRecentSamplingDate {:type String}
-                            :status {:type :Status
+                            :status {:type :ContinuousTreeStatus
                                      :resolver :resolve/continuous-tree->status}
                             :attributeNames {:type (list String)
                                              :resolve :resolve/continuous-tree->attributes}
                             :hpdLevels {:type (list String)
-                                        :resolve :resolve/continuous-tree->hpd-levels}}}
+                                        :resolve :resolve/continuous-tree->hpd-levels}
+                            :output_file_url {:type String}}}
 
   }
 
  :queries
- {:getParserStatus {:type :ParserStatus
-                    :description "Returns a current status of analysis execution."
-                    :args {:parser {:type :Parser}
-                           :id {:type (non-null ID)}}
-                    :resolve :query/getParserStatus}
+ {:getContinuousTreeParserStatus {:type :ContinuousTreeParserStatus
+                                  :description "Returns a current status of analysis execution."
+                                  :args {:id {:type (non-null ID)}}
+                                  :resolve :query/getContinuousTreeParserStatus}
 
   :getContinuousTree {:type :ContinuousTree
                       :description "Returns a ContinuousTree entity by id."
-                      :args {:treeId {:type (non-null ID)}}
+                      :args {:id {:type (non-null ID)}}
                       :resolve :query/getContinuousTree}
 
   }
@@ -55,21 +64,28 @@
                   :args {:files {:type (list :File)}}
                   :resolve :mutation/getUploadUrls}
 
-  :uploadContinuousTree {:type :ParserStatus
+  :uploadContinuousTree {:type :ContinuousTreeParserStatus
                          :description "Persists continuous tree. Returns a ParserStatus with id for querying the status."
                          :args {:name {:type String}
                                 :treeFileUrl {:type (non-null String)}}
-                         :resolve :mutation/uploadContinuousTree
-                         }
+                         :resolve :mutation/uploadContinuousTree}
 
-  :updateContinuousTree {;;:type :ParserStatus
+  :updateContinuousTree {:type :ContinuousTreeParserStatus
+                         :description "Updates the entity with attributes for parsing the tree graph"
+                         :args {:id {:type (non-null ID)}
+                                :xCoordinateAttributeName {:type (non-null String)}
+                                :yCoordinateAttributeName {:type (non-null String)}
+                                :hpdLevel {:type (non-null String)}
+                                :hasExternalAnnotations {:type String}
+                                :timescaleMultiplier {:type String}
+                                :mostRecentSamplingDate {:type String}}
+                         :resolve :mutation/updateContinuousTree}
 
-                         :resolve :mutation/updateContinuousTree
-                         }
-
-  :startContinuousTreeParser {:type (non-null :ParserStatus)
+  :startContinuousTreeParser {:type :ContinuousTreeParserStatus
                               :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
-                              :args {:parser {:type (non-null :Parser)}}
-                              :resolve :mutation/startContinuousTreeParser}}
+                              :args {:id {:type (non-null ID)}}
+                              :resolve :mutation/startContinuousTreeParser}
+
+  }
 
  }

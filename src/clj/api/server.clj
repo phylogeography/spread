@@ -25,10 +25,11 @@
 (defn resolver-map [context]
   {:resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
    :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
-   :query/getParserStatus resolvers/get-parser-status
+   :query/getContinuousTreeParserStatus resolvers/get-continuous-tree-parser-status
    :query/getContinuousTree resolvers/get-continuous-tree
    :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
    :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree)
+   :mutation/updateContinuousTree (auth-decorator mutations/update-continuous-tree)
    :mutation/startContinuousTreeParser (auth-decorator mutations/start-parser-execution)
    })
 
