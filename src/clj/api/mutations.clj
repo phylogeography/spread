@@ -59,10 +59,9 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (continuous-tree-model/update-status! db {:id id
-                                                 :status :ERROR})))))
+        (continuous-tree-model/update-tree! db {:id id
+                                                :status :ERROR})))))
 
-;; TODO : update tree mutation (to set atts etc)
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id :id
                                 x-coordinate-attribute-name :xCoordinateAttributeName
@@ -78,7 +77,7 @@
                                       :args args})
   (try
     (let [status :PARSER_ARGUMENTS_SET]
-      (continuous-tree-model/upsert-tree! db {:id id
+      (continuous-tree-model/update-tree! db {:id id
                                               :x-coordinate-attribute-name x-coordinate-attribute-name
                                               :y-coordinate-attribute-name y-coordinate-attribute-name
                                               :hpd-level hpd-level
@@ -90,8 +89,8 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (continuous-tree-model/update-status! db {:id id
-                                               :status :ERROR}))))
+      (continuous-tree-model/update-tree! db {:id id
+                                              :status :ERROR}))))
 
 ;; TODO : response schema
 ;; TODO : invoke worker
@@ -102,12 +101,12 @@
     (try
       (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
                                                    :id id})
-      (continuous-tree-model/update-status! db {:id id :status status})
+      (continuous-tree-model/update-tree! db {:id id :status status})
       {:id id
        :status status}
       (catch Exception e
-        (continuous-tree-model/update-status! db {:id id
-                                                 :status :ERROR})))))
+        (continuous-tree-model/update-tree! db {:id id
+                                                :status :ERROR})))))
 
 (comment
   (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"

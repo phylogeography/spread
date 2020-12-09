@@ -1,11 +1,19 @@
 (ns tests.integration.continuous-tree-test
   (:require [clojure.test :refer [use-fixtures deftest is testing]]
             [api.db :as db]
+            [clj-http.client :as http]
             [clojure.string :as string]
             [shared.utils :refer [new-uuid]]
             [taoensso.timbre :as log]
+            [clojure.data.json :as json]
             [api.config :as config]
             [api.models.user :as user-model]))
+
+(defn run-query [{:keys [url query variables]}]
+  (let [{:keys [body] :as response} (http/post url {:form-params {:query query
+                                                 :variables variables}
+                                   :content-type "application/json"})]
+    (json/read-str body :key-fn keyword)))
 
 (use-fixtures :once (fn [f]
                       (let [config (config/load)
@@ -18,9 +26,24 @@
                         (f))))
 
 (deftest continuous-tree-test
-  (let [fu :bar]
+  (let [
 
-    (log/debug "wut" {:a "be"})
+        ;; TODO : upload tree
+        ;; TODO : query atts and hpd-levels
+        ;; TODO : set all settings
+        ;; TODO : parse
+        ;; TODO : run assertions
+
+        resp (run-query {:url "http://localhost:3001/api"
+                         :query
+                         "query GetContinuousTree($id: ID!) {
+                           getContinuousTree(id: $id) {
+                             id
+                           }
+                         }"
+                         :variables {:id "3eef35e9-f554-4032-89d3-deb347acd118"}})]
+
+    (log/debug "response" resp)
 
     (is false)
 

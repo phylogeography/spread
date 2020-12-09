@@ -4,8 +4,7 @@
 
 ;; These are just not to upset clj-kondo
 (declare upsert-tree)
-(declare update-status)
-(declare update-output)
+(declare update-tree)
 (declare insert-attribute)
 (declare insert-hpd-level)
 (declare get-tree)
@@ -20,15 +19,15 @@
   {:id nil
    :user-id nil
    :tree-file-url nil
+   :status nil
+   :readable-name nil
    :x-coordinate-attribute-name nil
    :y-coordinate-attribute-name nil
    :hpd-level nil
    :has-external-annotations nil
    :timescale-multiplier nil
    :most-recent-sampling-date nil
-   :status nil
    :output-file-url nil
-   :readable-name nil
    })
 
 (defn upsert-tree! [db tree]
@@ -38,8 +37,12 @@
     (log/debug "upsert-tree!" tree)
     (upsert-tree db tree)))
 
-(defn update-status! [db {:keys [id status]}]
-  (update-status db {:id id :status (name status)}))
+(defn update-tree! [db tree]
+  (let [tree (->> tree
+                  (merge nil-tree)
+                  (#(update % :status name)))]
+    (log/debug "update-tree!" tree)
+    (update-tree db tree)))
 
 (defn insert-attributes! [db tree-id attributes]
   (doseq [att attributes]

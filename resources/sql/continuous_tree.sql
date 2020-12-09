@@ -1,65 +1,47 @@
 -- :name upsert-tree :! :n
 -- :doc Upsert a continuous tree
 
-INSERT IGNORE INTO continuous_tree(
+INSERT INTO continuous_tree(
 id,
 user_id,
 tree_file_url,
-x_coordinate_attribute_name,
-y_coordinate_attribute_name,
-hpd_level,
-has_external_annotations,
-timescale_multiplier,
-most_recent_sampling_date,
 status,
-output_file_url,
 readable_name
 )
 VALUES (
 :id,
 :user-id,
 :tree-file-url,
-:x-coordinate-attribute-name,
-:y-coordinate-attribute-name,
-:hpd-level,
-:has-external-annotations,
-:timescale-multiplier,
-:most-recent-sampling-date,
 :status,
-:output-file-url,
 :readable-name
 )
 ON DUPLICATE KEY UPDATE
-x_coordinate_attribute_name = :x-coordinate-attribute-name,
-y_coordinate_attribute_name = :y-coordinate-attribute-name,
-hpd_level = :hpd-level,
-has_external_annotations = :has-external-annotations,
-timescale_multiplier = :timescale-multiplier,
-most_recent_sampling_date = :most-recent-sampling-date,
+user_id = user_id,
+tree_file_url = IF(:tree-file-url IS NOT NULL, :tree-file-url, tree_file_url),
 status = :status,
-output_file_url = :output-file-url,
 readable_name = :readable-name
+
+-- :name update-tree :! :n
+-- :doc Updates a continuous tree
+
+UPDATE continuous_tree
+SET
+status = :status,
+readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
+x_coordinate_attribute_name = IF(:x-coordinate-attribute-name IS NOT NULL, :x-coordinate-attribute-name, x_coordinate_attribute_name),
+y_coordinate_attribute_name = IF(:y-coordinate-attribute-name IS NOT NULL, :y-coordinate-attribute-name, y_coordinate_attribute_name),
+hpd_level = IF(:hpd-level IS NOT NULL, :hpd-level, hpd_level),
+has_external_annotations = IF(:has-external-annotations IS NOT NULL, :has-external-annotations, has_external_annotations),
+timescale_multiplier = IF(:timescale-multiplier IS NOT NULL, :timescale-multiplier, timescale_multiplier),
+most_recent_sampling_date = IF(:most-recent-sampling-date IS NOT NULL, :most-recent-sampling-date, most_recent_sampling_date),
+output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)
+WHERE id = :id
 
 -- :name delete-tree :! :n
 -- :doc Delete a tree by id
+
 DELETE
 FROM continuous_tree
-WHERE id = :id
-
--- :name update-status :! :1
--- :doc Update status of analysis with id
-
-UPDATE continuous_tree
-SET
-status = :status
-WHERE id = :id
-
--- :name update-output :! :1
--- :doc Update status of analysis with id
-
-UPDATE continuous_tree
-SET
-output_file_url = :output-file-url
 WHERE id = :id
 
 -- :name insert-attribute :! :n

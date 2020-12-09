@@ -42,7 +42,12 @@
                       :checksum :fail
                       :update :never}
              }
- :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}}}
+ :aliases {:test {:extra-deps {
+                               lambdaisland/kaocha {:mvn/version "1.0.732"}
+                               clj-http/clj-http {:mvn/version "3.11.0"}
+
+
+                               }}
            :run-api {:main-opts ["-m" "api.main"]}
            :run-worker {:main-opts ["-m" "worker.main"]}
            :repl {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}

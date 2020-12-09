@@ -9,6 +9,7 @@
         <constraints nullable="false" primaryKey="true"/>
       </column>
 
+      <!-- add unique email constraint -->        
       <column name="email" type="VARCHAR(50)">
         <constraints nullable="false"/>
       </column>

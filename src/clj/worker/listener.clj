@@ -38,19 +38,19 @@
                                                     :hpd-levels hpd-levels})
       (continuous-tree-model/insert-attributes! db id attributes)
       (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
-      (continuous-tree-model/update-status! db {:id id
-                                                :status :ATTRIBUTES_AND_HPD_LEVELS_PARSED}))
+      (continuous-tree-model/update-tree! db {:id id
+                                              :status :ATTRIBUTES_AND_HPD_LEVELS_PARSED}))
     (catch Exception e
       (log/error "Exception when handling continuous-tree-upload" {:error e})
-      (continuous-tree-model/update-status! db {:id id
-                                                :status :ERROR}))))
+      (continuous-tree-model/update-tree! db {:id id
+                                              :status :ERROR}))))
 
 (defmethod handler :parse-continuous-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-continuous-tree" args)
   (try
-    (let [_ (continuous-tree-model/update-status! db {:id id
-                                                      :status :RUNNING})
+    (let [_ (continuous-tree-model/update-tree! db {:id id
+                                                    :status :RUNNING})
           {:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
                   hpd-level has-external-annotations timescale-multiplier
                   most-recent-sampling-date]
@@ -79,14 +79,13 @@
                                     :key output-object-key
                                     :file-path output-object-path})
           url (aws-s3/build-url aws-config bucket-name output-object-key)]
-      (continuous-tree-model/update-output db {:id id
-                                               :output-file-url url})
-      (continuous-tree-model/update-status! db {:id id
-                                                :status :SUCCEEDED}))
+      (continuous-tree-model/update-tree db {:id id
+                                             :output-file-url url
+                                             :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
-      (continuous-tree-model/update-status! db {:id id
-                                                :status :ERROR}))))
+      (continuous-tree-model/update-tree! db {:id id
+                                              :status :ERROR}))))
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws
