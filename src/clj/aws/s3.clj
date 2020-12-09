@@ -98,14 +98,15 @@
       (io/copy (io/file dest-path))))
 
 (defn build-url [aws-config bucket key]
-  (if-let [endpoint (:s3-endpoint aws-config)]
+  (if-let [s3-host (:s3-host aws-config)]
     ;; this is MinIO
-    (format "%s/minio/%s/%s"
-            endpoint
+    (format "%s:%s/minio/%s/%s"
+            s3-host
+            (:s3-port aws-config)
             bucket
             key)
 
-    ;; no endpoint means prod/staging/dev
+    ;; no endpoint means aws S3
     (format "https://%s.s3.%s.amazonaws.com/%s"
             bucket
             (:region aws-config)

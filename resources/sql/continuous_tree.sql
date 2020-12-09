@@ -1,7 +1,7 @@
 -- :name upsert-tree :! :n
 -- :doc Upsert a continuous tree
 
-insert ignore into continuous_tree(
+INSERT IGNORE INTO continuous_tree(
 id,
 user_id,
 tree_file_url,
@@ -15,7 +15,7 @@ status,
 output_file_url,
 readable_name
 )
-values (
+VALUES (
 :id,
 :user-id,
 :tree-file-url,
@@ -29,7 +29,7 @@ values (
 :output-file-url,
 :readable-name
 )
-on duplicate key update
+ON DUPLICATE KEY UPDATE
 x_coordinate_attribute_name = :x-coordinate-attribute-name,
 y_coordinate_attribute_name = :y-coordinate-attribute-name,
 hpd_level = :hpd-level,
@@ -42,9 +42,9 @@ readable_name = :readable-name
 
 -- :name delete-tree :! :n
 -- :doc Delete a tree by id
-delete
-from continuous_tree
-where id = :id
+DELETE
+FROM continuous_tree
+WHERE id = :id
 
 -- :name update-status :! :1
 -- :doc Update status of analysis with id
@@ -54,42 +54,50 @@ SET
 status = :status
 WHERE id = :id
 
+-- :name update-output :! :1
+-- :doc Update status of analysis with id
+
+UPDATE continuous_tree
+SET
+output_file_url = :output-file-url
+WHERE id = :id
+
 -- :name insert-attribute :! :n
 -- :doc Insert an attribute
 
-insert into continuous_tree_attributes (tree_id, attribute_name)
-values (:tree-id, :attribute-name)
-on duplicate key update
+INSERT INTO continuous_tree_attributes (tree_id, attribute_name)
+VALUES (:tree-id, :attribute-name)
+ON DUPLICATE KEY UPDATE
 tree_id = :tree-id,
 attribute_name = :attribute-name
 
 -- :name insert-hpd-level :! :n
 -- :doc Insert an hpd level
 
-insert into continuous_tree_hpd_levels (tree_id, level)
-values (:tree-id, :level)
-on duplicate key update
+INSERT INTO continuous_tree_hpd_levels (tree_id, level)
+VALUES (:tree-id, :level)
+ON DUPLICATE KEY UPDATE
 tree_id = :tree-id,
 level = :level
 
 -- :name get-attributes :? :*
 -- :doc Get attributes by tree-id
 
-select attribute_name
-from continuous_tree_attributes
-where :tree-id = tree_id
+SELECT ATTRIBUTE_NAME
+FROM continuous_tree_attributes
+WHERE :tree-id = tree_id
 
 -- :name get-hpd-levels :? :*
 -- :doc Get hpd-levels by tree-id
 
-select level
-from continuous_tree_hpd_levels
-where :tree-id = tree_id
+SELECT level
+FROM continuous_tree_hpd_levels
+WHERE :tree-id = tree_id
 
 -- :name get-tree :? :1
 -- :doc Get entity by id
 
-select
+SELECT
 id,
 user_id,
 tree_file_url,
@@ -102,5 +110,5 @@ most_recent_sampling_date,
 status,
 output_file_url,
 readable_name
-from continuous_tree
-where :id = id
+FROM continuous_tree
+WHERE :id = id

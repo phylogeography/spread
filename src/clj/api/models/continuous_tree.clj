@@ -5,6 +5,7 @@
 ;; These are just not to upset clj-kondo
 (declare upsert-tree)
 (declare update-status)
+(declare update-output)
 (declare insert-attribute)
 (declare insert-hpd-level)
 (declare get-tree)

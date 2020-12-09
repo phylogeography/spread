@@ -87,7 +87,7 @@
                             (lacinia-util/attach-resolvers (resolver-map context))
                             schema/compile)
         interceptors (interceptors compiled-schema context)
-        ;; TODO : when dev?
+        ;; TODO : use /ide endpoint only when env = dev
         routes (into #{["/api" :post interceptors :route-name ::api]
                        ["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
                      (pedestal/graphiql-asset-routes "/assets/graphiql"))
