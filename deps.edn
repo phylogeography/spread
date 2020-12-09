@@ -42,7 +42,8 @@
                       :sign-releases false
                       :checksum :fail
                       :update :never}}
- :aliases {:run-api {:main-opts ["-m" "api.main"]}
+ :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}}}
+           :run-api {:main-opts ["-m" "api.main"]}
            :run-worker {:main-opts ["-m" "worker.main"]}
            :repl {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}
            :outdated {:extra-deps {olical/depot {:mvn/version "1.8.4"}}
