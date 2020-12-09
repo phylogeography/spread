@@ -5,11 +5,11 @@
 
   <changeSet author="filip" id="1.0-1">
     <createTable tableName="user">
-      <column name="user_id" type="VARCHAR(36)">
+      <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
 
-      <column name="user_email" type="VARCHAR(50)">
+      <column name="email" type="VARCHAR(50)">
         <constraints nullable="false"/>
       </column>
     </createTable>
@@ -54,7 +54,7 @@
     <addForeignKeyConstraint constraintName="continuous_tree_SLASH_user_id_FK"
                              baseColumnNames="user_id"
                              baseTableName="continuous_tree"
-                             referencedColumnNames="user_id"
+                             referencedColumnNames="id"
                              referencedTableName="user"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"

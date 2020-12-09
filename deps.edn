@@ -22,7 +22,6 @@
         com.cognitect.aws/endpoints {:mvn/version "1.1.11.906"}
         com.cognitect.aws/s3 {:mvn/version "809.2.797.0"}
         com.cognitect.aws/sqs {:mvn/version "809.2.784.0"}
-        ;; com.amazonaws/aws-java-sdk-s3 {:mvn/version "1.11.908"}
         software.amazon.awssdk/s3 {:mvn/version "2.15.35"}
         software.amazon.awssdk/auth {:mvn/version "2.15.35"}
 
@@ -41,7 +40,8 @@
                       :snapshots false
                       :sign-releases false
                       :checksum :fail
-                      :update :never}}
+                      :update :never}
+             }
  :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}}}
            :run-api {:main-opts ["-m" "api.main"]}
            :run-worker {:main-opts ["-m" "worker.main"]}
