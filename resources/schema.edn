@@ -5,9 +5,9 @@
                                   :ATTRIBUTES_AND_HPD_LEVELS_PARSED
                                   :PARSER_ARGUMENTS_SET
 
-                                  ;; :QUEUED
-                                  ;; :RUNNING
-                                  ;; :SUCCEEDED
+                                  :QUEUED
+                                  :RUNNING
+                                  :SUCCEEDED
 
                                   :ERROR
                                   ]}}

@@ -59,8 +59,8 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (continuous-tree-model/upsert-tree! db {:id id
-                                                :status :ERROR})))))
+        (continuous-tree-model/update-status! db {:id id
+                                                 :status :ERROR})))))
 
 ;; TODO : update tree mutation (to set atts etc)
 (defn update-continuous-tree
@@ -90,21 +90,24 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (continuous-tree-model/upsert-tree! db {:id id
-                                              :status :ERROR}))))
+      (continuous-tree-model/update-status! db {:id id
+                                               :status :ERROR}))))
 
 ;; TODO : response schema
 ;; TODO : invoke worker
 (defn start-continuous-tree-parser
-  [{:keys [sqs workers-queue-url authed-user-id]} {id :id :as args} _]
-
-  (log/info "start-parser-execution" args)
-
-  (aws-sqs/send-message sqs workers-queue-url {:id id
-                                               :user-id authed-user-id})
-
-  #_{:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
-     :status :SENT})
+  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  (log/info "start-continuous-tree-parser" args)
+  (let [status :QUEUED]
+    (try
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
+                                                   :id id})
+      (continuous-tree-model/update-status! db {:id id :status status})
+      {:id id
+       :status status}
+      (catch Exception e
+        (continuous-tree-model/update-status! db {:id id
+                                                 :status :ERROR})))))
 
 (comment
   (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"

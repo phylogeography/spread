@@ -4,6 +4,7 @@
 
 ;; These are just not to upset clj-kondo
 (declare upsert-tree)
+(declare update-status)
 (declare insert-attribute)
 (declare insert-hpd-level)
 (declare get-tree)
@@ -35,6 +36,9 @@
                   (#(update % :status name)))]
     (log/debug "upsert-tree!" tree)
     (upsert-tree db tree)))
+
+(defn update-status! [db {:keys [id status]}]
+  (update-status db {:id id :status (name status)}))
 
 (defn insert-attributes! [db tree-id attributes]
   (doseq [att attributes]

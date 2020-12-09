@@ -46,6 +46,14 @@ delete
 from continuous_tree
 where id = :id
 
+-- :name update-status :! :1
+-- :doc Update status of analysis with id
+
+UPDATE continuous_tree
+SET
+status = :status
+WHERE id = :id
+
 -- :name insert-attribute :! :n
 -- :doc Insert an attribute
 
