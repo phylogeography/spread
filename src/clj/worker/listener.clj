@@ -27,7 +27,9 @@
     (let [;; NOTE: make sure UI uploads always with the same extension
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
-          _ (aws-s3/download-file s3 bucket-name tree-object-key tree-file-path)
+          _ (aws-s3/download-file s3 {:bucket bucket-name
+                                      :key tree-object-key
+                                      :dest-path tree-file-path})
           parser (doto (new ContinuousTreeParser)
                    (.setTreeFilePath tree-file-path))
           [attributes hpd-levels] (json/read-str (.parseAttributesAndHpdLevels parser))]
@@ -48,28 +50,49 @@
 ;; TODO : upload results to S3
 (defmethod handler :parse-continuous-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name]}]
+  (log/info "handling parse-continuous-tree" args)
   (try
-    (let [
+    (let [{:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
+                  hpd-level has-external-annotations timescale-multiplier
+                  most-recent-sampling-date]
+           :as tree}
 
-          ;; tree-object-key (str user-id "/" id ".tree")
-          ;; tree-file-path (str tmp-dir "/" tree-object-key)
-          ;; ;; do we have it cached on disk?
-          ;; _ (when-not (file-exists? tree-file-path)
-          ;;     (aws-s3/download-file s3 bucket-name tree-object-key tree-file-path))
+          (continuous-tree-model/get-tree db {:id id})
 
-          ;; TODO : read settings from RDS
-          {:keys [user-id] :as tree} (continuous-tree-model/get-tree db {:id id})
+          _ (log/debug "@@@ RDS" {:t tree})
 
-          _ (log/info "@@@ RDS" {:t tree})
+          tree-object-key (str user-id "/" id ".tree")
+          tree-file-path (str tmp-dir "/" tree-object-key)
+          ;; is it cached on disk?
+          _ (when-not (file-exists? tree-file-path)
+              (aws-s3/download-file s3 {:bucket bucket-name
+                                        :key tree-object-key
+                                        :dest-path tree-file-path}))
 
           ;; call all setters
-          ;; parser (doto (new ContinuousTreeParser)
-          ;;            (.setTreeFilePath tree-file-path))
+          parser (doto (new ContinuousTreeParser)
+                     (.setTreeFilePath tree-file-path)
+                     (.setXCoordinateAttributeName x-coordinate-attribute-name)
+                     (.setYCoordinateAttributeName y-coordinate-attribute-name)
+                     (.setHpdLevel hpd-level)
+                     (.hasExternalAnnotations has-external-annotations)
+                     (.setTimescaleMultiplier timescale-multiplier)
+                     (.setMostRecentSamplingDate most-recent-sampling-date))
 
+          output-object-key (str user-id "/" id ".json")
+          output-object-path (str tmp-dir "/" output-object-key)
+
+          _ (spit output-object-path (.parse parser) :append false)
+
+          ;; TODO : s3 upload
+          _ (aws-s3/upload-file s3 {:bucket bucket-name
+                                    :key output-object-key
+                                    :file-path output-object-path})
+
+          ;; TODO : update in RDS
+
+          ;; _ (log/debug "@@@ OUTPUT" {:o output})
           ]
-
-
-
 
 
 

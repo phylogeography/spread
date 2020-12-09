@@ -85,7 +85,7 @@
   "Downloads the file from s3 `bucket` and `key` and
   stores it in a file at `dest-path`."
 
-  [s3 bucket key dest-path]
+  [s3 {:keys [bucket key dest-path]}]
   (log/info "Downloading file from s3" {:bucket bucket
                                         :key key
                                         :saving-in dest-path})
