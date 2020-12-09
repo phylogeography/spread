@@ -1,7 +1,7 @@
 -- :name upsert-tree :! :n
 -- :doc Upsert a continuous tree
 
-insert into continuous_tree(
+insert ignore into continuous_tree(
 id,
 user_id,
 tree_file_url,
@@ -12,8 +12,8 @@ has_external_annotations,
 timescale_multiplier,
 most_recent_sampling_date,
 status,
-output_file_url
-name
+output_file_url,
+readable_name
 )
 values (
 :id,
@@ -26,8 +26,8 @@ values (
 :timescale-multiplier,
 :most-recent-sampling-date,
 :status,
-:output-file-url
-:name
+:output-file-url,
+:readable-name
 )
 on duplicate key update
 x_coordinate_attribute_name = :x-coordinate-attribute-name,
@@ -37,8 +37,8 @@ has_external_annotations = :has-external-annotations,
 timescale_multiplier = :timescale-multiplier,
 most_recent_sampling_date = :most-recent-sampling-date,
 status = :status,
-output_file_url = :output-file-url
-name = :name
+output_file_url = :output-file-url,
+readable_name = :readable-name
 
 -- :name delete-tree :! :n
 -- :doc Delete a tree by id
@@ -49,14 +49,20 @@ where id = :id
 -- :name insert-attribute :! :n
 -- :doc Insert an attribute
 
-insert ignore into continuous_tree_attributes (tree_id, attribute_name)
+insert into continuous_tree_attributes (tree_id, attribute_name)
 values (:tree-id, :attribute-name)
+on duplicate key update
+tree_id = :tree-id,
+attribute_name = :attribute-name
 
 -- :name insert-hpd-level :! :n
 -- :doc Insert an hpd level
 
-insert ignore into continuous_tree_hpd_levels (tree_id, level)
+insert into continuous_tree_hpd_levels (tree_id, level)
 values (:tree-id, :level)
+on duplicate key update
+tree_id = :tree-id,
+level = :level
 
 -- :name get-attributes :? :*
 -- :doc Get attributes by tree-id
@@ -86,6 +92,7 @@ has_external_annotations,
 timescale_multiplier,
 most_recent_sampling_date,
 status,
-output_file_url
+output_file_url,
+readable_name
 from continuous_tree
 where :id = id

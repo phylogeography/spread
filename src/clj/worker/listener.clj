@@ -36,10 +36,12 @@
                                                     :hpd-levels hpd-levels})
       (continuous-tree-model/insert-attributes! db id attributes)
       (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
+      ;; TODO : throws
       (continuous-tree-model/upsert-tree! db {:id id
                                               :status :ATTRIBUTES_AND_HPD_LEVELS_PARSED}))
     (catch Exception e
-      (log/error "Exception" {:error e})
+      (log/error "Exception when handling continuous-tree-upload" {:error e})
+      ;; TODO : throws
       (continuous-tree-model/upsert-tree! db {:id id
                                               :status :ERROR}))))
 

@@ -15,7 +15,7 @@
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-tree
-  {:tree-id nil
+  {:id nil
    :user-id nil
    :tree-file-url nil
    :x-coordinate-attribute-name nil
@@ -26,6 +26,7 @@
    :most-recent-sampling-date nil
    :status nil
    :output-file-url nil
+   :readable-name nil
    })
 
 (defn upsert-tree! [db tree]

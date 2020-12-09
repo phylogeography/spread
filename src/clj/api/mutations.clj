@@ -38,17 +38,17 @@
       urls)))
 
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db] :as ctx}
-                              {tree-file-url :treeFileUrl :as args} _]
+                              {tree-file-url :treeFileUrl readable-name :readableName
+                               :as args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args args})
   (let [id (s3-url->id tree-file-url bucket-name authed-user-id)
         status :TREE_UPLOADED
         continuous-tree {:id id
-                         :name (:name args)
+                         :readable-name readable-name
                          :user-id authed-user-id
                          :tree-file-url tree-file-url
                          :status status}]
-
     (try
       (continuous-tree-model/upsert-tree! db continuous-tree)
       ;; sends message to worker to parse hpd levels and attributes
@@ -71,6 +71,8 @@
                                 has-external-annotations :hasExternalAnnotations
                                 timescale-multiplier :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
+                                :or {has-external-annotations true
+                                     timescale-multiplier 1}
                                 :as args} _]
   (log/info "update continuous tree" {:user/id authed-user-id
                                       :args args})
@@ -94,9 +96,9 @@
 ;; TODO : response schema
 ;; TODO : invoke worker
 (defn start-continuous-tree-parser
-  [{:keys [sqs workers-queue-url authed-user-id]} {id :id} _]
+  [{:keys [sqs workers-queue-url authed-user-id]} {id :id :as args} _]
 
-  (log/info "start-parser-execution" {:a args})
+  (log/info "start-parser-execution" args)
 
   (aws-sqs/send-message sqs workers-queue-url {:id id
                                                :user-id authed-user-id})

@@ -34,7 +34,7 @@
       </column>
 
       <column name="output_file_url" type="VARCHAR(200)"/>      
-      <column name="name" type="VARCHAR(200)"/>      
+      <column name="readable_name" type="VARCHAR(200)"/>      
       <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="y_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="hpd_level" type="VARCHAR(3)"/>
@@ -86,6 +86,12 @@
                              deferrable="false"
                              initiallyDeferred="false"
                              validate="true"/>
+
+    <addUniqueConstraint
+        columnNames="tree_id, attribute_name"
+        constraintName="unique_tree_attribute_names"
+        tableName="continuous_tree_attributes"/>
+    
   </changeSet>
     
   <changeSet author="filip" id="1.0-7">
@@ -111,6 +117,12 @@
                              deferrable="false"
                              initiallyDeferred="false"
                              validate="true"/>
+
+    <addUniqueConstraint
+        columnNames="tree_id, level"
+        constraintName="unique_tree_hpd_level"
+        tableName="continuous_tree_hpd_levels"/>
+    
   </changeSet>
 
   <!-- <changeSet author="filip" id="1.0-9"> -->

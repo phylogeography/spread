@@ -26,8 +26,8 @@
                    :fields {:id {:description "Unique identifier."
                                  :type (non-null ID)}
                             :userId {:type (non-null ID)}
-                            :name {:description "Human-readable name. Usually tree file name."
-                                   :type String}
+                            :readableName {:description "Human-readable name. Usually tree file name."
+                                           :type String}
                             :treeFileUrl {:type (non-null String)}
                             :xCoordinateAttributeName {:type String}
                             :yCoordinateAttributeName {:type String}
@@ -41,7 +41,7 @@
                                              :resolve :resolve/continuous-tree->attributes}
                             :hpdLevels {:type (list String)
                                         :resolve :resolve/continuous-tree->hpd-levels}
-                            :output_file_url {:type String}}}
+                            :outputFileUrl {:type String}}}
 
   }
 
@@ -66,7 +66,7 @@
 
   :uploadContinuousTree {:type :ContinuousTreeParserStatus
                          :description "Persists continuous tree. Returns a ParserStatus with id for querying the status."
-                         :args {:name {:type String}
+                         :args {:readableName {:type String}
                                 :treeFileUrl {:type (non-null String)}}
                          :resolve :mutation/uploadContinuousTree}
 
@@ -78,7 +78,7 @@
                                 :hpdLevel {:type (non-null String)}
                                 :hasExternalAnnotations {:type String}
                                 :timescaleMultiplier {:type String}
-                                :mostRecentSamplingDate {:type String}}
+                                :mostRecentSamplingDate {:type (non-null String)}}
                          :resolve :mutation/updateContinuousTree}
 
   :startContinuousTreeParser {:type :ContinuousTreeParserStatus
