@@ -103,7 +103,16 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: services
+          at: services          
+      - run:
+          name: TEST ARE SERVICES THERE
+          command: |
+            echo "---"
+            ls
+            echo "---"            
+            ls services
+            echo "---"            
+            ls services/worker            
       - run:
           name: Load docker images
           command: |
