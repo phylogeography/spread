@@ -83,7 +83,7 @@ jobs:
           cache-key: pom.xml
           steps:
             - run:
-                name: compile
+                name: Compile
                 command: |
                   mvn clean package
                 # working_directory: services/db-migration
@@ -102,9 +102,11 @@ workflows:
       - clj-service/build:
           name: Build worker service
           service: "worker"
-      - clj-service/build:
-          name: Build api service
-          service: "api"
+          requires:
+            - Build libspread
+      # - clj-service/build:
+      #     name: Build api service
+      #     service: "api"
       # - Build db migration lambda
       # - Test api:
       #     context: spread
