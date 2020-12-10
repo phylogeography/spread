@@ -1,0 +1,83 @@
+version: 2.1
+
+orbs:
+
+  maven-cache:
+    commands:
+      with:
+        parameters:
+          cache-key:
+            default: deps.edn
+            type: string
+          cache-version:
+            default: ""
+            type: string
+          steps:
+            type: steps
+        steps:
+          - restore_cache:
+              key: maven-<< parameters.cache-version >>-{{ checksum "<< parameters.cache-key >>" }}
+          - steps: << parameters.steps >>
+          - save_cache:
+              key: maven-<< parameters.cache-version >>-{{ checksum "<< parameters.cache-key >>" }}
+              paths:
+                - ~/.m2/repository  
+
+#
+# clj-service orb
+# - build: builds a clojure service docker image and persists it to workspace
+# - deploy: gets the docker image from build and an environment parameter and deploys the docker to the environment
+#
+  clj-service:
+    jobs:
+      build:
+        working_directory: ~/ci-spread
+        docker:
+          - image: clashapp/clj:latest
+        shell: /bin/bash -eo pipefail
+        parameters:
+          service:
+            type: string
+        steps:
+          - setup_remote_docker:
+              version: 19.03.13
+          - checkout
+          - restore_cache:
+              key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
+          - run:
+              name: Build docker image
+              command: |
+                ./build.sh -b true -p false
+                docker save -o << parameters.service >>.tar << parameters.service >>-service:latest
+              working_directory: services/<< parameters.service >>
+          - save_cache:
+              key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
+              paths:
+                - ~/.m2/repository
+          - persist_to_workspace:
+              root: services
+              paths:
+                - << parameters.service >>/<< parameters.service >>.tar
+      # deploy: TODO                
+                
+workflows:
+  version: 2
+
+  services:
+    jobs:
+      # ~~~ BUILD ~~~
+      - clj-service/build:
+          name: Build worker service
+          service: "worker"
+      - services/build:
+          name: Build api service
+          service: "api"
+      # - Build db migration lambda
+      # - Test api:
+      #     context: spread
+      #     requires:
+      #       - Build worker service
+      #       - Build api service
+      #       - Build db migration lambda
+      # ~~~ DEPLOY ~~~
+      # TODO (QA/PROD) 
