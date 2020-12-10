@@ -69,7 +69,7 @@ workflows:
       - clj-service/build:
           name: Build worker service
           service: "worker"
-      - services/build:
+      - clj-service/build:
           name: Build api service
           service: "api"
       # - Build db migration lambda
