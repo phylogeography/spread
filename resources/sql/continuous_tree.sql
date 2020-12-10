@@ -65,7 +65,7 @@ level = :level
 -- :name get-attributes :? :*
 -- :doc Get attributes by tree-id
 
-SELECT ATTRIBUTE_NAME
+SELECT attribute_name
 FROM continuous_tree_attributes
 WHERE :tree-id = tree_id
 

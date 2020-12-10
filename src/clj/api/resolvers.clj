@@ -9,16 +9,16 @@
 (defn continuous-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->attributes" parent)
-  (let [result (map :attribute-name (continuous-tree-model/get-attributes db {:tree-id tree-id}))]
-    (log/info "continuous-tree->attributes result" result)
-    result))
+  (let [attributes (map :attribute-name (continuous-tree-model/get-attributes db {:tree-id tree-id}))]
+    (log/info "continuous-tree->attributes" {:attributes attributes})
+    attributes))
 
 (defn continuous-tree->hpd-levels
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->hpd-levels" parent)
-  (let [result (map :level (continuous-tree-model/get-hpd-levels db {:tree-id tree-id}))]
-    (log/info "continuous-tree->hpd-levels result" result)
-    result))
+  (let [levels (map :level (continuous-tree-model/get-hpd-levels db {:tree-id tree-id}))]
+    (log/info "continuous-tree->hpd-levels" {:levels levels})
+    levels))
 
 (defn get-continuous-tree
   [{:keys [db] :as ctx} {id :id :as args} _]
@@ -30,8 +30,4 @@
   [{:keys [db]} _ args]
   (log/info "get-continuous-tree-parser-status" {:args args})
 
-
-
-  #_{:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
-   :status :SUCCEEDED
-   :output "s3://spread-dev-uploads/4d07edcf-4b4b-4190-8cea-38daece8d4aa"})
+)

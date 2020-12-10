@@ -1,4 +1,5 @@
 #kaocha/v1
 {:tests [{:id         :integration
+          :source-paths  ["src"]
           :test-paths ["src/clj/tests/integration"]}]
  :kaocha/reporter [kaocha.report.progress/report]}
