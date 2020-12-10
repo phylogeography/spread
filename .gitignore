@@ -23,6 +23,7 @@ target/
 .classpath
 .project
 .factorypath
+*.jar
 
 ## TEST / DEV
 test.json
