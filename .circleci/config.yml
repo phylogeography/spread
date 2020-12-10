@@ -47,11 +47,6 @@ orbs:
           - attach_workspace: # for libspread.jar
               at: target
           - run:
-              name: IS LIBSPREAD COMPILED
-              command: |
-                ls
-                ls target/
-          - run:
               name: Build docker image
               command: |
                 ./build.sh -b true -p false
@@ -104,9 +99,11 @@ workflows:
           service: "worker"
           requires:
             - Build libspread
-      # - clj-service/build:
-      #     name: Build api service
-      #     service: "api"
+      - clj-service/build:
+          name: Build api service
+          service: "api"
+          requires:
+            - Build libspread          
       # - Build db migration lambda
       # - Test api:
       #     context: spread
