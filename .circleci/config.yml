@@ -102,17 +102,24 @@ jobs:
       image: ubuntu-2004:202008-01
     steps:
       - checkout
-      - attach_workspace:
-          at: services          
       - run:
-          name: TEST ARE SERVICES THERE
+          name: set ENV variables
+          command: |
+            # this works because this machine uses bash
+            cat env/dev >> $BASH_ENV
+            source $BASH_ENV
+            echo "env: $SPREAD_ENV"
+      - attach_workspace:
+          at: services
+      - run:
+          name: TEST IF ALL SERVICES ARE THERE
           command: |
             echo "---"
             ls
-            echo "---"            
+            echo "---"
             ls services
-            echo "---"            
-            ls services/worker            
+            echo "---"
+            ls services/worker
       - run:
           name: Load docker images
           command: |
@@ -151,7 +158,7 @@ jobs:
           name: Verify API responds
           command: |
             docker run --network host appropriate/curl:latest --retry 10 --retry-delay 1 --retry-connrefused http://127.0.0.1:3001
-      # TODO : run integration test suite            
+      # TODO : run integration test suite
       # - cache/with:
       #     app-dir: services/api
       #     cache-key: shadow-cljs.edn
@@ -165,7 +172,7 @@ jobs:
       #             cp ../../assets/test/placeholder.jpeg ./assets/test/placeholder.jpeg
       #             yarn tests:once
       #           working_directory: services/api/
-            
+
 workflows:
   version: 2
 
@@ -182,7 +189,7 @@ workflows:
           name: Build api service
           service: "api"
           requires:
-            - Build libspread          
+            - Build libspread
       # - Build db migration lambda
       - Test api:
           # context: spread
