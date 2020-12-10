@@ -166,7 +166,8 @@ jobs:
             - run:
                 name: install clojure
                 command: |
-                  sudo apt-get install rlwrap
+                  #sudo apt update
+                  #sudo apt install rlwrap
                   curl -O https://download.clojure.org/install/linux-install-1.10.1.536.sh
                   chmod +x linux-install-1.10.1.536.sh
                   sudo ./linux-install-1.10.1.536.sh
@@ -174,18 +175,6 @@ jobs:
                 name: Run test suite
                 command: |
                   bin/kaocha
-
-      # TODO : run integration test suite
-      # - clojure/with_cache:
-      #     files: deps.edn
-      #     cache_version: "1.10.1"
-      #     steps:
-      #       - run: clojure -e '(println (System/getProperty "java.runtime.name") (System/getProperty "java.runtime.version") "\nClojure" (clojure-version))'
-      #       - run:
-      #           name: Run test suite
-      #           command: |
-      #             bin/kaocha
-
 
 workflows:
   version: 2
