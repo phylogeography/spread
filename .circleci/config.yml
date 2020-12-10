@@ -160,7 +160,7 @@ jobs:
           command: |
             docker run --network host appropriate/curl:latest --retry 10 --retry-delay 1 --retry-connrefused http://127.0.0.1:3001
       # TODO : run integration test suite
-      - clojure/with-cache:
+      - clojure/with_cache:
           files: deps.edn
           cache_version: "1.10.1"
           steps:
