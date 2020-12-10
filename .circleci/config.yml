@@ -116,8 +116,8 @@ jobs:
       - run:
           name: Load docker images
           command: |
-            docker load -i services/worker/worker-service.tar
-            docker load -i services/api/api-service.tar
+            docker load -i services/worker/worker.tar
+            docker load -i services/api/api.tar
       - run:
           name: Start docker services
           command: |
