@@ -1,0 +1,21 @@
+version: "3.5"
+services:
+
+  worker:
+    image: worker-service:latest
+    container_name: dev_worker
+    network_mode: host
+    depends_on:
+      - mysql
+      - sqs
+      - s3      
+  
+  api:
+    image: api-service:latest
+    container_name: dev_api
+    network_mode: host
+    depends_on:
+      - mysql
+      - sqs
+      - s3            
+      - worker
