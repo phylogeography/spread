@@ -22,5 +22,5 @@
   (stop)
   (start))
 
-(defn -main []
+(defn -main [& _]
   (start))

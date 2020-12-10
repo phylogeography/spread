@@ -17,7 +17,12 @@
                 ;; only for dev
                 sqs-host (assoc :endpoint-override {:protocol :http
                                                     :hostname sqs-host
-                                                    :port sqs-port}))))
+                                                    :port sqs-port})
+
+                ;; if we are in testing lets smash a real region
+                ;; the aws/invoke fails with "No region found by any region provider."
+                ;; if we don't provide a real one. Providing "spread-test-1" doesn't work
+                sqs-host (assoc :region "us-east-1"))))
 
 (defn stop-client [client]
   (aws/stop client))

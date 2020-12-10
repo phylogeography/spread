@@ -26,7 +26,12 @@
                 ;; only for dev
                 s3-host (assoc :endpoint-override {:protocol :http
                                                    :hostname s3-host
-                                                   :port s3-port}))))
+                                                   :port s3-port})
+
+                ;; if we are in testing lets smash a real region
+                ;; the aws/invoke fails with "No region found by any region provider."
+                ;; if we don't provide a real one. Providing "spread-test-1" doesn't work
+                s3-host (assoc :region "us-east-1"))))
 
 (defn create-presigner
 

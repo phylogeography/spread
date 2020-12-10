@@ -96,7 +96,7 @@
                  :db db
                  :bucket-name bucket-name
                  :aws-config aws}]
-    (log/info "Starting worker listener")
+    (log/info "Starting worker listener" config)
     (loop []
       (try
         ;; If the queue is empty, wait for 2 seconds and poll again

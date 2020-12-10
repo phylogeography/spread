@@ -5,17 +5,43 @@ services:
     image: worker-service:latest
     container_name: dev_worker
     network_mode: host
-    depends_on:
-      - mysql
-      - sqs
-      - s3      
-  
+    # depends_on:
+    #   - mysql
+    #   - sqs
+    #   - s3
+    environment:
+      - SPREAD_ENV=$SPREAD_ENV
+      - LOGGING_LEVEL=$LOGGING_LEVEL
+      - API_AWS_REGION=$API_AWS_REGION
+      - API_AWS_ACCESS_KEY_ID=$API_AWS_ACCESS_KEY_ID
+      - API_AWS_SECRET_ACCESS_KEY=$API_AWS_SECRET_ACCESS_KEY
+      - BUCKET_NAME=$BUCKET_NAME
+      - WORKERS_QUEUE_URL=$WORKERS_QUEUE_URL
+      - DB_DATABASE=$DB_DATABASE
+      - DB_HOST=$DB_HOST                        
+      - DB_PORT=$DB_PORT
+      - DB_USER=$DB_USER
+      - DB_PASSWORD=$DB_PASSWORD
+      
   api:
     image: api-service:latest
     container_name: dev_api
     network_mode: host
-    depends_on:
-      - mysql
-      - sqs
-      - s3            
-      - worker
+    # depends_on:
+      # - mysql
+      # - sqs
+      # - s3
+      # - worker
+    environment:
+      - SPREAD_ENV=$SPREAD_ENV
+      - LOGGING_LEVEL=$LOGGING_LEVEL
+      - API_AWS_REGION=$API_AWS_REGION
+      - API_AWS_ACCESS_KEY_ID=$API_AWS_ACCESS_KEY_ID
+      - API_AWS_SECRET_ACCESS_KEY=$API_AWS_SECRET_ACCESS_KEY
+      - BUCKET_NAME=$BUCKET_NAME
+      - WORKERS_QUEUE_URL=$WORKERS_QUEUE_URL
+      - DB_DATABASE=$DB_DATABASE
+      - DB_HOST=$DB_HOST                        
+      - DB_PORT=$DB_PORT
+      - DB_USER=$DB_USER
+      - DB_PASSWORD=$DB_PASSWORD
