@@ -166,7 +166,7 @@ jobs:
             - run:
                 name: Run test suite
                 command: |
-                  /bin/kaocha
+                  bin/kaocha
 
 workflows:
   version: 2
