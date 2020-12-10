@@ -79,9 +79,9 @@
                                     :key output-object-key
                                     :file-path output-object-path})
           url (aws-s3/build-url aws-config bucket-name output-object-key)]
-      (continuous-tree-model/update-tree db {:id id
-                                             :output-file-url url
-                                             :status :SUCCEEDED}))
+      (continuous-tree-model/update-tree! db {:id id
+                                              :output-file-url url
+                                              :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
       (continuous-tree-model/update-tree! db {:id id
