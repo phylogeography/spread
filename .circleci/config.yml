@@ -162,8 +162,9 @@ jobs:
       # TODO : run integration test suite
       - clojure/with-cache:
           files: deps.edn
-          cache_version: tests
+          cache_version: "1.10.1"
           steps:
+            - run: clojure -e '(println (System/getProperty "java.runtime.name") (System/getProperty "java.runtime.version") "\nClojure" (clojure-version))'
             - run:
                 name: Run test suite
                 command: |
