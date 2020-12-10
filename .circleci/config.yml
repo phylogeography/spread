@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  clojure: lambdaisland/clojure@0.0.1
 
   maven-cache:
     commands:
@@ -159,14 +160,15 @@ jobs:
           command: |
             docker run --network host appropriate/curl:latest --retry 10 --retry-delay 1 --retry-connrefused http://127.0.0.1:3001
       # TODO : run integration test suite
-      - maven-cache/with:
-          cache-version: tests
-          cache-key: deps.edn
+      - clojure/with-cache:
+          files: deps.edn
+          cache_version: tests
           steps:
             - run:
                 name: Run test suite
                 command: |
                   bin/kaocha
+
 
 workflows:
   version: 2
