@@ -126,7 +126,7 @@ jobs:
       - run:
           name: Verify services respond
           command: |
-            docker run --network container:test_mysql appropriate/curl:latest --retry 10 --retry-delay 3 --retry-connrefused http://127.0.0.1:3306/ping
+            docker run --network container:dev_mysql appropriate/curl:latest --retry 10 --retry-delay 3 --retry-connrefused http://127.0.0.1:3306/ping
       - run:
           name: api service logs
           background: true
