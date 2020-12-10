@@ -159,19 +159,14 @@ jobs:
           command: |
             docker run --network host appropriate/curl:latest --retry 10 --retry-delay 1 --retry-connrefused http://127.0.0.1:3001
       # TODO : run integration test suite
-      # - cache/with:
-      #     app-dir: services/api
-      #     cache-key: shadow-cljs.edn
-      #     cache-version: api-tests
-      #     steps:
-      #       - run:
-      #           name: Run the tests
-      #           command: |
-      #             mkdir -p ./assets/test/
-      #             cp ../../assets/test/video.mp4 ./assets/test/video.mp4
-      #             cp ../../assets/test/placeholder.jpeg ./assets/test/placeholder.jpeg
-      #             yarn tests:once
-      #           working_directory: services/api/
+      - maven-cache/with:
+          cache-version: tests
+          cache-key: deps.edn
+          steps:
+            - run:
+                name: Run test suite
+                command: |
+                  /bin/kaocha
 
 workflows:
   version: 2
