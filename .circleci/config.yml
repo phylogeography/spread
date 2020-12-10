@@ -21,7 +21,7 @@ orbs:
           - save_cache:
               key: maven-<< parameters.cache-version >>-{{ checksum "<< parameters.cache-key >>" }}
               paths:
-                - ~/.m2/repository  
+                - ~/.m2/repository
 
 #
 # clj-service orb
@@ -44,6 +44,13 @@ orbs:
           - checkout
           - restore_cache:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
+          - attach_workspace: # for libspread.jar
+              at: target
+          - run:
+              name: IS LIBSPREAD COMPILED
+              command: |
+                ls
+                ls target/
           - run:
               name: Build docker image
               command: |
@@ -58,20 +65,46 @@ orbs:
               root: services
               paths:
                 - << parameters.service >>/<< parameters.service >>.tar
-      # deploy: TODO                
-                
+      # deploy: TODO
+
+executors:
+  java-builder:
+    docker:
+      - image: cimg/openjdk:11.0
+    working_directory:  ~/ci-spread/
+
+jobs:
+  Build libspread:
+    executor: java-builder
+    steps:
+      - checkout
+      - maven-cache/with:
+          cache-version: libspread
+          cache-key: pom.xml
+          steps:
+            - run:
+                name: compile
+                command: |
+                  mvn clean package
+                # working_directory: services/db-migration
+      - persist_to_workspace:
+          root: target
+          paths:
+            - libspread-1.0.0-SNAPSHOT.jar
+
 workflows:
   version: 2
 
   services:
     jobs:
       # ~~~ BUILD ~~~
-      - clj-service/build:
-          name: Build worker service
-          service: "worker"
-      - clj-service/build:
-          name: Build api service
-          service: "api"
+      - Build libspread
+      # - clj-service/build:
+      #     name: Build worker service
+      #     service: "worker"
+      # - clj-service/build:
+      #     name: Build api service
+      #     service: "api"
       # - Build db migration lambda
       # - Test api:
       #     context: spread
@@ -80,4 +113,4 @@ workflows:
       #       - Build api service
       #       - Build db migration lambda
       # ~~~ DEPLOY ~~~
-      # TODO (QA/PROD) 
+      # TODO (QA/PROD)

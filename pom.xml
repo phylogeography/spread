@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.spread</groupId>
   <artifactId>libspread</artifactId>
   <version>1.0.0-SNAPSHOT</version>
+
   <name>${project.groupId}:${project.artifactId}</name>
   <description>Spread parsers library</description>
   <packaging>jar</packaging>
+
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -16,110 +20,53 @@
     <joda.version>2.10.8</joda.version>
     <junit.version>4.13.1</junit.version>
   </properties>
+
   <dependencies>
+
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>data.json</artifactId>
-      <version>1.0.0</version>
+      <groupId>jebl</groupId>
+      <artifactId>jebl</artifactId>
+      <version>${jebl.version}</version>
     </dependency>
+
     <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <version>1.10.1</version>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+      <version>${lombok.version}</version>
     </dependency>
+
     <dependency>
-      <groupId>com.cognitect.aws</groupId>
-      <artifactId>api</artifactId>
-      <version>0.8.484</version>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>${gson.version}</version>
     </dependency>
+
     <dependency>
-      <groupId>com.cognitect.aws</groupId>
-      <artifactId>endpoints</artifactId>
-      <version>1.1.11.906</version>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>${joda.version}</version>
     </dependency>
+
     <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>s3</artifactId>
-      <version>2.15.35</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+      <version>${junit.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.walmartlabs</groupId>
-      <artifactId>lacinia-pedestal</artifactId>
-      <version>0.15.0-alpha-2</version>
-    </dependency>
-    <dependency>
-      <groupId>com.layerware</groupId>
-      <artifactId>hugsql-core</artifactId>
-      <version>0.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.cognitect.aws</groupId>
-      <artifactId>sqs</artifactId>
-      <version>809.2.784.0</version>
-    </dependency>
-    <dependency>
-      <groupId>jpmonettas</groupId>
-      <artifactId>flow-storm</artifactId>
-      <version>0.2.6</version>
-    </dependency>
-    <dependency>
-      <groupId>seancorfield</groupId>
-      <artifactId>next.jdbc</artifactId>
-      <version>1.1.588</version>
-    </dependency>
-    <dependency>
-      <groupId>com.taoensso</groupId>
-      <artifactId>timbre</artifactId>
-      <version>5.1.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.cognitect</groupId>
-      <artifactId>transit-clj</artifactId>
-      <version>1.0.324</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>auth</artifactId>
-      <version>2.15.35</version>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.21</version>
-    </dependency>
-    <dependency>
-      <groupId>com.layerware</groupId>
-      <artifactId>hugsql-adapter-next-jdbc</artifactId>
-      <version>0.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>core.match</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>mount</groupId>
-      <artifactId>mount</artifactId>
-      <version>0.1.16</version>
-    </dependency>
-    <dependency>
-      <groupId>com.cognitect.aws</groupId>
-      <artifactId>s3</artifactId>
-      <version>809.2.797.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>core.async</artifactId>
-      <version>1.2.603</version>
-    </dependency>
+
   </dependencies>
+
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.5</version>
       </plugin>
+
       <!-- <plugin> -->
       <!--   <groupId>org.apache.maven.plugins</groupId> -->
       <!--   <artifactId>maven-resources-plugin</artifactId> -->
@@ -128,6 +75,7 @@
       <!--     <encoding>UTF-8</encoding> -->
       <!--   </configuration> -->
       <!-- </plugin> -->
+
       <!-- watch for file changes and rerun tests -->
       <plugin>
         <groupId>com.fizzed</groupId>
@@ -147,17 +95,17 @@
           </goals>
         </configuration>
       </plugin>
+
     </plugins>
-    <sourceDirectory>src/clj</sourceDirectory>
   </build>
+
   <repositories>
-    <repository>
-      <id>clojars</id>
-      <url>https://repo.clojars.org/</url>
-    </repository>
+
     <repository>
       <id>jebl2</id>
-      <url>http://www.stat.ubc.ca/~bouchard/maven/</url>
+      <url>https://www.stat.ubc.ca/~bouchard/maven/</url>
     </repository>
+
   </repositories>
+
 </project>

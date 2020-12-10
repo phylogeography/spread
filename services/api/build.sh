@@ -37,8 +37,11 @@ IMG=$NAME:$TAG
 if [ $BUILD = true ]
 then
     cd ../../
+    # TODO : this overwrites libspread pom.xml in the root dir
+    # not sure how to fix that (build libspread with deps.edn?)
     clojure -Spom;
-    clojure -A:uberjar api-service.jar -C -m api.main;    
+    clojure -A:uberjar api-service.jar -C -m api.main;
+
     docker build --tag $IMG -f services/api/Dockerfile .
 fi
 
@@ -48,8 +51,8 @@ if [ $PUSH = true ]
 then
   echo "Pushing $IMG to Dockerhub"
   # authenticate docker to use dockerhub registry
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin  
-  # tag image  
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  # tag image
   docker tag $IMG spread/$NAME:$TAG
   # push to registry
   docker push spread/$NAME:$TAG
