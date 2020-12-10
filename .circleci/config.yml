@@ -159,16 +159,32 @@ jobs:
           name: Verify API responds
           command: |
             docker run --network host appropriate/curl:latest --retry 10 --retry-delay 1 --retry-connrefused http://127.0.0.1:3001
-      # TODO : run integration test suite
-      - clojure/with_cache:
-          files: deps.edn
-          cache_version: "1.10.1"
+      - maven-cache/with:
+          cache-version: tests
+          cache-key: deps.edn
           steps:
-            - run: clojure -e '(println (System/getProperty "java.runtime.name") (System/getProperty "java.runtime.version") "\nClojure" (clojure-version))'
+            - run:
+                name: install clojure
+                command: |
+                  sudo apt-get install rlwrap
+                  curl -O https://download.clojure.org/install/linux-install-1.10.1.536.sh
+                  chmod +x linux-install-1.10.1.536.sh
+                  sudo ./linux-install-1.10.1.536.sh
             - run:
                 name: Run test suite
                 command: |
                   bin/kaocha
+
+      # TODO : run integration test suite
+      # - clojure/with_cache:
+      #     files: deps.edn
+      #     cache_version: "1.10.1"
+      #     steps:
+      #       - run: clojure -e '(println (System/getProperty "java.runtime.name") (System/getProperty "java.runtime.version") "\nClojure" (clojure-version))'
+      #       - run:
+      #           name: Run test suite
+      #           command: |
+      #             bin/kaocha
 
 
 workflows:
