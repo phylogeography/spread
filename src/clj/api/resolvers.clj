@@ -1,7 +1,6 @@
 (ns api.resolvers
-  (:require [api.db :as db]
+  (:require [api.models.continuous-tree :as continuous-tree-model]
             [shared.utils :refer [clj->gql]]
-            [api.models.continuous-tree :as continuous-tree-model]
             [taoensso.timbre :as log]))
 
 ;; TODO : write middleware/interceptor that logs args and results
@@ -21,13 +20,6 @@
     levels))
 
 (defn get-continuous-tree
-  [{:keys [db] :as ctx} {id :id :as args} _]
+  [{:keys [db]} {id :id :as args} _]
   (log/info "get-continuous-tree" args)
   (clj->gql (continuous-tree-model/get-tree db {:id id})))
-
-;; TODO : read status (from RDS)
-(defn get-continuous-tree-parser-status
-  [{:keys [db]} _ args]
-  (log/info "get-continuous-tree-parser-status" {:args args})
-
-)

@@ -53,7 +53,7 @@
   (merge data (decode-vargs (:vargs data))))
 
 (defn start [config]
-  (let [{:keys [level] :as args} (:logging config)]
+  (let [{:keys [level]} (:logging config)]
     (timbre/merge-config!
      {:level (keyword level)
       :middleware [wrap-decode-vargs]

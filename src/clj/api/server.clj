@@ -7,12 +7,12 @@
             [aws.sqs :as aws-sqs]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [io.pedestal.interceptor :refer [interceptor]]
             [com.walmartlabs.lacinia.pedestal :refer [inject]]
             [com.walmartlabs.lacinia.pedestal2 :as pedestal]
             [com.walmartlabs.lacinia.schema :as schema]
             [com.walmartlabs.lacinia.util :as lacinia-util]
             [io.pedestal.http :as http]
+            [io.pedestal.interceptor :refer [interceptor]]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
@@ -22,10 +22,9 @@
       (resolver-fn (merge application-context {:authed-user-id user-id}) args value)
       (throw (Exception. "Authorization required")))))
 
-(defn resolver-map [context]
+(defn resolver-map []
   {:resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
    :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
-   :query/getContinuousTreeParserStatus resolvers/get-continuous-tree-parser-status
    :query/getContinuousTree resolvers/get-continuous-tree
    :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
    :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree)
@@ -84,7 +83,7 @@
                  :workers-queue-url workers-queue-url
                  :bucket-name bucket-name}
         compiled-schema (-> schema
-                            (lacinia-util/attach-resolvers (resolver-map context))
+                            (lacinia-util/attach-resolvers (resolver-map))
                             schema/compile)
         interceptors (interceptors compiled-schema context)
         ;; TODO : use /ide endpoint only when env = dev

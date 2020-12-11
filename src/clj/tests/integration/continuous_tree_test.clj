@@ -1,17 +1,17 @@
 (ns tests.integration.continuous-tree-test
-  (:require [clojure.test :refer [use-fixtures deftest is testing]]
+  (:require [api.config :as config]
             [api.db :as db]
+            [api.models.user :as user-model]
             [clj-http.client :as http]
-            [clojure.string :as string]
-            [shared.utils :refer [new-uuid]]
-            [taoensso.timbre :as log]
             [clojure.data.json :as json]
-            [api.config :as config]
-            [api.models.user :as user-model]))
+            [clojure.java.io :as io]
+            [clojure.string :as string]
+            [clojure.test :refer [use-fixtures deftest is]]
+            [taoensso.timbre :as log]))
 
 (defn run-query [{:keys [url query variables]
                   :or {url "http://localhost:3001/api"}}]
-  (let [{:keys [body] :as response} (http/post url {:form-params {:query query
+  (let [{:keys [body]} (http/post url {:form-params {:query query
                                                                   :variables variables}
                                                     :content-type "application/json"})]
     (json/read-str body :key-fn keyword)))
@@ -32,7 +32,7 @@
         (recur (query-status id))))))
 
 (use-fixtures :once (fn [f]
-                      (let [config (config/load)
+                      (let [config (config/load!)
                             db (db/init (:db config))]
                         ;; TODO : randomize user once we have auth
                         (user-model/upsert-user db {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
@@ -48,7 +48,7 @@
                                                          :extension "tree"}]}})
                         [:data :getUploadUrls])
 
-        _ (http/put url {:body (clojure.java.io/file "src/test/resources/continuous/speciesDiffusion.MCC.tre")})
+        _ (http/put url {:body (io/file "src/test/resources/continuous/speciesDiffusion.MCC.tre")})
 
         {:keys [id status]} (get-in (run-query {:query
                                                 "mutation UploadTree($url: String!) {
@@ -66,8 +66,8 @@
 
         _ (block-on-status id :ATTRIBUTES_AND_HPD_LEVELS_PARSED)
 
-        {:keys [id status attributeNames hpdLevels]} (get-in (run-query {:query
-                                                                         "query GetTree($id: ID!) {
+        {:keys [id attributeNames hpdLevels]} (get-in (run-query {:query
+                                                                  "query GetTree($id: ID!) {
                                                                             getContinuousTree(id: $id) {
                                                                               id
                                                                               status
@@ -75,8 +75,8 @@
                                                                               attributeNames
                                                                             }
                                                                           }"
-                                                                         :variables {:id id}})
-                                                             [:data :getContinuousTree])
+                                                                  :variables {:id id}})
+                                                      [:data :getContinuousTree])
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateTree($id: ID!,

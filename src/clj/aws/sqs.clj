@@ -1,8 +1,8 @@
 (ns aws.sqs
-  (:require [cognitect.aws.client.api :as aws]
+  (:require [aws.utils :refer [throw-on-error]]
+            [cognitect.aws.client.api :as aws]
             [cognitect.aws.credentials :as credentials]
-            [shared.utils :refer [decode-transit encode-transit]]
-            [aws.utils :refer [throw-on-error]]))
+            [shared.utils :refer [decode-transit encode-transit]]))
 
 (defn create-client
 
@@ -87,15 +87,3 @@
                        :request {:QueueUrl queue
                                  :ReceiptHandle receipt-handle}})
       (throw-on-error {:api :sqs :fn ::ack-message})))
-
-(comment
-  (require '[transcoding.config :as config])
-
-  (def sqs (create-client (-> (config) :aws)))
-
-  (aws/invoke sqs {:op :ListQueues})
-  (aws/doc sqs :SendMessage)
-  (aws/doc test-sqs :ReceiveMessage)
-  (aws/doc test-sqs :DeleteMessage)
-
-  )

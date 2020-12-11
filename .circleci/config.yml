@@ -47,6 +47,11 @@ orbs:
           - attach_workspace: # for libspread.jar
               at: target
           - run:
+              name: Lint namespaces
+              command: |
+                clojure -A:clj-kondo --lint src/clj
+              # working_directory: services/<< parameters.service >>
+          - run:
               name: Build docker image
               command: |
                 ./build.sh -b true -p false

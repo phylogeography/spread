@@ -1,9 +1,9 @@
 (ns api.mutations
-  (:require [aws.s3 :as aws-s3]
+  (:require [api.models.continuous-tree :as continuous-tree-model]
+            [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
-            [api.models.continuous-tree :as continuous-tree-model]
             [clojure.string :as string]
-            [shared.utils :refer [new-uuid clj->gql]]
+            [shared.utils :refer [new-uuid]]
             [taoensso.timbre :as log]))
 
 (defn s3-url->id
@@ -23,7 +23,7 @@
         (throw (Exception. message))))))
 
 (defn get-upload-urls
-  [{:keys [s3-presigner authed-user-id bucket-name]} {:keys [files] :as args} _]
+  [{:keys [s3-presigner authed-user-id bucket-name]} {:keys [files]} _]
   (log/info "get-upload-urls" {:user/id authed-user-id :files files})
   (loop [files files
          urls []]
@@ -37,7 +37,7 @@
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-(defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db] :as ctx}
+(defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db]}
                               {tree-file-url :treeFileUrl readable-name :readableName
                                :as args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
@@ -105,6 +105,7 @@
       {:id id
        :status status}
       (catch Exception e
+        (log/error "Exception when sending message to worker" {:error e})
         (continuous-tree-model/update-tree! db {:id id
                                                 :status :ERROR})))))
 

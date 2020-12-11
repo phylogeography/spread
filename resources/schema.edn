@@ -46,12 +46,7 @@
   }
 
  :queries
- {:getContinuousTreeParserStatus {:type :ContinuousTreeParserStatus
-                                  :description "Returns a current status of analysis execution."
-                                  :args {:id {:type (non-null ID)}}
-                                  :resolve :query/getContinuousTreeParserStatus}
-
-  :getContinuousTree {:type :ContinuousTree
+ {:getContinuousTree {:type :ContinuousTree
                       :description "Returns a ContinuousTree entity by id."
                       :args {:id {:type (non-null ID)}}
                       :resolve :query/getContinuousTree}

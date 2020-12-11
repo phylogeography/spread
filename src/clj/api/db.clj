@@ -1,11 +1,9 @@
 (ns api.db
   (:require [clojure.repl :refer [demunge]]
-            [next.jdbc :as jdbc]
             [hugsql.adapter.next-jdbc :as next-adapter]
             [hugsql.core :as hugsql]
+            [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]))
-
-;; (def max-limit 15)
 
 (def transform-result-keys-fn (comp keyword demunge))
 

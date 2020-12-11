@@ -26,7 +26,10 @@ target/
 .factorypath
 *.jar
 
-## TEST / DEV
+## -- TEST / DEV
 test.json
 spread_data_simple_example.json
 *.tar.gz
+
+## -- CLJ-KONDO
+.clj-kondo/.cache/
