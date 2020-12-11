@@ -1,6 +1,6 @@
 # [spread](https://github.com/fbielejec/spread)
 
-[![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg)](https://circleci.com/gh/fbielejec/spread/tree/master)
+[![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
 
 Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes.
 
