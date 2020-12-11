@@ -23,8 +23,3 @@
   [{:keys [db]} {id :id :as args} _]
   (log/info "get-continuous-tree" args)
   (clj->gql (continuous-tree-model/get-tree db {:id id})))
-
-;; TODO : read status (from RDS)
-#_(defn get-continuous-tree-parser-status
-  [{:keys [db]} _ args]
-  (log/info "get-continuous-tree-parser-status" {:args args}))
