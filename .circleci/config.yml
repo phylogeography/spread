@@ -44,6 +44,11 @@ orbs:
           - checkout
           - restore_cache:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
+          - run:
+              name: Lint namespaces
+              command: |
+                clj -A:clj-kondo --lint src/clj
+              # working_directory: services/<< parameters.service >>
           - attach_workspace: # for libspread.jar
               at: target
           - run:
