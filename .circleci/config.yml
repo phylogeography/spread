@@ -47,7 +47,7 @@ orbs:
           - run:
               name: Lint namespaces
               command: |
-                clj -A:clj-kondo --lint src/clj
+                clojure -A:clj-kondo --lint src/clj
               # working_directory: services/<< parameters.service >>
           - attach_workspace: # for libspread.jar
               at: target
