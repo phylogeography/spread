@@ -15,45 +15,7 @@ This document is subject to change.
 
 The diagram below presents the main components making up the system: 
 
-#+begin_src plantuml :file system_architecture.png
-
-package "browser" {
-  [user interface]
-}
-
-[API server] as API
-
-[Messaging Queue] as SQS
-
-cloud {
-  [objectstore] as S3
-}
-
-database "Database" {
-  [DB] as db
-}
-
-[worker] as w1
-[worker] as w2
-[worker] as w3
-
-[user interface] .> S3 : upload inputs
-
-[user interface] <.> API : authentication / queries / mutations
-API ..> SQS : publish message
-
-API <..> db : CRUD operations
-
-SQS -down-> w1 : listen
-SQS -down-> w2 : listen
-SQS -down-> w3 : listen
-
-S3 ..> w1 : download inputs
-S3 <.. w1 : upload results
-db <..> w1 : CRUD operations
-#+end_src
-#+RESULTS:
-[[file:system_architecture.png]]
+[[file:../system_architecture.png]]
 
 As can be seen from the system architecture SPREAD is a queue based system, with the Server component responsible for reading and writing to the Database as well as publishing messages to the queue. 
 A configurable number of workers compete for these messages and act on them. 

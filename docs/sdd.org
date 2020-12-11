@@ -36,34 +36,35 @@ package "competing consumers" {
 [Messaging Queue] as messaging
 
 cloud {
-  [filestore S3] as S3
+  [S3 objectstore] as S3
 }
 
 database "Database" {
   [DB] as db
 }
 
-interface <--> api : EQL communication
+vis <- S3: read results
 
-interface -> S3 : upload input files
+interface <--> api : GQL communication
 
-vis <-- api : EQL
+interface -> S3 : upload inputs
 
-api <--> messaging
+api --> messaging
 
 api <-> db :CRUD
 
-messaging <--> w1
-w1 <-- S3
+messaging ..> w1
+w1 <..> S3
 
-messaging <--> w2
-w2 <-- S3
+messaging ..> w2
+w2 <..> S3
 
-messaging <--> wn
-wn <-- S3 : read input files
-
+messaging ..> wn
+wn <..> S3 : read inputs / store results
+wn <.> db : CRUD
 #+end_src
-#+RESULTS:
+
+#+RESULTS: fig:example-fig
 [[file:system_architecture.png]]
 
 * TODO Detailed SubSystem Design
