@@ -1,13 +1,13 @@
 (ns api.main
   (:gen-class)
-  (:require [mount.core :as mount]
-            [api.config :as config]
-            [shared.logging :as logging]
+  (:require [api.config :as config]
             [api.server :as server]
+            [mount.core :as mount]
+            [shared.logging :as logging]
             [taoensso.timbre :as log]))
 
 (defn start []
-  (let [config (config/load)]
+  (let [config (config/load!)]
     (-> (mount/only #{#'logging/logging
                       #'server/server})
         (mount/with-args config)

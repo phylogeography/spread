@@ -1,6 +1,5 @@
 (ns api.models.user
-  (:require [hugsql.core :as hugsql]
-            [taoensso.timbre :as log]))
+  (:require [hugsql.core :as hugsql]))
 
 ;; These are just not to upset clj-kondo
 (declare upsert-user)

@@ -7,7 +7,7 @@
             [worker.listener :as listener]))
 
 (defn start []
-  (let [config (config/load)]
+  (let [config (config/load!)]
     (-> (mount/only #{#'logging/logging
                       #'listener/listener})
         (mount/with-args config)

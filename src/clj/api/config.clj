@@ -1,7 +1,7 @@
 (ns api.config
   (:require [shared.utils :refer [get-env-variable]]))
 
-(defn load []
+(defn load! []
   (let [environment (or (get-env-variable "SPREAD_ENV") "dev")
         dev-env? (= "dev" environment)]
     {:env environment

@@ -1,6 +1,8 @@
 (ns shared.utils
-  (:require [cognitect.transit :as transit]
-            [clojure.string :as string])
+  (:require [clojure.java.io :as io]
+            [clojure.string :as string]
+            [clojure.walk :as walk]
+            [cognitect.transit :as transit])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]))
 
 (defn get-env-variable
@@ -32,8 +34,14 @@
 
 (defn new-uuid [] (str (java.util.UUID/randomUUID)))
 
-(defn transform-keys [m f]
-  (into {} (map #(update-in % [0] f) m)))
+;; (defn transform-keys [m f]
+;;   (into {} (map #(update-in % [0] f) m)))
+
+(defn transform-keys
+  "Recursively transforms all map keys in coll with t."
+  [t coll]
+  (let [f (fn [[k v]] [(t k) v])]
+    (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) coll)))
 
 (defn ->camelCase [^String s]
   (string/replace s #"-(\w)"
@@ -41,11 +49,11 @@
 
 (defn clj->gql
   [m]
-  (transform-keys m (comp keyword ->camelCase name)))
+  (transform-keys (comp keyword ->camelCase name) m))
 
 (defn file-exists?
   [path]
-  (.exists (clojure.java.io/file path)))
+  (.exists (io/file path)))
 
 (comment
   (decode-transit (encode-transit {:a 1}))

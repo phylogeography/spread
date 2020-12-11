@@ -1,13 +1,12 @@
 (ns worker.listener
-  (:require
-   [clojure.data.json :as json]
-   [aws.sqs :as aws-sqs]
-   [api.db :as db]
-   [aws.s3 :as aws-s3]
-   [api.models.continuous-tree :as continuous-tree-model]
-   [mount.core :as mount :refer [defstate]]
-   [shared.utils :refer [file-exists?]]
-   [taoensso.timbre :as log])
+  (:require [api.db :as db]
+            [api.models.continuous-tree :as continuous-tree-model]
+            [aws.s3 :as aws-s3]
+            [aws.sqs :as aws-sqs]
+            [clojure.data.json :as json]
+            [mount.core :as mount :refer [defstate]]
+            [shared.utils :refer [file-exists?]]
+            [taoensso.timbre :as log])
   (:import (com.spread.parsers ContinuousTreeParser)))
 
 (defonce tmp-dir "/tmp")
@@ -53,8 +52,7 @@
                                                     :status :RUNNING})
           {:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
                   hpd-level has-external-annotations timescale-multiplier
-                  most-recent-sampling-date]
-           :as tree}
+                  most-recent-sampling-date]}
           (continuous-tree-model/get-tree db {:id id})
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
@@ -101,10 +99,9 @@
       (try
         ;; If the queue is empty, wait for 2 seconds and poll again
         ;; (log/debug "Polling...")
-        (if-let [{:keys [body receipt-handle]} (aws-sqs/get-next-message sqs workers-queue-url)]
-          (do
-            (handler body context)
-            (aws-sqs/ack-message sqs workers-queue-url receipt-handle)))
+        (when-let [{:keys [body receipt-handle]} (aws-sqs/get-next-message sqs workers-queue-url)]
+          (handler body context)
+          (aws-sqs/ack-message sqs workers-queue-url receipt-handle))
         (Thread/sleep 2000)
         (catch Exception e
           (log/error "Error processing a message" {:error e})))
