@@ -80,6 +80,7 @@ This project exists thanks to all the people who contribute.
 
 [![](https://github.com/fbielejec.png?size=50)](https://github.com/fbielejec)
 [![](https://github.com/jpmonettas.png?size=50)](https://github.com/jpmonettas)
+[![](https://github.com/plemey.png?size=50)](https://github.com/plemey)
 
 ## License
 
