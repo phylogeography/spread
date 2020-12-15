@@ -34,12 +34,11 @@
          org.clojure/data.xml  {:mvn/version "0.0.8"}
          
          ;; UTILS         
-         mount                 {:mvn/version "0.1.16"}
-         jpmonettas/flow-storm {:mvn/version "0.2.6"}}
+         mount                 {:mvn/version "0.1.16"}}
  
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}
-             "jebl2"   {:url           "http://www.stat.ubc.ca/~bouchard/maven/"
+             "jebl2"   {:url "http://www.stat.ubc.ca/~bouchard/maven/"
                         :snapshots     false
                         :sign-releases false
                         :checksum      :fail
@@ -65,4 +64,7 @@
                      :main-opts    ["-m" "clojure.tools.deps.graph"]}
 
              :outdated {:extra-deps {olical/depot {:mvn/version "1.8.4"}}
-                        :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}
+                        :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}
+
+             :main {:main-opts ["-m" "spread.core" "./config/config.dev.edn"]}}}
+
