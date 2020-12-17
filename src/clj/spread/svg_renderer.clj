@@ -1,9 +1,10 @@
-(ns spread.maps
+(ns spread.svg-renderer  
   (:require [clojure.java.io :as io]
             [clojure.data.xml :as xml]
             [clojure.data.json :as json]
             [flow-storm.api :as fsa]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [spread.maps-utils :as maps-utils]))
 
 (def map-fill-color "#424242")
 (def map-stroke-color "pink")
@@ -244,41 +245,48 @@
 ;; Examples ;;
 ;;;;;;;;;;;;;;
 
-(def example-data
-  (let [brazil [-51.619789 -9.588903]
-        poland [19.300636 52.12461]
-        uruguay  [-56.012396 -32.799646]
-        germany [10.018343 51.133481]]
-    {:type :FeatureCollection
-     :features [{:type :Feature
-                 :geometry {:type :Point
-                            :coordinates uruguay}}
-                {:type :Feature
-                 :geometry {:type :Point
-                            :coordinates brazil}}
-                {:type :Feature
-                 :geometry {:type :LineString
-                            :coordinates [uruguay brazil]}}
-                
-                {:type :Feature
-                 :geometry {:type :Point
-                            :coordinates germany}}
-                {:type :Feature
-                 :geometry {:type :Point
-                            :coordinates poland}}
-                
-                
-                {:type :Feature
-                 :geometry {:type :LineString
-                            :coordinates [uruguay germany]}}
-                {:type :Feature
-                 :geometry {:type :LineString
-                            :coordinates [germany poland]}}
-                ]}))
 (comment
-  
+
+  (def example-data
+    (let [brazil [-51.619789 -9.588903]
+          poland [19.300636 52.12461]
+          uruguay  [-56.012396 -32.799646]
+          germany [10.018343 51.133481]]
+      {:type :FeatureCollection
+       :features [{:type :Feature
+                   :geometry {:type :Point
+                              :coordinates uruguay}}
+                  {:type :Feature
+                   :geometry {:type :Point
+                              :coordinates brazil}}
+                  {:type :Feature
+                   :geometry {:type :LineString
+                              :coordinates [uruguay brazil]}}
+                  
+                  {:type :Feature
+                   :geometry {:type :Point
+                              :coordinates germany}}
+                  {:type :Feature
+                   :geometry {:type :Point
+                              :coordinates poland}}
+                  
+                  
+                  {:type :Feature
+                   :geometry {:type :LineString
+                              :coordinates [uruguay germany]}}
+                  {:type :Feature
+                   :geometry {:type :LineString
+                              :coordinates [germany poland]}}
+                  ]}))
+
   (make-svg example-data "./composed.svg")
   
+  (def cont-data (maps-utils/load-spread-data-as-geo-json "docs/data_examples/continuous_parsed.json"))
+  (make-svg cont-data "./composed.svg")
+
+  ;; TODO: make maps-utils/load-spread-data-as-geo-json work for discreate
+  #_(def disc-data (maps-utils/load-spread-data-as-geo-json "docs/data_examples/discrete_parsed.json"))
+  #_(make-svg disc-data "./composed.svg")
   
   (fsa/connect {:tap-name "maps"})
 
