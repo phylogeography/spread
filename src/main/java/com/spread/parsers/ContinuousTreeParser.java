@@ -71,8 +71,6 @@ public class ContinuousTreeParser {
         this.mostRecentSamplingDate = mostRecentSamplingDate;
     }
 
-    // TODO : builder
-
     public String parse() throws IOException, ImportException, SpreadException {
 
         RootedTree rootedTree = ParsersUtils.importRootedTree(treeFilePath);
@@ -91,7 +89,7 @@ public class ContinuousTreeParser {
 
         HashMap<Node, Point> pointsMap = new HashMap<Node, Point>();
 
-        // hack, remove digits to get name
+        // remove digits to get name
         String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
 
         String modalityAttributeName = "";
