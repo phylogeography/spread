@@ -1,16 +1,21 @@
 {:enums
- {
-  :ContinuousTreeStatus {:values [
-                                  :TREE_UPLOADED
+ {:ContinuousTreeStatus {:values [:TREE_UPLOADED
                                   :ATTRIBUTES_AND_HPD_LEVELS_PARSED
                                   :PARSER_ARGUMENTS_SET
-
                                   :QUEUED
                                   :RUNNING
                                   :SUCCEEDED
+                                  :ERROR]}
 
-                                  :ERROR
-                                  ]}}
+  :DiscreteTreeStatus {:values [:TREE_AND_LOCATIONS_UPLOADED
+
+                                :QUEUED
+                                :RUNNING
+                                :SUCCEEDED
+
+                                :ERROR]}
+
+  }
 
  :input-objects
  {:File {:fields {:name {:type String}
@@ -80,6 +85,15 @@
                               :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
                               :args {:id {:type (non-null ID)}}
                               :resolve :mutation/startContinuousTreeParser}
+
+  :uploadDiscreteTree {:type :DiscreteTreeStatus
+                       :description "Persists discrete tree. Returns a ParserStatus with id for querying the status."
+                       :args {:readableName {:type String}
+                              :treeFileUrl {:type (non-null String)}
+                              :locationsFileUrl {:type (non-null String)}
+                              }
+                       :resolve :mutation/uploadDiscreteTree}
+
 
   }
 

@@ -92,8 +92,6 @@
       (continuous-tree-model/update-tree! db {:id id
                                               :status :ERROR}))))
 
-;; TODO : response schema
-;; TODO : invoke worker
 (defn start-continuous-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
   (log/info "start-continuous-tree-parser" args)
@@ -108,6 +106,38 @@
         (log/error "Exception when sending message to worker" {:error e})
         (continuous-tree-model/update-tree! db {:id id
                                                 :status :ERROR})))))
+
+;; TODO
+(defn upload-discrete-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db]}
+                              {tree-file-url :treeFileUrl
+                               locations-file-url :locationsFileUrl
+                               readable-name :readableName
+                               :as args} _]
+
+  (log/info "upload-discrete-tree" {:user/id authed-user-id
+                                    :args args})
+
+  (let [id (s3-url->id tree-file-url bucket-name authed-user-id)
+        status :TREE_UPLOADED
+        ;; continuous-tree {:id id
+        ;;                  :readable-name readable-name
+        ;;                  :user-id authed-user-id
+        ;;                  :tree-file-url tree-file-url
+        ;;                  :status status}
+
+        ]
+    (try
+      #_(continuous-tree-model/upsert-tree! db continuous-tree)
+      ;; sends message to worker to parse hpd levels and attributes
+      #_(aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
+                                                   :id id
+                                                   :user-id authed-user-id})
+      {:id id
+       :status status}
+      (catch Exception e
+        (log/error "Exception occured" {:error e})
+        #_(discrete-tree-model/update! db {:id id
+                                           :status :ERROR})))))
 
 (comment
   (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"

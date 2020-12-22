@@ -30,6 +30,8 @@
    :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree)
    :mutation/updateContinuousTree (auth-decorator mutations/update-continuous-tree)
    :mutation/startContinuousTreeParser (auth-decorator mutations/start-continuous-tree-parser)
+   :mutation/uploadDiscreteTree (auth-decorator mutations/upload-discrete-tree)
+
    })
 
 (defn ^:private context-interceptor

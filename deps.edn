@@ -26,9 +26,9 @@
         software.amazon.awssdk/auth {:mvn/version "2.15.35"}
 
         ;; PARSERS
+        jebl {:mvn/version "2.0"}
         libspread {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
         org.clojure/data.json {:mvn/version "1.0.0"}
-        ;; jebl {:mvn/version "2.0"}
 
         ;; UTILS
         mount {:mvn/version "0.1.16"}
@@ -40,7 +40,8 @@
                       :snapshots false
                       :sign-releases false
                       :checksum :fail
-                      :update :never}}
+                      :update :never}
+             }
  :aliases {:test
            {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}
                          clj-http/clj-http {:mvn/version "3.11.0"}}}

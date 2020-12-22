@@ -45,6 +45,9 @@ public class DiscreteTreeParser {
     @Getter @Setter
     private String mostRecentSamplingDate;
 
+    public DiscreteTreeParser() {
+    }
+
     public DiscreteTreeParser(String treeFilePath,
                               String locationsFilePath,
                               String locationTraitAttributeName,
