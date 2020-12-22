@@ -364,10 +364,9 @@ public class DiscreteTreeParser {
         // we dump it here with node attributes
         uniqueNodeAttributes.add(countAttribute);
 
+        // --- LAYERS --- //
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
-
-        // --- DATA LAYER --- //
 
         String countsLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
         Layer countsLayer = new Layer(countsLayerId, //
@@ -376,6 +375,15 @@ public class DiscreteTreeParser {
                                       );
 
         layersList.add(countsLayer);
+
+        String treeLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
+        Layer treeLayer = new Layer(treeLayerId, //
+                                    "Tree layer", //
+                                    pointsList, //
+                                    linesList //
+                                    );
+
+        layersList.add(treeLayer);
 
         LinkedList<Attribute> rangeAttributes = getCoordinateRangeAttributes(locationsList);
         Attribute xCoordinate = rangeAttributes.get(ParsersUtils.X_INDEX);
@@ -395,7 +403,6 @@ public class DiscreteTreeParser {
                                               locationsList, //
                                               layersList //
                                               );
-
 
         return new GsonBuilder().create().toJson(spreadData);
     }// END: parse

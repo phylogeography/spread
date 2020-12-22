@@ -6,11 +6,13 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 
+import com.spread.data.Layer;
 import com.google.gson.Gson;
 import com.spread.data.Attribute;
 import com.spread.data.SpreadData;
 import com.spread.exceptions.SpreadException;
 import com.spread.parsers.DiscreteTreeParser;
+import com.spread.data.Location;
 
 import org.junit.Test;
 
@@ -58,16 +60,19 @@ public class DiscreteTreeParserTest {
 
         assertArrayEquals("returns correct count attribute range", new Double[]{1.0, 16.0}, countPointAttribute.getRange());
 
-        // Fujian	25.917	118.283
+        assertEquals("returns correct number of locations", 7, data.getLocations().size());
 
-        System.out.println ("@@@" + data.getLocations().size());
+        Location loc = data.getLocations().get(0);
+        assertEquals("returns correct id", "Fujian", loc.getId());
+        assertEquals("returns correct x coordinate", 118.283, loc.getCoordinate().getXCoordinate(), 0.0);
+        assertEquals("returns correct x coordinate", 25.917, loc.getCoordinate().getYCoordinate(), 0.0);
 
+        assertEquals("first layer is counts", Layer.Type.counts, data.getLayers().get(0).getType());
+        assertEquals("returns correct number of Points in Layer", 20, data.getLayers().get(0).getPoints().size());
 
-
-        // assertEquals("returns correct number of lines", 24, data.getLayers().get(0).getLines().size());
-        // assertEquals("returns correct number of points", 25, data.getLayers().get(0).getPoints().size());
-        // assertEquals("returns correct number of areas", 34, data.getLayers().get(0).getAreas().size());
-
+        assertEquals("second layer is tree", Layer.Type.tree, data.getLayers().get(1).getType());
+        assertEquals("returns correct number of points", 51, data.getLayers().get(1).getPoints().size());
+        assertEquals("returns correct number of lines", 30, data.getLayers().get(1).getLines().size());
     }
 
 }
