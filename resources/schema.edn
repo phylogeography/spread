@@ -27,6 +27,10 @@
                                :fields {:id {:type (non-null ID)}
                                         :status {:type (non-null :ContinuousTreeStatus)}}}
 
+  :DiscreteTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
+                             :fields {:id {:type (non-null ID)}
+                                      :status {:type (non-null :DiscreteTreeStatus)}}}
+
   :ContinuousTree {:description "Represents ContinuousTree entity."
                    :fields {:id {:description "Unique identifier."
                                  :type (non-null ID)}
@@ -86,7 +90,7 @@
                               :args {:id {:type (non-null ID)}}
                               :resolve :mutation/startContinuousTreeParser}
 
-  :uploadDiscreteTree {:type :DiscreteTreeStatus
+  :uploadDiscreteTree {:type :DiscreteTreeParserStatus
                        :description "Persists discrete tree. Returns a ParserStatus with id for querying the status."
                        :args {:readableName {:type String}
                               :treeFileUrl {:type (non-null String)}

@@ -1,5 +1,6 @@
 (ns api.mutations
   (:require [api.models.continuous-tree :as continuous-tree-model]
+            [api.models.discrete-tree :as discrete-tree-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [clojure.string :as string]
@@ -113,22 +114,23 @@
                                locations-file-url :locationsFileUrl
                                readable-name :readableName
                                :as args} _]
-
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args args})
-
   (let [id (s3-url->id tree-file-url bucket-name authed-user-id)
-        status :TREE_UPLOADED
-        ;; continuous-tree {:id id
-        ;;                  :readable-name readable-name
-        ;;                  :user-id authed-user-id
-        ;;                  :tree-file-url tree-file-url
-        ;;                  :status status}
-
+        _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
+        status :TREE_AND_LOCATIONS_UPLOADED
+        discrete-tree {:id id
+                       :readable-name readable-name
+                       :user-id authed-user-id
+                       :tree-file-url tree-file-url
+                       :locations-file-url locations-file-url
+                       :status status}
         ]
     (try
-      #_(continuous-tree-model/upsert-tree! db continuous-tree)
-      ;; sends message to worker to parse hpd levels and attributes
+
+      (discrete-tree-model/upsert-tree! db discrete-tree)
+
+      ;; sends message to worker to parse attributes
       #_(aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
                                                    :id id
                                                    :user-id authed-user-id})
