@@ -8,6 +8,7 @@
 (declare insert-attribute)
 (declare insert-hpd-level)
 (declare get-tree)
+(declare delete-tree)
 (declare get-attributes)
 (declare get-hpd-levels)
 

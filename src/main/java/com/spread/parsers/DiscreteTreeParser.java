@@ -7,19 +7,21 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import com.spread.data.primitive.Coordinate;
 import com.google.gson.GsonBuilder;
-import com.spread.data.AxisAttributes;
 import com.spread.data.Attribute;
+import com.spread.data.AxisAttributes;
 import com.spread.data.Layer;
 import com.spread.data.Location;
+import com.spread.data.SpreadData;
 import com.spread.data.TimeLine;
 import com.spread.data.attributable.Line;
 import com.spread.data.attributable.Point;
+import com.spread.data.primitive.Coordinate;
 import com.spread.exceptions.SpreadException;
 import com.spread.utils.ParsersUtils;
-import com.spread.data.SpreadData;
 
 import jebl.evolution.graphs.Node;
 import jebl.evolution.io.ImportException;
@@ -531,5 +533,18 @@ public class DiscreteTreeParser {
 
         return point;
     }// END: createPoint
+
+    //  return attributes set
+    public String parseAttributes() throws IOException, ImportException  {
+
+        RootedTree tree = ParsersUtils.importRootedTree(this.treeFilePath);
+
+        Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
+            .flatMap(node -> node.getAttributeNames().stream()).map(name -> {
+                    return name;
+                }).collect(Collectors.toSet());
+
+        return new GsonBuilder().create().toJson(uniqueAttributes);
+    }
 
 }// END: class

@@ -1,13 +1,15 @@
 (ns worker.listener
   (:require [api.db :as db]
             [api.models.continuous-tree :as continuous-tree-model]
+            [api.models.discrete-tree :as discrete-tree-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
             [shared.utils :refer [file-exists?]]
             [taoensso.timbre :as log])
-  (:import (com.spread.parsers ContinuousTreeParser)))
+  (:import (com.spread.parsers ContinuousTreeParser)
+           (com.spread.parsers DiscreteTreeParser)))
 
 (defonce tmp-dir "/tmp")
 
@@ -19,11 +21,34 @@
   [{:message/keys [type]} _]
   (log/warn (str "No handler for message type " type)))
 
+(defmethod handler :discrete-tree-upload
+  [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
+  (log/info "handling discrete-tree-upload" args)
+  (try
+    (let [;; TODO: query tree-file and parse key
+          tree-object-key (str user-id "/" id ".tree")
+          tree-file-path (str tmp-dir "/" tree-object-key)
+          _ (aws-s3/download-file s3 {:bucket bucket-name
+                                      :key tree-object-key
+                                      :dest-path tree-file-path})
+          parser (doto (new DiscreteTreeParser)
+                   (.setTreeFilePath tree-file-path))
+          attributes (json/read-str (.parseAttributes parser))]
+      (log/info "Parsed attributes" {:id id
+                                     :attributes attributes})
+      (discrete-tree-model/insert-attributes! db id attributes)
+      (discrete-tree-model/update! db {:id id
+                                       :status :ATTRIBUTES_PARSED}))
+    (catch Exception e
+      (log/error "Exception when handling discrete-tree-upload" {:error e})
+      (discrete-tree-model/update! db {:id id
+                                       :status :ERROR}))))
+
 (defmethod handler :continuous-tree-upload
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling continuous-tree-upload" args)
   (try
-    (let [;; NOTE: make sure UI uploads always with the same extension
+    (let [;; TODO: query tree-file and parse key
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
           _ (aws-s3/download-file s3 {:bucket bucket-name

@@ -108,38 +108,34 @@
         (continuous-tree-model/update-tree! db {:id id
                                                 :status :ERROR})))))
 
-;; TODO
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db]}
-                              {tree-file-url :treeFileUrl
-                               locations-file-url :locationsFileUrl
-                               readable-name :readableName
-                               :as args} _]
+                            {tree-file-url :treeFileUrl
+                             locations-file-url :locationsFileUrl
+                             readable-name :readableName
+                             :as args} _]
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args args})
   (let [id (s3-url->id tree-file-url bucket-name authed-user-id)
-        _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
+        ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
         status :TREE_AND_LOCATIONS_UPLOADED
         discrete-tree {:id id
                        :readable-name readable-name
                        :user-id authed-user-id
                        :tree-file-url tree-file-url
                        :locations-file-url locations-file-url
-                       :status status}
-        ]
+                       :status status}]
     (try
-
-      (discrete-tree-model/upsert-tree! db discrete-tree)
-
+      (discrete-tree-model/upsert! db discrete-tree)
       ;; sends message to worker to parse attributes
-      #_(aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
                                                    :id id
                                                    :user-id authed-user-id})
       {:id id
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        #_(discrete-tree-model/update! db {:id id
-                                           :status :ERROR})))))
+        (discrete-tree-model/update! db {:id id
+                                         :status :ERROR})))))
 
 (comment
   (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"

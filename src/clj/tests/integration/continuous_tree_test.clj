@@ -6,13 +6,15 @@
             [taoensso.timbre :as log]
             [tests.integration.utils :refer [run-query db-fixture]]))
 
+(use-fixtures :once db-fixture)
+
 (defn- block-on-status [id status]
   (let [query-status #(-> (get-in (run-query {:query
                                               "query GetStatus($id: ID!) {
-                                                   getContinuousTree(id: $id) {
-                                                     status
-                                                   }
-                                                }"
+                                                 getContinuousTree(id: $id) {
+                                                   status
+                                                 }
+                                               }"
                                               :variables {:id %}})
                                   [:data :getContinuousTree :status])
                           keyword)]
@@ -20,8 +22,6 @@
       (if (= status current-status)
         current-status
         (recur (query-status id))))))
-
-(use-fixtures :once db-fixture)
 
 (deftest continuous-tree-test
   (let [[url _] (get-in (run-query {:query

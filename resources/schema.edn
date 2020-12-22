@@ -8,6 +8,7 @@
                                   :ERROR]}
 
   :DiscreteTreeStatus {:values [:TREE_AND_LOCATIONS_UPLOADED
+                                :ATTRIBUTES_PARSED
 
                                 :QUEUED
                                 :RUNNING
@@ -45,12 +46,36 @@
                             :timescaleMultiplier {:type Float}
                             :mostRecentSamplingDate {:type String}
                             :status {:type :ContinuousTreeStatus
-                                     :resolver :resolve/continuous-tree->status}
+                                     ;; :resolver :resolve/continuous-tree->status
+                                     }
                             :attributeNames {:type (list String)
                                              :resolve :resolve/continuous-tree->attributes}
                             :hpdLevels {:type (list String)
                                         :resolve :resolve/continuous-tree->hpd-levels}
                             :outputFileUrl {:type String}}}
+
+  :DiscreteTree {:description "Represents DiscreteTree entity."
+                 :fields {:id {:description "Unique identifier."
+                               :type (non-null ID)}
+                          :userId {:type (non-null ID)}
+                          :readableName {:description "Human-readable name. Usually tree file name."
+                                         :type String}
+                          :treeFileUrl {:type (non-null String)}
+                          :locationAttributeName {:type String}
+                          :timescaleMultiplier {:type Float}
+                          :mostRecentSamplingDate {:type String}
+                          :status {:type :DiscreteTreeStatus
+                                   ;; :resolver :resolve/continuous-tree->status
+                                   }
+                          :attributeNames {:type (list String)
+                                           :resolve :resolve/discrete-tree->attributes}
+                          :outputFileUrl {:type String}}}
+
+
+
+
+
+
 
   }
 
@@ -59,6 +84,11 @@
                       :description "Returns a ContinuousTree entity by id."
                       :args {:id {:type (non-null ID)}}
                       :resolve :query/getContinuousTree}
+
+  :getDiscreteTree {:type :DiscreteTree
+                    :description "Returns a DiscreteTree entity by id."
+                    :args {:id {:type (non-null ID)}}
+                    :resolve :query/getDiscreteTree}
 
   }
 
