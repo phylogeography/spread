@@ -29,6 +29,8 @@ import lombok.Setter;
 
 public class DiscreteTreeParser {
 
+    public static final String X_COORDINATE = "xCoordinate";
+    public static final String Y_COORDINATE = "yCoordinate";
     public static final String COUNT = "count";
     private static final Integer UNRESOLVED_INDEX = Integer.MAX_VALUE;
 
@@ -90,12 +92,10 @@ public class DiscreteTreeParser {
                 if (locationsList.contains(dummy)) {
                     locationIndex = locationsList.indexOf(dummy);
                 } else {
-
                     String message1 = "Location " + dummy.getId() + " could not be found in the locations file.";
                     String message2 = "Resulting file may be incomplete!";
                     System.out.println(message1 + " " + message2);
                     continue;
-
                 }
 
                 Location nodeLocation = locationsList.get(locationIndex);
@@ -377,8 +377,6 @@ public class DiscreteTreeParser {
 
         layersList.add(countsLayer);
 
-        // System.out.println("Parsed counts");
-
         LinkedList<Attribute> rangeAttributes = getCoordinateRangeAttributes(locationsList);
         Attribute xCoordinate = rangeAttributes.get(ParsersUtils.X_INDEX);
         Attribute yCoordinate = rangeAttributes.get(ParsersUtils.Y_INDEX);
@@ -402,8 +400,7 @@ public class DiscreteTreeParser {
         return new GsonBuilder().create().toJson(spreadData);
     }// END: parse
 
-    private LinkedList<Attribute> getCoordinateRangeAttributes(
-                                                               LinkedList<Location> locationsList) throws SpreadException {
+    private LinkedList<Attribute> getCoordinateRangeAttributes(LinkedList<Location> locationsList) throws SpreadException {
 
         LinkedList<Attribute> coordinateRange = new LinkedList<Attribute>();
 
@@ -446,8 +443,8 @@ public class DiscreteTreeParser {
 
         }
 
-        Attribute xCoordinate = new Attribute("xCoordinate", xCoordinateRange);
-        Attribute yCoordinate = new Attribute("yCoordinate", yCoordinateRange);
+        Attribute xCoordinate = new Attribute(X_COORDINATE, xCoordinateRange);
+        Attribute yCoordinate = new Attribute(Y_COORDINATE, yCoordinateRange);
 
         coordinateRange.add(ParsersUtils.X_INDEX, xCoordinate);
         coordinateRange.add(ParsersUtils.Y_INDEX, yCoordinate);

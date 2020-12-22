@@ -54,10 +54,8 @@ public class DiscreteLocationsParser {
 
                         String illegalCharacter = "+";
                         if (locationName.contains(illegalCharacter)) {
-
                                 throw new SpreadException(
                                                 "Location " + locationName + " contains illegal character " + illegalCharacter);
-
                         }
 
                         Double yCoordinate = Double.valueOf(line[LATITUDE_COLUMN]);
