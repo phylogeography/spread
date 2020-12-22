@@ -502,14 +502,9 @@ public class ContinuousTreeParser {
         AxisAttributes axis = new AxisAttributes(this.xCoordinateAttributeName,
                                                  this.getYCoordinateAttributeName());
 
-        LinkedList<Attribute> lineAttributes = uniqueBranchAttributes;
-        LinkedList<Attribute> pointAttributes = uniqueNodeAttributes;
-        LinkedList<Attribute> areaAttributes = uniqueAreaAttributes;
-
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-
-        // ---DATA LAYER (TREE LINES & POINTS, AREAS)---//
+        // --- DATA LAYER (TREE LINES & POINTS, AREAS) --- //
 
         String treeLayerId = ParsersUtils.splitString(this.treeFilePath, "/");
         Layer treeLayer = new Layer(treeLayerId, //
@@ -522,9 +517,9 @@ public class ContinuousTreeParser {
         SpreadData spreadData = new SpreadData(timeLine, //
                                                axis, //
                                                // mapAttributes, //
-                                               lineAttributes, //
-                                               pointAttributes, //
-                                               areaAttributes, //
+                                               uniqueBranchAttributes, //
+                                               uniqueNodeAttributes, //
+                                               uniqueAreaAttributes, //
                                                null, // locations
                                                layersList);
 

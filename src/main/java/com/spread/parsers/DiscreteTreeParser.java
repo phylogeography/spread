@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.spread.data.primitive.Coordinate;
+import com.google.gson.GsonBuilder;
+import com.spread.data.AxisAttributes;
 import com.spread.data.Attribute;
 import com.spread.data.Layer;
 import com.spread.data.Location;
@@ -16,6 +19,7 @@ import com.spread.data.attributable.Line;
 import com.spread.data.attributable.Point;
 import com.spread.exceptions.SpreadException;
 import com.spread.utils.ParsersUtils;
+import com.spread.data.SpreadData;
 
 import jebl.evolution.graphs.Node;
 import jebl.evolution.io.ImportException;
@@ -58,7 +62,9 @@ public class DiscreteTreeParser {
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         TimeLine timeLine = timeParser.getTimeLine(rootedTree.getHeight(rootedTree.getRootNode()));
 
-        LinkedList<Location> locationsList = new LinkedList<Location>();
+        DiscreteLocationsParser locationsParser = new DiscreteLocationsParser(this.locationsFilePath, false);
+        LinkedList<Location> locationsList = locationsParser.parseLocations();
+
         LinkedList<Attribute> uniqueBranchAttributes = new LinkedList<Attribute>();
         LinkedList<Attribute> uniqueNodeAttributes = new LinkedList<Attribute>();
 
@@ -71,14 +77,6 @@ public class DiscreteTreeParser {
         double rootHeight = rootedTree.getHeight(rootedTree.getRootNode());
         Double[] sliceHeights = createSliceHeights(rootHeight, 10);
         int[][] locationCounts = new int[sliceHeights.length][locationsList.size()];
-
-        // TODO : parse locations
-
-        DiscreteLocationsParser locationsParser = new DiscreteLocationsParser(this.locationsFilePath,
-                                                                              false);
-        locationsList = locationsParser.parseLocations();
-
-        // System.out.println("@@@@@@@@@@@@@@@@@@" +  locationsList);
 
         Location dummy;
         for (Node node : rootedTree.getNodes()) {
@@ -366,12 +364,10 @@ public class DiscreteTreeParser {
         // we dump it here with node attributes
         uniqueNodeAttributes.add(countAttribute);
 
-        // AxisAttributes axis = new AxisAttributes(xCoordinate.getId(),
-        //                                          yCoordinate.getId());
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-        // ---DATA LAYER (POINTS WITH COUNTS)---//
+        // --- DATA LAYER --- //
 
         String countsLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
         Layer countsLayer = new Layer(countsLayerId, //
@@ -383,10 +379,81 @@ public class DiscreteTreeParser {
 
         // System.out.println("Parsed counts");
 
+        LinkedList<Attribute> rangeAttributes = getCoordinateRangeAttributes(locationsList);
+        Attribute xCoordinate = rangeAttributes.get(ParsersUtils.X_INDEX);
+        Attribute yCoordinate = rangeAttributes.get(ParsersUtils.Y_INDEX);
+
+        uniqueNodeAttributes.add(xCoordinate);
+        uniqueNodeAttributes.add(yCoordinate);
+        AxisAttributes axis = new AxisAttributes(xCoordinate.getId(),
+                                                 yCoordinate.getId());
+
+        SpreadData spreadData= new SpreadData(timeLine, //
+                                              axis, //
+                                              // mapAttributes, //
+                                              uniqueBranchAttributes, //
+                                              uniqueNodeAttributes, //
+                                              null, // areaAttributes
+                                              locationsList, //
+                                              layersList //
+                                              );
 
 
-        return "";
+        return new GsonBuilder().create().toJson(spreadData);
     }// END: parse
+
+    private LinkedList<Attribute> getCoordinateRangeAttributes(
+                                                               LinkedList<Location> locationsList) throws SpreadException {
+
+        LinkedList<Attribute> coordinateRange = new LinkedList<Attribute>();
+
+        Double[] xCoordinateRange = new Double[2];
+        xCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
+        xCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+
+        Double[] yCoordinateRange = new Double[2];
+        yCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
+        yCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+
+        for (Location location : locationsList) {
+
+            Coordinate coordinate = location.getCoordinate();
+            if (coordinate == null) {
+                throw new SpreadException("Location " + location.getId()
+                                          + " has no coordinates set.");
+            }
+
+            Double latitude = coordinate.getYCoordinate();
+            Double longitude = coordinate.getXCoordinate();
+
+            // update coordinates range
+
+            if (latitude < yCoordinateRange[Attribute.MIN_INDEX]) {
+                yCoordinateRange[Attribute.MIN_INDEX] = latitude;
+            } // END: min check
+
+            if (latitude > yCoordinateRange[Attribute.MAX_INDEX]) {
+                yCoordinateRange[Attribute.MAX_INDEX] = latitude;
+            } // END: max check
+
+            if (longitude < xCoordinateRange[Attribute.MIN_INDEX]) {
+                xCoordinateRange[Attribute.MIN_INDEX] = longitude;
+            } // END: min check
+
+            if (longitude > xCoordinateRange[Attribute.MAX_INDEX]) {
+                xCoordinateRange[Attribute.MAX_INDEX] = longitude;
+            } // END: max check
+
+        }
+
+        Attribute xCoordinate = new Attribute("xCoordinate", xCoordinateRange);
+        Attribute yCoordinate = new Attribute("yCoordinate", yCoordinateRange);
+
+        coordinateRange.add(ParsersUtils.X_INDEX, xCoordinate);
+        coordinateRange.add(ParsersUtils.Y_INDEX, yCoordinate);
+
+        return coordinateRange;
+    }// END: getCoordinateRange
 
     private Double[] createSliceHeights(double rootHeight, int intervals) {
         // double rootHeight = rootedTree.getHeight(rootedTree.getRootNode());
@@ -457,25 +524,5 @@ public class DiscreteTreeParser {
 
         return point;
     }// END: createPoint
-
-    // public LinkedList<Line> getLinesList() {
-    //     return linesList;
-    // }
-
-    // public LinkedList<Point> getPointsList() {
-    //     return pointsList;
-    // }
-
-    // public LinkedList<Point> getCountsList() {
-    //     return countsList;
-    // }
-
-    // public LinkedList<Attribute> getLineAttributes() {
-    //     return uniqueBranchAttributes;
-    // }
-
-    // public LinkedList<Attribute> getPointAttributes() {
-    //     return uniqueNodeAttributes;
-    // }
 
 }// END: class
