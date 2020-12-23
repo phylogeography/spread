@@ -56,7 +56,7 @@ mvn liquibase:update
 Compile and package libspread:
 
 ```bash
-mvn clean apckage
+mvn clean package
 ```
 
 Start an instance of a worker-service:
@@ -73,6 +73,20 @@ clj -A:run-api
 
 In the default `dev` environment a GraphQL IDE is started at:
 http://127.0.0.1:3001/ide
+
+## Tests
+
+Start a watcher on the libspread test suite:
+
+```bash
+mvn fizzed-watcher:run
+```
+
+Start a watcher on the spread's integration test suite:
+
+```
+bin/kaocha --watch
+```
 
 ### Contributors
 

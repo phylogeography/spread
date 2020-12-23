@@ -1,13 +1,16 @@
 (ns worker.listener
   (:require [api.db :as db]
             [api.models.continuous-tree :as continuous-tree-model]
+            [api.models.discrete-tree :as discrete-tree-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
+            [aws.utils :refer [s3-url->id]]
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
             [shared.utils :refer [file-exists?]]
             [taoensso.timbre :as log])
-  (:import (com.spread.parsers ContinuousTreeParser)))
+  (:import (com.spread.parsers ContinuousTreeParser)
+           (com.spread.parsers DiscreteTreeParser)))
 
 (defonce tmp-dir "/tmp")
 
@@ -19,11 +22,82 @@
   [{:message/keys [type]} _]
   (log/warn (str "No handler for message type " type)))
 
+(defmethod handler :discrete-tree-upload
+  [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
+  (log/info "handling discrete-tree-upload" args)
+  (try
+    (let [;; TODO: parse extension
+          tree-object-key (str user-id "/" id ".tree")
+          tree-file-path (str tmp-dir "/" tree-object-key)
+          _ (aws-s3/download-file s3 {:bucket bucket-name
+                                      :key tree-object-key
+                                      :dest-path tree-file-path})
+          parser (doto (new DiscreteTreeParser)
+                   (.setTreeFilePath tree-file-path))
+          attributes (json/read-str (.parseAttributes parser))]
+      (log/info "Parsed attributes" {:id id
+                                     :attributes attributes})
+      (discrete-tree-model/insert-attributes! db id attributes)
+      (discrete-tree-model/update! db {:id id
+                                       :status :ATTRIBUTES_PARSED}))
+    (catch Exception e
+      (log/error "Exception when handling discrete-tree-upload" {:error e})
+      (discrete-tree-model/update! db {:id id
+                                       :status :ERROR}))))
+
+(defmethod handler :parse-discrete-tree
+  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
+  (log/info "handling parse-discrete-tree" args)
+  (try
+    (let [_ (discrete-tree-model/update! db {:id id
+                                             :status :RUNNING})
+          {:keys [user-id location-attribute-name
+                  timescale-multiplier most-recent-sampling-date
+                  locations-file-url]}
+          (discrete-tree-model/get-tree db {:id id})
+          ;; TODO: parse extension
+          tree-object-key (str user-id "/" id ".tree")
+          tree-file-path (str tmp-dir "/" tree-object-key)
+          ;; is it cached on disk?
+          _ (when-not (file-exists? tree-file-path)
+              (aws-s3/download-file s3 {:bucket bucket-name
+                                        :key tree-object-key
+                                        :dest-path tree-file-path}))
+          locations-file-id (s3-url->id locations-file-url user-id)
+          ;; TODO: parse extension
+          locations-object-key (str user-id "/" locations-file-id ".txt")
+          locations-file-path (str tmp-dir "/" locations-object-key)
+          ;; is it cached on disk?
+          _ (when-not (file-exists? locations-file-path)
+              (aws-s3/download-file s3 {:bucket bucket-name
+                                        :key locations-object-key
+                                        :dest-path locations-file-path}))
+          parser (doto (new DiscreteTreeParser)
+                   (.setTreeFilePath tree-file-path)
+                   (.setLocationsFilePath locations-file-path)
+                   (.setLocationTraitAttributeName location-attribute-name)
+                   (.setTimescaleMultiplier timescale-multiplier)
+                   (.setMostRecentSamplingDate most-recent-sampling-date))
+          output-object-key (str user-id "/" id ".json")
+          output-object-path (str tmp-dir "/" output-object-key)
+          _ (spit output-object-path (.parse parser) :append false)
+          _ (aws-s3/upload-file s3 {:bucket bucket-name
+                                    :key output-object-key
+                                    :file-path output-object-path})
+          url (aws-s3/build-url aws-config bucket-name output-object-key)]
+      (discrete-tree-model/update! db {:id id
+                                       :output-file-url url
+                                       :status :SUCCEEDED}))
+    (catch Exception e
+      (log/error "Exception when handling parse-discrete-tree" {:error e})
+      (discrete-tree-model/update! db {:id id
+                                       :status :ERROR}))))
+
 (defmethod handler :continuous-tree-upload
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling continuous-tree-upload" args)
   (try
-    (let [;; NOTE: make sure UI uploads always with the same extension
+    (let [;; TODO: parse extension
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
           _ (aws-s3/download-file s3 {:bucket bucket-name
@@ -54,6 +128,7 @@
                   hpd-level has-external-annotations timescale-multiplier
                   most-recent-sampling-date]}
           (continuous-tree-model/get-tree db {:id id})
+          ;; TODO: parse extension
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
           ;; is it cached on disk?

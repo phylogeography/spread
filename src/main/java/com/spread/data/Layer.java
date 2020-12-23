@@ -8,11 +8,13 @@ import com.spread.data.attributable.Point;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.ToString;
 
+@ToString(includeFieldNames=true)
 public class Layer {
 
     public enum Type {
-        map, tree, counts
+        tree, counts
     }
 
     @Getter
@@ -80,19 +82,6 @@ public class Layer {
         this.lines = null;
         this.areas = null;
         this.hasPoints = true;
-        this.hasLines = false;
-        this.hasAreas = false;
-    }
-
-    public Layer(String id,
-                 String description) {
-        this.type = Type.map;
-        this.id = id;
-        this.description = description;
-        this.points = null;
-        this.lines = null;
-        this.areas = null;
-        this.hasPoints = false;
         this.hasLines = false;
         this.hasAreas = false;
     }

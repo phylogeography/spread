@@ -1,28 +1,20 @@
 (ns tests.integration.continuous-tree-test
-  (:require [api.config :as config]
-            [api.db :as db]
-            [api.models.user :as user-model]
-            [clj-http.client :as http]
-            [clojure.data.json :as json]
+  (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.test :refer [use-fixtures deftest is]]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [tests.integration.utils :refer [run-query db-fixture]]))
 
-(defn run-query [{:keys [url query variables]
-                  :or {url "http://localhost:3001/api"}}]
-  (let [{:keys [body]} (http/post url {:form-params {:query query
-                                                                  :variables variables}
-                                                    :content-type "application/json"})]
-    (json/read-str body :key-fn keyword)))
+(use-fixtures :once db-fixture)
 
 (defn- block-on-status [id status]
   (let [query-status #(-> (get-in (run-query {:query
                                               "query GetStatus($id: ID!) {
-                                                   getContinuousTree(id: $id) {
-                                                     status
-                                                   }
-                                                }"
+                                                 getContinuousTree(id: $id) {
+                                                   status
+                                                 }
+                                               }"
                                               :variables {:id %}})
                                   [:data :getContinuousTree :status])
                           keyword)]
@@ -30,14 +22,6 @@
       (if (= status current-status)
         current-status
         (recur (query-status id))))))
-
-(use-fixtures :once (fn [f]
-                      (let [config (config/load!)
-                            db (db/init (:db config))]
-                        ;; TODO : randomize user once we have auth
-                        (user-model/upsert-user db {:id "ffffffff-ffff-ffff-ffff-ffffffffffff"
-                                                    :email "test@test.com"})
-                        (f))))
 
 (deftest continuous-tree-test
   (let [[url _] (get-in (run-query {:query

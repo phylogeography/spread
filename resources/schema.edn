@@ -1,16 +1,22 @@
 {:enums
- {
-  :ContinuousTreeStatus {:values [
-                                  :TREE_UPLOADED
+ {:ContinuousTreeStatus {:values [:TREE_UPLOADED
                                   :ATTRIBUTES_AND_HPD_LEVELS_PARSED
                                   :PARSER_ARGUMENTS_SET
-
                                   :QUEUED
                                   :RUNNING
                                   :SUCCEEDED
+                                  :ERROR]}
 
-                                  :ERROR
-                                  ]}}
+  :DiscreteTreeStatus {:values [:TREE_AND_LOCATIONS_UPLOADED
+                                :ATTRIBUTES_PARSED
+
+                                :QUEUED
+                                :RUNNING
+                                :SUCCEEDED
+
+                                :ERROR]}
+
+  }
 
  :input-objects
  {:File {:fields {:name {:type String}
@@ -21,6 +27,10 @@
  {:ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                                :fields {:id {:type (non-null ID)}
                                         :status {:type (non-null :ContinuousTreeStatus)}}}
+
+  :DiscreteTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
+                             :fields {:id {:type (non-null ID)}
+                                      :status {:type (non-null :DiscreteTreeStatus)}}}
 
   :ContinuousTree {:description "Represents ContinuousTree entity."
                    :fields {:id {:description "Unique identifier."
@@ -35,13 +45,27 @@
                             :hasExternalAnnotations {:type Boolean}
                             :timescaleMultiplier {:type Float}
                             :mostRecentSamplingDate {:type String}
-                            :status {:type :ContinuousTreeStatus
-                                     :resolver :resolve/continuous-tree->status}
+                            :status {:type :ContinuousTreeStatus}
                             :attributeNames {:type (list String)
                                              :resolve :resolve/continuous-tree->attributes}
                             :hpdLevels {:type (list String)
                                         :resolve :resolve/continuous-tree->hpd-levels}
                             :outputFileUrl {:type String}}}
+
+  :DiscreteTree {:description "Represents DiscreteTree entity."
+                 :fields {:id {:description "Unique identifier."
+                               :type (non-null ID)}
+                          :userId {:type (non-null ID)}
+                          :readableName {:description "Human-readable name. Usually tree file name."
+                                         :type String}
+                          :treeFileUrl {:type (non-null String)}
+                          :locationAttributeName {:type String}
+                          :timescaleMultiplier {:type Float}
+                          :mostRecentSamplingDate {:type String}
+                          :status {:type :DiscreteTreeStatus}
+                          :attributeNames {:type (list String)
+                                           :resolve :resolve/discrete-tree->attributes}
+                          :outputFileUrl {:type String}}}
 
   }
 
@@ -50,6 +74,11 @@
                       :description "Returns a ContinuousTree entity by id."
                       :args {:id {:type (non-null ID)}}
                       :resolve :query/getContinuousTree}
+
+  :getDiscreteTree {:type :DiscreteTree
+                    :description "Returns a DiscreteTree entity by id."
+                    :args {:id {:type (non-null ID)}}
+                    :resolve :query/getDiscreteTree}
 
   }
 
@@ -66,7 +95,7 @@
                          :resolve :mutation/uploadContinuousTree}
 
   :updateContinuousTree {:type :ContinuousTreeParserStatus
-                         :description "Updates the entity with attributes for parsing the tree graph"
+                         :description "Updates the entity with settings for parsing the tree graph"
                          :args {:id {:type (non-null ID)}
                                 :xCoordinateAttributeName {:type (non-null String)}
                                 :yCoordinateAttributeName {:type (non-null String)}
@@ -80,6 +109,27 @@
                               :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
                               :args {:id {:type (non-null ID)}}
                               :resolve :mutation/startContinuousTreeParser}
+
+  :uploadDiscreteTree {:type :DiscreteTreeParserStatus
+                       :description "Persists discrete tree. Returns a ParserStatus with id for querying the status."
+                       :args {:readableName {:type String}
+                              :treeFileUrl {:type (non-null String)}
+                              :locationsFileUrl {:type (non-null String)}
+                              }
+                       :resolve :mutation/uploadDiscreteTree}
+
+  :updateDiscreteTree {:type :DiscreteTreeParserStatus
+                       :description "Updates the entity with settings for parsing the tree graph"
+                       :args {:id {:type (non-null ID)}
+                              :locationAttributeName {:type (non-null String)}
+                              :timescaleMultiplier {:type String}
+                              :mostRecentSamplingDate {:type (non-null String)}}
+                       :resolve :mutation/updateDiscreteTree}
+
+  :startDiscreteTreeParser {:type :DiscreteTreeParserStatus
+                            :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
+                            :args {:id {:type (non-null ID)}}
+                            :resolve :mutation/startDiscreteTreeParser}
 
   }
 

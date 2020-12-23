@@ -3,6 +3,9 @@ package com.spread.data;
 import com.spread.data.primitive.Coordinate;
 import com.spread.data.primitive.Polygon;
 
+import lombok.ToString;
+
+@ToString(includeFieldNames=true)
 public class Location {
 
     private final String id;

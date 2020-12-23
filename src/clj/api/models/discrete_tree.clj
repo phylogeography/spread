@@ -1,4 +1,4 @@
-(ns api.models.continuous-tree
+(ns api.models.discrete-tree
   (:require [hugsql.core :as hugsql]
             [taoensso.timbre :as log]))
 
@@ -6,39 +6,35 @@
 (declare upsert-tree)
 (declare update-tree)
 (declare insert-attribute)
-(declare insert-hpd-level)
 (declare get-tree)
 (declare delete-tree)
 (declare get-attributes)
-(declare get-hpd-levels)
 
-(hugsql/def-db-fns "sql/continuous_tree.sql")
-(hugsql/def-sqlvec-fns "sql/continuous_tree.sql")
+(hugsql/def-db-fns "sql/discrete_tree.sql")
+(hugsql/def-sqlvec-fns "sql/discrete_tree.sql")
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-tree
   {:id nil
    :user-id nil
    :tree-file-url nil
+   :locations-file-url nil
    :status nil
    :readable-name nil
-   :x-coordinate-attribute-name nil
-   :y-coordinate-attribute-name nil
-   :hpd-level nil
-   :has-external-annotations nil
+   :location-attribute-name nil
    :timescale-multiplier nil
    :most-recent-sampling-date nil
    :output-file-url nil
    })
 
-(defn upsert-tree! [db tree]
+(defn upsert! [db tree]
   (let [tree (->> tree
                   (merge nil-tree)
                   (#(update % :status name)))]
     (log/debug "upsert-tree!" tree)
     (upsert-tree db tree)))
 
-(defn update-tree! [db tree]
+(defn update! [db tree]
   (let [tree (->> tree
                   (merge nil-tree)
                   (#(update % :status name)))]
@@ -48,7 +44,3 @@
 (defn insert-attributes! [db tree-id attributes]
   (doseq [att attributes]
     (insert-attribute db {:tree-id tree-id :attribute-name att})))
-
-(defn insert-hpd-levels! [db tree-id levels]
-  (doseq [lvl levels ]
-    (insert-hpd-level db {:tree-id tree-id :level lvl})))
