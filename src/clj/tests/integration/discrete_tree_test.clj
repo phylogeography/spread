@@ -1,12 +1,10 @@
 (ns tests.integration.discrete-tree-test
-  (:require
-   [clj-http.client :as http]
-   [clojure.java.io :as io]
-   [clojure.string :as string]
-   [clojure.test :refer [use-fixtures deftest is]]
-   [taoensso.timbre :as log]
-   [tests.integration.utils :refer [run-query db-fixture]]
-   ))
+  (:require [clj-http.client :as http]
+            [clojure.java.io :as io]
+            [clojure.string :as string]
+            [clojure.test :refer [use-fixtures deftest is]]
+            [taoensso.timbre :as log]
+            [tests.integration.utils :refer [run-query db-fixture]]))
 
 (use-fixtures :once db-fixture)
 
@@ -58,6 +56,15 @@
 
         _ (block-on-status id :ATTRIBUTES_PARSED)
 
+        {:keys [attributeNames]} (get-in (run-query {:query
+                                                     "query GetTree($id: ID!) {
+                                                                            getDiscreteTree(id: $id) {
+                                                                              attributeNames
+                                                                            }
+                                                                          }"
+                                                     :variables {:id id}})
+                                         [:data :getDiscreteTree])
+
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateTree($id: ID!,
                                                                   $locationAttribute: String!,
@@ -86,16 +93,27 @@
 
         _ (is :QUEUED (keyword status))
 
+        _ (block-on-status id :SUCCEEDED)
 
-        ]
+        {:keys [id status outputFileUrl]} (get-in (run-query {:query
+                                                              "query GetTree($id: ID!) {
+                                                                       getDiscreteTree(id: $id) {
+                                                                         id
+                                                                         status
+                                                                         outputFileUrl
+                                                                       }
+                                                                     }"
+                                                              :variables {:id id}})
+                                                  [:data :getDiscreteTree])]
 
-    (log/debug "response" {
-                           :tree/url tree-url
-                           :locations/url locations-url
-                           :tree/id id
+    (log/debug "response" {:id id
                            :status status
-                           })
+                           :tree/url tree-url
+                           :locations/url locations-url})
 
-    ;; (is false)
+    (is #{"height" "height_95%_HPD" "height_median" "height_range" "length" "length_95%_HPD"
+          "length_median" "length_range" "posterior" "rate" "rate_95%_HPD" "rate_median"
+          "rate_range" "states" "states.prob" "states.set" "states.set.prob"}
+        (set attributeNames))
 
-    ))
+    (is outputFileUrl)))
