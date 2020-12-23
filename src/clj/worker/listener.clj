@@ -26,7 +26,7 @@
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling discrete-tree-upload" args)
   (try
-    (let [;; TODO: query tree-file and parse key
+    (let [;; TODO: parse extension
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
           _ (aws-s3/download-file s3 {:bucket bucket-name
@@ -55,7 +55,7 @@
                   timescale-multiplier most-recent-sampling-date
                   locations-file-url]}
           (discrete-tree-model/get-tree db {:id id})
-
+          ;; TODO: parse extension
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
           ;; is it cached on disk?
@@ -64,6 +64,7 @@
                                         :key tree-object-key
                                         :dest-path tree-file-path}))
           locations-file-id (s3-url->id locations-file-url user-id)
+          ;; TODO: parse extension
           locations-object-key (str user-id "/" locations-file-id ".txt")
           locations-file-path (str tmp-dir "/" locations-object-key)
           ;; is it cached on disk?
@@ -96,7 +97,7 @@
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling continuous-tree-upload" args)
   (try
-    (let [;; TODO: query tree-file and parse key
+    (let [;; TODO: parse extension
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
           _ (aws-s3/download-file s3 {:bucket bucket-name
@@ -127,6 +128,7 @@
                   hpd-level has-external-annotations timescale-multiplier
                   most-recent-sampling-date]}
           (continuous-tree-model/get-tree db {:id id})
+          ;; TODO: parse extension
           tree-object-key (str user-id "/" id ".tree")
           tree-file-path (str tmp-dir "/" tree-object-key)
           ;; is it cached on disk?
