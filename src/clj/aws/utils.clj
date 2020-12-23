@@ -11,9 +11,8 @@
     resp))
 
 (defn s3-url->id
-  "Returns the id if the url is in the proper bucket,
-  proper user directory, and is a proper uuid"
-  [url bucket user-id]
+  "Returns the id if the url is in proper format"
+  [url user-id]
   (let [[_ id-path] (string/split url (re-pattern user-id))
         [id _] (-> id-path
                    (string/replace "/" "")
@@ -21,7 +20,4 @@
     (if (= (count id) 36)
       id
       (let [message (str "Invalid S3 url " url)]
-        #_(log/error message {:url url
-                              :bucket bucket
-                              :user-id user-id})
         (throw (Exception. message))))))

@@ -3,9 +3,8 @@
             [api.models.discrete-tree :as discrete-tree-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
-            [clojure.string :as string]
-            [shared.utils :refer [new-uuid]]
             [aws.utils :refer [s3-url->id]]
+            [shared.utils :refer [new-uuid]]
             [taoensso.timbre :as log]))
 
 (defn get-upload-urls
@@ -23,12 +22,12 @@
                             :key (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-(defn upload-continuous-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db]}
+(defn upload-continuous-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                               {tree-file-url :treeFileUrl readable-name :readableName
                                :as args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args args})
-  (let [id (s3-url->id tree-file-url bucket-name authed-user-id)
+  (let [id (s3-url->id tree-file-url authed-user-id)
         status :TREE_UPLOADED
         continuous-tree {:id id
                          :readable-name readable-name
@@ -93,14 +92,14 @@
         (continuous-tree-model/update-tree! db {:id id
                                                 :status :ERROR})))))
 
-(defn upload-discrete-tree [{:keys [sqs workers-queue-url bucket-name authed-user-id db]}
+(defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url :treeFileUrl
                              locations-file-url :locationsFileUrl
                              readable-name :readableName
                              :as args} _]
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args args})
-  (let [id (s3-url->id tree-file-url bucket-name authed-user-id)
+  (let [id (s3-url->id tree-file-url authed-user-id)
         ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
         status :TREE_AND_LOCATIONS_UPLOADED
         discrete-tree {:id id
@@ -159,9 +158,3 @@
         (log/error "Exception when sending message to worker" {:error e})
         (discrete-tree-model/update! db {:id id
                                          :status :ERROR})))))
-
-
-(comment
-  (s3-url->id "http://127.0.0.1:9000/minio/spread-dev-uploads/ffffffff-ffff-ffff-ffff-ffffffffffff/3eef35e9-f554-4032-89d3-deb347acd118.tre"
-              "spread-dev-uploads"
-              "ffffffff-ffff-ffff-ffff-ffffffffffff"))

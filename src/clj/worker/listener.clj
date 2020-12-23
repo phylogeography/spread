@@ -53,7 +53,7 @@
                                              :status :RUNNING})
           {:keys [user-id location-attribute-name
                   timescale-multiplier most-recent-sampling-date
-                  tree-file-url locations-file-url] :as tree}
+                  locations-file-url]}
           (discrete-tree-model/get-tree db {:id id})
 
           tree-object-key (str user-id "/" id ".tree")
@@ -63,8 +63,7 @@
               (aws-s3/download-file s3 {:bucket bucket-name
                                         :key tree-object-key
                                         :dest-path tree-file-path}))
-
-          locations-file-id (s3-url->id locations-file-url bucket-name user-id)
+          locations-file-id (s3-url->id locations-file-url user-id)
           locations-object-key (str user-id "/" locations-file-id ".txt")
           locations-file-path (str tmp-dir "/" locations-object-key)
           ;; is it cached on disk?
@@ -72,15 +71,12 @@
               (aws-s3/download-file s3 {:bucket bucket-name
                                         :key locations-object-key
                                         :dest-path locations-file-path}))
-
-          ;; call all setters
           parser (doto (new DiscreteTreeParser)
                    (.setTreeFilePath tree-file-path)
                    (.setLocationsFilePath locations-file-path)
                    (.setLocationTraitAttributeName location-attribute-name)
                    (.setTimescaleMultiplier timescale-multiplier)
                    (.setMostRecentSamplingDate most-recent-sampling-date))
-
           output-object-key (str user-id "/" id ".json")
           output-object-path (str tmp-dir "/" output-object-key)
           _ (spit output-object-path (.parse parser) :append false)
