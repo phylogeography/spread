@@ -33,3 +33,6 @@ spread_data_simple_example.json
 
 ## -- CLJ-KONDO
 .clj-kondo/.cache/
+
+## -- SERVERLESS
+.serverless/
