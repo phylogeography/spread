@@ -34,9 +34,6 @@
 
 (defn new-uuid [] (str (java.util.UUID/randomUUID)))
 
-;; (defn transform-keys [m f]
-;;   (into {} (map #(update-in % [0] f) m)))
-
 (defn transform-keys
   "Recursively transforms all map keys in coll with t."
   [t coll]

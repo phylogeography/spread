@@ -58,6 +58,35 @@
 
         _ (block-on-status id :ATTRIBUTES_PARSED)
 
+        {:keys [status]} (get-in (run-query {:query
+                                             "mutation UpdateTree($id: ID!,
+                                                                  $locationAttribute: String!,
+                                                                  $mrsd: String!) {
+                                                updateDiscreteTree(id: $id,
+                                                                   locationAttributeName: $locationAttribute,
+                                                                   mostRecentSamplingDate: $mrsd) {
+                                                  status
+                                                }
+                                              }"
+                                             :variables {:id id
+                                                         :locationAttribute "states"
+                                                         :mrsd "2019/02/12"}})
+                                 [:data :updateDiscreteTree])
+
+        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+
+        {:keys [status]} (get-in (run-query {:query
+                                             "mutation QueueJob($id: ID!) {
+                                                startDiscreteTreeParser(id: $id) {
+                                                 status
+                                                }
+                                              }"
+                                             :variables {:id id}})
+                                 [:data :startDiscreteTreeParser])
+
+        _ (is :QUEUED (keyword status))
+
+
         ]
 
     (log/debug "response" {

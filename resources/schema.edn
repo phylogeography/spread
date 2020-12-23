@@ -45,9 +45,7 @@
                             :hasExternalAnnotations {:type Boolean}
                             :timescaleMultiplier {:type Float}
                             :mostRecentSamplingDate {:type String}
-                            :status {:type :ContinuousTreeStatus
-                                     ;; :resolver :resolve/continuous-tree->status
-                                     }
+                            :status {:type :ContinuousTreeStatus}
                             :attributeNames {:type (list String)
                                              :resolve :resolve/continuous-tree->attributes}
                             :hpdLevels {:type (list String)
@@ -64,18 +62,10 @@
                           :locationAttributeName {:type String}
                           :timescaleMultiplier {:type Float}
                           :mostRecentSamplingDate {:type String}
-                          :status {:type :DiscreteTreeStatus
-                                   ;; :resolver :resolve/continuous-tree->status
-                                   }
+                          :status {:type :DiscreteTreeStatus}
                           :attributeNames {:type (list String)
                                            :resolve :resolve/discrete-tree->attributes}
                           :outputFileUrl {:type String}}}
-
-
-
-
-
-
 
   }
 
@@ -105,7 +95,7 @@
                          :resolve :mutation/uploadContinuousTree}
 
   :updateContinuousTree {:type :ContinuousTreeParserStatus
-                         :description "Updates the entity with attributes for parsing the tree graph"
+                         :description "Updates the entity with settings for parsing the tree graph"
                          :args {:id {:type (non-null ID)}
                                 :xCoordinateAttributeName {:type (non-null String)}
                                 :yCoordinateAttributeName {:type (non-null String)}
@@ -128,6 +118,18 @@
                               }
                        :resolve :mutation/uploadDiscreteTree}
 
+  :updateDiscreteTree {:type :DiscreteTreeParserStatus
+                       :description "Updates the entity with settings for parsing the tree graph"
+                       :args {:id {:type (non-null ID)}
+                              :locationAttributeName {:type (non-null String)}
+                              :timescaleMultiplier {:type String}
+                              :mostRecentSamplingDate {:type (non-null String)}}
+                       :resolve :mutation/updateDiscreteTree}
+
+  :startDiscreteTreeParser {:type :DiscreteTreeParserStatus
+                            :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
+                            :args {:id {:type (non-null ID)}}
+                            :resolve :mutation/startDiscreteTreeParser}
 
   }
 
