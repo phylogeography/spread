@@ -11,67 +11,61 @@ import com.spread.exceptions.SpreadException;
 
 public class DiscreteLocationsParser {
 
-        private static final int LATITUDE_COLUMN = 1;
-        private static final int LONGITUDE_COLUMN = 2;
+    private static final int LATITUDE_COLUMN = 1;
+    private static final int LONGITUDE_COLUMN = 2;
 
-        private String locationsFilename;
-        // private LinkedList<Location> locationsList;
-        private boolean header;
+    private String locationsFilename;
+    private boolean header;
 
-        public DiscreteLocationsParser(String locationsFilename, boolean header) {
+    public DiscreteLocationsParser(String locationsFilename, boolean header) {
+        this.locationsFilename = locationsFilename;
+        this.header = header;
+    }
 
-                this.locationsFilename = locationsFilename;
-                this.header = header;
+    public LinkedList<Location> parseLocations() throws IOException, SpreadException {
 
-        }// END: Constructor
+        LinkedList<Location> locationsList = new LinkedList<Location>();
 
-        public LinkedList<Location> parseLocations() throws IOException, SpreadException {
+        // create list from the coordinates file
+        String[] lines = ParsersUtils.readLines(locationsFilename, ParsersUtils.HASH_COMMENT);
 
-                LinkedList<Location> locationsList = new LinkedList<Location>();
+        if (header) {
+            lines = Arrays.copyOfRange(lines, 1, lines.length);
+        }
 
-                // create list from the coordinates file
-                String[] lines = ParsersUtils.readLines(locationsFilename, ParsersUtils.HASH_COMMENT);
+        int nrow = lines.length;
+        for (int i = 0; i < nrow; i++) {
 
-                if (header) {
-                        lines = Arrays.copyOfRange(lines, 1, lines.length);
-                }
+            String[] line = lines[i].split("\\s+");
+            if (line.length != 3) {
+                throw new SpreadException(
+                                          "Incorrect number of columns in locations file. Expecting 3, found " + line.length);
+            }
 
-                int nrow = lines.length;
-                for (int i = 0; i < nrow; i++) {
+            String locationName = line[0];
+            // remove trailing spaces from
+            locationName = locationName.trim();
 
-                        // String[] line = lines[i].split("\t");
-                        // TODO:test
-                        String[] line = lines[i].split("\\s+");
+            String illegalCharacter = "+";
+            if (locationName.contains(illegalCharacter)) {
 
-                        if (line.length != 3) {
-                                throw new SpreadException(
-                                                "Incorrect number of columns in locations file. Expecting 3, found " + line.length);
-                        }
+                throw new SpreadException(
+                                          "Location " + locationName + " contains illegal character " + illegalCharacter);
 
-                        String locationName = line[0];
-                        // remove trailing spaces from
-                        locationName = locationName.trim();
+            }
 
-                        String illegalCharacter = "+";
-                        if (locationName.contains(illegalCharacter)) {
+            Double yCoordinate = Double.valueOf(line[LATITUDE_COLUMN]);
+            Double xCoordinate = Double.valueOf(line[LONGITUDE_COLUMN]);
 
-                                throw new SpreadException(
-                                                "Location " + locationName + " contains illegal character " + illegalCharacter);
+            Coordinate coordinate = new Coordinate(yCoordinate, xCoordinate);
 
-                        }
+            // create Location and add to the list of Locations
+            Location location = new Location(locationName, coordinate);
+            locationsList.add(location);
 
-                        Double yCoordinate = Double.valueOf(line[LATITUDE_COLUMN]);
-                        Double xCoordinate = Double.valueOf(line[LONGITUDE_COLUMN]);
+        } // END: i loop
 
-                        Coordinate coordinate = new Coordinate(yCoordinate, xCoordinate);
-
-                        // create Location and add to the list of Locations
-                        Location location = new Location(locationName, coordinate);
-                        locationsList.add(location);
-
-                } // END: i loop
-
-                return locationsList;
-        }// END: parseLocations
+        return locationsList;
+    }// END: parseLocations
 
 }// END: class

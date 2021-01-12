@@ -9,7 +9,7 @@ import com.spread.exceptions.SpreadException;
 import jebl.evolution.graphs.Node;
 import jebl.evolution.trees.RootedTree;
 import com.spread.math.MultivariateNormalDistribution;
-// import utils.Trait;
+import com.spread.utils.Trait;
 import com.spread.utils.ParsersUtils;
 
 public class TimeSliceTree implements Runnable {
@@ -44,185 +44,180 @@ public class TimeSliceTree implements Runnable {
 
             Double[] precisionArray = ParsersUtils.getDoubleArrayTreeAttribute(currentTree, ParsersUtils.PRECISION);
 
-        //     int dim = (int) Math.sqrt(1 + 8 * precisionArray.length) / 2;
+            int dim = (int) Math.sqrt(1 + 8 * precisionArray.length) / 2;
 
-        //     double treeNormalization = getTreeLength(currentTree,
-        //                                              currentTree.getRootNode());
+            double treeNormalization = getTreeLength(currentTree,
+                                                     currentTree.getRootNode());
 
-        //     for (Node node : currentTree.getNodes()) {
-        //         if (!currentTree.isRoot(node)) {
+            for (Node node : currentTree.getNodes()) {
+                if (!currentTree.isRoot(node)) {
 
-        //             // parse once per node
+                    // parse once per node
 
-        //             Node parentNode = currentTree.getParent(node);
+                    Node parentNode = currentTree.getParent(node);
+                    Double parentHeight = ParsersUtils.getNodeHeight(currentTree, parentNode);
+                    Double nodeHeight = ParsersUtils.getNodeHeight(currentTree, node);
 
-        //             Double parentHeight = Utils.getNodeHeight(currentTree,
-        //                                                       parentNode);
+                    Double rate = 1.0;
+                    if (rrwRateName != null) {
+                        try {
+                            rate = (Double) ParsersUtils.getObjectNodeAttribute(node, rrwRateName);
+                        } catch (Exception e) {
+                            // can only throw unchecked exceptions in a Runnable
+                            throw new RuntimeException(e.getMessage());
+                        }
+                    }// END: rate set check
 
-        //             Double nodeHeight = Utils.getNodeHeight(currentTree, node);
+                    Trait trait = getNodeTrait(node, traitName);
+                    Trait parentTrait = getNodeTrait(parentNode, traitName);
 
-        //             Double rate = 1.0;
-        //             if (rrwRateName != null) {
-        //                 try {
-        //                     rate = (Double) Utils.getObjectNodeAttribute(node,
-        //                                                                  rrwRateName);
-        //                 } catch (Exception e) {
-        //                     // can only throw unchecked exceptions in a Runnable
-        //                     throw new RuntimeException(e.getMessage());
-        //                 }
-        //             }// END: rate set check
+                    if (!trait.isNumber() || !parentTrait.isNumber()) {
 
-        //             Trait trait = getNodeTrait(node, traitName);
-        //             Trait parentTrait = getNodeTrait(parentNode, traitName);
+                        // can only throw unchecked exceptions in a Runnable
+                        throw new RuntimeException("Trait " + traitName
+                                                   + " is not numeric!");
 
-        //             if (!trait.isNumber() || !parentTrait.isNumber()) {
+                    } else {
 
-        //                 // can only throw unchecked exceptions in a Runnable
-        //                 throw new RuntimeException("Trait " + traitName
-        //                                            + " is not numeric!");
+                        if (trait.getDim() != dim
+                            || parentTrait.getDim() != dim) {
 
-        //             } else {
+                            // can only throw unchecked exceptions in a
+                            // Runnable
+                            throw new RuntimeException("Trait " + traitName
+                                                       + " is not " + dim + " dimensional!");
+                        }
+                    } // END: exception handling
 
-        //                 if (trait.getDim() != dim
-        //                     || parentTrait.getDim() != dim) {
+                    for (int i = 0; i < sliceHeights.length; i++) {
 
-        //                     // can only throw unchecked exceptions in a
-        //                     // Runnable
-        //                     throw new RuntimeException("Trait " + traitName
-        //                                                + " is not " + dim + " dimensional!");
-        //                 }
-        //             } // END: exception handling
+                        double sliceHeight = sliceHeights[i];
+                        if (nodeHeight < sliceHeight
+                            && sliceHeight <= parentHeight) {
 
-        //             for (int i = 0; i < sliceHeights.length; i++) {
+                            double[] imputedLocation = imputeValue(
+                                                                   trait.getValue(), //
+                                                                   parentTrait.getValue(), //
+                                                                   sliceHeight, //
+                                                                   nodeHeight, //
+                                                                   parentHeight, //
+                                                                   rate, //
+                                                                   treeNormalization, //
+                                                                   precisionArray //
+                                                                   );
 
-        //                 double sliceHeight = sliceHeights[i];
-        //                 if (nodeHeight < sliceHeight
-        //                     && sliceHeight <= parentHeight) {
+                            double latitude = imputedLocation[ParsersUtils.LATITUDE_INDEX];
+                            double longitude = imputedLocation[ParsersUtils.LONGITUDE_INDEX];
+                            double[] coordinate = new double[2];
+                            coordinate[ParsersUtils.LATITUDE_INDEX] = latitude;
+                            coordinate[ParsersUtils.LONGITUDE_INDEX] = longitude;
 
-        //                     double[] imputedLocation = imputeValue(
-        //                                                            trait.getValue(), //
-        //                                                            parentTrait.getValue(), //
-        //                                                            sliceHeight, //
-        //                                                            nodeHeight, //
-        //                                                            parentHeight, //
-        //                                                            rate, //
-        //                                                            treeNormalization, //
-        //                                                            precisionArray //
-        //                                                            );
+                            if (sliceMap.containsKey(sliceHeight)) {
 
-        //                     double latitude = imputedLocation[Utils.LATITUDE_INDEX];
-        //                     double longitude = imputedLocation[Utils.LONGITUDE_INDEX];
-        //                     double[] coordinate = new double[2];
-        //                     coordinate[Utils.LATITUDE_INDEX] = latitude;
-        //                     coordinate[Utils.LONGITUDE_INDEX] = longitude;
+                                sliceMap.get(sliceHeight).add(coordinate);
 
-        //                     if (sliceMap.containsKey(sliceHeight)) {
+                            } else {
 
-        //                         sliceMap.get(sliceHeight).add(coordinate);
+                                LinkedList<double[]> coords = new LinkedList<double[]>();
+                                coords.add(coordinate);
 
-        //                     } else {
+                                sliceMap.put(sliceHeight, coords);
 
-        //                         LinkedList<double[]> coords = new LinkedList<double[]>();
-        //                         coords.add(coordinate);
+                            } // END: key check
 
-        //                         sliceMap.put(sliceHeight, coords);
+                        } // END: sliceTime check
 
-        //                     } // END: key check
+                    } // END: i loop
 
-        //                 } // END: sliceTime check
-
-        //             } // END: i loop
-
-        //         } // END: root node check
-        //     } // END: node loop
+                } // END: root node check
+            } // END: node loop
 
         } catch (Exception e) {
             // Pass it to handlers
-            // throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         } // END: try-catch
 
     }// END: run
 
-    // private double[] imputeValue(double[] trait, //
-    //                              double[] parentTrait, //
-    //                              double sliceHeight, //
-    //                              double nodeHeight, //
-    //                              double parentHeight, //
-    //                              double rate, //
-    //                              double treeNormalization, //
-    //                              Double[] precisionArray //
-    //                              ) {
+    private double[] imputeValue(double[] trait, //
+                                 double[] parentTrait, //
+                                 double sliceHeight, //
+                                 double nodeHeight, //
+                                 double parentHeight, //
+                                 double rate, //
+                                 double treeNormalization, //
+                                 Double[] precisionArray //
+                                 ) {
 
-    //     int dim = (int) Math.sqrt(1 + 8 * precisionArray.length) / 2;
+        int dim = (int) Math.sqrt(1 + 8 * precisionArray.length) / 2;
 
-    //     double[][] precision = new double[dim][dim];
-    //     int c = 0;
-    //     for (int i = 0; i < dim; i++) {
-    //         for (int j = i; j < dim; j++) {
-    //             precision[j][i] = precision[i][j] = precisionArray[c++]
-    //                 * treeNormalization;
-    //         }
-    //     }
+        double[][] precision = new double[dim][dim];
+        int c = 0;
+        for (int i = 0; i < dim; i++) {
+            for (int j = i; j < dim; j++) {
+                precision[j][i] = precision[i][j] = precisionArray[c++]
+                    * treeNormalization;
+            }
+        }
 
-    //     double[] nodeValue = new double[dim];
-    //     double[] parentValue = new double[dim];
+        double[] nodeValue = new double[dim];
+        double[] parentValue = new double[dim];
 
-    //     for (int i = 0; i < dim; i++) {
+        for (int i = 0; i < dim; i++) {
 
-    //         nodeValue[i] = trait[i];
-    //         parentValue[i] = parentTrait[i];
+            nodeValue[i] = trait[i];
+            parentValue[i] = parentTrait[i];
 
-    //     }
+        }
 
-    //     final double scaledTimeChild = (sliceHeight - nodeHeight) * rate;
-    //     final double scaledTimeParent = (parentHeight - sliceHeight) * rate;
-    //     final double scaledWeightTotal = (1.0 / scaledTimeChild)
-    //         + (1.0 / scaledTimeParent);
+        final double scaledTimeChild = (sliceHeight - nodeHeight) * rate;
+        final double scaledTimeParent = (parentHeight - sliceHeight) * rate;
+        final double scaledWeightTotal = (1.0 / scaledTimeChild)
+            + (1.0 / scaledTimeParent);
 
-    //     if (scaledTimeChild == 0) {
-    //         return trait;
-    //     }
+        if (scaledTimeChild == 0) {
+            return trait;
+        }
 
-    //     if (scaledTimeParent == 0) {
-    //         return parentTrait;
-    //     }
-    //     // Find mean value, weighted average
-    //     double[] mean = new double[dim];
-    //     double[][] scaledPrecision = new double[dim][dim];
+        if (scaledTimeParent == 0) {
+            return parentTrait;
+        }
+        // Find mean value, weighted average
+        double[] mean = new double[dim];
+        double[][] scaledPrecision = new double[dim][dim];
 
-    //     for (int i = 0; i < dim; i++) {
-    //         mean[i] = (nodeValue[i] / scaledTimeChild + parentValue[i]
-    //                    / scaledTimeParent)
-    //             / scaledWeightTotal;
+        for (int i = 0; i < dim; i++) {
+            mean[i] = (nodeValue[i] / scaledTimeChild + parentValue[i]
+                       / scaledTimeParent)
+                / scaledWeightTotal;
 
-    //         for (int j = i; j < dim; j++)
-    //             scaledPrecision[j][i] = scaledPrecision[i][j] = precision[i][j]
-    //                 * scaledWeightTotal;
-    //     }
+            for (int j = i; j < dim; j++)
+                scaledPrecision[j][i] = scaledPrecision[i][j] = precision[i][j]
+                    * scaledWeightTotal;
+        }
 
-    //     mean = MultivariateNormalDistribution.nextMultivariateNormalPrecision(
-    //                                                                           mean, scaledPrecision);
+        mean = MultivariateNormalDistribution.nextMultivariateNormalPrecision(
+                                                                              mean, scaledPrecision);
 
-    //     double[] result = new double[dim];
-    //     for (int i = 0; i < dim; i++) {
-    //         result[i] = mean[i];
-    //     }
+        double[] result = new double[dim];
+        for (int i = 0; i < dim; i++) {
+            result[i] = mean[i];
+        }
 
-    //     return result;
-    // }// END: imputeValue
+        return result;
+    }// END: imputeValue
 
-    // private Trait getNodeTrait(Node node, String traitName)
-    //     throws AnalysisException {
+    private Trait getNodeTrait(Node node, String traitName)
+        throws SpreadException {
 
-    //     Object nodeAttribute = node.getAttribute(traitName);
+        Object nodeAttribute = node.getAttribute(traitName);
 
-    //     if (nodeAttribute == null) {
-    //         throw new AnalysisException("Attribute " + traitName
-    //                                     + " missing from the node. \n");
-    //     }
+        if (nodeAttribute == null) {
+            throw new SpreadException("Attribute " + traitName + " missing from the node. \n");
+        }
 
-    //     return new Trait(nodeAttribute);
-    // }// END: getNodeTrait
+        return new Trait(nodeAttribute);
+    }// END: getNodeTrait
 
     private double getTreeLength(RootedTree tree, Node node) {
 

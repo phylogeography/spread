@@ -11,6 +11,7 @@ import com.spread.utils.ProgressBar;
 import com.spread.exceptions.SpreadException;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.FileReader;
 
@@ -25,15 +26,49 @@ public class TimeSlicerParser {
     @Setter
     private String treesFilePath;
 
+    @Setter
+    private String sliceHeightsFilePath;
+
+    @Setter
+    private int numberOfIntervals;
+
+    @Setter
+    private int burnIn;
+
+    @Setter
+    private String traitName;
+
+    @Setter
+    private String rrwRateName;
+
     public TimeSlicerParser() {
     }
 
+    public TimeSlicerParser(String treesFilePath, // path to the trees file
+                            String sliceHeightsFilePath,
+                            int numberOfIntervals,
+                            String traitName, // 2D trait for contouring
+                            int burnIn, //
+                            String rrwRateName
+                            ) {
+        this.treesFilePath = treesFilePath;
+        this.sliceHeightsFilePath = sliceHeightsFilePath;
+        this.numberOfIntervals = numberOfIntervals;
+        this.burnIn = burnIn;
+        this.traitName = traitName;
+        this.rrwRateName = rrwRateName;
+
+    }
 
     public TimeSlicerParser(String treesFilePath, // path to the trees file
-                            String trait // 2D trait for contouring
+                            String traitName, // 2D trait for contouring
+                            int burnIn, //
+                            String rrwRateName
                             ) {
-
         this.treesFilePath = treesFilePath;
+        this.burnIn = burnIn;
+        this.traitName = traitName;
+        this.rrwRateName = rrwRateName;
 
     }
 
@@ -44,7 +79,6 @@ public class TimeSlicerParser {
         // ---PARSE TREES---//
 
         int barLength = 100;
-        int treesRead = 0;
 
         int assumedTrees = getAssumedTrees(this.treesFilePath);
         double stepSize = (double) barLength / (double) assumedTrees;
@@ -57,43 +91,78 @@ public class TimeSlicerParser {
         System.out.println("0                        25                       50                       75                       100%");
         System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
-
         // NexusImporter treesImporter;
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
 
-        RootedTree currentTree;
         ConcurrentHashMap<Double, List<double[]>> slicesMap = new ConcurrentHashMap<Double, List<double[]>>();
 
         // Executor for threads
         int NTHREDS = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(NTHREDS);
 
+        Double sliceHeights[] = null;
+        if (this.sliceHeightsFilePath == null) {
+            sliceHeights = generateSliceHeights(this.treesFilePath, this.numberOfIntervals);
+        } else {
+            SliceHeightsParser sliceHeightsParser = new SliceHeightsParser(this.sliceHeightsFilePath);
+            sliceHeights = sliceHeightsParser.parseSliceHeights();
+        }
+
+        RootedTree currentTree = null;
+        int treesRead = 0;
         int counter = 0;
         while (treesImporter.hasTree()) {
 
-            // try {
+            try {
 
                 currentTree = (RootedTree) treesImporter.importNextTree();
 
-            // } catch (Exception e) {
-            //     // catch any unchecked exceptions coming from Runnable, pass
-            //     // them to handlers
-            //     // throw new SpreadException(e.getMessage());
-            // } // END: try-catch
+                if (counter >= burnIn) {
+
+                    executor.submit(new TimeSliceTree(slicesMap, //
+                                                      currentTree, //
+                                                      sliceHeights, //
+                                                      this.traitName, //
+                                                      this.rrwRateName //
+                                                      ));
+
+                    treesRead++;
+                } // END: burnin check
+
+                counter++;
+                double progress = (stepSize * counter) / barLength;
+                progressBar.setProgressPercentage(progress);
+
+
+
+
+
+            } catch (Exception e) {
+                // catch any unchecked exceptions coming from Runnable, pass
+                // them to handlers
+                // throw new SpreadException(e.getMessage());
+            } // END: try-catch
 
         }
 
+        // Wait until all threads are finished
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+        }
+
+        progressBar.showCompleted();
+        progressBar.setShowProgress(false);
+
+        System.out.print("\n");
+        System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter
+                           + " trees");
 
 
-
-
-
+        // TODO return JSON
         return "";
     }
 
     public static int getAssumedTrees(String file) throws IOException {
-        // this method is a hack
-
         InputStream is = new BufferedInputStream(new FileInputStream(file));
 
         try {
@@ -111,27 +180,46 @@ public class TimeSlicerParser {
 
                 empty = false;
                 for (int i = 0; i < readChars; i++) {
-
                     if (String.valueOf((char) c[i]).equalsIgnoreCase(mark)) {
-
                         markCount++;
-
                     }
 
                     if (c[i] == '\n' && markCount > markBorder) {
                         count++;
                     }
-
                 }
-
-            } // END: loop
+            }
 
             count = count - 1;
             return (count == 0 && !empty) ? 1 : count;
-
         } finally {
             is.close();
         }
-    }// END: getAssumedTrees
+    }
+
+    private Double[] generateSliceHeights(String treesFilePath, int numberOfIntervals) throws IOException, ImportException {
+        Double[] timeSlices = new Double[numberOfIntervals];
+
+        NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
+
+        double maxRootHeight = 0;
+        RootedTree currentTree = null;
+        while (treesImporter.hasTree()) {
+            currentTree = (RootedTree) treesImporter.importNextTree();
+
+            double rootHeight = currentTree.getHeight(currentTree.getRootNode());
+
+            if (rootHeight > maxRootHeight) {
+                maxRootHeight = rootHeight;
+            }
+
+        }
+
+        for (int i = 0; i < numberOfIntervals; i++) {
+                timeSlices[i] = maxRootHeight - (maxRootHeight / (double) numberOfIntervals) * ((double) i);
+        }
+
+        return timeSlices;
+    }
 
 }
