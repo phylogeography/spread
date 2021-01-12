@@ -13,7 +13,8 @@
 
 (defn area [{:keys [polygon] :as area}]
   {:type :Polygon
-   :points (mapv (fn [{:keys [xCoordinate yCoordinate]}] [xCoordinate yCoordinate]) polygon)})
+   :points (mapv (fn [{:keys [xCoordinate yCoordinate]}] [xCoordinate yCoordinate])
+                 (:coordinates polygon))})
 
 (defn layer-features [index {:keys [points lines areas] :as layer}]
   (->> (map (partial point index) points)
