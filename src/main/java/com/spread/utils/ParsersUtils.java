@@ -97,6 +97,29 @@ public class ParsersUtils {
         return nodeAttributeArray;
     }
 
+    public static Object[] getObjectArrayTreeAttribute(RootedTree tree, String attributeName) {
+
+        Object o = tree.getAttribute(attributeName);
+
+        if (o == null) {
+            throw new RuntimeException("Attribute " + attributeName + " missing from the tree. \n");
+        }
+
+        return (Object[]) o;
+    }
+
+    public static Double[] getDoubleArrayTreeAttribute(RootedTree tree, String attributeName) {
+
+        Object[] o = getObjectArrayTreeAttribute(tree, attributeName);
+
+        Double[] array = new Double[o.length];
+        for (int i = 0; i < o.length; i++) {
+            array[i] = Double.valueOf(o[i].toString());
+        }
+
+        return array;
+    }
+
     public static double round(double value, double precision) {
         return (double) Math.round(value * precision) / precision;
     }
