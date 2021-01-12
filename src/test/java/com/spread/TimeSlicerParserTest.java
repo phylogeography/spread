@@ -24,9 +24,10 @@ public class TimeSlicerParserTest {
         File treesfile = new File(getClass().getClassLoader().getResource(filename).getFile());
 
         TimeSlicerParser parser = new TimeSlicerParser (treesfile.getAbsolutePath(),
-                                                        "todo",
                                                         1,
-                                                        "todo"
+                                                        10,
+                                                        "location",
+                                                        "rate"
 
                                                         );
 

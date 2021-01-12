@@ -1,11 +1,13 @@
 package com.spread.parsers;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.spread.utils.PrintUtils;
 import com.spread.utils.ProgressBar;
 
 import com.spread.exceptions.SpreadException;
@@ -45,28 +47,28 @@ public class TimeSlicerParser {
     }
 
     public TimeSlicerParser(String treesFilePath, // path to the trees file
-                            String sliceHeightsFilePath,
-                            int numberOfIntervals,
-                            String traitName, // 2D trait for contouring
                             int burnIn, //
-                            String rrwRateName
+                            String sliceHeightsFilePath,
+                            String traitName, // 2D trait for contouring
+                            String rrwRateName // 2D trait rate attribute
                             ) {
         this.treesFilePath = treesFilePath;
         this.sliceHeightsFilePath = sliceHeightsFilePath;
-        this.numberOfIntervals = numberOfIntervals;
         this.burnIn = burnIn;
         this.traitName = traitName;
         this.rrwRateName = rrwRateName;
 
     }
 
-    public TimeSlicerParser(String treesFilePath, // path to the trees file
-                            String traitName, // 2D trait for contouring
-                            int burnIn, //
+    public TimeSlicerParser(String treesFilePath,
+                            int burnIn,
+                            int numberOfIntervals,
+                            String traitName,
                             String rrwRateName
                             ) {
         this.treesFilePath = treesFilePath;
         this.burnIn = burnIn;
+        this.numberOfIntervals = numberOfIntervals;
         this.traitName = traitName;
         this.rrwRateName = rrwRateName;
 
@@ -76,10 +78,7 @@ public class TimeSlicerParser {
                                  // , SpreadException
     {
 
-        // ---PARSE TREES---//
-
         int barLength = 100;
-
         int assumedTrees = getAssumedTrees(this.treesFilePath);
         double stepSize = (double) barLength / (double) assumedTrees;
 
@@ -107,6 +106,12 @@ public class TimeSlicerParser {
             SliceHeightsParser sliceHeightsParser = new SliceHeightsParser(this.sliceHeightsFilePath);
             sliceHeights = sliceHeightsParser.parseSliceHeights();
         }
+
+        // sort them in ascending order
+        Arrays.sort(sliceHeights);
+
+        System.out.println("Using as slice heights: ");
+        PrintUtils.printArray(sliceHeights);
 
         RootedTree currentTree = null;
         int treesRead = 0;
