@@ -23,32 +23,32 @@
  * Boston, MA  02110-1301  USA
  */
 
-package math;
+package com.spread.math;
 
 /**
  * @author Didier H. Besset
  */
 public class IllegalDimension extends Exception {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8101918570370620261L;
+        /**
+         *
+         */
+        private static final long serialVersionUID = 8101918570370620261L;
 
-	/**
-	 * DhbIllegalDimension constructor comment.
-	 */
-	public IllegalDimension() {
-		super();
-	}
+        /**
+         * DhbIllegalDimension constructor comment.
+         */
+        public IllegalDimension() {
+                super();
+        }
 
-	/**
-	 * DhbIllegalDimension constructor comment.
-	 * 
-	 * @param s
-	 *            java.lang.String
-	 */
-	public IllegalDimension(String s) {
-		super(s);
-	}
+        /**
+         * DhbIllegalDimension constructor comment.
+         *
+         * @param s
+         *            java.lang.String
+         */
+        public IllegalDimension(String s) {
+                super(s);
+        }
 }

@@ -1,16 +1,21 @@
 package com.spread.parsers;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import com.spread.exceptions.SpreadException;
 import com.spread.utils.PrintUtils;
 import com.spread.utils.ProgressBar;
 
-import com.spread.exceptions.SpreadException;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -74,30 +79,11 @@ public class TimeSlicerParser {
 
     }
 
-    public String parse() throws IOException, ImportException
-                                 // , SpreadException
-    {
+    public String parse() throws Exception {
 
         int barLength = 100;
         int assumedTrees = getAssumedTrees(this.treesFilePath);
         double stepSize = (double) barLength / (double) assumedTrees;
-
-        System.out.println("Reading trees (bar assumes " + assumedTrees + " trees)");
-
-        ProgressBar progressBar = new ProgressBar(barLength);
-        progressBar.start();
-
-        System.out.println("0                        25                       50                       75                       100%");
-        System.out.println("|------------------------|------------------------|------------------------|------------------------|");
-
-        // NexusImporter treesImporter;
-        NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
-
-        ConcurrentHashMap<Double, List<double[]>> slicesMap = new ConcurrentHashMap<Double, List<double[]>>();
-
-        // Executor for threads
-        int NTHREDS = Runtime.getRuntime().availableProcessors();
-        ExecutorService executor = Executors.newFixedThreadPool(NTHREDS);
 
         Double sliceHeights[] = null;
         if (this.sliceHeightsFilePath == null) {
@@ -113,46 +99,69 @@ public class TimeSlicerParser {
         System.out.println("Using as slice heights: ");
         PrintUtils.printArray(sliceHeights);
 
-        RootedTree currentTree = null;
+        System.out.println("Reading trees (bar assumes " + assumedTrees + " trees)");
+
+        ProgressBar progressBar = new ProgressBar(barLength);
+        progressBar.start();
+
+        System.out.println("0                        25                       50                       75                       100%");
+        System.out.println("|------------------------|------------------------|------------------------|------------------------|");
+
+        NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
+        ConcurrentHashMap<Double, List<double[]>> slicesMap = new ConcurrentHashMap<Double, List<double[]>>();
+
+        // Executor for threads
+        int NTHREDS = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(NTHREDS);
+
+        // Collection<Future<?>> futures = new LinkedList<<Future<?>>();
+
+
+        RootedTree currentTree;
         int treesRead = 0;
         int counter = 0;
+
+        // ExecutorService executor = Executors.newFixedThreadPool(3);
+        Collection<Callable<Void>> tasks = new ArrayList<>();   // our task do not need a returned value
+
+
         while (treesImporter.hasTree()) {
 
-            try {
+            currentTree = (RootedTree) treesImporter.importNextTree();
+            if (counter >= burnIn) {
 
-                currentTree = (RootedTree) treesImporter.importNextTree();
+                Callable<Void> task = new TimeSliceTree(slicesMap, //
+                                                        currentTree, //
+                                                        sliceHeights, //
+                                                        this.traitName, //
+                                                        this.rrwRateName //
+                                                        );
 
-                if (counter >= burnIn) {
+                // task.call ();
+                tasks.add(task);
 
-                    executor.submit(new TimeSliceTree(slicesMap, //
-                                                      currentTree, //
-                                                      sliceHeights, //
-                                                      this.traitName, //
-                                                      this.rrwRateName //
-                                                      ));
+                // executor.submit(new TimeSliceTree(slicesMap, //
+                //                                   currentTree, //
+                //                                   sliceHeights, //
+                //                                   this.traitName, //
+                //                                   this.rrwRateName //
+                //                                   ));
 
-                    treesRead++;
-                } // END: burnin check
+                treesRead++;
+            } // END: burnin check
 
-                counter++;
-                double progress = (stepSize * counter) / barLength;
-                progressBar.setProgressPercentage(progress);
-
-
-
-
-
-            } catch (Exception e) {
-                // catch any unchecked exceptions coming from Runnable, pass
-                // them to handlers
-                // throw new SpreadException(e.getMessage());
-            } // END: try-catch
+            counter++;
+            double progress = (stepSize * counter) / barLength;
+            progressBar.setProgressPercentage(progress);
 
         }
 
         // Wait until all threads are finished
-        executor.shutdown();
-        while (!executor.isTerminated()) {
+
+        try {
+            executor.invokeAll(tasks);
+        } catch (InterruptedException ex) {
+            throw new SpreadException (ex.getMessage());
         }
 
         progressBar.showCompleted();
@@ -161,6 +170,15 @@ public class TimeSlicerParser {
         System.out.print("\n");
         System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter
                            + " trees");
+
+
+        System.out.println ("@@@ MAP SIZE: " + slicesMap.mappingCount());
+        // PrintUtils.printMap(slicesMap);
+
+
+
+
+
 
 
         // TODO return JSON

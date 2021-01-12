@@ -16,11 +16,11 @@ import com.spread.parsers.TimeSlicerParser;
 public class TimeSlicerParserTest {
 
     @Test
-    public void runTest() throws IOException, ImportException
-                                 // , SpreadException
+    public void runTest() throws Exception
     {
 
         String filename = "timeSlicer/WNV_small.trees";
+        // String filename = "/home/filip/Dropbox/JavaProjects/SpreaD3/data/continuous/WNV/WNV_relaxed_geo_gamma.trees";
         File treesfile = new File(getClass().getClassLoader().getResource(filename).getFile());
 
         TimeSlicerParser parser = new TimeSlicerParser (treesfile.getAbsolutePath(),
@@ -28,10 +28,9 @@ public class TimeSlicerParserTest {
                                                         10,
                                                         "location",
                                                         "rate"
-
                                                         );
 
-        parser.parse();
+        String json = parser.parse();
 
     }
 
