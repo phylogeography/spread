@@ -12,7 +12,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.spread.contouring.ContourMaker;
+import com.spread.contouring.ContourPath;
+import com.spread.contouring.ContourWithSnyder;
 import com.spread.exceptions.SpreadException;
+import com.spread.utils.ParsersUtils;
 import com.spread.utils.PrintUtils;
 import com.spread.utils.ProgressBar;
 
@@ -48,6 +52,12 @@ public class TimeSlicerParser {
     @Setter
     private String rrwRateName;
 
+    @Setter
+    private double hpdLevel;
+
+    @Setter
+    private int gridSize;
+
     public TimeSlicerParser() {
     }
 
@@ -55,31 +65,39 @@ public class TimeSlicerParser {
                             int burnIn, //
                             String sliceHeightsFilePath,
                             String traitName, // 2D trait for contouring
-                            String rrwRateName // 2D trait rate attribute
+                            String rrwRateName, // 2D trait rate attribute
+                            double hpdLevel,
+                            int gridSize
                             ) {
         this.treesFilePath = treesFilePath;
         this.sliceHeightsFilePath = sliceHeightsFilePath;
         this.burnIn = burnIn;
         this.traitName = traitName;
         this.rrwRateName = rrwRateName;
-
+        this.hpdLevel = hpdLevel;
+        this.gridSize = gridSize;
     }
 
     public TimeSlicerParser(String treesFilePath,
                             int burnIn,
                             int numberOfIntervals,
                             String traitName,
-                            String rrwRateName
+                            String rrwRateName,
+                            double hpdLevel,
+                            int gridSize
                             ) {
         this.treesFilePath = treesFilePath;
         this.burnIn = burnIn;
         this.numberOfIntervals = numberOfIntervals;
         this.traitName = traitName;
         this.rrwRateName = rrwRateName;
-
+        this.hpdLevel = hpdLevel;
+        this.gridSize = gridSize;
     }
 
     public String parse() throws Exception {
+
+        // ---PARSE TREES---//
 
         int barLength = 100;
         int assumedTrees = getAssumedTrees(this.treesFilePath);
@@ -108,44 +126,35 @@ public class TimeSlicerParser {
         System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
-        ConcurrentHashMap<Double, List<double[]>> slicesMap = new ConcurrentHashMap<Double, List<double[]>>();
+        ConcurrentHashMap<Double, List<double[]>> slicesMap = new ConcurrentHashMap<Double, List<double[]>>(sliceHeights.length);
 
         // Executor for threads
         int NTHREDS = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(NTHREDS);
-
-        // Collection<Future<?>> futures = new LinkedList<<Future<?>>();
-
+        Collection<Callable<Void>> tasks = new ArrayList<>();
 
         RootedTree currentTree;
         int treesRead = 0;
         int counter = 0;
-
-        // ExecutorService executor = Executors.newFixedThreadPool(3);
-        Collection<Callable<Void>> tasks = new ArrayList<>();   // our task do not need a returned value
-
 
         while (treesImporter.hasTree()) {
 
             currentTree = (RootedTree) treesImporter.importNextTree();
             if (counter >= burnIn) {
 
-                Callable<Void> task = new TimeSliceTree(slicesMap, //
-                                                        currentTree, //
-                                                        sliceHeights, //
-                                                        this.traitName, //
-                                                        this.rrwRateName //
-                                                        );
+                // tasks.add(new TimeSliceTree(slicesMap, //
+                //                             currentTree, //
+                //                             sliceHeights, //
+                //                             this.traitName, //
+                //                             this.rrwRateName //
+                //                             ));
 
-                // task.call ();
-                tasks.add(task);
-
-                // executor.submit(new TimeSliceTree(slicesMap, //
-                //                                   currentTree, //
-                //                                   sliceHeights, //
-                //                                   this.traitName, //
-                //                                   this.rrwRateName //
-                //                                   ));
+                new TimeSliceTree(slicesMap, //
+                                  currentTree, //
+                                  sliceHeights, //
+                                  this.traitName, //
+                                  this.rrwRateName //
+                                  ).call();
 
                 treesRead++;
             } // END: burnin check
@@ -153,31 +162,91 @@ public class TimeSlicerParser {
             counter++;
             double progress = (stepSize * counter) / barLength;
             progressBar.setProgressPercentage(progress);
-
         }
 
         // Wait until all threads are finished
-
         try {
             executor.invokeAll(tasks);
         } catch (InterruptedException ex) {
             throw new SpreadException (ex.getMessage());
         }
+        // executor.shutdown();
+        // while (!executor.isTerminated()) {
+        // }
 
         progressBar.showCompleted();
         progressBar.setShowProgress(false);
 
         System.out.print("\n");
-        System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter
-                           + " trees");
+        System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter + " trees");
 
+        // --- MAKE CONTOURS ---//
 
-        System.out.println ("@@@ MAP SIZE: " + slicesMap.mappingCount());
-        // PrintUtils.printMap(slicesMap);
+        System.out.println("Creating contours for " + traitName + " trait at " + hpdLevel + " HPD level");
+        System.out.println("0                        25                       50                       75                       100%");
+        System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
+        counter = 0;
+        stepSize = (double) barLength / (double) slicesMap.size();
 
+        progressBar = new ProgressBar(barLength);
+        progressBar.start();
 
+        // TODO : parallel execution
+        for (Double sliceHeight : slicesMap.keySet()) {
 
+            List<double[]> coords = slicesMap.get(sliceHeight);
+            int n = coords.size();
+
+            double[] x = new double[n];
+            double[] y = new double[n];
+
+            for (int i = 0; i < n; i++) {
+
+                if (coords.get(i) == null) {
+                    System.out.println("null found");
+                }
+
+                x[i] = coords.get(i)[ParsersUtils.LONGITUDE_INDEX];
+                y[i] = coords.get(i)[ParsersUtils.LATITUDE_INDEX];
+
+                // System.out.println(x [i] + " : " + y [i]);
+
+            } // END: i loop
+
+            // System.out.println("GS:" + gridSize);
+
+            ContourMaker contourMaker = new ContourWithSnyder(x, y, gridSize);
+            ContourPath[] paths = contourMaker.getContourPaths(hpdLevel);
+
+            // for (ContourPath path : paths) {
+
+            //     double[] longitude = path.getAllX();
+            //     double[] latitude = path.getAllY();
+
+            //     List<Coordinate> coordinateList = new ArrayList<Coordinate>();
+
+            //     for (int i = 0; i < latitude.length; i++) {
+            //         coordinateList.add(new Coordinate(latitude[i], longitude[i]));
+            //     }
+
+            //     Polygon polygon = new Polygon(coordinateList);
+
+            //     String startTime = timeParser.getNodeDate(sliceHeight * timescaleMultiplier);
+
+            //     HashMap<String, Object> areaAttributesMap = new HashMap<String, Object>();
+            //     areaAttributesMap.put(Utils.HPD.toUpperCase(), hpdLevel);
+
+            //     Area area = new Area(polygon, startTime, areaAttributesMap);
+            //     areasList.add(area);
+
+            // } // END: paths loop
+
+            counter++;
+            double progress = (stepSize * counter) / barLength;
+            progressBar.setProgressPercentage(progress);
+
+        } // END: iterate
 
 
 

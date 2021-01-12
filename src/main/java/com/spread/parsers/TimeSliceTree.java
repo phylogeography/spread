@@ -1,5 +1,7 @@
 package com.spread.parsers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -10,6 +12,7 @@ import jebl.evolution.graphs.Node;
 import jebl.evolution.trees.RootedTree;
 import com.spread.math.MultivariateNormalDistribution;
 import com.spread.utils.Trait;
+
 import com.spread.utils.ParsersUtils;
 
 public class TimeSliceTree implements Callable<Void> {
@@ -38,7 +41,7 @@ public class TimeSliceTree implements Callable<Void> {
     @Override
     public Void call() throws SpreadException {
 
-        // parse once per tree
+        // parse the values once per tree
 
         Double[] precisionArray = ParsersUtils.getDoubleArrayTreeAttribute(currentTree, ParsersUtils.PRECISION);
 
@@ -50,8 +53,7 @@ public class TimeSliceTree implements Callable<Void> {
         for (Node node : currentTree.getNodes()) {
             if (!currentTree.isRoot(node)) {
 
-                // parse once per node
-
+                // parse the values once per node
                 Node parentNode = currentTree.getParent(node);
                 Double parentHeight = ParsersUtils.getNodeHeight(currentTree, parentNode);
                 Double nodeHeight = ParsersUtils.getNodeHeight(currentTree, node);
@@ -59,21 +61,18 @@ public class TimeSliceTree implements Callable<Void> {
                 Double rate = 1.0;
                 if (rrwRateName != null) {
                     rate = (Double) ParsersUtils.getObjectNodeAttribute(node, rrwRateName);
-                }// END: rate set check
+                }
 
                 Trait trait = getNodeTrait(node, traitName);
                 Trait parentTrait = getNodeTrait(parentNode, traitName);
 
                 if (!trait.isNumber() || !parentTrait.isNumber()) {
 
-                    throw new SpreadException("Trait " + traitName
-                                              + " is not numeric!");
+                    throw new SpreadException("Trait " + traitName + " is not numeric!");
 
                 } else {
 
-                    if (trait.getDim() != dim
-                        || parentTrait.getDim() != dim) {
-
+                    if (trait.getDim() != dim || parentTrait.getDim() != dim) {
                         throw new SpreadException("Trait " + traitName + " is not " + dim + " dimensional!");
                     }
                 }
@@ -85,16 +84,15 @@ public class TimeSliceTree implements Callable<Void> {
                     if (nodeHeight < sliceHeight
                         && sliceHeight <= parentHeight) {
 
-                        double[] imputedLocation = imputeValue(
-                                                               trait.getValue(), //
+                        double[] imputedLocation = imputeValue(trait.getValue(), //
                                                                parentTrait.getValue(), //
                                                                sliceHeight, //
                                                                nodeHeight, //
                                                                parentHeight, //
                                                                rate, //
                                                                treeNormalization, //
-                                                               precisionArray //
-                                                               );
+                                                               precisionArray);
+
 
                         double latitude = imputedLocation[ParsersUtils.LATITUDE_INDEX];
                         double longitude = imputedLocation[ParsersUtils.LONGITUDE_INDEX];
@@ -103,16 +101,11 @@ public class TimeSliceTree implements Callable<Void> {
                         coordinate[ParsersUtils.LONGITUDE_INDEX] = longitude;
 
                         if (sliceMap.containsKey(sliceHeight)) {
-
                             sliceMap.get(sliceHeight).add(coordinate);
-
                         } else {
-
                             LinkedList<double[]> coords = new LinkedList<double[]>();
                             coords.add(coordinate);
-
                             sliceMap.put(sliceHeight, coords);
-
                         } // END: key check
 
                     } // END: sliceTime check
@@ -150,10 +143,8 @@ public class TimeSliceTree implements Callable<Void> {
         double[] parentValue = new double[dim];
 
         for (int i = 0; i < dim; i++) {
-
             nodeValue[i] = trait[i];
             parentValue[i] = parentTrait[i];
-
         }
 
         final double scaledTimeChild = (sliceHeight - nodeHeight) * rate;

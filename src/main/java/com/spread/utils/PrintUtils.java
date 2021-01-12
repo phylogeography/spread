@@ -13,6 +13,17 @@ public class PrintUtils {
         System.out.println();
     }
 
+    public static <E> void print2DArray(E[][] array) {
+        int nRow = array.length;
+        int nCol = array[0].length;
+        for (int row = 0; row < nRow; row++) {
+            for (int col = 0; col < nCol; col++) {
+                System.out.print(array[row][col] + " ");
+            }
+            System.out.print("\n");
+        }
+    }// END: print2DArray
+
     public static void printMap(Map<?, ?> map) {
         Iterator<?> it = map.entrySet().iterator();
         while (it.hasNext()) {
