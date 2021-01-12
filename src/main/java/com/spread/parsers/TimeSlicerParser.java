@@ -20,6 +20,8 @@ public class TimeSlicerParser {
                             String trait // 2D trait for contouring
                             ) {
 
+        this.treesFilePath = treesFilePath;
+
     }
 
     public String parse() throws IOException {
