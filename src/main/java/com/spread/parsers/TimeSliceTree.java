@@ -100,6 +100,7 @@ public class TimeSliceTree implements Callable<Void> {
                         coordinate[ParsersUtils.LATITUDE_INDEX] = latitude;
                         coordinate[ParsersUtils.LONGITUDE_INDEX] = longitude;
 
+                        // TODO : atomic operations
                         if (sliceMap.containsKey(sliceHeight)) {
                             sliceMap.get(sliceHeight).add(coordinate);
                         } else {

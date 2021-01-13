@@ -4,8 +4,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -15,6 +19,10 @@ import java.util.concurrent.Future;
 import com.spread.contouring.ContourMaker;
 import com.spread.contouring.ContourPath;
 import com.spread.contouring.ContourWithSnyder;
+import com.spread.data.Attribute;
+import com.spread.data.attributable.Area;
+import com.spread.data.primitive.Coordinate;
+import com.spread.data.primitive.Polygon;
 import com.spread.exceptions.SpreadException;
 import com.spread.utils.ParsersUtils;
 import com.spread.utils.PrintUtils;
@@ -58,6 +66,12 @@ public class TimeSlicerParser {
     @Setter
     private int gridSize;
 
+    @Setter
+    private String mostRecentSamplingDate;
+
+    @Setter
+    private double timescaleMultiplier;
+
     public TimeSlicerParser() {
     }
 
@@ -67,7 +81,9 @@ public class TimeSlicerParser {
                             String traitName, // 2D trait for contouring
                             String rrwRateName, // 2D trait rate attribute
                             double hpdLevel,
-                            int gridSize
+                            int gridSize,
+                            String mostRecentSamplingDate,
+                            double timescaleMultiplier
                             ) {
         this.treesFilePath = treesFilePath;
         this.sliceHeightsFilePath = sliceHeightsFilePath;
@@ -76,6 +92,8 @@ public class TimeSlicerParser {
         this.rrwRateName = rrwRateName;
         this.hpdLevel = hpdLevel;
         this.gridSize = gridSize;
+        this.mostRecentSamplingDate = mostRecentSamplingDate;
+        this.timescaleMultiplier = timescaleMultiplier;
     }
 
     public TimeSlicerParser(String treesFilePath,
@@ -84,7 +102,9 @@ public class TimeSlicerParser {
                             String traitName,
                             String rrwRateName,
                             double hpdLevel,
-                            int gridSize
+                            int gridSize,
+                            String mostRecentSamplingDate,
+                            double timescaleMultiplier
                             ) {
         this.treesFilePath = treesFilePath;
         this.burnIn = burnIn;
@@ -93,6 +113,8 @@ public class TimeSlicerParser {
         this.rrwRateName = rrwRateName;
         this.hpdLevel = hpdLevel;
         this.gridSize = gridSize;
+        this.mostRecentSamplingDate = mostRecentSamplingDate;
+        this.timescaleMultiplier = timescaleMultiplier;
     }
 
     public String parse() throws Exception {
@@ -141,6 +163,7 @@ public class TimeSlicerParser {
 
             currentTree = (RootedTree) treesImporter.importNextTree();
             if (counter >= burnIn) {
+                // TODO: race condition?
 
                 // tasks.add(new TimeSliceTree(slicesMap, //
                 //                             currentTree, //
@@ -192,6 +215,9 @@ public class TimeSlicerParser {
         progressBar = new ProgressBar(barLength);
         progressBar.start();
 
+        TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
+        LinkedList<Area> areasList = new LinkedList<Area>();
+
         // TODO : parallel execution
         for (Double sliceHeight : slicesMap.keySet()) {
 
@@ -219,34 +245,116 @@ public class TimeSlicerParser {
             ContourMaker contourMaker = new ContourWithSnyder(x, y, gridSize);
             ContourPath[] paths = contourMaker.getContourPaths(hpdLevel);
 
-            // for (ContourPath path : paths) {
+            for (ContourPath path : paths) {
 
-            //     double[] longitude = path.getAllX();
-            //     double[] latitude = path.getAllY();
+                double[] longitude = path.getAllX();
+                double[] latitude = path.getAllY();
 
-            //     List<Coordinate> coordinateList = new ArrayList<Coordinate>();
+                List<Coordinate> coordinateList = new ArrayList<Coordinate>();
 
-            //     for (int i = 0; i < latitude.length; i++) {
-            //         coordinateList.add(new Coordinate(latitude[i], longitude[i]));
-            //     }
+                for (int i = 0; i < latitude.length; i++) {
+                    coordinateList.add(new Coordinate(latitude[i], longitude[i]));
+                }
 
-            //     Polygon polygon = new Polygon(coordinateList);
+                Polygon polygon = new Polygon(coordinateList);
 
-            //     String startTime = timeParser.getNodeDate(sliceHeight * timescaleMultiplier);
+                String startTime = timeParser.getNodeDate(sliceHeight * timescaleMultiplier);
 
-            //     HashMap<String, Object> areaAttributesMap = new HashMap<String, Object>();
-            //     areaAttributesMap.put(Utils.HPD.toUpperCase(), hpdLevel);
+                HashMap<String, Object> areaAttributesMap = new HashMap<String, Object>();
+                areaAttributesMap.put(ParsersUtils.HPD.toUpperCase(), hpdLevel);
 
-            //     Area area = new Area(polygon, startTime, areaAttributesMap);
-            //     areasList.add(area);
+                Area area = new Area(polygon, startTime, areaAttributesMap);
+                areasList.add(area);
 
-            // } // END: paths loop
+            } // END: paths loop
 
             counter++;
             double progress = (stepSize * counter) / barLength;
             progressBar.setProgressPercentage(progress);
 
         } // END: iterate
+
+        progressBar.showCompleted();
+        progressBar.setShowProgress(false);
+        System.out.print("\n");
+
+        // ---collect attributes from areas---//
+
+        Map<String, Attribute> areasAttributesMap = new HashMap<String, Attribute>();
+
+        for (Area area : areasList) {
+
+            for (Entry<String, Object> entry : area.getAttributes().entrySet()) {
+
+                String attributeId = entry.getKey();
+                Object attributeValue = entry.getValue();
+
+                if (areasAttributesMap.containsKey(attributeId)) {
+
+                    Attribute attribute = areasAttributesMap.get(attributeId);
+
+                    if (attribute.getScale().equals(Attribute.ORDINAL)) {
+
+                        attribute.getDomain().add(attributeValue);
+
+                    } else {
+
+                        double value = ParsersUtils
+                            .round(Double.valueOf(attributeValue.toString()), 100);
+
+                        if (value < attribute.getRange()[Attribute.MIN_INDEX]) {
+                            attribute.getRange()[Attribute.MIN_INDEX] = value;
+                        } // END: min check
+
+                        if (value > attribute.getRange()[Attribute.MAX_INDEX]) {
+                            attribute.getRange()[Attribute.MAX_INDEX] = value;
+                        } // END: max check
+
+                    } // END: scale check
+
+                } else {
+
+                    Attribute attribute;
+                    if (attributeValue instanceof Double) {
+
+                        Double[] range = new Double[2];
+                        range[Attribute.MIN_INDEX] = (Double) attributeValue;
+                        range[Attribute.MAX_INDEX] = (Double) attributeValue;
+
+                        attribute = new Attribute(attributeId, range);
+
+                    } else {
+
+                        HashSet<Object> domain = new HashSet<Object>();
+                        domain.add(attributeValue);
+
+                        attribute = new Attribute(attributeId, domain);
+
+                    } // END: isNumeric check
+
+                    areasAttributesMap.put(attributeId, attribute);
+
+                } // END: key check
+
+            } // END: attributes loop
+
+        } // END: points loop
+
+        // uniqueAreaAttributes.addAll(areasAttributesMap.values());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -308,7 +416,7 @@ public class TimeSlicerParser {
         }
 
         for (int i = 0; i < numberOfIntervals; i++) {
-                timeSlices[i] = maxRootHeight - (maxRootHeight / (double) numberOfIntervals) * ((double) i);
+            timeSlices[i] = maxRootHeight - (maxRootHeight / (double) numberOfIntervals) * ((double) i);
         }
 
         return timeSlices;

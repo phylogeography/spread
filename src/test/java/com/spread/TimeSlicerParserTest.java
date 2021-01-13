@@ -29,7 +29,9 @@ public class TimeSlicerParserTest {
                                                         "location",
                                                         "rate",
                                                         0.8,
-                                                        100
+                                                        100,
+                                                        "2019/02/12",
+                                                        1.0
                                                         );
 
         String json = parser.parse();
