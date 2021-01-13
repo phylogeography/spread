@@ -2,7 +2,7 @@
   (:require [api.db :as db]
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
-            [api.models.timeslicer :as timeslicer-model]
+            [api.models.time-slicer :as time-slicer-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -163,7 +163,7 @@
                                               :status :ERROR}))))
 
 ;; TODO
-(defmethod handler :timeslicer-upload
+(defmethod handler :time-slicer-upload
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling timeslicer-upload" args)
   (try
@@ -181,16 +181,16 @@
                                                     :attributes attributes
                                                     :count trees-count})
 
-      (timeslicer-model/insert-attributes! db id attributes)
+      (time-slicer-model/insert-attributes! db id attributes)
 
-      (timeslicer-model/update-timeslicer! db {:id id
-                                               :trees-count trees-count
-                                               :status :ATTRIBUTES_AND_TREES_COUNT_PARSED})
+      (time-slicer-model/update-time-slicer! db {:id id
+                                                 :trees-count trees-count
+                                                 :status :ATTRIBUTES_AND_TREES_COUNT_PARSED})
       )
     (catch Exception e
       (log/error "Exception when handling timeslicer-upload" {:error e})
-      (timeslicer-model/update-timeslicer! db {:id id
-                                               :status :ERROR}))))
+      (time-slicer-model/update-time-slicer! db {:id id
+                                                 :status :ERROR}))))
 
 
 

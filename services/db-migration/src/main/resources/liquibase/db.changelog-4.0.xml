@@ -4,7 +4,7 @@
   <property name="RealBooleanType" value="TINYINT(1)" dbms="mysql"/>
 
   <changeSet author="filip" id="4.0-1">
-    <createTable tableName="timeslicer">
+    <createTable tableName="time_slicer">
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
@@ -32,15 +32,15 @@
   </changeSet>
 
   <changeSet author="filip" id="4.0-2">
-    <createIndex indexName="timeslicer_SLASH_user_id_INDEX" tableName="timeslicer">
+    <createIndex indexName="time_slicer_SLASH_user_id_INDEX" tableName="time_slicer">
       <column name="user_id"/>
     </createIndex>
   </changeSet>
 
   <changeSet author="filip" id="4.0-3">
-    <addForeignKeyConstraint constraintName="timeslicer_SLASH_user_id_FK"
+    <addForeignKeyConstraint constraintName="time_slicer_SLASH_user_id_FK"
                              baseColumnNames="user_id"
-                             baseTableName="timeslicer"
+                             baseTableName="time_slicer"
                              referencedColumnNames="id"
                              referencedTableName="user"
                              onDelete="CASCADE"
@@ -51,8 +51,8 @@
   </changeSet>
 
   <changeSet author="filip" id="4.0-4">
-    <createTable tableName="timeslicer_attributes">
-      <column name="timeslicer_id" type="VARCHAR(36)">
+    <createTable tableName="time_slicer_attributes">
+      <column name="time_slicer_id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="attribute_name" type="VARCHAR(200)">
@@ -62,20 +62,20 @@
   </changeSet>
 
   <changeSet author="filip" id="2.0-5">
-    <addForeignKeyConstraint constraintName="timeslicer_attributes_SLASH_timeslicer_FK"
-                             baseColumnNames="timeslicer_id"
-                             baseTableName="timeslicer_attributes"
+    <addForeignKeyConstraint constraintName="time_slicer_attributes_SLASH_timeslicer_FK"
+                             baseColumnNames="time_slicer_id"
+                             baseTableName="time_slicer_attributes"
                              referencedColumnNames="id"
-                             referencedTableName="timeslicer"
+                             referencedTableName="time_slicer"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"
                              initiallyDeferred="false"
                              validate="true"/>
     <addUniqueConstraint
-        columnNames="timeslicer_id, attribute_name"
-        constraintName="unique_timeslicer_attribute_names"
-        tableName="timeslicer_attributes"/>
+        columnNames="time_slicer_id, attribute_name"
+        constraintName="unique_time_slicer_attribute_names"
+        tableName="time_slicer_attributes"/>
   </changeSet>
 
 </databaseChangeLog>

@@ -75,6 +75,29 @@
                                            :resolve :resolve/discrete-tree->attributes}
                           :outputFileUrl {:type String}}}
 
+
+  :TimeSlicer {:description "Represents TimeSlicer entity."
+               :fields {:id {:description "Unique identifier."
+                             :type (non-null ID)}
+                        :userId {:type (non-null ID)}
+                        :readableName {:description "Human-readable name. Usually trees file name."
+                                       :type String}
+                        :treesFileUrl {:type (non-null String)}
+                        :sliceHeightsFileUrl {:type String}
+                        :burnIn {:type Int}
+                        :relaxedRandomWalkRateAttributeName {:type String}
+                        :traitAttributeName {:type String}
+                        :contouringGridSize {:type Int}
+                        :treesCount {:type Int}
+                        :hpdLevel {:type String}
+                        :timescaleMultiplier {:type Float}
+                        :mostRecentSamplingDate {:type String}
+                        :status {:type :TimeSlicerStatus}
+                        :attributeNames {:type (list String)
+                                         :resolve :resolve/time-slicer->attributes}
+                        :outputFileUrl {:type String}
+                        }}
+
   }
 
  :queries
@@ -87,6 +110,11 @@
                     :description "Returns a DiscreteTree entity by id."
                     :args {:id {:type (non-null ID)}}
                     :resolve :query/getDiscreteTree}
+
+  :getTimeSlicer {:type :TimeSlicer
+                  :description "Returns a TimeSlicer entity by id."
+                  :args {:id {:type (non-null ID)}}
+                  :resolve :query/getTimeSlicer}
 
   }
 
@@ -139,13 +167,12 @@
                             :args {:id {:type (non-null ID)}}
                             :resolve :mutation/startDiscreteTreeParser}
 
-
-  :uploadTimeslicer {:type :TimeSlicerParserStatus
+  :uploadTimeSlicer {:type :TimeSlicerParserStatus
                      :description "Persists continuous trees. Returns a ParserStatus with id for querying the status."
                      :args {:readableName {:type String}
                             :treesFileUrl {:type (non-null String)}
                             :sliceHeightsFileUrl {:type String}}
-                     :resolve :mutation/uploadTimeslicer}
+                     :resolve :mutation/uploadTimeSlicer}
 
   }
 

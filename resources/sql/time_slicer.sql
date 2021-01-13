@@ -1,7 +1,7 @@
--- :name upsert-timeslicer :! :n
--- :doc Upsert a timeslicer entity
+-- :name upsert-time-slicer :! :n
+-- :doc Upsert a time-slicer entity
 
-INSERT INTO timeslicer(
+INSERT INTO time_slicer(
 id,
 user_id,
 trees_file_url,
@@ -24,10 +24,10 @@ slice_heights_file_url = IF(:slice-heights-file-url IS NOT NULL, :slice-heights-
 status = :status,
 readable_name = :readable-name
 
--- :name update-timeslicer :! :n
--- :doc Updates a timeslicer entity
+-- :name update-time-slicer :! :n
+-- :doc Updates a time-slicer entity
 
-UPDATE timeslicer
+UPDATE time_slicer
 SET
 status = :status,
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
@@ -42,11 +42,47 @@ output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file
 trees_count = IF(:trees-count IS NOT NULL, :trees-count, trees_count)
 WHERE id = :id
 
+-- :name get-time-slicer :? :1
+-- :doc Get entity by id
+
+SELECT
+id,
+user_id,
+trees_file_url,
+slice_heights_file_url,
+status,
+readable_name,
+burn_in,
+trait_attribute_name,
+relaxed_random_walk_rate_attribute_name,
+contouring_grid_size,
+hpd_level,
+timescale_multiplier,
+most_recent_sampling_date,
+output_file_url,
+trees_count
+FROM time_slicer
+WHERE :id = id
+
 -- :name insert-attribute :! :n
 -- :doc Insert an attribute
 
-INSERT INTO timeslicer_attributes (timeslicer_id, attribute_name)
-VALUES (:timeslicer-id, :attribute-name)
+INSERT INTO time_slicer_attributes (time_slicer_id, attribute_name)
+VALUES (:time-slicer-id, :attribute-name)
 ON DUPLICATE KEY UPDATE
-timeslicer_id = :timeslicer-id,
+time_slicer_id = :time-slicer-id,
 attribute_name = :attribute-name
+
+-- :name get-attributes :? :*
+-- :doc Get attributes by tree-id
+
+SELECT attribute_name
+FROM time_slicer_attributes
+WHERE :time-slicer-id = time_slicer_id
+
+-- :name delete-time-slicer :! :n
+-- :doc Delete a entity by id
+
+DELETE
+FROM time_slicer
+WHERE id = :id

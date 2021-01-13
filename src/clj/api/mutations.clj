@@ -1,7 +1,7 @@
 (ns api.mutations
   (:require [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
-            [api.models.timeslicer :as timeslicer-model]
+            [api.models.time-slicer :as time-slicer-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -160,32 +160,29 @@
         (discrete-tree-model/update! db {:id id
                                          :status :ERROR})))))
 
-;; TODO
-(defn upload-timeslicer [{:keys [sqs workers-queue-url authed-user-id db]}
-                         {trees-file-url :treesFileUrl readable-name :readableName
-                          slice-heights-file-url :sliceHeightsFileUrl
-                          :as args} _]
-
-  (log/info "upload-timeslicer" {:user/id authed-user-id
-                                 :args args})
-
+(defn upload-time-slicer [{:keys [sqs workers-queue-url authed-user-id db]}
+                          {trees-file-url :treesFileUrl readable-name :readableName
+                           slice-heights-file-url :sliceHeightsFileUrl
+                           :as args} _]
+  (log/info "upload-time-slicer" {:user/id authed-user-id
+                                  :args args})
   (let [id (s3-url->id trees-file-url authed-user-id)
         status :TREES_UPLOADED
-        timeslicer {:id id
-                    :readable-name readable-name
-                    :user-id authed-user-id
-                    :trees-file-url trees-file-url
-                    :slice-heights-file-url slice-heights-file-url
-                    :status status}]
+        time-slicer {:id id
+                     :readable-name readable-name
+                     :user-id authed-user-id
+                     :trees-file-url trees-file-url
+                     :slice-heights-file-url slice-heights-file-url
+                     :status status}]
     (try
-      (timeslicer-model/upsert-timeslicer! db timeslicer)
+      (time-slicer-model/upsert-time-slicer! db time-slicer)
       ;; sends message to the worker to parse attributes
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :timeslicer-upload
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :time-slicer-upload
                                                    :id id
                                                    :user-id authed-user-id})
       {:id id
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (timeslicer-model/update-timeslicer! db {:id id
-                                                 :status :ERROR})))))
+        (time-slicer-model/update-time-slicer! db {:id id
+                                                   :status :ERROR})))))
