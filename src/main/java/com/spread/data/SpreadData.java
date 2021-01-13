@@ -2,10 +2,12 @@ package com.spread.data;
 
 import java.util.LinkedList;
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @author Filip Bielejec
  */
+@ToString(includeFieldNames=true)
 public class SpreadData {
 
     @Getter

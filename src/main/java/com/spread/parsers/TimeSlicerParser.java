@@ -1,25 +1,27 @@
 package com.spread.parsers;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
+import com.google.gson.GsonBuilder;
 import com.spread.contouring.ContourMaker;
 import com.spread.contouring.ContourPath;
 import com.spread.contouring.ContourWithSnyder;
 import com.spread.data.Attribute;
+import com.spread.data.Layer;
+import com.spread.data.SpreadData;
+import com.spread.data.TimeLine;
 import com.spread.data.attributable.Area;
 import com.spread.data.primitive.Coordinate;
 import com.spread.data.primitive.Polygon;
@@ -28,16 +30,9 @@ import com.spread.utils.ParsersUtils;
 import com.spread.utils.PrintUtils;
 import com.spread.utils.ProgressBar;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.FileReader;
-
 import jebl.evolution.io.ImportException;
 import jebl.evolution.io.NexusImporter;
 import jebl.evolution.trees.RootedTree;
-
 import lombok.Setter;
 
 public class TimeSlicerParser {
@@ -117,9 +112,10 @@ public class TimeSlicerParser {
         this.timescaleMultiplier = timescaleMultiplier;
     }
 
-    public String parse() throws Exception {
+    public String parse() throws IOException, ImportException, SpreadException
+    {
 
-        // ---PARSE TREES---//
+        // ---parse trees---//
 
         int barLength = 100;
         int assumedTrees = getAssumedTrees(this.treesFilePath);
@@ -148,12 +144,7 @@ public class TimeSlicerParser {
         System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
-        ConcurrentHashMap<Double, List<double[]>> slicesMap = new ConcurrentHashMap<Double, List<double[]>>(sliceHeights.length);
-
-        // Executor for threads
-        int NTHREDS = Runtime.getRuntime().availableProcessors();
-        ExecutorService executor = Executors.newFixedThreadPool(NTHREDS);
-        Collection<Callable<Void>> tasks = new ArrayList<>();
+        HashMap<Double, List<double[]>> slicesMap = new HashMap<Double, List<double[]>>(sliceHeights.length);
 
         RootedTree currentTree;
         int treesRead = 0;
@@ -163,15 +154,6 @@ public class TimeSlicerParser {
 
             currentTree = (RootedTree) treesImporter.importNextTree();
             if (counter >= burnIn) {
-                // TODO: race condition?
-
-                // tasks.add(new TimeSliceTree(slicesMap, //
-                //                             currentTree, //
-                //                             sliceHeights, //
-                //                             this.traitName, //
-                //                             this.rrwRateName //
-                //                             ));
-
                 new TimeSliceTree(slicesMap, //
                                   currentTree, //
                                   sliceHeights, //
@@ -187,23 +169,13 @@ public class TimeSlicerParser {
             progressBar.setProgressPercentage(progress);
         }
 
-        // Wait until all threads are finished
-        try {
-            executor.invokeAll(tasks);
-        } catch (InterruptedException ex) {
-            throw new SpreadException (ex.getMessage());
-        }
-        // executor.shutdown();
-        // while (!executor.isTerminated()) {
-        // }
-
         progressBar.showCompleted();
         progressBar.setShowProgress(false);
 
         System.out.print("\n");
         System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter + " trees");
 
-        // --- MAKE CONTOURS ---//
+        // --- make contours ---//
 
         System.out.println("Creating contours for " + traitName + " trait at " + hpdLevel + " HPD level");
         System.out.println("0                        25                       50                       75                       100%");
@@ -218,7 +190,7 @@ public class TimeSlicerParser {
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         LinkedList<Area> areasList = new LinkedList<Area>();
 
-        // TODO : parallel execution
+        // TODO : multithreaded execution
         for (Double sliceHeight : slicesMap.keySet()) {
 
             List<double[]> coords = slicesMap.get(sliceHeight);
@@ -229,18 +201,13 @@ public class TimeSlicerParser {
 
             for (int i = 0; i < n; i++) {
 
-                if (coords.get(i) == null) {
-                    System.out.println("null found");
-                }
+                // if (coords.get(i) == null) {
+                //     System.err.println("null found");
+                // }
 
                 x[i] = coords.get(i)[ParsersUtils.LONGITUDE_INDEX];
                 y[i] = coords.get(i)[ParsersUtils.LATITUDE_INDEX];
-
-                // System.out.println(x [i] + " : " + y [i]);
-
             } // END: i loop
-
-            // System.out.println("GS:" + gridSize);
 
             ContourMaker contourMaker = new ContourWithSnyder(x, y, gridSize);
             ContourPath[] paths = contourMaker.getContourPaths(hpdLevel);
@@ -322,14 +289,12 @@ public class TimeSlicerParser {
                         range[Attribute.MAX_INDEX] = (Double) attributeValue;
 
                         attribute = new Attribute(attributeId, range);
-
                     } else {
 
                         HashSet<Object> domain = new HashSet<Object>();
                         domain.add(attributeValue);
 
                         attribute = new Attribute(attributeId, domain);
-
                     } // END: isNumeric check
 
                     areasAttributesMap.put(attributeId, attribute);
@@ -340,26 +305,31 @@ public class TimeSlicerParser {
 
         } // END: points loop
 
-        // uniqueAreaAttributes.addAll(areasAttributesMap.values());
+        LinkedList<Attribute> uniqueAreaAttributes = new LinkedList<Attribute>();
+        uniqueAreaAttributes.addAll(areasAttributesMap.values());
 
+        TimeLine timeLine = timeParser.getTimeLine(sliceHeights[sliceHeights.length - 1]);
+        LinkedList<Layer> layersList = new LinkedList<Layer>();
 
+        String contoursLayerId = ParsersUtils.splitString(this.treesFilePath, "/");
+        Layer contoursLayer = new Layer(contoursLayerId, //
+                                        "Density contour layer", //
+                                        null, //
+                                        null, //
+                                        areasList);
 
+        layersList.add(contoursLayer);
 
+        SpreadData spreadData = new SpreadData(timeLine, //
+                                               null, // axisAttributes
+                                               null, // lineAttributes
+                                               null, // pointAttributes
+                                               uniqueAreaAttributes , // areaAttributes
+                                               null, // locationsList
+                                               layersList //
+                                               );
 
-
-
-
-
-
-
-
-
-
-
-
-
-        // TODO return JSON
-        return "";
+        return new GsonBuilder().create().toJson(spreadData);
     }
 
     public static int getAssumedTrees(String file) throws IOException {

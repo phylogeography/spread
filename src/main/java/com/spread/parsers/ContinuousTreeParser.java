@@ -500,7 +500,7 @@ public class ContinuousTreeParser {
         uniqueAreaAttributes.addAll(areasAttributesMap.values());
 
         AxisAttributes axis = new AxisAttributes(this.xCoordinateAttributeName,
-                                                 this.getYCoordinateAttributeName());
+                                                 this.yCoordinateAttributeName);
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 

@@ -1,29 +1,27 @@
 package com.spread.parsers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 import com.spread.exceptions.SpreadException;
-import jebl.evolution.graphs.Node;
-import jebl.evolution.trees.RootedTree;
 import com.spread.math.MultivariateNormalDistribution;
+import com.spread.utils.ParsersUtils;
 import com.spread.utils.Trait;
 
-import com.spread.utils.ParsersUtils;
+import jebl.evolution.graphs.Node;
+import jebl.evolution.trees.RootedTree;
 
-public class TimeSliceTree implements Callable<Void> {
+public class TimeSliceTree {
 
-    private ConcurrentHashMap<Double, List<double[]>> sliceMap;
+    private Map<Double, List<double[]>> sliceMap;
     private RootedTree currentTree;
     private Double[] sliceHeights;
     private String traitName;
     private String rrwRateName;
 
-    public TimeSliceTree(ConcurrentHashMap<Double, List<double[]>> sliceMap, //
+    public TimeSliceTree(HashMap<Double, List<double[]>> sliceMap, //
                          RootedTree currentTree, //
                          Double[] sliceHeights, //
                          String traitName, //
@@ -38,8 +36,7 @@ public class TimeSliceTree implements Callable<Void> {
 
     }
 
-    @Override
-    public Void call() throws SpreadException {
+    public void call() throws SpreadException {
 
         // parse the values once per tree
 
@@ -100,7 +97,6 @@ public class TimeSliceTree implements Callable<Void> {
                         coordinate[ParsersUtils.LATITUDE_INDEX] = latitude;
                         coordinate[ParsersUtils.LONGITUDE_INDEX] = longitude;
 
-                        // TODO : atomic operations
                         if (sliceMap.containsKey(sliceHeight)) {
                             sliceMap.get(sliceHeight).add(coordinate);
                         } else {
@@ -116,7 +112,6 @@ public class TimeSliceTree implements Callable<Void> {
             } // END: root node check
         } // END: node loop
 
-        return null;
     }
 
     private double[] imputeValue(double[] trait, //
@@ -183,7 +178,7 @@ public class TimeSliceTree implements Callable<Void> {
         }
 
         return result;
-    }// END: imputeValue
+    }
 
     private Trait getNodeTrait(Node node, String traitName) throws SpreadException {
 
@@ -194,7 +189,7 @@ public class TimeSliceTree implements Callable<Void> {
         }
 
         return new Trait(nodeAttribute);
-    }// END: getNodeTrait
+    }
 
     private double getTreeLength(RootedTree tree, Node node) {
 
@@ -210,6 +205,6 @@ public class TimeSliceTree implements Callable<Void> {
             length += tree.getLength(node);
 
         return length;
-    }// END: getTreeLength
+    }
 
 }
