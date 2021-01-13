@@ -1,4 +1,4 @@
-(ns tests.integration.timeslicer-test
+(ns tests.integration.time-slicer-test
   (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -16,14 +16,14 @@
                                                  }
                                                }"
                                               :variables {:id %}})
-                                  [:data :getTimeslicer :status])
+                                  [:data :getTimeSlicer :status])
                           keyword)]
     (loop [current-status (query-status id)]
       (if (= status current-status)
         current-status
         (recur (query-status id))))))
 
-(deftest timeslicer-test
+(deftest time-slicer-test
   (let [[url _] (get-in (run-query {:query
                                     "mutation GetUploadUrl($files: [File]) {
                                        getUploadUrls(files: $files)
@@ -45,6 +45,10 @@
                                                                      (string/split  #"\?")
                                                                      first)}})
                                     [:data :uploadTimeSlicer])
+
+        _ (is :TREES_UPLOADED (keyword status))
+
+        _ (block-on-status id :ATTRIBUTES_AND_TREES_COUNT_PARSED)
 
         ]
 

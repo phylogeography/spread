@@ -40,7 +40,7 @@
 
    :mutation/uploadTimeSlicer (auth-decorator mutations/upload-time-slicer)
 
-   :query/getTimeSlicer resolvers/get-discrete-tree
+   :query/getTimeSlicer resolvers/get-time-slicer
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
 
    })
