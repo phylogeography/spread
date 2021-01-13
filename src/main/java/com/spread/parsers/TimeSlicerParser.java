@@ -71,10 +71,10 @@ public class TimeSlicerParser {
     }
 
     public TimeSlicerParser(String treesFilePath, // path to the trees file
-                            int burnIn, //
+                            int burnIn, // ignore first n trees
                             String sliceHeightsFilePath,
                             String traitName, // 2D trait for contouring
-                            String rrwRateName, // 2D trait rate attribute
+                            String rrwRateName, // relaxed random walk rate attribute name
                             double hpdLevel,
                             int gridSize,
                             String mostRecentSamplingDate,

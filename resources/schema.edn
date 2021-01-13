@@ -16,6 +16,17 @@
 
                                 :ERROR]}
 
+  :TimeSlicerStatus {:values [:TREES_UPLOADED
+
+                              ;; :ATTRIBUTES_PARSED
+
+                              :QUEUED
+                              :RUNNING
+                              :SUCCEEDED
+
+                              :ERROR
+                              ]}
+
   }
 
  :input-objects
@@ -31,6 +42,9 @@
   :DiscreteTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                              :fields {:id {:type (non-null ID)}
                                       :status {:type (non-null :DiscreteTreeStatus)}}}
+
+  :TimeSlicerParserStatus {:fields {:id {:type (non-null ID)}
+                                    :status {:type (non-null :TimeSlicerStatus)}}}
 
   :ContinuousTree {:description "Represents ContinuousTree entity."
                    :fields {:id {:description "Unique identifier."
@@ -130,6 +144,14 @@
                             :description "Starts executing a parser. Returns a ParserStatus with id for querying the status."
                             :args {:id {:type (non-null ID)}}
                             :resolve :mutation/startDiscreteTreeParser}
+
+
+  :uploadTimeslicer {:type :TimeSlicerParserStatus
+                     :description "Persists continuous trees. Returns a ParserStatus with id for querying the status."
+                     :args {:readableName {:type String}
+                            :treesFileUrl {:type (non-null String)}
+                            :sliceHeightsFileUrl {:type String}}
+                     :resolve :mutation/uploadTimeslicer}
 
   }
 

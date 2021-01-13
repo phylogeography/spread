@@ -33,7 +33,6 @@ public class TimeSliceTree {
         this.sliceHeights = sliceHeights;
         this.traitName = traitName;
         this.rrwRateName = rrwRateName;
-
     }
 
     public void call() throws SpreadException {
@@ -64,9 +63,7 @@ public class TimeSliceTree {
                 Trait parentTrait = getNodeTrait(parentNode, traitName);
 
                 if (!trait.isNumber() || !parentTrait.isNumber()) {
-
                     throw new SpreadException("Trait " + traitName + " is not numeric!");
-
                 } else {
 
                     if (trait.getDim() != dim || parentTrait.getDim() != dim) {

@@ -35,6 +35,9 @@
    :mutation/uploadDiscreteTree (auth-decorator mutations/upload-discrete-tree)
    :mutation/updateDiscreteTree (auth-decorator mutations/update-discrete-tree)
    :mutation/startDiscreteTreeParser (auth-decorator mutations/start-discrete-tree-parser)
+
+   :mutation/uploadTimeslicer (auth-decorator mutations/upload-timeslicer)
+
    })
 
 (defn ^:private context-interceptor
