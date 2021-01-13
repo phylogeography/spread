@@ -29,13 +29,14 @@
                                                 :variables {:url (-> url
                                                                      (string/split  #"\?")
                                                                      first)}})
-                                    [:data :uploadContinuousTrees])
+                                    [:data :uploadTimeslicer])
 
         ]
 
     (log/debug "url" {:id id
                       :status status
-                      :url url})
+                      ;; :url url
+                      })
 
     (is false)
 

@@ -9,23 +9,17 @@
 
   :DiscreteTreeStatus {:values [:TREE_AND_LOCATIONS_UPLOADED
                                 :ATTRIBUTES_PARSED
-
                                 :QUEUED
                                 :RUNNING
                                 :SUCCEEDED
-
                                 :ERROR]}
 
   :TimeSlicerStatus {:values [:TREES_UPLOADED
-
-                              ;; :ATTRIBUTES_PARSED
-
+                              :ATTRIBUTES_AND_TREES_COUNT_PARSED
                               :QUEUED
                               :RUNNING
                               :SUCCEEDED
-
-                              :ERROR
-                              ]}
+                              :ERROR]}
 
   }
 

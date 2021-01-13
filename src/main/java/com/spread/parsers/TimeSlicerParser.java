@@ -2,6 +2,7 @@ package com.spread.parsers;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +13,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import com.google.gson.GsonBuilder;
 import com.spread.contouring.ContourMaker;
@@ -112,8 +115,7 @@ public class TimeSlicerParser {
         this.timescaleMultiplier = timescaleMultiplier;
     }
 
-    public String parse() throws IOException, ImportException, SpreadException
-    {
+    public String parse() throws IOException, ImportException, SpreadException {
 
         // ---parse trees---//
 
@@ -238,7 +240,6 @@ public class TimeSlicerParser {
             counter++;
             double progress = (stepSize * counter) / barLength;
             progressBar.setProgressPercentage(progress);
-
         } // END: iterate
 
         progressBar.showCompleted();
@@ -332,9 +333,8 @@ public class TimeSlicerParser {
         return new GsonBuilder().create().toJson(spreadData);
     }
 
-    public static int getAssumedTrees(String file) throws IOException {
+    private int getAssumedTrees(String file) throws IOException {
         InputStream is = new BufferedInputStream(new FileInputStream(file));
-
         try {
 
             String mark = ";";
@@ -390,6 +390,27 @@ public class TimeSlicerParser {
         }
 
         return timeSlices;
+    }
+
+    public String parseAttributesAndTreesCount() throws IOException, ImportException, SpreadException {
+
+        if (this.treesFilePath == null) {
+            throw new SpreadException("treesFilePath parameter is not set", null);
+        }
+
+        NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
+        RootedTree tree = (RootedTree) treesImporter.importNextTree();
+
+        Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
+            .flatMap(node -> node.getAttributeNames().stream()).map(name -> {
+                    return name;
+                }).collect(Collectors.toSet());
+
+        int treesCount = getAssumedTrees(this.treesFilePath);
+
+        Object tuple = new Object[] {uniqueAttributes, treesCount};
+
+        return new GsonBuilder().create().toJson(tuple);
     }
 
 }

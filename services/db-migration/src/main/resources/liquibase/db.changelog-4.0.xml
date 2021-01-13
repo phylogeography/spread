@@ -14,29 +14,30 @@
       <column name="trees_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-      <column name="slice_heights_file_url" type="VARCHAR(200)"/>      
+      <column name="slice_heights_file_url" type="VARCHAR(200)"/>
       <column name="status" type="VARCHAR(50)">
         <constraints nullable="false" />
       </column>
-      <column name="burn_in" type="INT"/>      
+      <column name="burn_in" type="INT"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
       <column name="trait_attribute_name" type="VARCHAR(50)"/>
-      <column name="relaxed_random_walk_attribute_name" type="VARCHAR(50)"/>
-      <column name="hpd_level" type="VARCHAR(3)"/>      
-      <column name="contouring_grid_size" type="INT"/>      
+      <column name="relaxed_random_walk_rate_attribute_name" type="VARCHAR(50)"/>
+      <column name="hpd_level" type="VARCHAR(3)"/>
+      <column name="contouring_grid_size" type="INT"/>
       <column name="timescale_multiplier" type="FLOAT"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
+      <column name="trees_count" type="INT"/>
     </createTable>
   </changeSet>
-  
-  <changeSet author="filip" id="2.0-2">
+
+  <changeSet author="filip" id="4.0-2">
     <createIndex indexName="timeslicer_SLASH_user_id_INDEX" tableName="timeslicer">
       <column name="user_id"/>
     </createIndex>
   </changeSet>
 
-  <changeSet author="filip" id="2.0-3">
+  <changeSet author="filip" id="4.0-3">
     <addForeignKeyConstraint constraintName="timeslicer_SLASH_user_id_FK"
                              baseColumnNames="user_id"
                              baseTableName="timeslicer"
@@ -48,61 +49,33 @@
                              initiallyDeferred="false"
                              validate="true"/>
   </changeSet>
-  
-  <!-- <changeSet author="filip" id="2.0-4"> -->
-  <!--   <createTable tableName="continuous_tree_attributes"> -->
-  <!--     <column name="tree_id" type="VARCHAR(36)"> -->
-  <!--       <constraints nullable="false" primaryKey="true"/> -->
-  <!--     </column> -->
-  <!--     <column name="attribute_name" type="VARCHAR(200)"> -->
-  <!--       <constraints nullable="false" primaryKey="true"/> -->
-  <!--     </column> -->
-  <!--   </createTable> -->
-  <!-- </changeSet> -->
 
-  <!-- <changeSet author="filip" id="2.0-5"> -->
-  <!--   <addForeignKeyConstraint constraintName="continuous_tree_attributes_SLASH_continuous_tree_FK" -->
-  <!--                            baseColumnNames="tree_id" -->
-  <!--                            baseTableName="continuous_tree_attributes" -->
-  <!--                            referencedColumnNames="id" -->
-  <!--                            referencedTableName="continuous_tree" -->
-  <!--                            onDelete="CASCADE" -->
-  <!--                            onUpdate="RESTRICT" -->
-  <!--                            deferrable="false" -->
-  <!--                            initiallyDeferred="false" -->
-  <!--                            validate="true"/> -->
-  <!--   <addUniqueConstraint -->
-  <!--       columnNames="tree_id, attribute_name" -->
-  <!--       constraintName="unique_tree_attribute_names" -->
-  <!--       tableName="continuous_tree_attributes"/>     -->
-  <!-- </changeSet> -->
-  
-  <!-- <changeSet author="filip" id="2.0-6"> -->
-  <!--   <createTable tableName="continuous_tree_hpd_levels"> -->
-  <!--     <column name="tree_id" type="VARCHAR(36)"> -->
-  <!--       <constraints nullable="false" primaryKey="true"/> -->
-  <!--     </column> -->
-  <!--     <column name="level" type="VARCHAR(3)"> -->
-  <!--       <constraints nullable="false" primaryKey="true"/> -->
-  <!--     </column> -->
-  <!--   </createTable> -->
-  <!-- </changeSet> -->
+  <changeSet author="filip" id="4.0-4">
+    <createTable tableName="timeslicer_attributes">
+      <column name="timeslicer_id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="attribute_name" type="VARCHAR(200)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
 
-  <!-- <changeSet author="filip" id="2.0-7"> -->
-  <!--   <addForeignKeyConstraint constraintName="continuous_tree_hpd_levels_SLASH_continuous_tree_FK" -->
-  <!--                            baseColumnNames="tree_id" -->
-  <!--                            baseTableName="continuous_tree_hpd_levels" -->
-  <!--                            referencedColumnNames="id" -->
-  <!--                            referencedTableName="continuous_tree" -->
-  <!--                            onDelete="CASCADE" -->
-  <!--                            onUpdate="RESTRICT" -->
-  <!--                            deferrable="false" -->
-  <!--                            initiallyDeferred="false" -->
-  <!--                            validate="true"/> -->
-  <!--   <addUniqueConstraint -->
-  <!--       columnNames="tree_id, level" -->
-  <!--       constraintName="unique_tree_hpd_level" -->
-  <!--       tableName="continuous_tree_hpd_levels"/>     -->
-  <!-- </changeSet> -->
-  
+  <changeSet author="filip" id="2.0-5">
+    <addForeignKeyConstraint constraintName="timeslicer_attributes_SLASH_timeslicer_FK"
+                             baseColumnNames="timeslicer_id"
+                             baseTableName="timeslicer_attributes"
+                             referencedColumnNames="id"
+                             referencedTableName="timeslicer"
+                             onDelete="CASCADE"
+                             onUpdate="RESTRICT"
+                             deferrable="false"
+                             initiallyDeferred="false"
+                             validate="true"/>
+    <addUniqueConstraint
+        columnNames="timeslicer_id, attribute_name"
+        constraintName="unique_timeslicer_attribute_names"
+        tableName="timeslicer_attributes"/>
+  </changeSet>
+
 </databaseChangeLog>

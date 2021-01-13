@@ -180,12 +180,12 @@
     (try
       (timeslicer-model/upsert-timeslicer! db timeslicer)
       ;; sends message to the worker to parse attributes
-      #_(aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :timeslicer-upload
                                                    :id id
                                                    :user-id authed-user-id})
       {:id id
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        #_(continuous-tree-model/update-tree! db {:id id
-                                                :status :ERROR})))))
+        (timeslicer-model/update-timeslicer! db {:id id
+                                                 :status :ERROR})))))

@@ -2,6 +2,7 @@
   (:require [api.db :as db]
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
+            [api.models.timeslicer :as timeslicer-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -10,7 +11,8 @@
             [shared.utils :refer [file-exists?]]
             [taoensso.timbre :as log])
   (:import (com.spread.parsers ContinuousTreeParser)
-           (com.spread.parsers DiscreteTreeParser)))
+           (com.spread.parsers DiscreteTreeParser)
+           (com.spread.parsers TimeSlicerParser)))
 
 (defonce tmp-dir "/tmp")
 
@@ -159,6 +161,41 @@
       (log/error "Exception when handling parse-continuous-tree" {:error e})
       (continuous-tree-model/update-tree! db {:id id
                                               :status :ERROR}))))
+
+;; TODO
+(defmethod handler :timeslicer-upload
+  [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
+  (log/info "handling timeslicer-upload" args)
+  (try
+    (let [;; TODO: parse extension
+          trees-object-key (str user-id "/" id ".trees")
+          trees-file-path (str tmp-dir "/" trees-object-key)
+          _ (aws-s3/download-file s3 {:bucket bucket-name
+                                      :key trees-object-key
+                                      :dest-path trees-file-path})
+          parser (doto (new TimeSlicerParser)
+                   (.setTreesFilePath trees-file-path))
+          [attributes trees-count] (json/read-str (.parseAttributesAndTreesCount parser))
+          ]
+      (log/info "Parsed attributes and hpd-levels" {:id id
+                                                    :attributes attributes
+                                                    :count trees-count})
+
+      (timeslicer-model/insert-attributes! db id attributes)
+
+      (timeslicer-model/update-timeslicer! db {:id id
+                                               :trees-count trees-count
+                                               :status :ATTRIBUTES_AND_TREES_COUNT_PARSED})
+      )
+    (catch Exception e
+      (log/error "Exception when handling timeslicer-upload" {:error e})
+      (timeslicer-model/update-timeslicer! db {:id id
+                                               :status :ERROR}))))
+
+
+
+
+
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws

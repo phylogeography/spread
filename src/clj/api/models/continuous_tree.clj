@@ -28,8 +28,7 @@
    :has-external-annotations nil
    :timescale-multiplier nil
    :most-recent-sampling-date nil
-   :output-file-url nil
-   })
+   :output-file-url nil})
 
 (defn upsert-tree! [db tree]
   (let [tree (->> tree

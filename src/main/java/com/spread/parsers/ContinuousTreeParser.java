@@ -516,7 +516,6 @@ public class ContinuousTreeParser {
 
         SpreadData spreadData = new SpreadData(timeLine, //
                                                axis, //
-                                               // mapAttributes, //
                                                uniqueBranchAttributes, //
                                                uniqueNodeAttributes, //
                                                uniqueAreaAttributes, //
@@ -546,8 +545,6 @@ public class ContinuousTreeParser {
 
         return new GsonBuilder().create().toJson(pair);
     }
-
-    //  return hpd levels vector
 
     private Point createPoint(Node node, Coordinate coordinate, RootedTree rootedTree, TimeParser timeParser) throws SpreadException {
 
