@@ -39,9 +39,10 @@
    :mutation/startDiscreteTreeParser (auth-decorator mutations/start-discrete-tree-parser)
 
    :mutation/uploadTimeSlicer (auth-decorator mutations/upload-time-slicer)
-
+   :mutation/updateTimeSlicer (auth-decorator mutations/update-time-slicer)
    :query/getTimeSlicer resolvers/get-time-slicer
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
+   :mutation/startTimeSlicerParser (auth-decorator mutations/start-time-slicer-parser)
 
    })
 

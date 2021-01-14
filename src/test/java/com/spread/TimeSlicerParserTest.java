@@ -26,12 +26,8 @@ public class TimeSlicerParserTest {
 
         String mostRecentSamplingDate = "2021/01/12";
         double hpdLevel = 0.8;
-
         String path = "timeSlicer/WNV_small.trees";
         File treesfile = new File(getClass().getClassLoader().getResource(path).getFile());
-
-        // String path = "/home/filip/Dropbox/JavaProjects/SpreaD3/data/continuous/WNV/WNV_relaxed_geo_gamma.trees";
-        // File treesfile = new File(path);
 
         TimeSlicerParser parser = new TimeSlicerParser (treesfile.getAbsolutePath(),
                                                         1,

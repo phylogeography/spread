@@ -16,6 +16,7 @@
 
   :TimeSlicerStatus {:values [:TREES_UPLOADED
                               :ATTRIBUTES_AND_TREES_COUNT_PARSED
+                              :PARSER_ARGUMENTS_SET
                               :QUEUED
                               :RUNNING
                               :SUCCEEDED
@@ -88,6 +89,7 @@
                         :relaxedRandomWalkRateAttributeName {:type String}
                         :traitAttributeName {:type String}
                         :contouringGridSize {:type Int}
+                        :numberOfIntervals {:type Int}
                         :treesCount {:type Int}
                         :hpdLevel {:type String}
                         :timescaleMultiplier {:type Float}
@@ -133,6 +135,7 @@
   :updateContinuousTree {:type :ContinuousTreeParserStatus
                          :description "Updates the entity with settings for parsing the tree graph"
                          :args {:id {:type (non-null ID)}
+                                :readableName {:type String}
                                 :xCoordinateAttributeName {:type (non-null String)}
                                 :yCoordinateAttributeName {:type (non-null String)}
                                 :hpdLevel {:type (non-null String)}
@@ -150,13 +153,13 @@
                        :description "Persists discrete tree. Returns a ParserStatus with id for querying the status."
                        :args {:readableName {:type String}
                               :treeFileUrl {:type (non-null String)}
-                              :locationsFileUrl {:type (non-null String)}
-                              }
+                              :locationsFileUrl {:type (non-null String)}}
                        :resolve :mutation/uploadDiscreteTree}
 
   :updateDiscreteTree {:type :DiscreteTreeParserStatus
                        :description "Updates the entity with settings for parsing the tree graph"
                        :args {:id {:type (non-null ID)}
+                              :readableName {:type String}
                               :locationAttributeName {:type (non-null String)}
                               :timescaleMultiplier {:type String}
                               :mostRecentSamplingDate {:type (non-null String)}}
@@ -173,6 +176,25 @@
                             :treesFileUrl {:type (non-null String)}
                             :sliceHeightsFileUrl {:type String}}
                      :resolve :mutation/uploadTimeSlicer}
+
+  :updateTimeSlicer {:type :TimeSlicerParserStatus
+                     :description "Updates the entity with settings for parsing"
+                     :args {:id {:type (non-null ID)}
+                            :readableName {:type String}
+                            :burnIn {:type Int}
+                            :relaxedRandomWalkRateAttributeName {:type (non-null String)}
+                            :traitAttributeName {:type (non-null String)}
+                            :contouringGridSize {:type Int}
+                            :numberOfIntervals {:type Int}
+                            :hpdLevel {:type (non-null Float)}
+                            :timescaleMultiplier {:type Float}
+                            :mostRecentSamplingDate {:type (non-null String)}}
+                     :resolve :mutation/updateTimeSlicer}
+
+  :startTimeSlicerParser {:type :TimeSlicerParserStatus
+                          :description "Starts executing a parser."
+                          :args {:id {:type (non-null ID)}}
+                          :resolve :mutation/startTimeSlicerParser}
 
   }
 

@@ -21,6 +21,7 @@
    :status nil
    :readable-name nil
    :burn-in nil
+   :number-of-intervals nil
    :relaxed-random-walk-rate-attribute-name nil
    :trait-attribute-name nil
    :hpd-level nil
@@ -31,14 +32,14 @@
    :trees-count nil
    })
 
-(defn upsert-time-slicer! [db time-slicer]
+(defn upsert! [db time-slicer]
   (let [time-slicer (->> time-slicer
                          (merge nil-time-slicer)
                          (#(update % :status name)))]
     (log/debug "upsert-time-slicer!" time-slicer)
     (upsert-time-slicer db time-slicer)))
 
-(defn update-time-slicer! [db time-slicer]
+(defn update! [db time-slicer]
   (let [time-slicer (->> time-slicer
                          (merge nil-time-slicer)
                          (#(update % :status name)))]

@@ -19,11 +19,12 @@
         <constraints nullable="false" />
       </column>
       <column name="burn_in" type="INT"/>
+      <column name="number_of_intervals" type="INT"/>      
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
       <column name="trait_attribute_name" type="VARCHAR(50)"/>
       <column name="relaxed_random_walk_rate_attribute_name" type="VARCHAR(50)"/>
-      <column name="hpd_level" type="VARCHAR(3)"/>
+      <column name="hpd_level" type="FLOAT"/>
       <column name="contouring_grid_size" type="INT"/>
       <column name="timescale_multiplier" type="FLOAT"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>

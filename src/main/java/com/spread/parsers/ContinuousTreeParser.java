@@ -506,12 +506,19 @@ public class ContinuousTreeParser {
 
         // --- DATA LAYER (TREE LINES & POINTS, AREAS) --- //
 
-        String treeLayerId = ParsersUtils.splitString(this.treeFilePath, "/");
-        Layer treeLayer = new Layer(treeLayerId, //
-                                    "Tree layer", //
-                                    pointsList, //
-                                    linesList, //
-                                    areasList);
+        // String treeLayerId = ParsersUtils.splitString(this.treeFilePath, "/");
+        // Layer treeLayer = new Layer(treeLayerId, //
+        //                             "Tree layer", //
+        //                             pointsList, //
+        //                             linesList, //
+        //                             areasList);
+
+        Layer treeLayer = new Layer.Builder ()
+            .withPoints (pointsList)
+            .withLines (linesList)
+            .withAreas (areasList)
+            .build ();
+
         layersList.add(treeLayer);
 
         SpreadData spreadData = new SpreadData(timeLine, //

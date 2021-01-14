@@ -36,7 +36,7 @@
                          :tree-file-url tree-file-url
                          :status status}]
     (try
-      (continuous-tree-model/upsert-tree! db continuous-tree)
+      (continuous-tree-model/upsert! db continuous-tree)
       ;; sends message to worker to parse hpd levels and attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
                                                    :id id
@@ -45,11 +45,12 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (continuous-tree-model/update-tree! db {:id id
-                                                :status :ERROR})))))
+        (continuous-tree-model/update! db {:id id
+                                           :status :ERROR})))))
 
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id :id
+                                readable-name :readableName
                                 x-coordinate-attribute-name :xCoordinateAttributeName
                                 y-coordinate-attribute-name :yCoordinateAttributeName
                                 hpd-level :hpdLevel
@@ -57,26 +58,26 @@
                                 timescale-multiplier :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
                                 :or {has-external-annotations true
-                                     timescale-multiplier 1}
+                                     timescale-multiplier 1.0}
                                 :as args} _]
   (log/info "update continuous tree" {:user/id authed-user-id
                                       :args args})
   (try
     (let [status :PARSER_ARGUMENTS_SET]
-      (continuous-tree-model/update-tree! db {:id id
-                                              :x-coordinate-attribute-name x-coordinate-attribute-name
-                                              :y-coordinate-attribute-name y-coordinate-attribute-name
-                                              :hpd-level hpd-level
-                                              :has-external-annotations has-external-annotations
-                                              :timescale-multiplier timescale-multiplier
-                                              :most-recent-sampling-date most-recent-sampling-date
-                                              :status status})
+      (continuous-tree-model/update! db {:id id
+                                         :x-coordinate-attribute-name x-coordinate-attribute-name
+                                         :y-coordinate-attribute-name y-coordinate-attribute-name
+                                         :hpd-level hpd-level
+                                         :has-external-annotations has-external-annotations
+                                         :timescale-multiplier timescale-multiplier
+                                         :most-recent-sampling-date most-recent-sampling-date
+                                         :status status})
       {:id id
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (continuous-tree-model/update-tree! db {:id id
-                                              :status :ERROR}))))
+      (continuous-tree-model/update! db {:id id
+                                         :status :ERROR}))))
 
 (defn start-continuous-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -85,13 +86,13 @@
     (try
       (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
                                                    :id id})
-      (continuous-tree-model/update-tree! db {:id id :status status})
+      (continuous-tree-model/update! db {:id id :status status})
       {:id id
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (continuous-tree-model/update-tree! db {:id id
-                                                :status :ERROR})))))
+        (continuous-tree-model/update! db {:id id
+                                           :status :ERROR})))))
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url :treeFileUrl
@@ -101,6 +102,7 @@
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args args})
   (let [id (s3-url->id tree-file-url authed-user-id)
+        ;; NOTE: uploads mutation generates different ids for each uploaded file
         ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
         status :TREE_AND_LOCATIONS_UPLOADED
         discrete-tree {:id id
@@ -124,6 +126,7 @@
 
 (defn update-discrete-tree
   [{:keys [authed-user-id db]} {id :id
+                                readable-name :readableName
                                 location-attribute-name :locationAttributeName
                                 timescale-multiplier :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
@@ -175,7 +178,7 @@
                      :slice-heights-file-url slice-heights-file-url
                      :status status}]
     (try
-      (time-slicer-model/upsert-time-slicer! db time-slicer)
+      (time-slicer-model/upsert! db time-slicer)
       ;; sends message to the worker to parse attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :time-slicer-upload
                                                    :id id
@@ -184,5 +187,57 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (time-slicer-model/update-time-slicer! db {:id id
-                                                   :status :ERROR})))))
+        (time-slicer-model/update! db {:id id
+                                       :status :ERROR})))))
+
+(defn update-time-slicer
+  [{:keys [authed-user-id db]} {id :id
+                                readable-name :readableName
+                                burn-in :burnIn
+                                relaxed-random-walk-rate-attribute-name  :relaxedRandomWalkRateAttributeName
+                                trait-attribute-name :traitAttributeName
+                                contouring-grid-size :contouringGridSize
+                                number-of-intervals :numberOfIntervals
+                                hpd-level :hpdLevel
+                                timescale-multiplier :timescaleMultiplier
+                                most-recent-sampling-date :mostRecentSamplingDate
+                                :or {timescale-multiplier 1.0
+                                     contouring-grid-size 100
+                                     number-of-intervals 10}
+                                :as args} _]
+  (log/info "update time-slicer" {:user/id authed-user-id
+                                  :args args})
+  (try
+    (let [status :PARSER_ARGUMENTS_SET]
+      (time-slicer-model/update! db {:id id
+                                     :readable-name readable-name
+                                     :burn-in burn-in
+                                     :number-of-intervals number-of-intervals
+                                     :relaxed-random-walk-rate-attribute-name relaxed-random-walk-rate-attribute-name
+                                     :trait-attribute-name trait-attribute-name
+                                     :contouring-grid-size contouring-grid-size
+                                     :hpd-level hpd-level
+                                     :timescale-multiplier timescale-multiplier
+                                     :most-recent-sampling-date most-recent-sampling-date
+                                     :status status})
+      {:id id
+       :status status})
+    (catch Exception e
+      (log/error "Exception occured" {:error e})
+      (time-slicer-model/update! db {:id id
+                                     :status :ERROR}))))
+
+(defn start-time-slicer-parser
+  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  (log/info "start-time-slicer-parser" args)
+  (let [status :QUEUED]
+    (try
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-time-slicer
+                                                   :id id})
+      (time-slicer-model/update! db {:id id :status status})
+      {:id id
+       :status status}
+      (catch Exception e
+        (log/error "Exception when sending message to worker" {:error e})
+        (time-slicer-model/update! db {:id id
+                                       :status :ERROR})))))

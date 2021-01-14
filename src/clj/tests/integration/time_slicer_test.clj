@@ -50,12 +50,73 @@
 
         _ (block-on-status id :ATTRIBUTES_AND_TREES_COUNT_PARSED)
 
+        ;; TODO : query arguments
+        {:keys [id attributeNames treesCount status]} (get-in (run-query {:query
+                                                                          "query GetTree($id: ID!) {
+                                                                            getTimeSlicer(id: $id) {
+                                                                              id
+                                                                              status
+                                                                              treesCount
+                                                                              attributeNames
+                                                                            }
+                                                                          }"
+                                                                          :variables {:id id}})
+                                                              [:data :getTimeSlicer])
+
+        {:keys [status]} (get-in (run-query {:query
+                                             "mutation UpdateTree($id: ID!,
+                                                                  $burnIn: Int!,
+                                                                  $numberOfIntervals : Int!,
+                                                                  $rrwRateAttributeName: String!,
+                                                                  $traitAttributeName: String!,
+                                                                  $contouringGridSize: Int!,
+                                                                  $hpd: Float!,
+                                                                  $mrsd: String!) {
+                                                   updateTimeSlicer(id: $id,
+                                                                    burnIn: $burnIn,
+                                                                    numberOfIntervals: $numberOfIntervals,
+                                                                    relaxedRandomWalkRateAttributeName: $rrwRateAttributeName,
+                                                                    traitAttributeName: $traitAttributeName,
+                                                                    contouringGridSize: $contouringGridSize,
+                                                                    hpdLevel: $hpd,
+                                                                    mostRecentSamplingDate: $mrsd) {
+                                                     status
+                                                   }
+                                              }"
+                                             :variables {:id id
+                                                         :traitAttributeName "location"
+                                                         :rrwRateAttributeName "rate"
+                                                         :contouringGridSize 100
+                                                         :burnIn 1
+                                                         :numberOfIntervals 10
+                                                         :hpd 0.8
+                                                         :mrsd "2021/01/12"}})
+                                 [:data :updateContinuousTree])
+
+        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+
+        {:keys [status]} (get-in (run-query {:query
+                                             "mutation QueueJob($id: ID!) {
+                                                startTimeSlicerParser(id: $id) {
+                                                 status
+                                                }
+                                              }"
+                                             :variables {:id id}})
+                                 [:data :startTimeSlicerParser])
+
+
         ]
 
     (log/debug "url" {:id id
                       :status status
+                      :attributes attributeNames
+                      :count treesCount
                       ;; :url url
                       })
+
+    (is #{"rate" "location"} (set attributeNames))
+
+    (is (= 10 treesCount))
 
     (is false)
 

@@ -312,12 +312,14 @@ public class TimeSlicerParser {
         TimeLine timeLine = timeParser.getTimeLine(sliceHeights[sliceHeights.length - 1]);
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-        String contoursLayerId = ParsersUtils.splitString(this.treesFilePath, "/");
-        Layer contoursLayer = new Layer(contoursLayerId, //
-                                        "Density contour layer", //
-                                        null, //
-                                        null, //
-                                        areasList);
+        // String contoursLayerId = ParsersUtils.splitString(this.treesFilePath, "/");
+        Layer contoursLayer = new Layer.Builder ().withAreas (areasList).build ();
+
+        // Layer contoursLayer = new Layer(contoursLayerId, //
+        //                                 "Density contour layer", //
+        //                                 // null, //
+        //                                 // null, //
+        //                                 areasList);
 
         layersList.add(contoursLayer);
 
