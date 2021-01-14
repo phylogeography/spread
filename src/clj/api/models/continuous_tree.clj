@@ -28,17 +28,16 @@
    :has-external-annotations nil
    :timescale-multiplier nil
    :most-recent-sampling-date nil
-   :output-file-url nil
-   })
+   :output-file-url nil})
 
-(defn upsert-tree! [db tree]
+(defn upsert! [db tree]
   (let [tree (->> tree
                   (merge nil-tree)
                   (#(update % :status name)))]
     (log/debug "upsert-tree!" tree)
     (upsert-tree db tree)))
 
-(defn update-tree! [db tree]
+(defn update! [db tree]
   (let [tree (->> tree
                   (merge nil-tree)
                   (#(update % :status name)))]

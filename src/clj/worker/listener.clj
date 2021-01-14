@@ -2,6 +2,7 @@
   (:require [api.db :as db]
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
+            [api.models.time-slicer :as time-slicer-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -10,7 +11,8 @@
             [shared.utils :refer [file-exists?]]
             [taoensso.timbre :as log])
   (:import (com.spread.parsers ContinuousTreeParser)
-           (com.spread.parsers DiscreteTreeParser)))
+           (com.spread.parsers DiscreteTreeParser)
+           (com.spread.parsers TimeSlicerParser)))
 
 (defonce tmp-dir "/tmp")
 
@@ -111,19 +113,19 @@
                                                     :hpd-levels hpd-levels})
       (continuous-tree-model/insert-attributes! db id attributes)
       (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
-      (continuous-tree-model/update-tree! db {:id id
-                                              :status :ATTRIBUTES_AND_HPD_LEVELS_PARSED}))
+      (continuous-tree-model/update! db {:id id
+                                         :status :ATTRIBUTES_AND_HPD_LEVELS_PARSED}))
     (catch Exception e
       (log/error "Exception when handling continuous-tree-upload" {:error e})
-      (continuous-tree-model/update-tree! db {:id id
-                                              :status :ERROR}))))
+      (continuous-tree-model/update! db {:id id
+                                         :status :ERROR}))))
 
 (defmethod handler :parse-continuous-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-continuous-tree" args)
   (try
-    (let [_ (continuous-tree-model/update-tree! db {:id id
-                                                    :status :RUNNING})
+    (let [_ (continuous-tree-model/update! db {:id id
+                                               :status :RUNNING})
           {:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
                   hpd-level has-external-annotations timescale-multiplier
                   most-recent-sampling-date]}
@@ -152,13 +154,88 @@
                                     :key output-object-key
                                     :file-path output-object-path})
           url (aws-s3/build-url aws-config bucket-name output-object-key)]
-      (continuous-tree-model/update-tree! db {:id id
-                                              :output-file-url url
-                                              :status :SUCCEEDED}))
+      (continuous-tree-model/update! db {:id id
+                                         :output-file-url url
+                                         :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
-      (continuous-tree-model/update-tree! db {:id id
-                                              :status :ERROR}))))
+      (continuous-tree-model/update! db {:id id
+                                         :status :ERROR}))))
+
+(defmethod handler :time-slicer-upload
+  [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
+  (log/info "handling timeslicer-upload" args)
+  (try
+    (let [;; TODO: parse extension
+          trees-object-key (str user-id "/" id ".trees")
+          trees-file-path (str tmp-dir "/" trees-object-key)
+          _ (aws-s3/download-file s3 {:bucket bucket-name
+                                      :key trees-object-key
+                                      :dest-path trees-file-path})
+          parser (doto (new TimeSlicerParser)
+                   (.setTreesFilePath trees-file-path))
+          [attributes trees-count] (json/read-str (.parseAttributesAndTreesCount parser))]
+      (log/info "Parsed attributes and hpd-levels" {:id id
+                                                    :attributes attributes
+                                                    :count trees-count})
+      (time-slicer-model/insert-attributes! db id attributes)
+      (time-slicer-model/update! db {:id id
+                                     :trees-count trees-count
+                                     :status :ATTRIBUTES_AND_TREES_COUNT_PARSED}))
+    (catch Exception e
+      (log/error "Exception when handling time-slicer-upload" {:error e})
+      (time-slicer-model/update! db {:id id
+                                     :status :ERROR}))))
+
+(defmethod handler :parse-time-slicer
+  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
+  (log/info "handling parse-time-slicer" args)
+  (try
+    (let [_ (time-slicer-model/update! db {:id id
+                                           :status :RUNNING})
+          {:keys [user-id
+                  burn-in
+                  relaxed-random-walk-rate-attribute-name
+                  trait-attribute-name
+                  number-of-intervals
+                  contouring-grid-size
+                  hpd-level
+                  timescale-multiplier
+                  most-recent-sampling-date]}
+          (time-slicer-model/get-time-slicer db {:id id})
+          ;; TODO: parse extension
+          trees-object-key (str user-id "/" id ".trees")
+          trees-file-path (str tmp-dir "/" trees-object-key)
+          ;; is it cached on disk?
+          _ (when-not (file-exists? trees-file-path)
+              (aws-s3/download-file s3 {:bucket bucket-name
+                                        :key trees-object-key
+                                        :dest-path trees-file-path}))
+          ;; call all setters
+          parser (doto (new TimeSlicerParser)
+                   (.setTreesFilePath trees-file-path)
+                   (.setBurnIn burn-in)
+                   (.setRrwRateName relaxed-random-walk-rate-attribute-name)
+                   (.setTraitName trait-attribute-name)
+                   (.setNumberOfIntervals number-of-intervals)
+                   (.setHpdLevel hpd-level)
+                   (.setGridSize contouring-grid-size)
+                   (.setTimescaleMultiplier timescale-multiplier)
+                   (.setMostRecentSamplingDate most-recent-sampling-date))
+          output-object-key (str user-id "/" id ".json")
+          output-object-path (str tmp-dir "/" output-object-key)
+          _ (spit output-object-path (.parse parser) :append false)
+          _ (aws-s3/upload-file s3 {:bucket bucket-name
+                                    :key output-object-key
+                                    :file-path output-object-path})
+          url (aws-s3/build-url aws-config bucket-name output-object-key)]
+      (time-slicer-model/update! db {:id id
+                                     :output-file-url url
+                                     :status :SUCCEEDED}))
+    (catch Exception e
+      (log/error "Exception when handling parse-time-slicer" {:error e})
+      (time-slicer-model/update! db {:id id
+                                     :status :ERROR}))))
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws

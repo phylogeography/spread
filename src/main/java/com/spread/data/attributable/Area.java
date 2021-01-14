@@ -15,20 +15,14 @@ public class Area {
     @Getter
     private final String startTime;
     @Getter
-    private final Map<String, Object> attributes;// = new LinkedHashMap<String, Object>();
+    private final Map<String, Object> attributes;
     @Getter
     private final Polygon polygon;
 
-    public Area( Polygon polygon, String startTime, Map<String, Object> attributes) {
-
+    public Area (Polygon polygon, String startTime, Map<String, Object> attributes) {
         this.polygon = polygon;
         this.startTime = startTime;
-
         this.attributes = attributes;
-        // if (attributes != null) {
-        //     this.attributes.putAll(attributes);
-        // }
-
     }
 
 }

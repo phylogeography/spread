@@ -373,20 +373,27 @@ public class DiscreteTreeParser {
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-        String countsLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
-        Layer countsLayer = new Layer(countsLayerId, //
-                                      "Counts layer", //
-                                      countsList //
-                                      );
+        // String countsLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
+        // Layer countsLayer = new Layer(countsLayerId, //
+        //                               "Counts layer", //
+        //                               countsList //
+        //                               );
+
+        Layer countsLayer = new Layer.Builder ().withPoints (countsList).build ();
 
         layersList.add(countsLayer);
 
-        String treeLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
-        Layer treeLayer = new Layer(treeLayerId, //
-                                    "Tree layer", //
-                                    pointsList, //
-                                    linesList //
-                                    );
+        // String treeLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
+        // Layer treeLayer = new Layer(treeLayerId, //
+        //                             "Tree layer", //
+        //                             pointsList, //
+        //                             linesList //
+        //                             );
+
+        Layer treeLayer = new Layer.Builder ()
+            .withPoints (pointsList)
+            .withLines (linesList)
+            .build ();
 
         layersList.add(treeLayer);
 
