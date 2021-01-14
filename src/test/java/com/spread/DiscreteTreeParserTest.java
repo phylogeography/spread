@@ -6,13 +6,12 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 
-import com.spread.data.Layer;
 import com.google.gson.Gson;
 import com.spread.data.Attribute;
+import com.spread.data.Location;
 import com.spread.data.SpreadData;
 import com.spread.exceptions.SpreadException;
 import com.spread.parsers.DiscreteTreeParser;
-import com.spread.data.Location;
 
 import org.junit.Test;
 
@@ -36,8 +35,7 @@ public class DiscreteTreeParserTest {
                                                            locationsFile.getAbsolutePath(),
                                                            locationTraitAttributeName,
                                                            1.0,
-                                                           mostRecentSamplingDate
-                                                           );
+                                                           mostRecentSamplingDate);
 
         String json = parser.parse();
         Gson gson = new Gson();

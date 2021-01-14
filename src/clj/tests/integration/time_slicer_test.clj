@@ -50,7 +50,6 @@
 
         _ (block-on-status id :ATTRIBUTES_AND_TREES_COUNT_PARSED)
 
-        ;; TODO : query arguments
         {:keys [id attributeNames treesCount status]} (get-in (run-query {:query
                                                                           "query GetTree($id: ID!) {
                                                                             getTimeSlicer(id: $id) {
@@ -104,15 +103,12 @@
                                              :variables {:id id}})
                                  [:data :startTimeSlicerParser])
 
-
         ]
 
     (log/debug "url" {:id id
                       :status status
                       :attributes attributeNames
-                      :count treesCount
-                      ;; :url url
-                      })
+                      :count treesCount})
 
     (is #{"rate" "location"} (set attributeNames))
 
