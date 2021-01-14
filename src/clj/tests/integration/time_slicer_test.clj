@@ -3,7 +3,6 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.test :refer [use-fixtures deftest is]]
-            [taoensso.timbre :as log]
             [tests.integration.utils :refer [run-query db-fixture]]))
 
 (use-fixtures :once db-fixture)
@@ -50,17 +49,16 @@
 
         _ (block-on-status id :ATTRIBUTES_AND_TREES_COUNT_PARSED)
 
-        {:keys [id attributeNames treesCount status]} (get-in (run-query {:query
-                                                                          "query GetTree($id: ID!) {
+        {:keys [id attributeNames treesCount]} (get-in (run-query {:query
+                                                                   "query GetTree($id: ID!) {
                                                                             getTimeSlicer(id: $id) {
                                                                               id
-                                                                              status
                                                                               treesCount
                                                                               attributeNames
                                                                             }
                                                                           }"
-                                                                          :variables {:id id}})
-                                                              [:data :getTimeSlicer])
+                                                                   :variables {:id id}})
+                                                       [:data :getTimeSlicer])
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateTree($id: ID!,
@@ -107,21 +105,16 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status outputFileUrl]} (get-in (run-query {:query
-                                                              "query GetTree($id: ID!) {
+        {:keys [status outputFileUrl]} (get-in (run-query {:query
+                                                           "query GetTree($id: ID!) {
                                                                             getTimeSlicer(id: $id) {
                                                                               id
                                                                               status
                                                                               outputFileUrl
                                                                             }
                                                                           }"
-                                                              :variables {:id id}})
-                                                  [:data :getTimeSlicer])]
-
-    (log/debug "url" {:id id
-                      :status status
-                      :attributes attributeNames
-                      :count treesCount})
+                                                           :variables {:id id}})
+                                               [:data :getTimeSlicer])]
 
     (is #{"rate" "location"} (set attributeNames))
 

@@ -65,6 +65,7 @@
   (try
     (let [status :PARSER_ARGUMENTS_SET]
       (continuous-tree-model/update! db {:id id
+                                         :readable-name readable-name
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
                                          :hpd-level hpd-level
@@ -137,6 +138,7 @@
   (try
     (let [status :PARSER_ARGUMENTS_SET]
       (discrete-tree-model/update! db {:id id
+                                       :readable-name readable-name
                                        :location-attribute-name location-attribute-name
                                        :timescale-multiplier timescale-multiplier
                                        :most-recent-sampling-date most-recent-sampling-date

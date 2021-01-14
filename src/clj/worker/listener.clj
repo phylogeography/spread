@@ -201,10 +201,8 @@
                   contouring-grid-size
                   hpd-level
                   timescale-multiplier
-                  most-recent-sampling-date]
-           :as time-slicer}
+                  most-recent-sampling-date]}
           (time-slicer-model/get-time-slicer db {:id id})
-          ;; _ (log/debug "Time slicer settings" {:time-slicer time-slicer})
           ;; TODO: parse extension
           trees-object-key (str user-id "/" id ".trees")
           trees-file-path (str tmp-dir "/" trees-object-key)
@@ -238,19 +236,6 @@
       (log/error "Exception when handling parse-time-slicer" {:error e})
       (time-slicer-model/update! db {:id id
                                      :status :ERROR}))))
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws
