@@ -187,7 +187,6 @@
       (time-slicer-model/update! db {:id id
                                      :status :ERROR}))))
 
-;; TODO
 (defmethod handler :parse-time-slicer
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-time-slicer" args)
@@ -205,9 +204,7 @@
                   most-recent-sampling-date]
            :as time-slicer}
           (time-slicer-model/get-time-slicer db {:id id})
-
-          _ (log/debug "Time slicer settings" {:time-slicer time-slicer})
-
+          ;; _ (log/debug "Time slicer settings" {:time-slicer time-slicer})
           ;; TODO: parse extension
           trees-object-key (str user-id "/" id ".trees")
           trees-file-path (str tmp-dir "/" trees-object-key)
@@ -226,20 +223,14 @@
                    (.setHpdLevel hpd-level)
                    (.setGridSize contouring-grid-size)
                    (.setTimescaleMultiplier timescale-multiplier)
-                   (.setMostRecentSamplingDate most-recent-sampling-date)
-
-                   )
-
-          _ (log/debug "@@@" {:parser parser})
-
+                   (.setMostRecentSamplingDate most-recent-sampling-date))
           output-object-key (str user-id "/" id ".json")
           output-object-path (str tmp-dir "/" output-object-key)
           _ (spit output-object-path (.parse parser) :append false)
           _ (aws-s3/upload-file s3 {:bucket bucket-name
                                     :key output-object-key
                                     :file-path output-object-path})
-          url (aws-s3/build-url aws-config bucket-name output-object-key)
-          ]
+          url (aws-s3/build-url aws-config bucket-name output-object-key)]
       (time-slicer-model/update! db {:id id
                                      :output-file-url url
                                      :status :SUCCEEDED}))

@@ -103,7 +103,20 @@
                                              :variables {:id id}})
                                  [:data :startTimeSlicerParser])
 
-        ]
+        _ (is :QUEUED (keyword status))
+
+        _ (block-on-status id :SUCCEEDED)
+
+        {:keys [id status outputFileUrl]} (get-in (run-query {:query
+                                                              "query GetTree($id: ID!) {
+                                                                            getTimeSlicer(id: $id) {
+                                                                              id
+                                                                              status
+                                                                              outputFileUrl
+                                                                            }
+                                                                          }"
+                                                              :variables {:id id}})
+                                                  [:data :getTimeSlicer])]
 
     (log/debug "url" {:id id
                       :status status
@@ -114,6 +127,4 @@
 
     (is (= 10 treesCount))
 
-    (is false)
-
-    ))
+    (is outputFileUrl)))
