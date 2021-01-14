@@ -105,16 +105,16 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [status outputFileUrl]} (get-in (run-query {:query
-                                                           "query GetTree($id: ID!) {
+        {:keys [outputFileUrl]} (get-in (run-query {:query
+                                                    "query GetTree($id: ID!) {
                                                                             getTimeSlicer(id: $id) {
                                                                               id
                                                                               status
                                                                               outputFileUrl
                                                                             }
                                                                           }"
-                                                           :variables {:id id}})
-                                               [:data :getTimeSlicer])]
+                                                    :variables {:id id}})
+                                        [:data :getTimeSlicer])]
 
     (is #{"rate" "location"} (set attributeNames))
 
