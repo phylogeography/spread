@@ -69,8 +69,7 @@ public class DiscreteTreeParser {
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         TimeLine timeLine = timeParser.getTimeLine(rootedTree.getHeight(rootedTree.getRootNode()));
 
-        DiscreteLocationsParser locationsParser = new DiscreteLocationsParser(this.locationsFilePath, false);
-        LinkedList<Location> locationsList = locationsParser.parseLocations();
+        LinkedList<Location> locationsList = new DiscreteLocationsParser(this.locationsFilePath, false).parseLocations();
 
         LinkedList<Attribute> uniqueBranchAttributes = new LinkedList<Attribute>();
         LinkedList<Attribute> uniqueNodeAttributes = new LinkedList<Attribute>();
