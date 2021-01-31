@@ -36,15 +36,15 @@ public class DiscreteTreeParser {
     public static final String COUNT = "count";
     private static final Integer UNRESOLVED_INDEX = Integer.MAX_VALUE;
 
-    @Getter @Setter
+    @Setter
     private String treeFilePath;
-    @Getter @Setter
+    @Setter
     private String locationsFilePath;
-    @Getter @Setter
+    @Setter
     private String locationTraitAttributeName;
-    @Getter @Setter
+    @Setter
     private double timescaleMultiplier;
-    @Getter @Setter
+    @Setter
     private String mostRecentSamplingDate;
 
     public DiscreteTreeParser() {
@@ -372,22 +372,9 @@ public class DiscreteTreeParser {
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-        // String countsLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
-        // Layer countsLayer = new Layer(countsLayerId, //
-        //                               "Counts layer", //
-        //                               countsList //
-        //                               );
-
         Layer countsLayer = new Layer.Builder ().withPoints (countsList).build ();
 
         layersList.add(countsLayer);
-
-        // String treeLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
-        // Layer treeLayer = new Layer(treeLayerId, //
-        //                             "Tree layer", //
-        //                             pointsList, //
-        //                             linesList //
-        //                             );
 
         Layer treeLayer = new Layer.Builder ()
             .withPoints (pointsList)

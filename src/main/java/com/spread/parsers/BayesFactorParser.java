@@ -2,10 +2,17 @@ package com.spread.parsers;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
+import com.google.gson.GsonBuilder;
+import com.spread.data.Attribute;
+import com.spread.data.AxisAttributes;
+import com.spread.data.Layer;
 import com.spread.data.Location;
+import com.spread.data.SpreadData;
 import com.spread.data.attributable.Line;
 import com.spread.data.attributable.Point;
 import com.spread.data.primitive.Coordinate;
@@ -13,6 +20,7 @@ import com.spread.exceptions.SpreadException;
 import com.spread.utils.ParsersUtils;
 
 import lombok.Setter;
+import lombok.Getter;
 
 public class BayesFactorParser {
 
@@ -30,6 +38,28 @@ public class BayesFactorParser {
 
     private final Double poissonPriorMean = Math.log(2);;
     private Integer poissonPriorOffset;
+
+    class BayesFactor {
+
+        @Getter
+        private String from;
+        @Getter
+        private String to;
+        @Getter
+        private Double bayesFactor;
+        @Getter
+        private Double posteriorProbability;
+
+        BayesFactor(String from,
+                    String to,
+                    Double bayesFactor,
+                    Double posteriorProbability) {
+            this.from = from;
+            this.to = to;
+            this.bayesFactor = bayesFactor;
+            this.posteriorProbability = posteriorProbability;
+        }
+    }
 
     public BayesFactorParser() {
     }
@@ -114,6 +144,8 @@ public class BayesFactorParser {
             bayesFactors.add(bf);
             posteriorProbabilities.add(pk[row]);
         }
+
+        System.out.println("Calculated Bayes Factors");
 
         LinkedList<String> from = new LinkedList<String>();
         LinkedList<String> to = new LinkedList<String>();
@@ -214,12 +246,145 @@ public class BayesFactorParser {
 
         LinkedList<Point> pointsList = new LinkedList<Point>(pointsMap.values());
 
+        System.out.println("Parsed points and lines");
 
+        // collect attributes from lines
+        HashMap<String, Attribute> branchAttributesMap = new HashMap<String, Attribute>();
 
+        for (Line line : linesList) {
 
+            for (Entry<String, Object> entry : line.getAttributes().entrySet()) {
 
+                String attributeId = entry.getKey();
+                Object attributeValue = entry.getValue();
 
-        return "";
+                if (branchAttributesMap.containsKey(attributeId)) {
+
+                    Attribute attribute = branchAttributesMap.get(attributeId);
+
+                    if (attribute.getScale().equals(Attribute.ORDINAL)) {
+
+                        attribute.getDomain().add(attributeValue);
+
+                    } else {
+
+                        double value = ParsersUtils.round(Double.valueOf(attributeValue.toString()), 100);
+
+                        if (value < attribute.getRange()[Attribute.MIN_INDEX]) {
+                            attribute.getRange()[Attribute.MIN_INDEX] = value;
+                        } // END: min check
+
+                        if (value > attribute.getRange()[Attribute.MAX_INDEX]) {
+                            attribute.getRange()[Attribute.MAX_INDEX] = value;
+                        } // END: max check
+
+                    } // END: scale check
+
+                } else {
+
+                    Attribute attribute;
+                    if (attributeValue instanceof Double) {
+                        Double[] range = new Double[2];
+                        range[Attribute.MIN_INDEX] = (Double) attributeValue;
+                        range[Attribute.MAX_INDEX] = (Double) attributeValue;
+
+                        attribute = new Attribute(attributeId, range);
+                    } else {
+
+                        HashSet<Object> domain = new HashSet<Object>();
+                        domain.add(attributeValue);
+
+                        attribute = new Attribute(attributeId, domain);
+                    } // END: isNumeric check
+
+                    branchAttributesMap.put(attributeId, attribute);
+                } // END: key check
+            } // END: attributes loop
+
+        } // END: lines loop
+
+        LinkedList<Attribute> uniqueLineAttributes = new LinkedList<Attribute> (branchAttributesMap.values());
+
+        LinkedList<Attribute> rangeAttributes = getCoordinateRangeAttributes(locationsList);
+        Attribute xCoordinate = rangeAttributes.get(ParsersUtils.X_INDEX);
+        Attribute yCoordinate = rangeAttributes.get(ParsersUtils.Y_INDEX);
+
+        LinkedList<Attribute> uniquePointAttributes = new LinkedList<Attribute>();
+        uniquePointAttributes.add(xCoordinate);
+        uniquePointAttributes.add(yCoordinate);
+
+        LinkedList<Layer> layersList = new LinkedList<Layer>();
+
+        Layer bfLayer = new Layer.Builder ()
+            .withPoints (pointsList)
+            .withLines (linesList)
+            .build ();
+
+        layersList.add(bfLayer);
+
+        SpreadData data = new SpreadData(null,
+                                         new AxisAttributes(xCoordinate.getId(),
+                                                            yCoordinate.getId()),
+                                         uniqueLineAttributes,
+                                         uniquePointAttributes,
+                                         null,
+                                         locationsList,
+                                         layersList);
+
+        // TODO : return bayes factors and posteriorProbabilities (as JSON?)
+        return new GsonBuilder().create().toJson(data);
+    }
+
+    private LinkedList<Attribute> getCoordinateRangeAttributes(LinkedList<Location> locationsList) throws SpreadException {
+
+        LinkedList<Attribute> coordinateRange = new LinkedList<Attribute>();
+
+        Double[] xCoordinateRange = new Double[2];
+        xCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
+        xCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+
+        Double[] yCoordinateRange = new Double[2];
+        yCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
+        yCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+
+        for (Location location : locationsList) {
+
+            Coordinate coordinate = location.getCoordinate();
+            if (coordinate == null) {
+                throw new SpreadException("Location " + location.getId()
+                                          + " has no coordinates set.");
+            }
+
+            Double latitude = coordinate.getXCoordinate();
+            Double longitude = coordinate.getYCoordinate();
+
+            // update coordinates range
+
+            if (latitude < xCoordinateRange[Attribute.MIN_INDEX]) {
+                xCoordinateRange[Attribute.MIN_INDEX] = latitude;
+            } // END: min check
+
+            if (latitude > xCoordinateRange[Attribute.MAX_INDEX]) {
+                xCoordinateRange[Attribute.MAX_INDEX] = latitude;
+            } // END: max check
+
+            if (longitude < yCoordinateRange[Attribute.MIN_INDEX]) {
+                yCoordinateRange[Attribute.MIN_INDEX] = longitude;
+            } // END: min check
+
+            if (longitude > yCoordinateRange[Attribute.MAX_INDEX]) {
+                yCoordinateRange[Attribute.MAX_INDEX] = longitude;
+            } // END: max check
+
+        }
+
+        Attribute xCoordinate = new Attribute("xCoordinate", xCoordinateRange);
+        Attribute yCoordinate = new Attribute("yCoordinate", yCoordinateRange);
+
+        coordinateRange.add(ParsersUtils.X_INDEX, xCoordinate);
+        coordinateRange.add(ParsersUtils.Y_INDEX, yCoordinate);
+
+        return coordinateRange;
     }
 
     private Point createPoint(Location location) {
