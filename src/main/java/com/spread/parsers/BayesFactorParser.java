@@ -322,17 +322,25 @@ public class BayesFactorParser {
 
         layersList.add(bfLayer);
 
-        SpreadData data = new SpreadData(null,
-                                         new AxisAttributes(xCoordinate.getId(),
-                                                            yCoordinate.getId()),
-                                         uniqueLineAttributes,
-                                         uniquePointAttributes,
-                                         null,
-                                         locationsList,
-                                         layersList);
+        SpreadData spreadData = new SpreadData(null,
+                                               new AxisAttributes(xCoordinate.getId(),
+                                                                  yCoordinate.getId()),
+                                               uniqueLineAttributes,
+                                               uniquePointAttributes,
+                                               null,
+                                               locationsList,
+                                               layersList);
 
-        // TODO : return bayes factors and posteriorProbabilities (as JSON?)
-        return new GsonBuilder().create().toJson(data);
+        LinkedList<BayesFactor> bayesFactorsData = new LinkedList<BayesFactor>();
+        for (int i = 0; i < bayesFactors.size(); i++) {
+            bayesFactorsData.add(new BayesFactor(from.get(i),
+                                                 to.get(i),
+                                                 bayesFactors.get(i),
+                                                 posteriorProbabilities.get(i)));
+        }
+
+        Object pair = new Object[] {bayesFactorsData, spreadData};
+        return new GsonBuilder().create().toJson(pair);
     }
 
     private LinkedList<Attribute> getCoordinateRangeAttributes(LinkedList<Location> locationsList) throws SpreadException {
