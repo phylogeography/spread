@@ -12,10 +12,6 @@ import lombok.ToString;
 @ToString(includeFieldNames=true)
 public class Layer {
 
-    // public enum Type {
-    //     tree, counts, trees
-    // }
-
     @Getter
     private final List<Point> points;
 
@@ -31,10 +27,7 @@ public class Layer {
         private List<Line> lines;
         private List<Area> areas;
 
-        public Builder(
-                       // Type type
-                       ) {
-            // this.type=type
+        public Builder() {
         }
 
         public Builder withPoints(List<Point> points) {

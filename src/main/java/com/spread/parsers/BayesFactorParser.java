@@ -22,6 +22,7 @@ import com.spread.utils.ParsersUtils;
 import lombok.Setter;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
 public class BayesFactorParser {
 
@@ -43,6 +44,7 @@ public class BayesFactorParser {
     // @Getter
     private LinkedList<BayesFactor> bayesFactorsData;
 
+    @EqualsAndHashCode
     @ToString(includeFieldNames=true)
     public static class BayesFactor {
 

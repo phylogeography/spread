@@ -1,14 +1,16 @@
 package com.spread;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.spread.data.SpreadData;
 import com.spread.exceptions.SpreadException;
 import com.spread.parsers.BayesFactorParser;
@@ -35,9 +37,6 @@ public class BayesFactorParserTest {
         Gson gson = new Gson();
         SpreadData data = gson.fromJson(json, SpreadData.class);
 
-        @SuppressWarnings("unchecked")
-        LinkedList<Object> bayesFactors = gson.fromJson (parser.getBayesFactors(), LinkedList.class);
-
         LinkedList<BayesFactor> expected =
             new LinkedList<BayesFactor>(Arrays.asList(new BayesFactor ("Fujian", "Guangdong", 19.014687619229807, 0.8989450305385897),
                                                       new BayesFactor ("Fujian", "Guangxi", 2.914568793008483, 0.5769017212659634),
@@ -61,40 +60,9 @@ public class BayesFactorParserTest {
                                                       new BayesFactor ("Henan", "Hunan", 4.6163308990686085, 0.6835091615769017),
                                                       new BayesFactor ("HongKong", "Hunan", 0.06103762019867277, 0.0277623542476402)));
 
-
-        bayesFactors.forEach(bf -> {
-                System.out.println (bf);
-            });
-
-
-        // assertEquals("FUBAR", true, false);
-
-
-
-
-        // Bayes factors table:
-        // FROM	TO	BAYES_FACTOR	POSTERIOR PROBABILITY
-        // Fujian	Guangdong	19.014687619229807	0.8989450305385897
-        // Fujian	Guangxi	2.914568793008483	0.5769017212659634
-        // Fujian	Hebei	5.381417549046571	0.7157134925041644
-        // Fujian	Henan	2.8620793773994855	0.572459744586341
-        // Fujian	HongKong	0.43579473603211477	0.1693503609106052
-        // Fujian	Hunan	0.7591555160396912	0.2620766240977235
-        // Guangdong	Guangxi	5.751202221591034	0.7290394225430317
-        // Guangdong	Hebei	0.5046759684413089	0.19100499722376457
-        // Guangdong	Henan	0.49024749921100813	0.18656302054414214
-        // Guangdong	HongKong	0.7289591633549846	0.2543031649083842
-        // Guangdong	Hunan	0.3020727841804354	0.12382009994447529
-        // Guangxi	Hebei	0.5811807357716423	0.21377012770682954
-        // Guangxi	Henan	0.5433155798506233	0.20266518600777345
-        // Guangxi	HongKong	3.599727763150519	0.6274292059966685
-        // Guangxi	Hunan	1.3275435166126814	0.38312048861743475
-        // Hebei	Henan	1.7787442947654648	0.45419211549139366
-        // Hebei	HongKong	0.08643998969094537	0.03886729594669628
-        // Hebei	Hunan	0.9897614555920281	0.3164908384230983
-        // Henan	HongKong	0.05602662286635096	0.025541365907828985
-        // Henan	Hunan	4.6163308990686085	0.6835091615769017
-        // HongKong	Hunan	0.06103762019867277	0.0277623542476402
+        Type bayesFactorsListType = new TypeToken<List<BayesFactor>>() {}.getType();
+        List<BayesFactor> bayesFactors = gson.fromJson (parser.getBayesFactors(), bayesFactorsListType);
+        assertEquals("Bayes Factors", expected, bayesFactors);
 
 
 
