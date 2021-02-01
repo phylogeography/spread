@@ -21,6 +21,7 @@ import com.spread.utils.ParsersUtils;
 
 import lombok.Setter;
 import lombok.Getter;
+import lombok.ToString;
 
 public class BayesFactorParser {
 
@@ -30,7 +31,7 @@ public class BayesFactorParser {
     @Setter
     private String logFilename;
     @Setter
-    private Double burninPercent;
+    private Double burnin;
     @Setter
     private String locationsFilename;
     @Setter
@@ -39,7 +40,11 @@ public class BayesFactorParser {
     private final Double poissonPriorMean = Math.log(2);;
     private Integer poissonPriorOffset;
 
-    class BayesFactor {
+    // @Getter
+    private LinkedList<BayesFactor> bayesFactorsData;
+
+    @ToString(includeFieldNames=true)
+    public static class BayesFactor {
 
         @Getter
         private String from;
@@ -50,10 +55,10 @@ public class BayesFactorParser {
         @Getter
         private Double posteriorProbability;
 
-        BayesFactor(String from,
-                    String to,
-                    Double bayesFactor,
-                    Double posteriorProbability) {
+        public BayesFactor(String from,
+                           String to,
+                           Double bayesFactor,
+                           Double posteriorProbability) {
             this.from = from;
             this.to = to;
             this.bayesFactor = bayesFactor;
@@ -65,30 +70,24 @@ public class BayesFactorParser {
     }
 
     public BayesFactorParser(String logFilename,
-                             Double burninPercent,
-                             String locationsFilename
-                             ) {
-
+                             Double burnin,
+                             String locationsFilename) {
         this.logFilename = logFilename;
-        this.burninPercent = burninPercent;
+        this.burnin = burnin;
         this.locationsFilename = locationsFilename;
-
     }
 
     public BayesFactorParser(String logFilename,
-                             Double burninPercent,
-                             Integer numberLocations
-                             ) {
-
+                             Double burnin,
+                             Integer numberLocations) {
         this.logFilename = logFilename;
-        this.burninPercent = burninPercent;
+        this.burnin = burnin;
         this.numberLocations = numberLocations;
-
     }
 
     public String parse() throws IOException, SpreadException {
 
-        Double[][] indicators = new LogParser(this.logFilename, this.burninPercent).parseIndicators();
+        Double[][] indicators = new LogParser(this.logFilename, this.burnin).parseIndicators();
 
         System.out.println("Imported log file");
 
@@ -188,7 +187,6 @@ public class BayesFactorParser {
             }
 
             Location fromLocation = locationsList.get(fromLocationIndex);
-
             Point fromPoint = pointsMap.get(fromLocation);
             if (fromPoint == null) {
                 fromPoint = createPoint(fromLocation);
@@ -207,7 +205,6 @@ public class BayesFactorParser {
             }
 
             Location toLocation = locationsList.get(toLocationIndex);
-
             Point toPoint = pointsMap.get(toLocation);
             if (toPoint == null) {
                 toPoint = createPoint(toLocation);
@@ -338,9 +335,13 @@ public class BayesFactorParser {
                                                  bayesFactors.get(i),
                                                  posteriorProbabilities.get(i)));
         }
+        this.bayesFactorsData = bayesFactorsData;
 
-        Object pair = new Object[] {bayesFactorsData, spreadData};
-        return new GsonBuilder().create().toJson(pair);
+        return new GsonBuilder().create().toJson(spreadData);
+    }
+
+    public String getBayesFactors () {
+        return new GsonBuilder().create().toJson(this.bayesFactorsData);
     }
 
     private LinkedList<Attribute> getCoordinateRangeAttributes(LinkedList<Location> locationsList) throws SpreadException {
@@ -424,7 +425,7 @@ public class BayesFactorParser {
     }
 
     /*
-     * Generates locations distributed uniformly in a circle
+     * Generates locations distributed uniformly on a circle with fixed radius of 1000 KM
      */
     private LinkedList<Location> generateDummyLocations(int numberLocations) {
 

@@ -33,8 +33,7 @@ public class ContinuousTreeParserTest {
                                                                 "80",
                                                                 true,
                                                                 1.0,
-                                                                mostRecentSamplingDate
-                                                                );
+                                                                mostRecentSamplingDate);
 
         String json = parser.parse();
         Gson gson = new Gson();

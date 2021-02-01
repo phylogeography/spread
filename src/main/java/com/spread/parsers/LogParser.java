@@ -22,12 +22,15 @@ public class LogParser {
 
     private String[] columnNames;
 
+    /*
+     * Parameters:
+     * @log: path to the log file
+     * @burnin: burnin [0,1]
+     */
     public LogParser(String log, Double burnin) {
-
         this.logFilename = log;
         this.burnin = burnin;
-
-    }// END: Constructor
+    }
 
     public Double[][] parseIndicators() throws IOException, SpreadException {
 
@@ -52,11 +55,10 @@ public class LogParser {
         int ncol = columns.size();
         // this should be enough when sth silly is parsed
         if (ncol == 0) {
-            throw new SpreadException(
-                                      "No " + ParsersUtils.INDICATORS + " columns found. I suspect wrong or malformed log file.");
+            throw new SpreadException("No " + ParsersUtils.INDICATORS + " columns found. I suspect wrong or malformed log file.");
         }
 
-        int skip = (int) ((burnin / 100 * nrow));
+        int skip = (int) (burnin * nrow);
 
         // parse indicator columns
         Double[][] indicators = new Double[nrow - skip][ncol];
@@ -76,11 +78,8 @@ public class LogParser {
                         // copy array with one less row
                         indicators = cloneArray(indicators, i);
                         break;
-
                     } else {
-
                         indicators[i][col] = Double.valueOf(line[columns.get(col)]);
-
                     }
 
                 } // END: col loop
@@ -91,11 +90,13 @@ public class LogParser {
         } // END: row loop
 
         return indicators;
-    }// END: parseLog
+    }
 
+    /*
+     * Make a copy of array up to and a row number nrow
+     */
     private Double[][] cloneArray(Double[][] src, int nrow) {
 
-        /** Make a copy of array up to and a row number nrow */
         Double[][] target = new Double[nrow][src[0].length];
 
         for (int i = 0; i < nrow; i++) {
@@ -103,10 +104,10 @@ public class LogParser {
         }
 
         return target;
-    }// END: cloneArray
+    }
 
     public String[] getColumnNames() {
         return columnNames;
-    }// END: getColumnNames
+    }
 
-}// END: class
+}
