@@ -26,8 +26,8 @@ import lombok.EqualsAndHashCode;
 
 public class BayesFactorParser {
 
-    private static final String BAYES_FACTOR = "bayesFactor";
-    private static final String POSTERIOR_PROBABILITY = "posteriorProbability";
+    public static final String BAYES_FACTOR = "bayesFactor";
+    public static final String POSTERIOR_PROBABILITY = "posteriorProbability";
 
     @Setter
     private String logFilename;
@@ -346,27 +346,12 @@ public class BayesFactorParser {
                                                  bayesFactors.get(i),
                                                  posteriorProbabilities.get(i)));
         }
-        // this.bayesFactorsData = bayesFactorsData;
-
-        // Object pair = new Object[] {bayesFactorsData, spreadData};
 
         BayesFactorParserOutput out = new BayesFactorParserOutput (bayesFactorsData, spreadData);
+        String json = new GsonBuilder().create().toJson(out);
 
-        // for(Object o : pair) {
-            // System.out.println(pair.getClass());
-        // }
-
-         String json = new GsonBuilder().create().toJson(out);
-
-         // System.out.println(json);
-
-         return json;
-        // return new GsonBuilder().create().toJson(spreadData);
+        return json;
     }
-
-    // public String getBayesFactors () {
-    //     return new GsonBuilder().create().toJson(this.bayesFactorsData);
-    // }
 
     private LinkedList<Attribute> getCoordinateRangeAttributes(LinkedList<Location> locationsList) throws SpreadException {
 
@@ -411,8 +396,8 @@ public class BayesFactorParser {
 
         }
 
-        Attribute xCoordinate = new Attribute("xCoordinate", xCoordinateRange);
-        Attribute yCoordinate = new Attribute("yCoordinate", yCoordinateRange);
+        Attribute xCoordinate = new Attribute(ParsersUtils.X_COORDINATE, xCoordinateRange);
+        Attribute yCoordinate = new Attribute(ParsersUtils.Y_COORDINATE, yCoordinateRange);
 
         coordinateRange.add(ParsersUtils.X_INDEX, xCoordinate);
         coordinateRange.add(ParsersUtils.Y_INDEX, yCoordinate);

@@ -1,20 +1,24 @@
 package com.spread;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.spread.data.Attribute;
 import com.spread.data.SpreadData;
 import com.spread.exceptions.SpreadException;
 import com.spread.parsers.BayesFactorParser;
 import com.spread.parsers.BayesFactorParser.BayesFactor;
+import com.spread.utils.ParsersUtils;
 
 import org.junit.Test;
 
@@ -58,17 +62,38 @@ public class BayesFactorParserTest {
 
         String json = parser.parse();
         Gson gson = new Gson();
-
         BayesFactorParser.BayesFactorParserOutput output = gson.fromJson(json, BayesFactorParser.BayesFactorParserOutput.class);
         SpreadData data = output.spreadData;
-        List<BayesFactor> bayesFactors = output.bayesFactors;
 
+        List<BayesFactor> bayesFactors = output.bayesFactors;
         assertEquals("Bayes Factors", expected, bayesFactors);
 
-        System.out.println ("@@@" + data.getAxisAttributes());
 
 
+        assertEquals("xCoordinate", data.getAxisAttributes().getXCoordinate());
+        assertEquals("yCoordinate", data.getAxisAttributes().getYCoordinate());
 
+        Set<String> locationIds = data.getLocations().stream().map(location -> location.getId()).collect(Collectors.toSet());
+        Set<String> expectedLocationIds = new HashSet<>(Arrays.asList("Fujian", "Guangxi", "Guangdong", "Hebei", "Hunan", "Henan", "HongKong"));
+        assertEquals("all locations present", expectedLocationIds, locationIds);
+
+        Attribute bayesFactorAttribute = data.getLineAttributes().stream()
+            .filter(att -> att.getId().equals(BayesFactorParser.BAYES_FACTOR)).findAny().orElse(null);
+        assertArrayEquals("returns correct bayesFactor attribute range", new Double[]{0.06, 19.014687619229807}, bayesFactorAttribute.getRange());
+
+        Attribute posteriorProbabilityAttribute = data.getLineAttributes().stream()
+            .filter(att -> att.getId().equals(BayesFactorParser.POSTERIOR_PROBABILITY)).findAny().orElse(null);
+        assertArrayEquals("returns correct posteriorProbability attribute range", new Double[]{0.03, 0.8989450305385897}, posteriorProbabilityAttribute.getRange());
+
+        Attribute xCoordinatePointAttribute =
+            data.getPointAttributes().stream().filter(att -> att.getId().equals(ParsersUtils.X_COORDINATE)).findAny().orElse(null);
+
+        assertArrayEquals("returns correct X coord range", new Double[]{108.1, 118.283}, xCoordinatePointAttribute.getRange());
+
+        Attribute yCoordinatePointAttribute =
+            data.getPointAttributes().stream().filter(att -> att.getId().equals(ParsersUtils.Y_COORDINATE)).findAny().orElse(null);
+
+        assertArrayEquals("returns correct Y coord range", new Double[]{22.3, 39.3583}, yCoordinatePointAttribute.getRange());
 
     }
 

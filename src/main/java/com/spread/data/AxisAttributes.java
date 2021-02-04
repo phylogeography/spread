@@ -19,12 +19,4 @@ public class AxisAttributes {
                 this.yCoordinate = yCoordinate;
         }
 
-        // public String getxCoordinate() {
-        //         return xCoordinate;
-        // }
-
-        // public String getyCoordinate() {
-        //         return yCoordinate;
-        // }
-
 }

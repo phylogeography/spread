@@ -9,13 +9,13 @@ import lombok.ToString;
 public class Location {
 
     private final String id;
-    private final Polygon polygon;
+    // private final Polygon polygon;
     private final Coordinate coordinate;
 
     public Location(String id) {
         this.id = id;
         this.coordinate = null;
-        this.polygon = null;
+        // this.polygon = null;
     }
 
     public Location(String id,
@@ -25,7 +25,7 @@ public class Location {
 
         this.id = id;
         this.coordinate = null;
-        this.polygon = polygon;
+        // this.polygon = polygon;
     }
 
     public Location(String id,
@@ -35,7 +35,7 @@ public class Location {
 
         this.id = id;
         this.coordinate = coordinate;
-        this.polygon = null;
+        // this.polygon = null;
 
     }
 
@@ -43,9 +43,9 @@ public class Location {
         return id;
     }
 
-    public Polygon getPolygon() {
-        return polygon;
-    }
+    // public Polygon getPolygon() {
+    //     return polygon;
+    // }
 
     public boolean hasCoordinate()  {
         return coordinate == null ? false : true;

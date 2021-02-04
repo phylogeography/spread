@@ -31,8 +31,9 @@ import lombok.Setter;
 
 public class DiscreteTreeParser {
 
-    public static final String X_COORDINATE = "xCoordinate";
-    public static final String Y_COORDINATE = "yCoordinate";
+    // private static final String X_COORDINATE = "xCoordinate";
+    // private static final String Y_COORDINATE = "yCoordinate";
+
     public static final String COUNT = "count";
     private static final Integer UNRESOLVED_INDEX = Integer.MAX_VALUE;
 
@@ -448,8 +449,8 @@ public class DiscreteTreeParser {
 
         }
 
-        Attribute xCoordinate = new Attribute(X_COORDINATE, xCoordinateRange);
-        Attribute yCoordinate = new Attribute(Y_COORDINATE, yCoordinateRange);
+        Attribute xCoordinate = new Attribute(ParsersUtils.X_COORDINATE, xCoordinateRange);
+        Attribute yCoordinate = new Attribute(ParsersUtils.Y_COORDINATE, yCoordinateRange);
 
         coordinateRange.add(ParsersUtils.X_INDEX, xCoordinate);
         coordinateRange.add(ParsersUtils.Y_INDEX, yCoordinate);

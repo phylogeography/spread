@@ -45,6 +45,8 @@ public class ParsersUtils {
     public static final int X_INDEX = 0;
     public static final int Y_INDEX = 1;
     public static final String NEGATIVE_SIGN = "-";
+    public static final String X_COORDINATE = "xCoordinate";
+    public static final String Y_COORDINATE = "yCoordinate";
 
     // Use this for all random numbers
     private static final Random random = new Random();
