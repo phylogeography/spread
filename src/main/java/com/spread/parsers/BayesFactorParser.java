@@ -41,8 +41,17 @@ public class BayesFactorParser {
     private final Double poissonPriorMean = Math.log(2);;
     private Integer poissonPriorOffset;
 
-    // @Getter
-    private LinkedList<BayesFactor> bayesFactorsData;
+    public class BayesFactorParserOutput {
+        public LinkedList<BayesFactor> bayesFactors;
+        public SpreadData spreadData;
+
+        BayesFactorParserOutput (LinkedList<BayesFactor> bayesFactors,
+                                 SpreadData spreadData) {
+            this.bayesFactors = bayesFactors;
+            this.spreadData = spreadData;
+        }
+
+    }
 
     @EqualsAndHashCode
     @ToString(includeFieldNames=true)
@@ -337,14 +346,27 @@ public class BayesFactorParser {
                                                  bayesFactors.get(i),
                                                  posteriorProbabilities.get(i)));
         }
-        this.bayesFactorsData = bayesFactorsData;
+        // this.bayesFactorsData = bayesFactorsData;
 
-        return new GsonBuilder().create().toJson(spreadData);
+        // Object pair = new Object[] {bayesFactorsData, spreadData};
+
+        BayesFactorParserOutput out = new BayesFactorParserOutput (bayesFactorsData, spreadData);
+
+        // for(Object o : pair) {
+            // System.out.println(pair.getClass());
+        // }
+
+         String json = new GsonBuilder().create().toJson(out);
+
+         // System.out.println(json);
+
+         return json;
+        // return new GsonBuilder().create().toJson(spreadData);
     }
 
-    public String getBayesFactors () {
-        return new GsonBuilder().create().toJson(this.bayesFactorsData);
-    }
+    // public String getBayesFactors () {
+    //     return new GsonBuilder().create().toJson(this.bayesFactorsData);
+    // }
 
     private LinkedList<Attribute> getCoordinateRangeAttributes(LinkedList<Location> locationsList) throws SpreadException {
 

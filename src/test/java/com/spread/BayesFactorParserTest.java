@@ -33,10 +33,6 @@ public class BayesFactorParserTest {
                                                          0.1,
                                                          locationsFile.getAbsolutePath());
 
-        String json = parser.parse();
-        Gson gson = new Gson();
-        SpreadData data = gson.fromJson(json, SpreadData.class);
-
         LinkedList<BayesFactor> expected =
             new LinkedList<BayesFactor>(Arrays.asList(new BayesFactor ("Fujian", "Guangdong", 19.014687619229807, 0.8989450305385897),
                                                       new BayesFactor ("Fujian", "Guangxi", 2.914568793008483, 0.5769017212659634),
@@ -60,9 +56,17 @@ public class BayesFactorParserTest {
                                                       new BayesFactor ("Henan", "Hunan", 4.6163308990686085, 0.6835091615769017),
                                                       new BayesFactor ("HongKong", "Hunan", 0.06103762019867277, 0.0277623542476402)));
 
-        Type bayesFactorsListType = new TypeToken<List<BayesFactor>>() {}.getType();
-        List<BayesFactor> bayesFactors = gson.fromJson (parser.getBayesFactors(), bayesFactorsListType);
+        String json = parser.parse();
+        Gson gson = new Gson();
+
+        BayesFactorParser.BayesFactorParserOutput output = gson.fromJson(json, BayesFactorParser.BayesFactorParserOutput.class);
+        SpreadData data = output.spreadData;
+        List<BayesFactor> bayesFactors = output.bayesFactors;
+
         assertEquals("Bayes Factors", expected, bayesFactors);
+
+        System.out.println ("@@@" + data.getAxisAttributes());
+
 
 
 
