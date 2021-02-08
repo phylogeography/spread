@@ -44,6 +44,9 @@
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
    :mutation/startTimeSlicerParser (auth-decorator mutations/start-time-slicer-parser)
 
+   :mutation/uploadBayesFactorAnalysis (auth-decorator mutations/upload-bayes-factor-analysis)
+   :mutation/updateBayesFactorAnalysis (auth-decorator mutations/update-bayes-factor-analysis)
+
    })
 
 (defn ^:private context-interceptor

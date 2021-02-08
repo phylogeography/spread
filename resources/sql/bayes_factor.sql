@@ -5,6 +5,7 @@ id,
 user_id,
 log_file_url,
 locations_file_url,
+burn_in,
 status,
 readable_name
 )
@@ -13,6 +14,7 @@ VALUES (
 :user-id,
 :log-file-url,
 :locations-file-url,
+:burn-in,
 :status,
 :readable-name
 )
@@ -20,6 +22,7 @@ ON DUPLICATE KEY UPDATE
 user_id = user_id,
 log_file_url = IF(:log-file-url IS NOT NULL, :log-file-url, log_file_url),
 locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
+burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
 status = :status,
 readable_name = :readable-name
 
@@ -30,7 +33,7 @@ UPDATE bayes_factor
 SET
 status = :status,
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
-burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn-in),
+burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
 output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)
 WHERE id = :id
 

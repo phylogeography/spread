@@ -2,6 +2,7 @@
   (:require [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [api.models.bayes-factor :as bayes-factor-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -243,3 +244,55 @@
         (log/error "Exception when sending message to worker" {:error e})
         (time-slicer-model/update! db {:id id
                                        :status :ERROR})))))
+
+;; TODO
+(defn upload-bayes-factor-analysis [{:keys [sqs workers-queue-url authed-user-id db]}
+                                    {log-file-url       :logFileUrl
+                                     locations-file-url :locationsFileUrl
+                                     readable-name      :readableName
+                                     burn-in            :burnIn
+                                     :or                {burn-in 0.1}
+                                     :as                args} _]
+  (log/info "upload-bayes-factor" {:user/id authed-user-id
+                                   :args    args})
+  (let [id       (s3-url->id log-file-url authed-user-id)
+        ;; NOTE: uploads mutation generates different ids for each uploaded file
+        ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
+        status   :DATA_UPLOADED
+        analysis {:id                 id
+                  :readable-name      readable-name
+                  :user-id            authed-user-id
+                  :log-file-url       log-file-url
+                  :locations-file-url locations-file-url
+                  :burn-in            burn-in
+                  :status             status}]
+    (try
+      (bayes-factor-model/upsert! db analysis)
+      {:id     id
+       :status status}
+      (catch Exception e
+        (log/error "Exception occured" {:error e})
+        (bayes-factor-model/update! db {:id     id
+                                        :status :ERROR})))))
+
+(defn update-bayes-factor-analysis
+  [{:keys [authed-user-id db]} {id                 :id
+                                readable-name      :readableName
+                                locations-file-url :locationsFileUrl
+                                burn-in            :burnIn
+                                :or                {burn-in 0.1}
+                                :as                args} _]
+  (log/info "update discrete tree" {:user/id authed-user-id
+                                    :args    args})
+  (try
+    (let [status :PARSER_ARGUMENTS_SET]
+      (discrete-tree-model/update! db {:id                      id
+                                       :readable-name           readable-name
+                                       :burn-in            burn-in
+                                       :status status})
+      {:id     id
+       :status status})
+    (catch Exception e
+      (log/error "Exception occured" {:error e})
+      (bayes-factor-model/update! db {:id     id
+                                      :status :ERROR}))))

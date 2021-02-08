@@ -23,20 +23,16 @@
                               :SUCCEEDED
                               :ERROR]}
 
-  :BayesFactorStatus {:values [:LOG_AND_OR_LOCATIONS_UPLOADED
+  :BayesFactorStatus {:values [:DATA_UPLOADED
                                :PARSER_ARGUMENTS_SET
                                :QUEUED
                                :RUNNING
                                :SUCCEEDED
-                               :ERROR]}
-
-
-  }
+                               :ERROR]}}
 
  :input-objects
  {:File {:fields {:name      {:type String}
-                  :extension {:type String}}}
-  }
+                  :extension {:type String}}}}
 
  :objects
  {:ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
@@ -109,10 +105,7 @@
                              :status                             {:type :TimeSlicerStatus}
                              :attributeNames                     {:type    (list String)
                                                                   :resolve :resolve/time-slicer->attributes}
-                             :outputFileUrl                      {:type String}
-                             }}
-
-  }
+                             :outputFileUrl                      {:type String}}}}
 
  :queries
  {:getContinuousTree {:type        :ContinuousTree
@@ -208,16 +201,20 @@
                           :args        {:id {:type (non-null ID)}}
                           :resolve     :mutation/startTimeSlicerParser}
 
+  :uploadBayesFactorAnalysis {:type        :BayesFactorParserStatus
+                              :description "Persists bayes factor trees. Returns a ParserStatus with id."
+                              :args        {:readableName     {:type String}
+                                            :logFileUrl       {:type (non-null String)}
+                                            :locationsFileUrl {:type (non-null String)}
+                                            :burnIn           {:type Float}}
+                              :resolve     :mutation/uploadBayesFactorAnalysis}
 
-  ;; TODO
-  :uploadBayesFactor {:type        :BayesFactorParserStatus
-                      :description "Persists bayes factor trees. Returns a ParserStatus with id."
-                      :args        {:readableName        {:type String}
-                                    :logFileUrl        {:type (non-null String)}
-                                    :locationsFileUrl {:type (non-null String)}
-
-                                    }
-                      :resolve     :mutation/uploadBayesFactor}
+  :updateBayesFactorAnalysis {:type        :BayesFactorParserStatus
+                              :description "Updates the entity with settings for parsing the tree graph"
+                              :args        {:id           {:type (non-null ID)}
+                                            :readableName {:type String}
+                                            :burnIn       {:type Float}}
+                              :resolve     :mutation/updateBayesFactorAnalysis}
 
 
   }

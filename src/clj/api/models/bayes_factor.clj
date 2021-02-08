@@ -7,33 +7,33 @@
 (declare update-bayes-factor-analysis)
 (declare get-bayes-factor-analysis)
 (declare delete-bayes-factor-analysis)
-;; TODO : get-bayes-factors
+
+;; TODO : get-bayes-factors (values)
 
 (hugsql/def-db-fns "sql/bayes_factor.sql")
 (hugsql/def-sqlvec-fns "sql/bayes_factor.sql")
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-bayes-factor-analysis
-  {:id nil
-   :user-id nil
-   :log-file-url nil
+  {:id                 nil
+   :user-id            nil
+   :log-file-url       nil
    :locations-file-url nil
-   :status nil
-   :readable-name nil
-   :burn-in nil
-   :output-file-url nil
-   })
+   :status             nil
+   :readable-name      nil
+   :burn-in            nil
+   :output-file-url    nil})
 
-#_(defn upsert! [db tree]
-  (let [tree (->> tree
-                  (merge nil-tree)
-                  (#(update % :status name)))]
-    (log/debug "upsert-tree!" tree)
-    (upsert-tree db tree)))
+(defn upsert! [db analysis]
+  (let [analysis (->> analysis
+                      (merge nil-bayes-factor-analysis)
+                      (#(update % :status name)))]
+    (log/debug "upsert!" analysis)
+    (upsert-bayes-factor-analysis db analysis)))
 
-#_(defn update! [db tree]
-  (let [tree (->> tree
-                  (merge nil-tree)
-                  (#(update % :status name)))]
-    (log/debug "update-tree!" tree)
-    (update-tree db tree)))
+(defn update! [db analysis]
+  (let [analysis (->> analysis
+                      (merge nil-bayes-factor-analysis)
+                      (#(update % :status name)))]
+    (log/debug "update!" analysis)
+    (update-bayes-factor-analysis db analysis)))

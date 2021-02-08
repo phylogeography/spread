@@ -24,21 +24,20 @@
    :location-attribute-name nil
    :timescale-multiplier nil
    :most-recent-sampling-date nil
-   :output-file-url nil
-   })
+   :output-file-url nil})
 
 (defn upsert! [db tree]
   (let [tree (->> tree
                   (merge nil-tree)
                   (#(update % :status name)))]
-    (log/debug "upsert-tree!" tree)
+    (log/debug "upsert!" tree)
     (upsert-tree db tree)))
 
 (defn update! [db tree]
   (let [tree (->> tree
                   (merge nil-tree)
                   (#(update % :status name)))]
-    (log/debug "update-tree!" tree)
+    (log/debug "update!" tree)
     (update-tree db tree)))
 
 (defn insert-attributes! [db tree-id attributes]
