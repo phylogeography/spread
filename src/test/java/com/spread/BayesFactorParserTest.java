@@ -68,8 +68,6 @@ public class BayesFactorParserTest {
         List<BayesFactor> bayesFactors = output.bayesFactors;
         assertEquals("Bayes Factors", expected, bayesFactors);
 
-
-
         assertEquals("xCoordinate", data.getAxisAttributes().getXCoordinate());
         assertEquals("yCoordinate", data.getAxisAttributes().getYCoordinate());
 

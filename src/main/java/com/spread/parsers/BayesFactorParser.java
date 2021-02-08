@@ -32,7 +32,7 @@ public class BayesFactorParser {
     @Setter
     private String logFilename;
     @Setter
-    private Double burnin;
+    private Double burnIn;
     @Setter
     private String locationsFilename;
     @Setter
@@ -81,24 +81,24 @@ public class BayesFactorParser {
     }
 
     public BayesFactorParser(String logFilename,
-                             Double burnin,
+                             Double burnIn,
                              String locationsFilename) {
         this.logFilename = logFilename;
-        this.burnin = burnin;
+        this.burnIn = burnIn;
         this.locationsFilename = locationsFilename;
     }
 
     public BayesFactorParser(String logFilename,
-                             Double burnin,
+                             Double burnIn,
                              Integer numberLocations) {
         this.logFilename = logFilename;
-        this.burnin = burnin;
+        this.burnIn = burnIn;
         this.numberLocations = numberLocations;
     }
 
     public String parse() throws IOException, SpreadException {
 
-        Double[][] indicators = new LogParser(this.logFilename, this.burnin).parseIndicators();
+        Double[][] indicators = new LogParser(this.logFilename, this.burnIn).parseIndicators();
 
         System.out.println("Imported log file");
 
