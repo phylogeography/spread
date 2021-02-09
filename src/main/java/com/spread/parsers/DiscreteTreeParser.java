@@ -31,20 +31,21 @@ import lombok.Setter;
 
 public class DiscreteTreeParser {
 
-    public static final String X_COORDINATE = "xCoordinate";
-    public static final String Y_COORDINATE = "yCoordinate";
+    // private static final String X_COORDINATE = "xCoordinate";
+    // private static final String Y_COORDINATE = "yCoordinate";
+
     public static final String COUNT = "count";
     private static final Integer UNRESOLVED_INDEX = Integer.MAX_VALUE;
 
-    @Getter @Setter
+    @Setter
     private String treeFilePath;
-    @Getter @Setter
+    @Setter
     private String locationsFilePath;
-    @Getter @Setter
+    @Setter
     private String locationTraitAttributeName;
-    @Getter @Setter
+    @Setter
     private double timescaleMultiplier;
-    @Getter @Setter
+    @Setter
     private String mostRecentSamplingDate;
 
     public DiscreteTreeParser() {
@@ -69,8 +70,7 @@ public class DiscreteTreeParser {
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         TimeLine timeLine = timeParser.getTimeLine(rootedTree.getHeight(rootedTree.getRootNode()));
 
-        DiscreteLocationsParser locationsParser = new DiscreteLocationsParser(this.locationsFilePath, false);
-        LinkedList<Location> locationsList = locationsParser.parseLocations();
+        LinkedList<Location> locationsList = new DiscreteLocationsParser(this.locationsFilePath, false).parseLocations();
 
         LinkedList<Attribute> uniqueBranchAttributes = new LinkedList<Attribute>();
         LinkedList<Attribute> uniqueNodeAttributes = new LinkedList<Attribute>();
@@ -373,22 +373,9 @@ public class DiscreteTreeParser {
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-        // String countsLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
-        // Layer countsLayer = new Layer(countsLayerId, //
-        //                               "Counts layer", //
-        //                               countsList //
-        //                               );
-
         Layer countsLayer = new Layer.Builder ().withPoints (countsList).build ();
 
         layersList.add(countsLayer);
-
-        // String treeLayerId = ParsersUtils.splitString(this.treeFilePath , "/");
-        // Layer treeLayer = new Layer(treeLayerId, //
-        //                             "Tree layer", //
-        //                             pointsList, //
-        //                             linesList //
-        //                             );
 
         Layer treeLayer = new Layer.Builder ()
             .withPoints (pointsList)
@@ -462,8 +449,8 @@ public class DiscreteTreeParser {
 
         }
 
-        Attribute xCoordinate = new Attribute(X_COORDINATE, xCoordinateRange);
-        Attribute yCoordinate = new Attribute(Y_COORDINATE, yCoordinateRange);
+        Attribute xCoordinate = new Attribute(ParsersUtils.X_COORDINATE, xCoordinateRange);
+        Attribute yCoordinate = new Attribute(ParsersUtils.Y_COORDINATE, yCoordinateRange);
 
         coordinateRange.add(ParsersUtils.X_INDEX, xCoordinate);
         coordinateRange.add(ParsersUtils.Y_INDEX, yCoordinate);

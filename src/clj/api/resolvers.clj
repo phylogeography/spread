@@ -1,7 +1,9 @@
 (ns api.resolvers
-  (:require [api.models.continuous-tree :as continuous-tree-model]
+  (:require [api.models.bayes-factor :as bayes-factor-model]
+            [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [clojure.data.json :as json]
             [shared.utils :refer [clj->gql]]
             [taoensso.timbre :as log]))
 
@@ -49,3 +51,16 @@
   (let [attributes (map :attribute-name (time-slicer-model/get-attributes db {:time-slicer-id time-slicer-id}))]
     (log/info "time-slicer->attributes" {:attributes attributes})
     attributes))
+
+(defn get-bayes-factor-analysis
+  [{:keys [db]} {id :id :as args} _]
+  (log/info "get-bayes-factor-analysis" args)
+  (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
+
+(defn bayes-factor-analysis->bayes-factors
+  [{:keys [db]} _ {bayes-factor-analysis-id :id :as parent}]
+  (log/info "bayes-factor-analysis->bayes-factors" parent)
+  (let [{:keys [bayes-factors]} (bayes-factor-model/get-bayes-factors db {:bayes-factor-analysis-id bayes-factor-analysis-id})
+        bayes-factors (json/read-str bayes-factors)]
+    (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
+    (clj->gql bayes-factors)))

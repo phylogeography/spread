@@ -11,6 +11,7 @@ services:
     ports:
       - 127.0.0.1:3306:3306
     volumes:
+      - mysql_data:/var/lib/mysql
       - ./mysql:/docker-entrypoint-initdb.d
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
@@ -23,10 +24,9 @@ services:
     ports:
       - 127.0.0.1:9324:9324
     volumes:
-      - ./sqs:/opt/custom
+      # - ./sqs:/opt/custom
       - ./sqs/elasticmq.conf:/opt/elasticmq.conf
 
-  # https://docs.min.io/docs/minio-docker-quickstart-guide.html
   s3:
     image: minio/minio:latest
     container_name: dev_s3
@@ -34,7 +34,13 @@ services:
     ports:
       - 9000:9000
     volumes:
-      - ./s3:/data
+      - s3_data:/data
     environment:
       MINIO_ACCESS_KEY: $API_AWS_ACCESS_KEY_ID
       MINIO_SECRET_KEY: $API_AWS_SECRET_ACCESS_KEY
+
+volumes:
+  s3_data:
+    external: false    
+  mysql_data:
+    external: false    

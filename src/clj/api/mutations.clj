@@ -1,5 +1,6 @@
 (ns api.mutations
-  (:require [api.models.continuous-tree :as continuous-tree-model]
+  (:require [api.models.bayes-factor :as bayes-factor-model]
+            [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [aws.s3 :as aws-s3]
@@ -243,3 +244,73 @@
         (log/error "Exception when sending message to worker" {:error e})
         (time-slicer-model/update! db {:id id
                                        :status :ERROR})))))
+
+(defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
+                                    {log-file-url        :logFileUrl
+                                     locations-file-url  :locationsFileUrl
+                                     readable-name       :readableName
+                                     number-of-locations :numberOfLocations
+                                     burn-in             :burnIn
+                                     :or                 {burn-in 0.1}
+                                     :as                 args} _]
+  (log/info "upload-bayes-factor" {:user/id authed-user-id
+                                   :args    args})
+  (let [id       (s3-url->id log-file-url authed-user-id)
+        ;; NOTE: uploads mutation generates different ids for each uploaded file
+        ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
+        status   :DATA_UPLOADED
+        analysis {:id                 id
+                  :readable-name      readable-name
+                  :user-id            authed-user-id
+                  :log-file-url       log-file-url
+                  :locations-file-url locations-file-url
+                  :number-of-locations number-of-locations
+                  :burn-in            burn-in
+                  :status             status}]
+    (try
+      (bayes-factor-model/upsert! db analysis)
+      {:id     id
+       :status status}
+      (catch Exception e
+        (log/error "Exception occured" {:error e})
+        (bayes-factor-model/update! db {:id     id
+                                        :status :ERROR})))))
+
+(defn update-bayes-factor-analysis
+  [{:keys [authed-user-id db]} {id                  :id
+                                readable-name       :readableName
+                                ;; locations-file-url  :locationsFileUrl
+                                number-of-locations :numberOfLocations
+                                burn-in             :burnIn
+                                :or                 {burn-in 0.1}
+                                :as                 args} _]
+  (log/info "update discrete tree" {:user/id authed-user-id
+                                    :args    args})
+  (try
+    (let [status :PARSER_ARGUMENTS_SET]
+      (discrete-tree-model/update! db {:id            id
+                                       :readable-name readable-name
+                                       :number-of-locations number-of-locations
+                                       :burn-in       burn-in
+                                       :status        status})
+      {:id     id
+       :status status})
+    (catch Exception e
+      (log/error "Exception occured" {:error e})
+      (bayes-factor-model/update! db {:id     id
+                                      :status :ERROR}))))
+
+(defn start-bayes-factor-parser
+  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  (log/info "start-bayes-factor-parser" args)
+  (let [status :QUEUED]
+    (try
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-bayes-factors
+                                                   :id           id})
+      (bayes-factor-model/update! db {:id id :status status})
+      {:id     id
+       :status status}
+      (catch Exception e
+        (log/error "Exception when sending message to worker" {:error e})
+        (bayes-factor-model/update! db {:id     id
+                                        :status :ERROR})))))

@@ -33,8 +33,7 @@ public class ContinuousTreeParserTest {
                                                                 "80",
                                                                 true,
                                                                 1.0,
-                                                                mostRecentSamplingDate
-                                                                );
+                                                                mostRecentSamplingDate);
 
         String json = parser.parse();
         Gson gson = new Gson();
@@ -43,8 +42,8 @@ public class ContinuousTreeParserTest {
         assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeLine().getEndTime());
         assertEquals("returns correct root date", "2016/10/24", data.getTimeLine().getStartTime());
 
-        assertEquals("returns correct X attribute", xCoordinate, data.getAxisAttributes().getxCoordinate());
-        assertEquals("returns correct Y attribute", yCoordinate, data.getAxisAttributes().getyCoordinate());
+        assertEquals("returns correct X attribute", xCoordinate, data.getAxisAttributes().getXCoordinate());
+        assertEquals("returns correct Y attribute", yCoordinate, data.getAxisAttributes().getYCoordinate());
 
         Attribute xCoordinateLineAttribute = data.getLineAttributes().stream().filter(att -> att.getId().equals(xCoordinate)).findAny().orElse(null);
         Attribute yCoordinateLineAttribute = data.getLineAttributes().stream().filter(att -> att.getId().equals(yCoordinate)).findAny().orElse(null);

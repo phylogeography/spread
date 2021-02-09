@@ -1,68 +1,70 @@
 {:paths ["src/clj" "resources/"]
- :deps {;; CORE
-        org.clojure/clojure {:mvn/version "1.10.1"}
-        org.clojure/core.async {:mvn/version "1.2.603"}
-        org.clojure/core.match {:mvn/version "1.0.0"}
+ :deps  {;; CORE
+         org.clojure/clojure    {:mvn/version "1.10.1"}
+         org.clojure/core.async {:mvn/version "1.2.603"}
+         org.clojure/core.match {:mvn/version "1.0.0"}
 
-        ;; HTTP / NETWORKING
-        com.cognitect/transit-clj {:mvn/version "1.0.324"}
-        com.walmartlabs/lacinia-pedestal {:mvn/version "0.15.0-alpha-2"}
+         ;; HTTP / NETWORKING
+         com.cognitect/transit-clj        {:mvn/version "1.0.324"}
+         com.walmartlabs/lacinia-pedestal {:mvn/version "0.15.0-alpha-2"}
 
-        ;; LOGGING
-        com.taoensso/timbre {:mvn/version "5.1.0"}
+         ;; LOGGING
+         com.taoensso/timbre {:mvn/version "5.1.0"}
 
-        ;; DB
-        seancorfield/next.jdbc {:mvn/version "1.1.588"}
-        com.layerware/hugsql-core {:mvn/version "0.5.1"}
-        com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.1"}
-        mysql/mysql-connector-java {:mvn/version "8.0.21"}
+         ;; DB
+         seancorfield/next.jdbc                 {:mvn/version "1.1.588"}
+         com.layerware/hugsql-core              {:mvn/version "0.5.1"}
+         com.layerware/hugsql-adapter-next-jdbc {:mvn/version "0.5.1"}
+         mysql/mysql-connector-java             {:mvn/version "8.0.21"}
 
-        ;; AWS
-        com.cognitect.aws/api {:mvn/version "0.8.484"}
-        com.cognitect.aws/endpoints {:mvn/version "1.1.11.906"}
-        com.cognitect.aws/s3 {:mvn/version "809.2.797.0"}
-        com.cognitect.aws/sqs {:mvn/version "809.2.784.0"}
-        software.amazon.awssdk/s3 {:mvn/version "2.15.35"}
-        software.amazon.awssdk/auth {:mvn/version "2.15.35"}
+         ;; AWS
+         com.cognitect.aws/api       {:mvn/version "0.8.484"}
+         com.cognitect.aws/endpoints {:mvn/version "1.1.11.906"}
+         com.cognitect.aws/s3        {:mvn/version "809.2.797.0"}
+         com.cognitect.aws/sqs       {:mvn/version "809.2.784.0"}
+         software.amazon.awssdk/s3   {:mvn/version "2.15.35"}
+         software.amazon.awssdk/auth {:mvn/version "2.15.35"}
 
-        ;; PARSERS
-        jebl {:mvn/version "2.0"}
-        libspread {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
-        org.clojure/data.json {:mvn/version "1.0.0"}
+         ;; PARSERS
+         jebl                  {:mvn/version "2.0"}
+         libspread             {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
+         org.clojure/data.json {:mvn/version "1.0.0"}
 
-        ;; UTILS
-        mount {:mvn/version "0.1.16"}
-        jpmonettas/flow-storm {:mvn/version "0.2.6"}
-        }
+         ;; UTILS
+         mount                 {:mvn/version "0.1.16"}
+         jpmonettas/flow-storm {:mvn/version "0.2.6"}}
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}
-             "jebl2" {:url "http://www.stat.ubc.ca/~bouchard/maven/"
-                      :snapshots false
-                      :sign-releases false
-                      :checksum :fail
-                      :update :never}
-             }
- :aliases {:test
-           {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}
-                         clj-http/clj-http {:mvn/version "3.11.0"}}}
+             "jebl2"   {:url           "http://www.stat.ubc.ca/~bouchard/maven/"
+                        :snapshots     false
+                        :sign-releases false
+                        :checksum      :fail
+                        :update        :never}}
+ :aliases   {:test
+             {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}
+                           clj-http/clj-http   {:mvn/version "3.11.0"}}}
 
-           :run-api
-           {:main-opts ["-m" "api.main"]}
+             :run-api
+             {:main-opts ["-m" "api.main"]}
 
-           :run-worker
-           {:main-opts ["-m" "worker.main"]}
+             :run-worker
+             {:main-opts ["-m" "worker.main"]}
 
-           :uberjar
-           {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
-            :main-opts ["-m" "hf.depstar.uberjar"]}
+             :uberjar
+             {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
+              :main-opts  ["-m" "hf.depstar.uberjar"]}
 
-           :clj-kondo
-           {:extra-deps {clj-kondo {:mvn/version "RELEASE"}}
-            :main-opts ["-m" "clj-kondo.main"]}
+             :clj-kondo
+             {:extra-deps {clj-kondo {:mvn/version "2021.01.20"}}
+              :main-opts  ["-m" "clj-kondo.main"]}
 
-           :repl
-           {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}
+             :repl
+             {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}
 
-           :outdated
-           {:extra-deps {olical/depot {:mvn/version "1.8.4"}}
-            :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}
+             :graph
+             {:extra-deps {org.clojure/tools.deps.graph {:mvn/version "1.0.56"}}
+              :main-opts    ["-m" "clojure.tools.deps.graph"]}
+
+             :outdated
+             {:extra-deps {olical/depot {:mvn/version "1.8.4"}}
+              :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}

@@ -1,21 +1,22 @@
 package com.spread.data;
 
+import lombok.ToString;
+import lombok.Getter;
+
+/**
+ * @author Filip Bielejec
+ */
+@ToString(includeFieldNames=true)
 public class AxisAttributes {
 
-	private final String xCoordinate;
-	private final String yCoordinate;
+        @Getter
+        private final String xCoordinate;
+        @Getter
+        private final String yCoordinate;
 
-	public AxisAttributes(String xCoordinate, String yCoordinate) {
-		this.xCoordinate = xCoordinate;
-		this.yCoordinate = yCoordinate;
-	}
-
-	public String getxCoordinate() {
-		return xCoordinate;
-	}
-
-	public String getyCoordinate() {
-		return yCoordinate;
-	}
+        public AxisAttributes(String xCoordinate, String yCoordinate) {
+                this.xCoordinate = xCoordinate;
+                this.yCoordinate = yCoordinate;
+        }
 
 }

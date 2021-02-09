@@ -5,6 +5,8 @@
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as timbre]))
 
+(declare logging)
+
 (defn- logline [data]
   (-> data
       (select-keys [:level :?ns-str :?file :?line :message :meta :instant])

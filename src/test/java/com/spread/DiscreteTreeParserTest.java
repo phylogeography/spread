@@ -12,6 +12,7 @@ import com.spread.data.Location;
 import com.spread.data.SpreadData;
 import com.spread.exceptions.SpreadException;
 import com.spread.parsers.DiscreteTreeParser;
+import com.spread.utils.ParsersUtils;
 
 import org.junit.Test;
 
@@ -45,10 +46,10 @@ public class DiscreteTreeParserTest {
         assertEquals("returns correct root date", "2007/11/17", data.getTimeLine().getStartTime());
 
         Attribute xCoordinatePointAttribute =
-            data.getPointAttributes().stream().filter(att -> att.getId().equals(DiscreteTreeParser.X_COORDINATE)).findAny().orElse(null);
+            data.getPointAttributes().stream().filter(att -> att.getId().equals(ParsersUtils.X_COORDINATE)).findAny().orElse(null);
 
         Attribute yCoordinatePointAttribute =
-            data.getPointAttributes().stream().filter(att -> att.getId().equals(DiscreteTreeParser.Y_COORDINATE)).findAny().orElse(null);
+            data.getPointAttributes().stream().filter(att -> att.getId().equals(ParsersUtils.Y_COORDINATE)).findAny().orElse(null);
 
         assertArrayEquals("returns correct X coord range", new Double[]{108.1, 118.283}, xCoordinatePointAttribute.getRange());
         assertArrayEquals("returns correct Y coord range", new Double[]{22.3, 39.3583}, yCoordinatePointAttribute.getRange());

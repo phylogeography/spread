@@ -16,6 +16,8 @@
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
+(declare server)
+
 (defn auth-decorator [resolver-fn]
   (fn [{:keys [headers] :as application-context} args value]
     (if-let [user-id (auth/token->user-id (get headers "Authorization"))]
@@ -43,6 +45,12 @@
    :query/getTimeSlicer resolvers/get-time-slicer
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
    :mutation/startTimeSlicerParser (auth-decorator mutations/start-time-slicer-parser)
+
+   :mutation/uploadBayesFactorAnalysis (auth-decorator mutations/upload-bayes-factor-analysis)
+   :mutation/updateBayesFactorAnalysis (auth-decorator mutations/update-bayes-factor-analysis)
+   :mutation/startBayesFactorParser (auth-decorator mutations/start-bayes-factor-parser)
+   :query/getBayesFactorAnalysis resolvers/get-bayes-factor-analysis
+   :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    })
 
@@ -81,6 +89,7 @@
 (defn stop [this]
   (http/stop this))
 
+;; TODO : use subscriptions
 (defn start [{:keys [api aws db env] :as config}]
   (let [dev? (= "dev" env)
         {:keys [port]} api
