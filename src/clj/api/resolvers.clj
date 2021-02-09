@@ -2,6 +2,7 @@
   (:require [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [api.models.bayes-factor :as bayes-factor-model]
             [shared.utils :refer [clj->gql]]
             [taoensso.timbre :as log]))
 
@@ -49,3 +50,8 @@
   (let [attributes (map :attribute-name (time-slicer-model/get-attributes db {:time-slicer-id time-slicer-id}))]
     (log/info "time-slicer->attributes" {:attributes attributes})
     attributes))
+
+(defn get-bayes-factor-analysis
+  [{:keys [db]} {id :id :as args} _]
+  (log/info "get-bayes-factor-analysis" args)
+  (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))

@@ -239,14 +239,13 @@
       (time-slicer-model/update! db {:id id
                                      :status :ERROR}))))
 
-;; TODO
 (defmethod handler :parse-bayes-factors
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-bayes-factors" args)
   (try
-    (let [_ (bayes-factor-model/update! db {:id     id
-                                            :status :RUNNING})
-          _ (log/debug "@@@ before")
+    (let [_              (bayes-factor-model/update! db {:id     id
+                                                         :status :RUNNING})
+          _              (log/debug "@@@ before")
           {:keys [user-id
                   log-file-url
                   locations-file-url
@@ -254,44 +253,47 @@
           (bayes-factor-model/get-bayes-factor-analysis db {:id id})
           ;; TODO: parse extension
           log-object-key (str user-id "/" id ".log")
-          log-file-path (str tmp-dir "/" log-object-key)
+          log-file-path  (str tmp-dir "/" log-object-key)
           ;; is it cached on disk?
-          _ (when-not (file-exists? log-file-path)
-              (aws-s3/download-file s3 {:bucket bucket-name
-                                        :key log-object-key
-                                        :dest-path log-file-path}))
+          _              (when-not (file-exists? log-file-path)
+                           (aws-s3/download-file s3 {:bucket    bucket-name
+                                                     :key       log-object-key
+                                                     :dest-path log-file-path}))
 
-          locations-file-id (s3-url->id locations-file-url user-id)
+          ;; TODO : suppport for no locations file
+
+          locations-file-id    (s3-url->id locations-file-url user-id)
           ;; ;; TODO: parse extension
           locations-object-key (str user-id "/" locations-file-id ".txt")
-          locations-file-path (str tmp-dir "/" locations-object-key)
+          locations-file-path  (str tmp-dir "/" locations-object-key)
           ;; is it cached on disk?
-          _ (when-not (file-exists? locations-file-path)
-              (aws-s3/download-file s3 {:bucket bucket-name
-                                        :key locations-object-key
-                                        :dest-path locations-file-path}))
-          parser (doto (new DiscreteTreeParser)
-                   (.setTreeFilePath tree-file-path)
-                   (.setLocationsFilePath locations-file-path)
-                   (.setLocationTraitAttributeName location-attribute-name)
-                   (.setTimescaleMultiplier timescale-multiplier)
-                   (.setMostRecentSamplingDate most-recent-sampling-date))
-          ;; output-object-key (str user-id "/" id ".json")
-          ;; output-object-path (str tmp-dir "/" output-object-key)
-          ;; _ (spit output-object-path (.parse parser) :append false)
-          ;; _ (aws-s3/upload-file s3 {:bucket bucket-name
-          ;;                           :key output-object-key
-          ;;                           :file-path output-object-path})
-          ;; url (aws-s3/build-url aws-config bucket-name output-object-key)
+          _                    (when-not (file-exists? locations-file-path)
+                                 (aws-s3/download-file s3 {:bucket    bucket-name
+                                                           :key       locations-object-key
+                                                           :dest-path locations-file-path}))
+          parser               (doto (new BayesFactorParser)
+                                 (.setLogFilePath log-file-path)
+                                 (.setLocationsFilePath locations-file-path)
+                                 (.setBurnIn (double burn-in)))
+
+
+          output-object-key    (str user-id "/" id ".json")
+          output-object-path   (str tmp-dir "/" output-object-key)
+          _                    (spit output-object-path (.parse parser) :append false)
+          _                    (aws-s3/upload-file s3 {:bucket    bucket-name
+                                                       :key       output-object-key
+                                                       :file-path output-object-path})
+          url                  (aws-s3/build-url aws-config bucket-name output-object-key)
+
           ]
-      #_(discrete-tree-model/update! db {:id id
-                                       :output-file-url url
-                                       :status :SUCCEEDED}))
+
+      (bayes-factor-model/update! db {:id              id
+                                      :output-file-url url
+                                      :status          :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-bayes-factors" {:error e})
       (bayes-factor-model/update! db {:id     id
                                       :status :ERROR}))))
-
 
 
 (defn start [{:keys [aws db] :as config}]

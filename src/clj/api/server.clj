@@ -47,6 +47,7 @@
    :mutation/uploadBayesFactorAnalysis (auth-decorator mutations/upload-bayes-factor-analysis)
    :mutation/updateBayesFactorAnalysis (auth-decorator mutations/update-bayes-factor-analysis)
    :mutation/startBayesFactorParser (auth-decorator mutations/start-bayes-factor-parser)
+   :query/getBayesFactorAnalysis resolvers/get-bayes-factor-analysis
 
    })
 
@@ -85,6 +86,7 @@
 (defn stop [this]
   (http/stop this))
 
+;; TODO : use subscriptions
 (defn start [{:keys [api aws db env] :as config}]
   (let [dev? (= "dev" env)
         {:keys [port]} api

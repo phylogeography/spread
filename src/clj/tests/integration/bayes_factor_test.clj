@@ -8,6 +8,21 @@
 
 (use-fixtures :once db-fixture)
 
+(defn- block-on-status [id status]
+  (let [query-status #(-> (get-in (run-query {:query
+                                              "query GetStatus($id: ID!) {
+                                                 getBayesFactorAnalysis(id: $id) {
+                                                   status
+                                                   }
+                                                 }"
+                                              :variables {:id %}})
+                                  [:data :getBayesFactorAnalysis :status])
+                          keyword)]
+    (loop [current-status (query-status id)]
+      (if (= status current-status)
+        current-status
+        (recur (query-status id))))))
+
 (deftest continuous-tree-test
   (let [[log-url locations-url] (get-in (run-query {:query
                                                     "mutation GetUploadUrls($files: [File]) {
@@ -63,12 +78,17 @@
                                              :variables {:id id}})
                                  [:data :startBayesFactorParser])
 
-        ]
+        _ (block-on-status id :SUCCEEDED)
 
+        {:keys [id status outputFileUrl]} (get-in (run-query {:query
+                                                              "query GetResults($id: ID!) {
+                                                                       getBayesFactorAnalysis(id: $id) {
+                                                                         id
+                                                                         status
+                                                                         outputFileUrl
+                                                                       }
+                                                                     }"
+                                                              :variables {:id id}})
+                                                  [:data :getBayesFactorAnalysis])]
     (log/debug "response" {:id id :status status})
-
-
-
-    (is false)
-
-    ))
+    (is outputFileUrl)))

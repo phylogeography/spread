@@ -245,7 +245,6 @@
         (time-slicer-model/update! db {:id id
                                        :status :ERROR})))))
 
-;; TODO
 (defn upload-bayes-factor-analysis [{:keys [sqs workers-queue-url authed-user-id db]}
                                     {log-file-url       :logFileUrl
                                      locations-file-url :locationsFileUrl
@@ -286,10 +285,10 @@
                                     :args    args})
   (try
     (let [status :PARSER_ARGUMENTS_SET]
-      (discrete-tree-model/update! db {:id                      id
-                                       :readable-name           readable-name
-                                       :burn-in            burn-in
-                                       :status status})
+      (discrete-tree-model/update! db {:id            id
+                                       :readable-name readable-name
+                                       :burn-in       burn-in
+                                       :status        status})
       {:id     id
        :status status})
     (catch Exception e

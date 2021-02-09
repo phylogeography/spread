@@ -76,6 +76,7 @@
                                :readableName           {:description "Human-readable name. Usually tree file name."
                                                         :type        String}
                                :treeFileUrl            {:type (non-null String)}
+                               :locationsFileUrl       {:type (non-null String)}
                                :locationAttributeName  {:type String}
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
@@ -105,7 +106,19 @@
                              :status                             {:type :TimeSlicerStatus}
                              :attributeNames                     {:type    (list String)
                                                                   :resolve :resolve/time-slicer->attributes}
-                             :outputFileUrl                      {:type String}}}}
+                             :outputFileUrl                      {:type String}}}
+
+  :BayesFactorAnalysis {:description "Represents BayesFactorAnalysis entity."
+                        :fields      {:id               {:description "Unique identifier."
+                                                         :type        (non-null ID)}
+                                      :userId           {:type (non-null ID)}
+                                      :readableName     {:description "Human-readable name. Usually log file name."
+                                                         :type        String}
+                                      :logFileUrl       {:type (non-null String)}
+                                      :locationsFileUrl {:type String}
+                                      :status           {:type :BayesFactorStatus}
+                                      :burnIn           {:type    Float}
+                                      :outputFileUrl    {:type String}}}}
 
  :queries
  {:getContinuousTree {:type        :ContinuousTree
@@ -122,6 +135,11 @@
                   :description "Returns a TimeSlicer entity by id."
                   :args        {:id {:type (non-null ID)}}
                   :resolve     :query/getTimeSlicer}
+
+  :getBayesFactorAnalysis {:type        :BayesFactorAnalysis
+                           :description "Returns a BayesFactorAnalysis entity by id."
+                           :args        {:id {:type (non-null ID)}}
+                           :resolve     :query/getBayesFactorAnalysis}
 
   }
 
