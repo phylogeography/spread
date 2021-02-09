@@ -216,6 +216,11 @@
                                             :burnIn       {:type Float}}
                               :resolve     :mutation/updateBayesFactorAnalysis}
 
+  :startBayesFactorParser {:type        :BayesFactorParserStatus
+                           :description "Starts executing a parser. Returns a ParserStatus with id."
+                           :args        {:id {:type (non-null ID)}}
+                           :resolve     :mutation/startBayesFactorParser}
+
 
   }
 

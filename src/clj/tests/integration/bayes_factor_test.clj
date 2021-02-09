@@ -9,9 +9,7 @@
 (use-fixtures :once db-fixture)
 
 (deftest continuous-tree-test
-  (let [
-
-        [log-url locations-url] (get-in (run-query {:query
+  (let [[log-url locations-url] (get-in (run-query {:query
                                                     "mutation GetUploadUrls($files: [File]) {
                                                         getUploadUrls(files: $files)
                                                       }"
@@ -44,7 +42,7 @@
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateBayesFactor($id: ID!,
-                                                                  $burnIn: Float!) {
+                                                                         $burnIn: Float!) {
                                                 updateBayesFactorAnalysis(id: $id,
                                                                           burnIn: $burnIn) {
                                                   status
@@ -53,6 +51,17 @@
                                              :variables {:id     id
                                                          :burnIn 0.1}})
                                  [:data :updateBayesFactorAnalysis])
+
+        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+
+        {:keys [status]} (get-in (run-query {:query
+                                             "mutation QueueJob($id: ID!) {
+                                                startBayesFactorParser(id: $id) {
+                                                 status
+                                                }
+                                              }"
+                                             :variables {:id id}})
+                                 [:data :startBayesFactorParser])
 
         ]
 

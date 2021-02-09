@@ -46,6 +46,7 @@
 
    :mutation/uploadBayesFactorAnalysis (auth-decorator mutations/upload-bayes-factor-analysis)
    :mutation/updateBayesFactorAnalysis (auth-decorator mutations/update-bayes-factor-analysis)
+   :mutation/startBayesFactorParser (auth-decorator mutations/start-bayes-factor-parser)
 
    })
 

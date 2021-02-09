@@ -30,13 +30,13 @@ public class BayesFactorParser {
     public static final String POSTERIOR_PROBABILITY = "posteriorProbability";
 
     @Setter
-    private String logFilename;
+    private String logFilePath;
     @Setter
     private Double burnIn;
     @Setter
-    private String locationsFilename;
+    private String locationsFilePath;
     @Setter
-    private Integer numberLocations;
+    private Integer numberOfGeneratedLocations;
 
     private final Double poissonPriorMean = Math.log(2);;
     private Integer poissonPriorOffset;
@@ -80,47 +80,47 @@ public class BayesFactorParser {
     public BayesFactorParser() {
     }
 
-    public BayesFactorParser(String logFilename,
+    public BayesFactorParser(String logFilePath,
                              Double burnIn,
-                             String locationsFilename) {
-        this.logFilename = logFilename;
+                             String locationsFilePath) {
+        this.logFilePath = logFilePath;
         this.burnIn = burnIn;
-        this.locationsFilename = locationsFilename;
+        this.locationsFilePath = locationsFilePath;
     }
 
-    public BayesFactorParser(String logFilename,
+    public BayesFactorParser(String logFilePath,
                              Double burnIn,
-                             Integer numberLocations) {
-        this.logFilename = logFilename;
+                             Integer numberOfGeneratedLocations) {
+        this.logFilePath = logFilePath;
         this.burnIn = burnIn;
-        this.numberLocations = numberLocations;
+        this.numberOfGeneratedLocations = numberOfGeneratedLocations;
     }
 
     public String parse() throws IOException, SpreadException {
 
-        Double[][] indicators = new LogParser(this.logFilename, this.burnIn).parseIndicators();
+        Double[][] indicators = new LogParser(this.logFilePath, this.burnIn).parseIndicators();
 
         System.out.println("Imported log file");
 
         LinkedList<Location> locationsList = null;
-        if (this.locationsFilename != null) {
-            locationsList = new DiscreteLocationsParser(this.locationsFilename, false)
+        if (this.locationsFilePath != null) {
+            locationsList = new DiscreteLocationsParser(this.locationsFilePath, false)
                 .parseLocations();
-        } else if (this.numberLocations != null) {
-            locationsList = this.generateDummyLocations(this.numberLocations);
+        } else if (this.numberOfGeneratedLocations != null) {
+            locationsList = this.generateDummyLocations(this.numberOfGeneratedLocations);
         } else {
-            throw new SpreadException ("Specify one of: numberLocations or locationsFilename");
+            throw new SpreadException ("Specify one of: numberOfGeneratedLocations or locationsFilePath");
         }
 
-        int numberLocations = locationsList.size();
-        this.poissonPriorOffset = numberLocations - 1;
+        int numberOfGeneratedLocations = locationsList.size();
+        this.poissonPriorOffset = numberOfGeneratedLocations - 1;
         int nrow = indicators.length;
         int ncol = indicators[0].length;
 
         Boolean symmetrical = null;
-        if (ncol == numberLocations * (numberLocations - 1)) {
+        if (ncol == numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) {
             symmetrical = false;
-        } else if (ncol == (numberLocations * (numberLocations - 1)) / 2) {
+        } else if (ncol == (numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) / 2) {
             symmetrical = true;
         } else {
             int n1 = (int) ((Math.sqrt(4 * ncol + 1) + 1) / 2);
@@ -132,9 +132,9 @@ public class BayesFactorParser {
 
         double qk = Double.NaN;
         if (symmetrical) {
-            qk = (poissonPriorMean + poissonPriorOffset) / ((numberLocations * (numberLocations - 1)) / 2);
+            qk = (poissonPriorMean + poissonPriorOffset) / ((numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) / 2);
         } else {
-            qk = (poissonPriorMean + poissonPriorOffset) / ((numberLocations * (numberLocations - 1)) / 1);
+            qk = (poissonPriorMean + poissonPriorOffset) / ((numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) / 1);
         }
 
         double priorOdds = qk / (1 - qk);
@@ -167,8 +167,8 @@ public class BayesFactorParser {
             ii++;
         }
 
-        for (int row = 0; row < numberLocations - 1; row++) {
-            String[] subset = this.subset(locations, row, numberLocations - row);
+        for (int row = 0; row < numberOfGeneratedLocations - 1; row++) {
+            String[] subset = this.subset(locations, row, numberOfGeneratedLocations - row);
             for (int i = 1; i < subset.length; i++) {
                 from.add(locations[row]);
                 to.add(subset[i]);
@@ -436,7 +436,7 @@ public class BayesFactorParser {
     /*
      * Generates locations distributed uniformly on a circle with fixed radius of 1000 KM
      */
-    private LinkedList<Location> generateDummyLocations(int numberLocations) {
+    private LinkedList<Location> generateDummyLocations(int numberOfGeneratedLocations) {
 
         double radius = 1000;
 
@@ -448,11 +448,11 @@ public class BayesFactorParser {
             / Math.cos(Math.toRadians(centroidLatitude));
 
         LinkedList<Location> locationsList = new LinkedList<Location>();
-        for (int i = 0; i < numberLocations; i++) {
+        for (int i = 0; i < numberOfGeneratedLocations; i++) {
 
             String locationId = "location" + (i + 1);
 
-            double theta = 2.0 * Math.PI * (i / (double) numberLocations);
+            double theta = 2.0 * Math.PI * (i / (double) numberOfGeneratedLocations);
             Double cLatitude = centroidLatitude
                 + (dLongitude * Math.cos(theta));
             Double cLongitude = centroidLongitude

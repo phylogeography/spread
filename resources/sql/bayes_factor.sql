@@ -52,10 +52,9 @@ id,
 user_id,
 log_file_url,
 locations_file_url,
-location_attribute_name,
 burn_in,
 status,
 output_file_url,
 readable_name
 FROM bayes_factor
-WHERE :id = id
+WHERE id = :id

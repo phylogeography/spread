@@ -296,3 +296,18 @@
       (log/error "Exception occured" {:error e})
       (bayes-factor-model/update! db {:id     id
                                       :status :ERROR}))))
+
+(defn start-bayes-factor-parser
+  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  (log/info "start-bayes-factor-parser" args)
+  (let [status :QUEUED]
+    (try
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-bayes-factors
+                                                   :id           id})
+      (bayes-factor-model/update! db {:id id :status status})
+      {:id     id
+       :status status}
+      (catch Exception e
+        (log/error "Exception when sending message to worker" {:error e})
+        (bayes-factor-model/update! db {:id     id
+                                        :status :ERROR})))))
