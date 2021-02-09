@@ -78,6 +78,8 @@
                                              :variables {:id id}})
                                  [:data :startBayesFactorParser])
 
+        _ (is :QUEUED (keyword status))
+
         _ (block-on-status id :SUCCEEDED)
 
         {:keys [id status outputFileUrl bayesFactors]} (get-in (run-query {:query

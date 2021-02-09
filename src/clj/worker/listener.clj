@@ -1,21 +1,18 @@
 (ns worker.listener
   (:require [api.db :as db]
+            [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
-            [api.models.bayes-factor :as bayes-factor-model]
-            [clojure.core.match :refer [match]]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
+            [clojure.core.match :refer [match]]
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
             [shared.utils :refer [file-exists?]]
             [taoensso.timbre :as log])
-  (:import (com.spread.parsers ContinuousTreeParser)
-           (com.spread.parsers DiscreteTreeParser)
-           (com.spread.parsers TimeSlicerParser)
-           (com.spread.parsers BayesFactorParser)))
+  (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]))
 
 (defonce tmp-dir "/tmp")
 
@@ -247,7 +244,7 @@
     (let [_              (bayes-factor-model/update! db {:id     id
                                                          :status :RUNNING})
           {:keys [user-id
-                  log-file-url
+                  ;; log-file-url
                   locations-file-url
                   number-of-locations
                   burn-in]}

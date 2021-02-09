@@ -1,8 +1,8 @@
 (ns api.mutations
-  (:require [api.models.continuous-tree :as continuous-tree-model]
+  (:require [api.models.bayes-factor :as bayes-factor-model]
+            [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
-            [api.models.bayes-factor :as bayes-factor-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -245,7 +245,7 @@
         (time-slicer-model/update! db {:id id
                                        :status :ERROR})))))
 
-(defn upload-bayes-factor-analysis [{:keys [sqs workers-queue-url authed-user-id db]}
+(defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
                                     {log-file-url        :logFileUrl
                                      locations-file-url  :locationsFileUrl
                                      readable-name       :readableName
@@ -264,6 +264,7 @@
                   :user-id            authed-user-id
                   :log-file-url       log-file-url
                   :locations-file-url locations-file-url
+                  :number-of-locations number-of-locations
                   :burn-in            burn-in
                   :status             status}]
     (try
@@ -278,7 +279,7 @@
 (defn update-bayes-factor-analysis
   [{:keys [authed-user-id db]} {id                  :id
                                 readable-name       :readableName
-                                locations-file-url  :locationsFileUrl
+                                ;; locations-file-url  :locationsFileUrl
                                 number-of-locations :numberOfLocations
                                 burn-in             :burnIn
                                 :or                 {burn-in 0.1}
