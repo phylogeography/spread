@@ -4,7 +4,7 @@
   <property name="RealBooleanType" value="TINYINT(1)" dbms="mysql"/>
 
   <changeSet author="filip" id="3.0-1">
-    <createTable tableName="bayes_factor">
+    <createTable tableName="bayes_factor_analysis">
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
@@ -22,22 +22,47 @@
       </column>
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
-      <column name="burn_in" type="float"/>
+      <column name="burn_in" type="FLOAT"/>
+      <column name="number_of_locations" type="INT"/>      
     </createTable>
   </changeSet>
 
   <changeSet author="filip" id="3.0-2">
-    <createIndex indexName="bayes_factor_SLASH_user_id_INDEX" tableName="bayes_factor">
+    <createIndex indexName="bayes_factor_SLASH_user_id_INDEX" tableName="bayes_factor_analysis">
       <column name="user_id"/>
     </createIndex>
   </changeSet>
 
   <changeSet author="filip" id="3.0-3">
-    <addForeignKeyConstraint constraintName="bayes_factor_SLASH_user_id_FK"
+    <addForeignKeyConstraint constraintName="bayes_factor_analysis_SLASH_user_id_FK"
                              baseColumnNames="user_id"
-                             baseTableName="bayes_factor"
+                             baseTableName="bayes_factor_analysis"
                              referencedColumnNames="id"
                              referencedTableName="user"
+                             onDelete="CASCADE"
+                             onUpdate="RESTRICT"
+                             deferrable="false"
+                             initiallyDeferred="false"
+                             validate="true"/>
+  </changeSet>
+
+  <changeSet author="filip" id="3.0-4">
+    <createTable tableName="bayes_factors">
+      <column name="bayes_factor_analysis_id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="bayes_factors" type="JSON">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="filip" id="2.0-5">
+    <addForeignKeyConstraint constraintName="bayes_factors_SLASH_bayes_factor_analysis_FK"
+                             baseColumnNames="bayes_factor_analysis_id"
+                             baseTableName="bayes_factors"
+                             referencedColumnNames="id"
+                             referencedTableName="bayes_factor_analysis"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"

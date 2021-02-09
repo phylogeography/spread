@@ -246,12 +246,13 @@
                                        :status :ERROR})))))
 
 (defn upload-bayes-factor-analysis [{:keys [sqs workers-queue-url authed-user-id db]}
-                                    {log-file-url       :logFileUrl
-                                     locations-file-url :locationsFileUrl
-                                     readable-name      :readableName
-                                     burn-in            :burnIn
-                                     :or                {burn-in 0.1}
-                                     :as                args} _]
+                                    {log-file-url        :logFileUrl
+                                     locations-file-url  :locationsFileUrl
+                                     readable-name       :readableName
+                                     number-of-locations :numberOfLocations
+                                     burn-in             :burnIn
+                                     :or                 {burn-in 0.1}
+                                     :as                 args} _]
   (log/info "upload-bayes-factor" {:user/id authed-user-id
                                    :args    args})
   (let [id       (s3-url->id log-file-url authed-user-id)
@@ -275,18 +276,20 @@
                                         :status :ERROR})))))
 
 (defn update-bayes-factor-analysis
-  [{:keys [authed-user-id db]} {id                 :id
-                                readable-name      :readableName
-                                locations-file-url :locationsFileUrl
-                                burn-in            :burnIn
-                                :or                {burn-in 0.1}
-                                :as                args} _]
+  [{:keys [authed-user-id db]} {id                  :id
+                                readable-name       :readableName
+                                locations-file-url  :locationsFileUrl
+                                number-of-locations :numberOfLocations
+                                burn-in             :burnIn
+                                :or                 {burn-in 0.1}
+                                :as                 args} _]
   (log/info "update discrete tree" {:user/id authed-user-id
                                     :args    args})
   (try
     (let [status :PARSER_ARGUMENTS_SET]
       (discrete-tree-model/update! db {:id            id
                                        :readable-name readable-name
+                                       :number-of-locations number-of-locations
                                        :burn-in       burn-in
                                        :status        status})
       {:id     id

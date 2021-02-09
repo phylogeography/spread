@@ -86,6 +86,12 @@
                                                                          id
                                                                          status
                                                                          outputFileUrl
+                                                                             bayesFactors {
+                                                                               from
+                                                                               to
+                                                                               bayesFactor
+                                                                               posteriorProbability
+                                                                             }
                                                                        }
                                                                      }"
                                                               :variables {:id id}})

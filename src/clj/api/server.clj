@@ -48,6 +48,7 @@
    :mutation/updateBayesFactorAnalysis (auth-decorator mutations/update-bayes-factor-analysis)
    :mutation/startBayesFactorParser (auth-decorator mutations/start-bayes-factor-parser)
    :query/getBayesFactorAnalysis resolvers/get-bayes-factor-analysis
+   :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    })
 

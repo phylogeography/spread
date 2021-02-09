@@ -36,7 +36,7 @@ public class BayesFactorParser {
     @Setter
     private String locationsFilePath;
     @Setter
-    private Integer numberOfGeneratedLocations;
+    private Integer numberOfLocations;
 
     private final Double poissonPriorMean = Math.log(2);;
     private Integer poissonPriorOffset;
@@ -90,10 +90,10 @@ public class BayesFactorParser {
 
     public BayesFactorParser(String logFilePath,
                              Double burnIn,
-                             Integer numberOfGeneratedLocations) {
+                             Integer numberOfLocations) {
         this.logFilePath = logFilePath;
         this.burnIn = burnIn;
-        this.numberOfGeneratedLocations = numberOfGeneratedLocations;
+        this.numberOfLocations = numberOfLocations;
     }
 
     public String parse() throws IOException, SpreadException {
@@ -106,21 +106,21 @@ public class BayesFactorParser {
         if (this.locationsFilePath != null) {
             locationsList = new DiscreteLocationsParser(this.locationsFilePath, false)
                 .parseLocations();
-        } else if (this.numberOfGeneratedLocations != null) {
-            locationsList = this.generateDummyLocations(this.numberOfGeneratedLocations);
+        } else if (this.numberOfLocations != null) {
+            locationsList = this.generateDummyLocations(this.numberOfLocations);
         } else {
-            throw new SpreadException ("Specify one of: numberOfGeneratedLocations or locationsFilePath");
+            throw new SpreadException ("Specify one of: numberOfLocations or locationsFilePath");
         }
 
-        int numberOfGeneratedLocations = locationsList.size();
-        this.poissonPriorOffset = numberOfGeneratedLocations - 1;
+        int numberOfLocations = locationsList.size();
+        this.poissonPriorOffset = numberOfLocations - 1;
         int nrow = indicators.length;
         int ncol = indicators[0].length;
 
         Boolean symmetrical = null;
-        if (ncol == numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) {
+        if (ncol == numberOfLocations * (numberOfLocations - 1)) {
             symmetrical = false;
-        } else if (ncol == (numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) / 2) {
+        } else if (ncol == (numberOfLocations * (numberOfLocations - 1)) / 2) {
             symmetrical = true;
         } else {
             int n1 = (int) ((Math.sqrt(4 * ncol + 1) + 1) / 2);
@@ -132,9 +132,9 @@ public class BayesFactorParser {
 
         double qk = Double.NaN;
         if (symmetrical) {
-            qk = (poissonPriorMean + poissonPriorOffset) / ((numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) / 2);
+            qk = (poissonPriorMean + poissonPriorOffset) / ((numberOfLocations * (numberOfLocations - 1)) / 2);
         } else {
-            qk = (poissonPriorMean + poissonPriorOffset) / ((numberOfGeneratedLocations * (numberOfGeneratedLocations - 1)) / 1);
+            qk = (poissonPriorMean + poissonPriorOffset) / ((numberOfLocations * (numberOfLocations - 1)) / 1);
         }
 
         double priorOdds = qk / (1 - qk);
@@ -167,8 +167,8 @@ public class BayesFactorParser {
             ii++;
         }
 
-        for (int row = 0; row < numberOfGeneratedLocations - 1; row++) {
-            String[] subset = this.subset(locations, row, numberOfGeneratedLocations - row);
+        for (int row = 0; row < numberOfLocations - 1; row++) {
+            String[] subset = this.subset(locations, row, numberOfLocations - row);
             for (int i = 1; i < subset.length; i++) {
                 from.add(locations[row]);
                 to.add(subset[i]);
@@ -436,7 +436,7 @@ public class BayesFactorParser {
     /*
      * Generates locations distributed uniformly on a circle with fixed radius of 1000 KM
      */
-    private LinkedList<Location> generateDummyLocations(int numberOfGeneratedLocations) {
+    private LinkedList<Location> generateDummyLocations(int numberOfLocations) {
 
         double radius = 1000;
 
@@ -448,11 +448,11 @@ public class BayesFactorParser {
             / Math.cos(Math.toRadians(centroidLatitude));
 
         LinkedList<Location> locationsList = new LinkedList<Location>();
-        for (int i = 0; i < numberOfGeneratedLocations; i++) {
+        for (int i = 0; i < numberOfLocations; i++) {
 
             String locationId = "location" + (i + 1);
 
-            double theta = 2.0 * Math.PI * (i / (double) numberOfGeneratedLocations);
+            double theta = 2.0 * Math.PI * (i / (double) numberOfLocations);
             Double cLatitude = centroidLatitude
                 + (dLongitude * Math.cos(theta));
             Double cLongitude = centroidLongitude

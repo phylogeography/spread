@@ -108,6 +108,12 @@
                                                                   :resolve :resolve/time-slicer->attributes}
                              :outputFileUrl                      {:type String}}}
 
+  :BayesFactor {:description "Represents BSSVS support for a single connection."
+                :fields      {:from                 {:type String}
+                              :to                   {:type String}
+                              :bayesFactor          {:type Float}
+                              :posteriorProbability {:type Float}}}
+
   :BayesFactorAnalysis {:description "Represents BayesFactorAnalysis entity."
                         :fields      {:id               {:description "Unique identifier."
                                                          :type        (non-null ID)}
@@ -117,8 +123,13 @@
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}
                                       :status           {:type :BayesFactorStatus}
-                                      :burnIn           {:type    Float}
-                                      :outputFileUrl    {:type String}}}}
+                                      :burnIn           {:type Float}
+                                      :outputFileUrl    {:type String}
+                                      :bayesFactors {:type (list :BayesFactor)
+                                                     :resolve :resolve/bayes-factor-analysis->bayes-factors}
+
+
+                                      }}}
 
  :queries
  {:getContinuousTree {:type        :ContinuousTree
@@ -221,17 +232,19 @@
 
   :uploadBayesFactorAnalysis {:type        :BayesFactorParserStatus
                               :description "Persists bayes factor trees. Returns a ParserStatus with id."
-                              :args        {:readableName     {:type String}
-                                            :logFileUrl       {:type (non-null String)}
-                                            :locationsFileUrl {:type (non-null String)}
-                                            :burnIn           {:type Float}}
+                              :args        {:readableName      {:type String}
+                                            :logFileUrl        {:type (non-null String)}
+                                            :locationsFileUrl  {:type (non-null String)}
+                                            :numberOfLocations {:type Int}
+                                            :burnIn            {:type Float}}
                               :resolve     :mutation/uploadBayesFactorAnalysis}
 
   :updateBayesFactorAnalysis {:type        :BayesFactorParserStatus
                               :description "Updates the entity with settings for parsing the tree graph"
-                              :args        {:id           {:type (non-null ID)}
-                                            :readableName {:type String}
-                                            :burnIn       {:type Float}}
+                              :args        {:id                {:type (non-null ID)}
+                                            :readableName      {:type String}
+                                            :numberOfLocations {:type Int}
+                                            :burnIn            {:type Float}}
                               :resolve     :mutation/updateBayesFactorAnalysis}
 
   :startBayesFactorParser {:type        :BayesFactorParserStatus

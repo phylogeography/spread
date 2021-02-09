@@ -4,6 +4,7 @@
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.bayes-factor :as bayes-factor-model]
+            [clojure.core.match :refer [match]]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -245,10 +246,10 @@
   (try
     (let [_              (bayes-factor-model/update! db {:id     id
                                                          :status :RUNNING})
-          _              (log/debug "@@@ before")
           {:keys [user-id
                   log-file-url
                   locations-file-url
+                  number-of-locations
                   burn-in]}
           (bayes-factor-model/get-bayes-factor-analysis db {:id id})
           ;; TODO: parse extension
@@ -259,34 +260,52 @@
                            (aws-s3/download-file s3 {:bucket    bucket-name
                                                      :key       log-object-key
                                                      :dest-path log-file-path}))
+          parser
+          (match [(nil? locations-file-url) (nil? number-of-locations)]
 
-          ;; TODO : suppport for no locations file
+                 [true false]
+                 (doto (new BayesFactorParser)
+                   (.setLogFilePath log-file-path)
+                   (.setNumberOfGeneratedLocations number-of-locations)
+                   (.setBurnIn (double burn-in)))
 
-          locations-file-id    (s3-url->id locations-file-url user-id)
-          ;; ;; TODO: parse extension
-          locations-object-key (str user-id "/" locations-file-id ".txt")
-          locations-file-path  (str tmp-dir "/" locations-object-key)
-          ;; is it cached on disk?
-          _                    (when-not (file-exists? locations-file-path)
-                                 (aws-s3/download-file s3 {:bucket    bucket-name
-                                                           :key       locations-object-key
-                                                           :dest-path locations-file-path}))
-          parser               (doto (new BayesFactorParser)
-                                 (.setLogFilePath log-file-path)
-                                 (.setLocationsFilePath locations-file-path)
-                                 (.setBurnIn (double burn-in)))
+                 [false true]
+                 (let [locations-file-id    (s3-url->id locations-file-url user-id)
+                       ;; ;; TODO: parse extension
+                       locations-object-key (str user-id "/" locations-file-id ".txt")
+                       locations-file-path  (str tmp-dir "/" locations-object-key)
+                       ;; is it cached on disk?
+                       _                    (when-not (file-exists? locations-file-path)
+                                              (aws-s3/download-file s3 {:bucket    bucket-name
+                                                                        :key       locations-object-key
+                                                                        :dest-path locations-file-path}))]
+                   (doto (new BayesFactorParser)
+                     (.setLogFilePath log-file-path)
+                     (.setLocationsFilePath locations-file-path)
+                     (.setBurnIn (double burn-in))))
 
+                 [true true]
+                 (throw (ex-info "Bad input settings"
+                                 {:why?   "Can't specify both `log-file-path` and `number-of-locations`"
+                                  :where? ::parse-bayes-factors}))
+                 [false false]
+                 (throw (ex-info "Bad input settings"
+                                 {:why?   "You need to specify one of `log-file-path` and `number-of-locations`"
+                                  :where? ::parse-bayes-factors}))
+                 :else (throw (Exception. "Unexpected error")))
 
-          output-object-key    (str user-id "/" id ".json")
-          output-object-path   (str tmp-dir "/" output-object-key)
-          _                    (spit output-object-path (.parse parser) :append false)
-          _                    (aws-s3/upload-file s3 {:bucket    bucket-name
-                                                       :key       output-object-key
-                                                       :file-path output-object-path})
-          url                  (aws-s3/build-url aws-config bucket-name output-object-key)
+          {:keys [bayesFactors spreadData]} (-> (.parse parser) (json/read-str :key-fn keyword))
 
-          ]
-
+          output-object-key  (str user-id "/" id ".json")
+          output-object-path (str tmp-dir "/" output-object-key)
+          _                  (spit output-object-path (json/write-str spreadData) :append false)
+          _                  (aws-s3/upload-file s3 {:bucket    bucket-name
+                                                     :key       output-object-key
+                                                     :file-path output-object-path})
+          url                (aws-s3/build-url aws-config bucket-name output-object-key)]
+      ;; TODO : this should be in a a single transaction
+      (bayes-factor-model/insert-bayes-factors db {:bayes-factor-analysis-id id
+                                                   :bayes-factors            (json/write-str bayesFactors)})
       (bayes-factor-model/update! db {:id              id
                                       :output-file-url url
                                       :status          :SUCCEEDED}))
@@ -294,7 +313,6 @@
       (log/error "Exception when handling parse-bayes-factors" {:error e})
       (bayes-factor-model/update! db {:id     id
                                       :status :ERROR}))))
-
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws

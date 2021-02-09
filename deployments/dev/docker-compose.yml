@@ -11,7 +11,7 @@ services:
     ports:
       - 127.0.0.1:3306:3306
     volumes:
-      - mysql_data:/var/lib/mysql      
+      - mysql_data:/var/lib/mysql
       - ./mysql:/docker-entrypoint-initdb.d
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
@@ -41,5 +41,6 @@ services:
 
 volumes:
   s3_data:
+    external: false    
   mysql_data:
-      
+    external: false    

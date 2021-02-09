@@ -7,22 +7,23 @@
 (declare update-bayes-factor-analysis)
 (declare get-bayes-factor-analysis)
 (declare delete-bayes-factor-analysis)
-
-;; TODO : get-bayes-factors (values)
+(declare insert-bayes-factors)
+(declare get-bayes-factors)
 
 (hugsql/def-db-fns "sql/bayes_factor.sql")
 (hugsql/def-sqlvec-fns "sql/bayes_factor.sql")
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-bayes-factor-analysis
-  {:id                 nil
-   :user-id            nil
-   :log-file-url       nil
-   :locations-file-url nil
-   :status             nil
-   :readable-name      nil
-   :burn-in            nil
-   :output-file-url    nil})
+  {:id                  nil
+   :user-id             nil
+   :log-file-url        nil
+   :locations-file-url  nil
+   :number-of-locations nil
+   :status              nil
+   :readable-name       nil
+   :burn-in             nil
+   :output-file-url     nil})
 
 (defn upsert! [db analysis]
   (let [analysis (->> analysis
