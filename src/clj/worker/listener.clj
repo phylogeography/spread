@@ -270,7 +270,7 @@
 
                  [false true]
                  (let [locations-file-id    (s3-url->id locations-file-url user-id)
-                       ;; ;; TODO: parse extension
+                       ;; TODO: parse extension
                        locations-object-key (str user-id "/" locations-file-id ".txt")
                        locations-file-path  (str tmp-dir "/" locations-object-key)
                        ;; is it cached on disk?
