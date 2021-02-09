@@ -16,6 +16,8 @@
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
+(declare server)
+
 (defn auth-decorator [resolver-fn]
   (fn [{:keys [headers] :as application-context} args value]
     (if-let [user-id (auth/token->user-id (get headers "Authorization"))]

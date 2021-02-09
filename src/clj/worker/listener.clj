@@ -14,6 +14,8 @@
             [taoensso.timbre :as log])
   (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]))
 
+(declare listener)
+
 (defonce tmp-dir "/tmp")
 
 (defmulti handler
