@@ -104,7 +104,6 @@
 (defn stop [this]
   (http/stop this))
 
-;; TODO : use subscriptions
 (defn start [{:keys [api aws db env] :as config}]
   (let [dev? (= "dev" env)
         {:keys [port]} api
