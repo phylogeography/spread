@@ -88,3 +88,12 @@ WHERE :time-slicer-id = time_slicer_id
 DELETE
 FROM time_slicer
 WHERE id = :id
+
+-- :name get-status :? :1
+-- :doc Get analysis status by id
+
+SELECT
+id,
+status
+FROM time_slicer
+WHERE :id = id

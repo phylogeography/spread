@@ -3,11 +3,15 @@
             [api.db :as db]
             [api.mutations :as mutations]
             [api.resolvers :as resolvers]
+            [api.subscriptions :as subscriptions]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [com.walmartlabs.lacinia.pedestal :refer [inject]]
+            [com.walmartlabs.lacinia.pedestal.subscriptions
+             :as
+             pedestal-subscriptions]
             [com.walmartlabs.lacinia.pedestal2 :as pedestal]
             [com.walmartlabs.lacinia.schema :as schema]
             [com.walmartlabs.lacinia.util :as lacinia-util]
@@ -54,6 +58,12 @@
 
    })
 
+(defn streamer-map []
+  {:subscription/continuousTreeParserStatus (auth-decorator (subscriptions/create-continuous-tree-parser-status-sub))
+   :subscription/discreteTreeParserStatus   (auth-decorator (subscriptions/create-discrete-tree-parser-status-sub))
+   :subscription/bayesFactorParserStatus    (auth-decorator (subscriptions/create-bayes-factor-parser-status-sub))
+   :subscription/timeSlicerParserStatus     (auth-decorator (subscriptions/create-time-slicer-parser-status-sub))})
+
 (defn ^:private context-interceptor
   [extra-context]
   (interceptor
@@ -81,6 +91,11 @@
       #_(inject graphql-response-interceptor :before ::pedestal/query-executor)
       ))
 
+(defn ^:private subscription-interceptors
+  [schema extra-context]
+  (-> (pedestal-subscriptions/default-subscription-interceptors schema nil)
+      (inject (context-interceptor extra-context) :after :com.walmartlabs.lacinia.pedestal.subscriptions/inject-app-context)))
+
 (defn load-schema []
   (-> (io/resource "schema.edn")
       slurp
@@ -107,8 +122,10 @@
                  :bucket-name bucket-name}
         compiled-schema (-> schema
                             (lacinia-util/attach-resolvers (resolver-map))
+                            (lacinia-util/attach-streamers (streamer-map))
                             schema/compile)
         interceptors (interceptors compiled-schema context)
+        subscription-interceptors (subscription-interceptors compiled-schema context)
         ;; TODO : use /ide endpoint only when env = dev
         routes (into #{["/api" :post interceptors :route-name ::api]
                        ["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
@@ -117,6 +134,11 @@
                       ::http/port port
                       ::http/type :jetty
                       ::http/join? false}
+               true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path "/ws"
+                                                                    ;; The interval at which keep-alive messages are sent to the client
+                                                                    :keep-alive-ms 60000 ;; one minute
+                                                                    :subscription-interceptors subscription-interceptors
+                                                                    })
                dev? (merge {:env (keyword env)
                             ::http/secure-headers nil}))
         runnable-service (-> (http/create-server opts)

@@ -395,7 +395,6 @@ public class DiscreteTreeParser {
 
         SpreadData spreadData= new SpreadData(timeLine, //
                                               axis, //
-                                              // mapAttributes, //
                                               uniqueBranchAttributes, //
                                               uniqueNodeAttributes, //
                                               null, // areaAttributes

@@ -94,3 +94,12 @@ output_file_url,
 readable_name
 FROM continuous_tree
 WHERE :id = id
+
+-- :name get-status :? :1
+-- :doc Get analysis status by id
+
+SELECT
+id,
+status
+FROM continuous_tree
+WHERE :id = id
