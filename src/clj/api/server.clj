@@ -3,6 +3,7 @@
             [api.db :as db]
             [api.mutations :as mutations]
             [api.resolvers :as resolvers]
+            [api.subscriptions :as subscriptions]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [clojure.edn :as edn]
@@ -34,6 +35,7 @@
    :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
    :mutation/startContinuousTreeParser (auth-decorator mutations/start-continuous-tree-parser)
 
+
    :mutation/uploadDiscreteTree (auth-decorator mutations/upload-discrete-tree)
    :mutation/updateDiscreteTree (auth-decorator mutations/update-discrete-tree)
    :query/getDiscreteTree resolvers/get-discrete-tree
@@ -53,6 +55,9 @@
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    })
+
+(defn streamer-map []
+  {:subscription/continuousTreeParserStatus (auth-decorator subscriptions/continuous-tree-parser-status)})
 
 (defn ^:private context-interceptor
   [extra-context]
@@ -107,6 +112,7 @@
                  :bucket-name bucket-name}
         compiled-schema (-> schema
                             (lacinia-util/attach-resolvers (resolver-map))
+                            (lacinia-util/attach-streamers (streamer-map))
                             schema/compile)
         interceptors (interceptors compiled-schema context)
         ;; TODO : use /ide endpoint only when env = dev
@@ -117,6 +123,10 @@
                       ::http/port port
                       ::http/type :jetty
                       ::http/join? false}
+               true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path "/ws"
+                                                                    ;; The interval at which keep-alive messages are sent to the client
+                                                                    :keep-alive-ms 60000 ;; one minute
+                                                                    })
                dev? (merge {:env (keyword env)
                             ::http/secure-headers nil}))
         runnable-service (-> (http/create-server opts)

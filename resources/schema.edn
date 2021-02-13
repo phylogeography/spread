@@ -154,6 +154,15 @@
 
   }
 
+ ;; TODO
+ :subscriptions
+ {:continuousTreeParserStatus
+  {:type   :ContinuousTreeParserStatus
+   :args   {:id {:type (non-null ID)}}
+   :stream :subscription/continuousTreeParserStatus}
+
+  }
+
  :mutations
  {:getUploadUrls {:type        (list String)
                   :description "Returns one-time POST urls."

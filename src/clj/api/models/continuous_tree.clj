@@ -11,6 +11,7 @@
 (declare delete-tree)
 (declare get-attributes)
 (declare get-hpd-levels)
+(declare get-status)
 
 (hugsql/def-db-fns "sql/continuous_tree.sql")
 (hugsql/def-sqlvec-fns "sql/continuous_tree.sql")
