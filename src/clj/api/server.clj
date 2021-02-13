@@ -9,6 +9,9 @@
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [com.walmartlabs.lacinia.pedestal :refer [inject]]
+            [com.walmartlabs.lacinia.pedestal.subscriptions
+             :as
+             pedestal-subscriptions]
             [com.walmartlabs.lacinia.pedestal2 :as pedestal]
             [com.walmartlabs.lacinia.schema :as schema]
             [com.walmartlabs.lacinia.util :as lacinia-util]
@@ -34,7 +37,6 @@
    :resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
    :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
    :mutation/startContinuousTreeParser (auth-decorator mutations/start-continuous-tree-parser)
-
 
    :mutation/uploadDiscreteTree (auth-decorator mutations/upload-discrete-tree)
    :mutation/updateDiscreteTree (auth-decorator mutations/update-discrete-tree)
@@ -86,6 +88,11 @@
       #_(inject graphql-response-interceptor :before ::pedestal/query-executor)
       ))
 
+(defn ^:private subscription-interceptors
+  [schema extra-context]
+  (-> (pedestal-subscriptions/default-subscription-interceptors schema nil)
+      (inject (context-interceptor extra-context) :after :com.walmartlabs.lacinia.pedestal.subscriptions/inject-app-context)))
+
 (defn load-schema []
   (-> (io/resource "schema.edn")
       slurp
@@ -115,6 +122,7 @@
                             (lacinia-util/attach-streamers (streamer-map))
                             schema/compile)
         interceptors (interceptors compiled-schema context)
+        subscription-interceptors (subscription-interceptors compiled-schema context)
         ;; TODO : use /ide endpoint only when env = dev
         routes (into #{["/api" :post interceptors :route-name ::api]
                        ["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
@@ -126,6 +134,7 @@
                true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path "/ws"
                                                                     ;; The interval at which keep-alive messages are sent to the client
                                                                     :keep-alive-ms 60000 ;; one minute
+                                                                    :subscription-interceptors subscription-interceptors
                                                                     })
                dev? (merge {:env (keyword env)
                             ::http/secure-headers nil}))

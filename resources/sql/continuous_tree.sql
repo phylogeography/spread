@@ -99,6 +99,7 @@ WHERE :id = id
 -- :doc Get analysis status by id
 
 SELECT
-status,
+id,
+status
 FROM continuous_tree
 WHERE :id = id
