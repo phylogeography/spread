@@ -9,6 +9,7 @@
 (declare get-tree)
 (declare delete-tree)
 (declare get-attributes)
+(declare get-status)
 
 (hugsql/def-db-fns "sql/discrete_tree.sql")
 (hugsql/def-sqlvec-fns "sql/discrete_tree.sql")

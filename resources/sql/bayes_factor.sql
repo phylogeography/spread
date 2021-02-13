@@ -80,3 +80,13 @@ bayes_factor_analysis_id,
 bayes_factors
 FROM bayes_factors
 WHERE bayes_factor_analysis_id = :bayes-factor-analysis-id
+
+
+-- :name get-status :? :1
+-- :doc Get analysis status by id
+
+SELECT
+id,
+status
+FROM bayes_factor
+WHERE :id = id

@@ -8,6 +8,7 @@
 (declare update-time-slicer)
 (declare insert-attribute)
 (declare get-attributes)
+(declare get-status)
 
 (hugsql/def-db-fns "sql/time_slicer.sql")
 (hugsql/def-sqlvec-fns "sql/time_slicer.sql")

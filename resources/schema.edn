@@ -125,11 +125,8 @@
                                       :status           {:type :BayesFactorStatus}
                                       :burnIn           {:type Float}
                                       :outputFileUrl    {:type String}
-                                      :bayesFactors {:type (list :BayesFactor)
-                                                     :resolve :resolve/bayes-factor-analysis->bayes-factors}
-
-
-                                      }}}
+                                      :bayesFactors     {:type    (list :BayesFactor)
+                                                         :resolve :resolve/bayes-factor-analysis->bayes-factors}}}}
 
  :queries
  {:getContinuousTree {:type        :ContinuousTree
@@ -150,18 +147,28 @@
   :getBayesFactorAnalysis {:type        :BayesFactorAnalysis
                            :description "Returns a BayesFactorAnalysis entity by id."
                            :args        {:id {:type (non-null ID)}}
-                           :resolve     :query/getBayesFactorAnalysis}
+                           :resolve     :query/getBayesFactorAnalysis}}
 
-  }
-
- ;; TODO
  :subscriptions
  {:continuousTreeParserStatus
   {:type   :ContinuousTreeParserStatus
    :args   {:id {:type (non-null ID)}}
    :stream :subscription/continuousTreeParserStatus}
 
-  }
+  :discreteTreeParserStatus
+  {:type   :DiscreteTreeParserStatus
+   :args   {:id {:type (non-null ID)}}
+   :stream :subscription/discreteTreeParserStatus}
+
+  :bayesFactorParserStatus
+  {:type   :BayesFactorParserStatus
+   :args   {:id {:type (non-null ID)}}
+   :stream :subscription/bayesFactorParserStatus}
+
+  :timeSlicerParserStatus
+  {:type   :TimeSlicerParserStatus
+   :args   {:id {:type (non-null ID)}}
+   :stream :subscription/timeSlicerParserStatus}}
 
  :mutations
  {:getUploadUrls {:type        (list String)

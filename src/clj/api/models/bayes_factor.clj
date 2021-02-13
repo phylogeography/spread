@@ -9,6 +9,7 @@
 (declare delete-bayes-factor-analysis)
 (declare insert-bayes-factors)
 (declare get-bayes-factors)
+(declare get-status)
 
 (hugsql/def-db-fns "sql/bayes_factor.sql")
 (hugsql/def-sqlvec-fns "sql/bayes_factor.sql")
