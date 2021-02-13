@@ -1,6 +1,6 @@
 (ns api.subscriptions
-  (:require [api.models.continuous-tree :as continuous-tree-model]
-            [api.models.bayes-factor :as bayes-factor-model]
+  (:require [api.models.bayes-factor :as bayes-factor-model]
+            [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [clojure.core.async :refer [<! close! go-loop timeout]]
@@ -8,7 +8,7 @@
             [taoensso.timbre :as log]))
 
 (defn- create-status-subscription [sub-name callback]
-  (fn [{:keys [authed-user-id db] :as context} {:keys [id] :as args} source-stream]
+  (fn [{:keys [authed-user-id db]} {:keys [id]} source-stream]
     (log/debug "client subscribed to" {:name        sub-name
                                        :user/id     authed-user-id
                                        :analysis/id id})
