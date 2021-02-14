@@ -3,10 +3,16 @@
  ["src/cljs"]
 
  :dependencies
- [[reagent "1.0.0"]
-  [refactor-nrepl "2.5.0"]
+ [
   [cider/cider-nrepl "0.25.5"]
-  [cider/piggieback "0.5.2"]]
+  [cider/piggieback "0.5.2"]
+  [day8.re-frame/async-flow-fx "0.1.0"]
+  [funcool/bide "1.6.0"]
+  [re-frame "1.1.2"]
+  [reagent "1.0.0"]
+  [refactor-nrepl "2.5.0"]
+
+  ]
 
  :nrepl
  {:middleware [cider.piggieback/wrap-cljs-repl
