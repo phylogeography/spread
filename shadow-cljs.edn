@@ -3,7 +3,18 @@
  ["src/cljs"]
 
  :dependencies
- [[reagent "1.0.0"]]
+ [[reagent "1.0.0"]
+  [refactor-nrepl "2.5.0"]
+  [cider/cider-nrepl "0.25.5"]
+  [cider/piggieback "0.5.2"]]
+
+ :nrepl
+ {:middleware [cider.piggieback/wrap-cljs-repl
+               refactor-nrepl.middleware/wrap-refactor]}
+
+ :http
+ {:port 3449
+  :host "0.0.0.0"}
 
  :builds
  {:ui {:target     :browser

@@ -35,6 +35,8 @@ The diagram below presents an overview of the architecture of spread:
 
 ## Development
 
+### Backend services
+
 Make sure you have [docker](https://docs.docker.com/get-docker/) and [docker-compose](https://docs.docker.com/compose/install/) installed.
 You will also need [maven](https://maven.apache.org/install.html) and clojure [cli-tool](https://clojure.org/guides/getting_started).
 
@@ -65,14 +67,49 @@ Start an instance of a worker-service:
 clj -A:run-worker
 ```
 
-Start an instance of the api-service:
+Start an instance of the api-service from the comand-line:
 
 ```bash
 clj -A:run-api
 ```
 
+Start an instance of the api-service from the REPL:
+
+```
+M+x cider-jack-in
+C-c M-n-n api.main
+(restart)
+```
+
 In the default `dev` environment a GraphQL IDE is started at:
 http://127.0.0.1:3001/ide
+
+### Browser client
+
+Make sure you have [yarn](https://yarnpkg.com/getting-started/install) installed.
+
+Install dependencies:
+```bash
+yarn deps
+```
+
+Start watcher and local server
+
+```bash
+yarn watch
+```
+
+Open in browser:
+http://localhost:8020
+
+To get the cljs REPL:
+
+```clojure
+M+x cider-connect-cljs
+```
+
+Select `localhost` and the nREPL port printed by the watcher (e.g. 46043), select `shadow` and `:ui` as the build.
+
 
 ## Tests
 
