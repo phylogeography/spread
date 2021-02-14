@@ -1,8 +1,11 @@
 (ns ui.router.core
   (:require [bide.core :as bide]
             [clojure.string :as string]
+            [mount.core :as mount :refer [defstate]]
             [re-frame.core :refer [dispatch dispatch-sync]]
             [ui.router.events :as events]))
+
+(declare router)
 
 (defn- hostname-html5-host? [html5-hosts]
   (when html5-hosts
@@ -25,3 +28,7 @@
 
 (defn stop []
   (dispatch-sync [::events/stop]))
+
+(defstate router
+  :start (start (:router (mount/args)))
+  :stop (stop))
