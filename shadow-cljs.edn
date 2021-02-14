@@ -7,6 +7,7 @@
   [cider/cider-nrepl "0.25.5"]
   [cider/piggieback "0.5.2"]
   [com.taoensso/timbre "5.1.2"]
+  [day8.re-frame/forward-events-fx "0.0.6"]
   [day8.re-frame/async-flow-fx "0.1.0"]
   [funcool/bide "1.6.0"]
   [mount "0.1.16"]
