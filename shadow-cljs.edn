@@ -17,7 +17,8 @@
   ]
 
  :nrepl
- {:middleware [cider.piggieback/wrap-cljs-repl
+ {:port 46000
+  :middleware [cider.piggieback/wrap-cljs-repl
                refactor-nrepl.middleware/wrap-refactor]}
 
  :http

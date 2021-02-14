@@ -5,25 +5,29 @@
             [ui.config :as config]
             [ui.router.core :as router]
             [ui.router.component :refer [router]]
+            [ui.router.queries :as router-queries]
             [ui.router.events :as router-events]
             [mount.core :as mount]
             ui.home.page
+            ui.splash.page
             day8.re-frame.forward-events-fx
             [ui.logging :as logging]
             [taoensso.timbre :as log]
             [re-frame.core :as re-frame]
             [ui.home.events :as home-events]
+            [ui.splash.events :as splash-events]
             ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
 
 (re-frame/reg-event-fx
   :active-page-changed
-  (fn [{:keys [:db]}]
-    (let [{:keys [name] :as active-page} (:active-page db)]
+  (fn [{:keys [db]}]
+    (let [{:keys [name] :as active-page} (router-queries/active-page db)]
       (log/info "Active page changed" active-page)
       (case name
-        :route/home {:dispatch [:home-events/initialize-page]}
+        :route/splash {:dispatch [::splash-events/initialize-page]}
+        :route/home {:dispatch [::home-events/initialize-page]}
         nil))))
 
 (re-frame/reg-event-fx
@@ -31,7 +35,7 @@
   (fn [{:keys [db]} [_ config]]
     {:db (assoc db :spread/config config)
      :forward-events {:register    :active-page-changed
-                      :events      #{:router-events/active-page-changed}
+                      :events      #{::router-events/active-page-changed}
                       :dispatch-to [:active-page-changed]}}))
 
 (defn ^:dev/before-load stop []
@@ -57,3 +61,6 @@
 
 (defn ^:export init []
   (start))
+
+(comment
+  (re-frame/dispatch [::router-events/navigate :route/home]))

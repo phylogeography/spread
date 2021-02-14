@@ -12,8 +12,9 @@
     :sentry false}
 
    :router
-   {:routes        [["/" :route/home]]
-    :default-route :route/home
+   {:routes        [["/" :route/splash]
+                    ["/home" :route/home]]
+    :default-route :route/splash
     :scroll-top?   true
     :html5?        true}
 

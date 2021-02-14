@@ -1,5 +1,6 @@
 (ns ui.router.events
-  (:require [re-frame.core :refer [reg-event-fx trim-v]]
+  (:require [day8.re-frame.async-flow-fx :as async-flow-fx]
+            [re-frame.core :refer [reg-event-fx trim-v]]
             [ui.router.effects :as effects]
             [ui.router.queries :as queries]))
 
@@ -18,9 +19,9 @@
   ::active-page-changed*
   interceptors
   (fn [{:keys [:db]} [name params query]]
-    (if (queries/bide-router db) ;; Initial :on-navigate is fired before ::start
+    (if (queries/bide-router db)                            ;; Initial :on-navigate is fired before ::start
       {:dispatch [::active-page-changed name params query]}
-      {:async-flow {:first-dispatch [::do-nothing*]
+      {:async-flow-fx/async-flow {:first-dispatch [::do-nothing*]
                     :rules [{:when :seen?
                              :events [::start]
                              :dispatch [::active-page-changed name params query]}]}})))
@@ -38,21 +39,20 @@
 (reg-event-fx
   ::watch-active-page
   interceptors
-  (fn [{:keys [:db]} [watchers]]
+  (fn [_ [watchers]]
     {::effects/watch-active-page watchers}))
 
 (reg-event-fx
   ::unwatch-active-page
   interceptors
-  (fn [{:keys [:db]} [watchers]]
+  (fn [_ [watchers]]
     {::effects/unwatch-active-page watchers}))
 
 (reg-event-fx
   ::navigate
   interceptors
   (fn [{:keys [:db]} [name params query]]
-    (cond-> {::effects/navigate [(queries/bide-router db) name params query]
-             ::active-page-changed [name params query]}
+    (cond-> {::effects/navigate [(queries/bide-router db) name params query]}
       (queries/scroll-top? db) (assoc :window/scroll-to [0 0]))))
 
 (reg-event-fx

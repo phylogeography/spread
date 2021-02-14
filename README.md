@@ -108,7 +108,7 @@ To get the cljs REPL:
 M+x cider-connect-cljs
 ```
 
-Select `localhost` and the nREPL port printed by the watcher (e.g. 46043), select `shadow` and `:ui` as the build.
+Select `localhost` and the nREPL port printed by the watcher (e.g. 46000), select `shadow` and `:ui` as the build.
 
 
 ## Tests
