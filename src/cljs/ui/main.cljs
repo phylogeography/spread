@@ -1,22 +1,19 @@
 (ns ui.main
-  (:require [reagent.core :as r]
+  (:require [mount.core :as mount]
+            [re-frame.core :as re-frame]
+            [reagent.core :as r]
             [reagent.dom :as rdom]
-            [clojure.string :as str]
-            [ui.config :as config]
-            [ui.router.core :as router]
-            [ui.router.component :refer [router]]
-            [ui.router.queries :as router-queries]
-            [ui.router.events :as router-events]
-            [mount.core :as mount]
+            [taoensso.timbre :as log]
             ui.home.page
             ui.splash.page
-            day8.re-frame.forward-events-fx
-            [ui.logging :as logging]
-            [taoensso.timbre :as log]
-            [re-frame.core :as re-frame]
+            [ui.config :as config]
             [ui.home.events :as home-events]
-            [ui.splash.events :as splash-events]
-            ))
+            [ui.logging :as logging]
+            [ui.router.component :refer [router]]
+            [ui.router.core :as router]
+            [ui.router.events :as router-events]
+            [ui.router.queries :as router-queries]
+            [ui.splash.events :as splash-events]))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
 
@@ -40,21 +37,18 @@
 
 (defn ^:dev/before-load stop []
   (log/debug "Stopping...")
-  #_(mount/stop))
+  (mount/stop))
 
 (defn ^:dev/after-load start []
   (let [config (config/load)]
     (js/console.log "Starting..." )
-
     (-> (mount/only #{#'logging/logging
                       #'router/router})
         (mount/with-args config)
         (mount/start)
         (as-> $ (log/info "Started" {:components $
                                      :config     config})))
-
     (re-frame/dispatch-sync [:ui/initialize config])
-
     (rdom/render [router]
                  (.getElementById js/document "app")
                  functional-compiler)))

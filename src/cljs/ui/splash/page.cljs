@@ -6,6 +6,7 @@
             [taoensso.timbre :as log]
             [reagent.core :as r]))
 
+;; TODO : google login
 (defmethod page :route/splash []
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
 
