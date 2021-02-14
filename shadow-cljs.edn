@@ -1,0 +1,23 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/cljs"]
+
+ :dependencies
+ [[reagent "1.0.0"]]
+
+ :builds
+ {:ui {:target     :browser
+       :output-dir "resources/public/js"
+       :asset-path "/js"
+       :js-options {:js-package-dirs ["node_modules"]}
+       :modules
+       {:main ;; <- becomes resources/public/js/main.js
+        {:entries [ui.main]}}
+
+       ;; start a development http server on http://localhost:8020
+       :devtools
+       {:before-load kepler.core/stop
+        :after-load  kepler.core/start
+        :http-root   "resources/public"
+        :http-port   8020}
+       }}}

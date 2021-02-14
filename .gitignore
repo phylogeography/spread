@@ -36,3 +36,9 @@ spread_data_simple_example.json
 
 ## -- SERVERLESS
 .serverless/
+
+
+## -- CLJS
+.shadow-cljs/
+node_modules/
+resources/public/js/
