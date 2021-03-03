@@ -3,4 +3,4 @@
 
 (defn main-panel []
   [:div {} "Main panel"
-   [views.maps/animated-data]])
+   [views.maps/animated-data-map]])
