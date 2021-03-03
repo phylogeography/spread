@@ -1,0 +1,14 @@
+{:source-paths ["src/cljs"]
+ :dependencies [[reagent "1.0.0"]
+                [re-frame "1.1.2"]
+                [day8.re-frame/http-fx "0.2.3"]]
+ :dev-http {9500 "resources/public/"}
+ :builds {:app {:output-dir "resources/public/js/"
+                :asset-path "/js"
+                :target :browser
+                :compiler-options {:output-feature-set :es6
+                                   :closure-defines {re-frame.trace/trace-enabled? true}
+                                   :optimizations :simple}
+                :modules {:main {:init-fn spread.main/init}}
+                :devtools {:after-load spread.main/mount-root}
+                :release {:compiler-options {:optimizations :simple}}}}}
