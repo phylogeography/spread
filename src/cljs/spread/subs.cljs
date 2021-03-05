@@ -7,7 +7,9 @@
  ::map-data
  (fn [db _] 
    (let [maps {:type "FeatureCollection"
-               :features (:maps db)}]     
+               :features (->> (:maps db)                              
+                              (sort-by :map/z-index <)
+                              (map :map/geo-json))}]     
      (assoc maps :map-box (spread.views.svg-renderer/geo-json-bounding-box maps)))))
 
 (re-frame/reg-sub
@@ -21,7 +23,7 @@
    (:data-points db)))
 
 (re-frame/reg-sub
- ::map-grab
+ ::map-state
  (fn [db _] 
-   (:map-grab db)))
+   (:map-state db)))
 

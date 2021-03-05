@@ -55,18 +55,20 @@
         inct (fn [] (if (< @time (- 1 dt)) (swap! time #(+ % dt)) (reset! time 1)))
         dect (fn [] (if (> @time dt) (swap! time #(- % dt)) (reset! time 0)))]
     (fn []
-      (let [geo-json-map @(re-frame/subscribe [::subs/map-data])
+      (let [t            @time
+            geo-json-map @(re-frame/subscribe [::subs/map-data])
             view-box     @(re-frame/subscribe [::subs/map-view-box])
-            data-points  @(re-frame/subscribe [::subs/data-points])
-            map-grab     @(re-frame/subscribe [::subs/map-grab])
-            t            @time]
+            data-points  @(re-frame/subscribe [::subs/data-points])            
+            {:keys [grab translate scale]} @(re-frame/subscribe [::subs/map-state])
+            [translate-x translate-y] translate            
+            ]
         [:div {:style {:height (str events/map-height "px")
                        :width  (str events/map-width  "px")}
                :on-wheel (fn [evt]
                            (let [x (-> evt .-nativeEvent .-offsetX)
                                  y (-> evt .-nativeEvent .-offsetY)]
                              ;; send x,y in world projection coordinates
-                             (dispatch [::events/zoom {:in? (neg? (.-deltaY evt))
+                             (dispatch [::events/zoom {:delta (.-deltaY evt)
                                                        :x x
                                                        :y y}])))
                :on-mouse-down (fn [evt]
@@ -78,7 +80,7 @@
                                     (dispatch [::events/map-grab {:x x :y y}]))))
                
                :on-mouse-move (fn [evt]
-                                (when map-grab
+                                (when grab
                                   (let [x (-> evt .-nativeEvent .-offsetX)
                                         y (-> evt .-nativeEvent .-offsetY)]
                                     (dispatch [::events/map-drag {:x x :y y}]))))
@@ -117,17 +119,21 @@
            [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color theme)}]
 
            ;; map and data svg
-           [:svg {:viewBox (gstr/format "%f %f %f %f" (:x view-box) (:y view-box) (:w view-box) (:h view-box))}
-            ;; map group
-            [:g {}
-             (binding [svg-renderer/*theme* theme]
-               (svg-renderer/geojson->svg geo-json-map))]
+           [:g {:transform (gstr/format "translate(%f %f) scale(%f %f)"
+                                        translate-x
+                                        translate-y
+                                        scale scale)}
+            [:svg {:view-box "0 0 360 180"}
+             ;; map group           
+             [:g {}
+              (binding [svg-renderer/*theme* theme]
+                (svg-renderer/geojson->svg geo-json-map))]
 
-            ;; data group
-            [:g {}
-             (for [{:keys [x1 y1 x2 y2]} data-points]
-               ^{:key (str x1 y1 x2 y2)}
-               [clipped-svg-cuad-curve {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc t}])]]])])
+             ;; data group
+             [:g {}
+              (for [{:keys [x1 y1 x2 y2]} data-points]
+                ^{:key (str x1 y1 x2 y2)}
+                [clipped-svg-cuad-curve {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc t}])]]]])])
       
       )))
 
