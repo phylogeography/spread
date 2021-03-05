@@ -56,3 +56,9 @@
         kdist 20]
     {:f1 [(- cx kdist) (center-perp (- cx kdist))]
      :f2 [(+ cx kdist) (center-perp (+ cx kdist)) ]}))
+
+(defn outscribing-rectangle [[center-x center-y] radius]
+  {:x (- center-x radius)
+   :y (- center-y radius)
+   :w (* 2 radius)
+   :h (* 2 radius)})

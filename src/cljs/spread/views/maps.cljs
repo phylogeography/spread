@@ -1,8 +1,9 @@
 (ns spread.views.maps
   (:require [spread.math-utils :as math-utils]
             [spread.views.svg-renderer :as svg-renderer]
+            [spread.events :as events]
             [reagent.core :as reagent]
-            [re-frame.core :as re-frame]
+            [re-frame.core :as re-frame :refer [dispatch]]
             [spread.subs :as subs]
             [goog.string :as gstr]))
 
@@ -39,21 +40,8 @@
         [:text {:x x1 :y y1 :stroke :blue} (str (int l-length))]
         [:text {:x f1x :y f1y :stroke :blue} (str (int c-length))]]]))
 
-
-
-(defn view-box-bounding-box
-
-  "Calculates a screen bounding box (in screen coordinates) given a `map-box` (in long, lat)
-  adding `padding` around."
-  
-  [map-box padding]
-
-  (let [[x1 y1] (svg-renderer/map-coord->screen-coord [(:min-long map-box) (:min-lat map-box)])
-        [x2 y2] (svg-renderer/map-coord->screen-coord [(:max-long map-box) (:max-lat map-box)])]
-    [(- (min x1 x2) (/ padding 2))
-     (- (min y1 y2) (/ padding 2))
-     (+ (Math/abs (- x1 x2)) padding)
-     (+ (Math/abs (- y1 y2)) padding)]))
+(def left-button  1)
+(def right-button 2)
 
 (defn animated-data-map []
   (let [theme {:map-fill-color "#424242"
@@ -65,14 +53,38 @@
         time (reagent/atom 0)
         dt 0.1
         inct (fn [] (if (< @time (- 1 dt)) (swap! time #(+ % dt)) (reset! time 1)))
-        dect (fn [] (if (> @time dt) (swap! time #(- % dt)) (reset! time 0)))
-        maps (re-frame/subscribe [::subs/maps])
-        data [{:x1 104  :y1  110 :x2 120 :y2 130}
-              #_{:x1 500 :y1 450 :x2 700 :y2 300}
-              #_{:x1 300 :y1 445 :x2 250 :y2 300}]]
+        dect (fn [] (if (> @time dt) (swap! time #(- % dt)) (reset! time 0)))]
     (fn []
-      (let [geo-json-map @maps]
-        [:div {:style {:height "600px"}}
+      (let [geo-json-map @(re-frame/subscribe [::subs/map-data])
+            view-box     @(re-frame/subscribe [::subs/map-view-box])
+            data-points  @(re-frame/subscribe [::subs/data-points])
+            map-grab     @(re-frame/subscribe [::subs/map-grab])
+            t            @time]
+        [:div {:style {:height (str events/map-height "px")
+                       :width  (str events/map-width  "px")}
+               :on-wheel (fn [evt]
+                           (let [x (-> evt .-nativeEvent .-offsetX)
+                                 y (-> evt .-nativeEvent .-offsetY)]
+                             ;; send x,y in world projection coordinates
+                             (dispatch [::events/zoom {:in? (neg? (.-deltaY evt))
+                                                       :x x
+                                                       :y y}])))
+               :on-mouse-down (fn [evt]
+                                (when (= left-button (.-buttons evt))                                  
+                                  (let [x (-> evt .-nativeEvent .-offsetX)
+                                        y (-> evt .-nativeEvent .-offsetY)]
+                                    (.stopPropagation evt)
+                                    (.preventDefault evt)
+                                    (dispatch [::events/map-grab {:x x :y y}]))))
+               
+               :on-mouse-move (fn [evt]
+                                (when map-grab
+                                  (let [x (-> evt .-nativeEvent .-offsetX)
+                                        y (-> evt .-nativeEvent .-offsetY)]
+                                    (dispatch [::events/map-drag {:x x :y y}]))))
+               :on-mouse-up (fn [evt]
+                              (dispatch [::events/map-grab-release]))
+               }
          
          ;; Controls
          [:div
@@ -87,34 +99,35 @@
           [:span @time]]
 
          ;; SVG data map
-         [:svg {:xmlns "http://www.w3.org/2000/svg"
-                :xmlns:amcharts "http://amcharts.com/ammap"
-                :xmlns:xlink "http://www.w3.org/1999/xlink"
-                :version "1.1"
-                :width "100%"
-                :height "100%"}
+         (when (and view-box)
+          [:svg {:xmlns "http://www.w3.org/2000/svg"
+                 :xmlns:amcharts "http://amcharts.com/ammap"
+                 :xmlns:xlink "http://www.w3.org/1999/xlink"
+                 :version "1.1"
+                 :width "100%"
+                 :height "100%"}
 
-          ;; gradients definitions
-          [:defs {}
-           [:linearGradient {:id "grad"}
-            [:stop {:offset "0%" :stop-color :red}]
-            [:stop {:offset "100%" :stop-color :yellow}]]]
+           ;; gradients definitions
+           [:defs {}
+            [:linearGradient {:id "grad"}
+             [:stop {:offset "0%" :stop-color :red}]
+             [:stop {:offset "100%" :stop-color :yellow}]]]
 
-          ;; map background
-          [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color theme)}]
+           ;; map background
+           [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color theme)}]
 
-          ;; map and data svg,                 x  y  w  h
-          [:svg {:viewBox (apply gstr/format "%f %f %f %f" (view-box-bounding-box (:map-box geo-json-map)
-                                                                                  data-box-padding))}
-           ;; map group
-           [:g {}
-            (binding [svg-renderer/*theme* theme]
-              (svg-renderer/geojson->svg geo-json-map))]
+           ;; map and data svg
+           [:svg {:viewBox (gstr/format "%f %f %f %f" (:x view-box) (:y view-box) (:w view-box) (:h view-box))}
+            ;; map group
+            [:g {}
+             (binding [svg-renderer/*theme* theme]
+               (svg-renderer/geojson->svg geo-json-map))]
 
-           ;; data group
-           [:g {}
-            (for [{:keys [x1 y1 x2 y2]} data]
-              [clipped-svg-cuad-curve {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc @time}])]]]])
+            ;; data group
+            [:g {}
+             (for [{:keys [x1 y1 x2 y2]} data-points]
+               ^{:key (str x1 y1 x2 y2)}
+               [clipped-svg-cuad-curve {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc t}])]]])])
       
       )))
 
