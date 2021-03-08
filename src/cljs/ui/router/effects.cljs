@@ -18,7 +18,7 @@
           watched-params                 (:params opts)
           watched-query                  (:query opts)
           [event-name name params query] event-v]
-      (when (and (= :district.ui.router.events/active-page-changed event-name)
+      (when (and (= :ui.router.events/active-page-changed event-name)
                  (or (nil? watched-name)
                      (and (or (keyword? watched-name)
                               (string? watched-name))
@@ -56,7 +56,7 @@
       (doseq [{:keys [:id]} watchers]
         (re/remove-post-event-callback id)))))
 
-(reg-fx
+#_(reg-fx
   :window/scroll-to
   (fn [[x y]]
     (.scrollTo js/window x y)))

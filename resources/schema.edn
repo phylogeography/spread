@@ -32,10 +32,17 @@
 
  :input-objects
  {:File {:fields {:name      {:type String}
-                  :extension {:type String}}}}
+                  :extension {:type String}}}
+
+
+
+  }
 
  :objects
- {:ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
+ {:JWT {:fields {:accessToken {:type (non-null String)}
+                 :expiresIn   {:type (non-null Int)}}}
+
+  :ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                                :fields      {:id     {:type (non-null ID)}
                                              :status {:type (non-null :ContinuousTreeStatus)}}}
 
@@ -171,7 +178,17 @@
    :stream :subscription/timeSlicerParserStatus}}
 
  :mutations
- {:getUploadUrls {:type        (list String)
+ {
+
+  ;; TODO
+  :googleLogin {:type        :JWT
+                :description "Validates google token and returns a spread JWT access-token."
+                :args        {:code        {:type String}
+                              :redirectUri {:type String}}
+                :resolve     :mutation/googleLogin}
+
+
+  :getUploadUrls {:type        (list String)
                   :description "Returns one-time POST urls."
                   :args        {:files {:type (list :File)}}
                   :resolve     :mutation/getUploadUrls}
@@ -183,7 +200,7 @@
                          :resolve     :mutation/uploadContinuousTree}
 
   :updateContinuousTree {:type        :ContinuousTreeParserStatus
-                         :description "Updates the entity with settings for parsing the tree graph"
+                         :description "Updates the entity with settings for parsing the tree graph."
                          :args        {:id                       {:type (non-null ID)}
                                        :readableName             {:type String}
                                        :xCoordinateAttributeName {:type (non-null String)}
@@ -228,7 +245,7 @@
                      :resolve     :mutation/uploadTimeSlicer}
 
   :updateTimeSlicer {:type        :TimeSlicerParserStatus
-                     :description "Updates the entity with settings for parsing"
+                     :description "Updates the entity with settings for parsing."
                      :args        {:id                                 {:type (non-null ID)}
                                    :readableName                       {:type String}
                                    :burnIn                             {:type Int}
@@ -256,7 +273,7 @@
                               :resolve     :mutation/uploadBayesFactorAnalysis}
 
   :updateBayesFactorAnalysis {:type        :BayesFactorParserStatus
-                              :description "Updates the entity with settings for parsing the tree graph"
+                              :description "Updates the entity with settings for parsing the tree graph."
                               :args        {:id                {:type (non-null ID)}
                                             :readableName      {:type String}
                                             :numberOfLocations {:type Int}
@@ -267,7 +284,6 @@
                            :description "Starts executing a parser. Returns a ParserStatus with id."
                            :args        {:id {:type (non-null ID)}}
                            :resolve     :mutation/startBayesFactorParser}
-
 
   }
 

@@ -13,6 +13,7 @@
             [ui.router.core :as router]
             [ui.router.events :as router-events]
             [ui.router.queries :as router-queries]
+            [ui.google :as google]
             [ui.splash.events :as splash-events]))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
@@ -30,7 +31,8 @@
 (re-frame/reg-event-fx
   :ui/initialize
   (fn [{:keys [db]} [_ config]]
-    {:db (assoc db :spread/config config)
+    {:db (-> db
+             (assoc :config config))
      :forward-events {:register    :active-page-changed
                       :events      #{::router-events/active-page-changed}
                       :dispatch-to [:active-page-changed]}}))

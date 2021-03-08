@@ -29,31 +29,32 @@
       (throw (Exception. "Authorization required")))))
 
 (defn resolver-map []
-  {:mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
+  {:mutation/googleLogin   mutations/google-login
+   :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
 
-   :mutation/uploadContinuousTree (auth-decorator mutations/upload-continuous-tree)
-   :mutation/updateContinuousTree (auth-decorator mutations/update-continuous-tree)
-   :query/getContinuousTree resolvers/get-continuous-tree
+   :mutation/uploadContinuousTree       (auth-decorator mutations/upload-continuous-tree)
+   :mutation/updateContinuousTree       (auth-decorator mutations/update-continuous-tree)
+   :query/getContinuousTree             resolvers/get-continuous-tree
    :resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
    :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
-   :mutation/startContinuousTreeParser (auth-decorator mutations/start-continuous-tree-parser)
+   :mutation/startContinuousTreeParser  (auth-decorator mutations/start-continuous-tree-parser)
 
-   :mutation/uploadDiscreteTree (auth-decorator mutations/upload-discrete-tree)
-   :mutation/updateDiscreteTree (auth-decorator mutations/update-discrete-tree)
-   :query/getDiscreteTree resolvers/get-discrete-tree
+   :mutation/uploadDiscreteTree       (auth-decorator mutations/upload-discrete-tree)
+   :mutation/updateDiscreteTree       (auth-decorator mutations/update-discrete-tree)
+   :query/getDiscreteTree             resolvers/get-discrete-tree
    :resolve/discrete-tree->attributes resolvers/discrete-tree->attributes
-   :mutation/startDiscreteTreeParser (auth-decorator mutations/start-discrete-tree-parser)
+   :mutation/startDiscreteTreeParser  (auth-decorator mutations/start-discrete-tree-parser)
 
-   :mutation/uploadTimeSlicer (auth-decorator mutations/upload-time-slicer)
-   :mutation/updateTimeSlicer (auth-decorator mutations/update-time-slicer)
-   :query/getTimeSlicer resolvers/get-time-slicer
+   :mutation/uploadTimeSlicer       (auth-decorator mutations/upload-time-slicer)
+   :mutation/updateTimeSlicer       (auth-decorator mutations/update-time-slicer)
+   :query/getTimeSlicer             resolvers/get-time-slicer
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
-   :mutation/startTimeSlicerParser (auth-decorator mutations/start-time-slicer-parser)
+   :mutation/startTimeSlicerParser  (auth-decorator mutations/start-time-slicer-parser)
 
-   :mutation/uploadBayesFactorAnalysis (auth-decorator mutations/upload-bayes-factor-analysis)
-   :mutation/updateBayesFactorAnalysis (auth-decorator mutations/update-bayes-factor-analysis)
-   :mutation/startBayesFactorParser (auth-decorator mutations/start-bayes-factor-parser)
-   :query/getBayesFactorAnalysis resolvers/get-bayes-factor-analysis
+   :mutation/uploadBayesFactorAnalysis           (auth-decorator mutations/upload-bayes-factor-analysis)
+   :mutation/updateBayesFactorAnalysis           (auth-decorator mutations/update-bayes-factor-analysis)
+   :mutation/startBayesFactorParser              (auth-decorator mutations/start-bayes-factor-parser)
+   :query/getBayesFactorAnalysis                 resolvers/get-bayes-factor-analysis
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    })
@@ -67,22 +68,9 @@
 (defn ^:private context-interceptor
   [extra-context]
   (interceptor
-   {:name ::extra-context
-    :enter (fn [context]
-             (assoc-in context [:request :lacinia-app-context] extra-context))}))
-
-#_(def ^:private graphql-response-interceptor
-  (interceptor
-   {:name ::graphql-response
-    :leave (fn [context]
-             (let [body (get-in context [:response :body])]
-
-               (log/debug "@@@ RESP BODY" {:r (get-in context [:response])
-                                           :b (get-in context [:response :body])})
-
-               )
-             context
-             )}))
+    {:name  ::extra-context
+     :enter (fn [context]
+              (assoc-in context [:request :lacinia-app-context] extra-context))}))
 
 (defn ^:private interceptors
   [schema extra-context]
@@ -104,44 +92,48 @@
 (defn stop [this]
   (http/stop this))
 
-(defn start [{:keys [api aws db env] :as config}]
-  (let [dev? (= "dev" env)
-        {:keys [port]} api
+(defn start [{:keys [api aws db env google] :as config}]
+  (let [dev?                                    (= "dev" env)
+        {:keys [port allowed-origins]}          api
         {:keys [workers-queue-url bucket-name]} aws
-        schema (load-schema)
-        sqs (aws-sqs/create-client aws)
-        s3 (aws-s3/create-client aws)
-        s3-presigner (aws-s3/create-presigner aws)
-        db (db/init db)
-        context {:sqs sqs
-                 :s3 s3
-                 :s3-presigner s3-presigner
-                 :db db
-                 :workers-queue-url workers-queue-url
-                 :bucket-name bucket-name}
-        compiled-schema (-> schema
-                            (lacinia-util/attach-resolvers (resolver-map))
-                            (lacinia-util/attach-streamers (streamer-map))
-                            schema/compile)
-        interceptors (interceptors compiled-schema context)
-        subscription-interceptors (subscription-interceptors compiled-schema context)
+        schema                                  (load-schema)
+        sqs                                     (aws-sqs/create-client aws)
+        s3                                      (aws-s3/create-client aws)
+        s3-presigner                            (aws-s3/create-presigner aws)
+        db                                      (db/init db)
+        context                                 {:sqs               sqs
+                                                 :s3                s3
+                                                 :s3-presigner      s3-presigner
+                                                 :db                db
+                                                 :workers-queue-url workers-queue-url
+                                                 :bucket-name       bucket-name
+                                                 :google google}
+        compiled-schema                         (-> schema
+                                                    (lacinia-util/attach-resolvers (resolver-map))
+                                                    (lacinia-util/attach-streamers (streamer-map))
+                                                    schema/compile)
+        interceptors                            (interceptors compiled-schema context)
+        subscription-interceptors               (subscription-interceptors compiled-schema context)
         ;; TODO : use /ide endpoint only when env = dev
-        routes (into #{["/api" :post interceptors :route-name ::api]
-                       ["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
-                     (pedestal/graphiql-asset-routes "/assets/graphiql"))
-        opts (cond-> {::http/routes routes
-                      ::http/port port
-                      ::http/type :jetty
-                      ::http/join? false}
-               true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path "/ws"
-                                                                    ;; The interval at which keep-alive messages are sent to the client
-                                                                    :keep-alive-ms 60000 ;; one minute
-                                                                    :subscription-interceptors subscription-interceptors
-                                                                    })
-               dev? (merge {:env (keyword env)
-                            ::http/secure-headers nil}))
-        runnable-service (-> (http/create-server opts)
-                             http/start)]
+        routes                                  (into #{["/api" :post interceptors :route-name ::api]
+                                                        ["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
+                                                      (pedestal/graphiql-asset-routes "/assets/graphiql"))
+        opts                                    (cond-> {::http/routes routes
+                                                         ::http/port port
+                                                         ::http/type :jetty
+                                                         ::http/join? false
+                                                         ::http/allowed-origins   {:allowed-origins (fn [origin]
+                                                                                                      (log/debug "checking allowed CORS" {:origin origin})
+                                                                                                      (allowed-origins origin))}}
+                                                  true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path        "/ws"
+                                                                                                       ;; The interval at which keep-alive messages are sent to the client
+                                                                                                       :keep-alive-ms             60000 ;; one minute
+                                                                                                       :subscription-interceptors subscription-interceptors
+                                                                                                       })
+                                                  dev? (merge {:env                  (keyword env)
+                                                               ::http/secure-headers nil}))
+        runnable-service                        (-> (http/create-server opts)
+                                                    http/start)]
 
     (log/info "Starting server" config)
 

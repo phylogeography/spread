@@ -53,7 +53,3 @@
                 required?)
          (throw (Exception. (str "MISSING ENV VARIABLE: " var-name " not defined in environment")))
          var-name))))
-
-#_(defmacro js-directive
-    [directive]
-    (list 'js* (str "'" directive "'")))

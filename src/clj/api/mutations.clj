@@ -3,20 +3,72 @@
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [shared.utils :refer [clj->gql]]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
+            [clj-http.client :as http]
             [aws.utils :refer [s3-url->id]]
             [shared.utils :refer [new-uuid]]
             [taoensso.timbre :as log]))
+
+;; https://developers.google.com/identity/protocols/oauth2/web-server#exchange-authorization-code
+(defn google-login [{:keys [google]} {code :code redirect-uri :redirectUri :as args} _]
+  (try
+    ;; TODO : verify google token
+
+    (log/debug "@@@ google-login" args)
+
+    ;; code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7&
+    ;; client_id=your_client_id&
+    ;; client_secret=your_client_secret&
+    ;; redirect_uri=https%3A//oauth2.example.com/code&
+    ;; grant_type=authorization_code
+
+    (let [{:keys [client-id client-secret]} google
+
+          params {:code          code
+                  :client_id     client-id
+                  :client_secret client-secret
+                  :redirect_uri  redirect-uri
+                  :grant_type    "authorization_code"
+                  }
+          _ (log/debug "@@@ request oarams" params)
+
+          response (http/post "https://oauth2.googleapis.com/token"
+                              {:form-params  params
+                               ;; :body               #_"{\"json\": \"input\"}"
+                               ;; :headers            {"X-Api-Version" "2"}
+                               :content-type :json
+                               ;; :socket-timeout     1000 ;; in milliseconds
+                               ;; :connection-timeout 1000 ;; in milliseconds
+                               :accept       :json})]
+
+      (log/debug "@@@ google-response" {:resp response })
+
+      ;; TODO: mint spread token and reply
+      (clj->gql {:access-token "FUBAR"
+                 :expires-in   123})
+
+      )
+
+
+    (catch Exception e
+
+      (log/error "Login with google failed" {:error e})
+
+      (throw e)
+      )
+
+    ))
 
 (defn get-upload-urls
   [{:keys [s3-presigner authed-user-id bucket-name]} {:keys [files]} _]
   (log/info "get-upload-urls" {:user/id authed-user-id :files files})
   (loop [files files
-         urls []]
+         urls  []]
     (if-let [file (first files)]
       (let [{:keys [extension]} file
-            uuid (new-uuid)]
+            uuid                (new-uuid)]
         (recur (rest files)
                (conj urls (aws-s3/get-signed-url
                            s3-presigner
