@@ -2,6 +2,8 @@
   (:require [buddy.core.keys :as buddy.keys]
             [buddy.sign.jws :as buddy.sign]
             [buddy.sign.jwt :as jwt]
+            [clojure.java.io :as io]
+            [clojure.string :as string]
             [clj-http.client :as http]
             [shared.time :as time]
             [shared.utils :refer [decode-json]]))
@@ -35,7 +37,7 @@
   returns the google token data"
   [token google-client-id]
   (let [header     (token-decode-header token)
-        ;; TODO: memoize it, we don't need to download it for every login, maybe only when we get a validation error?
+        ;; TODO: memoize it for kid (key id)
         public-key (get-google-public-key (:kid header))
         token-data (verify-token {:token      token
                                   :public-key public-key
@@ -71,10 +73,20 @@
     {:access-token token
      :expires-at   expires}))
 
-
+;; TODO:
+;; read token from the bearer header
+;; verify token
+;; return user-id (or nil)
 (defn token->user-id [_]
   "ffffffff-ffff-ffff-ffff-ffffffffffff")
 
 (comment
   (def token "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIxM2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI4MDYwNTI3NTc2MDUtNXNidWJiazl1YmowdHE5NWRwN2I1OHYzNnRzY3F2MXIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI4MDYwNTI3NTc2MDUtNXNidWJiazl1YmowdHE5NWRwN2I1OHYzNnRzY3F2MXIuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTMyNTI3ODg4MjExOTc1Mzc4MjUiLCJlbWFpbCI6ImZiaWVsZWplY0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXRfaGFzaCI6IlhDS3pKUDBWX280blo1MFZBSFZOeUEiLCJuYW1lIjoiRmlsaXAgQmllbGVqZWMiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EtL0FPaDE0R2pXWnlJbWYzbUJHbkhQakpPbEUwSkRZeEFuUGJYR2JiUFhJRmFITnc9czk2LWMiLCJnaXZlbl9uYW1lIjoiRmlsaXAiLCJmYW1pbHlfbmFtZSI6IkJpZWxlamVjIiwibG9jYWxlIjoiZW4iLCJpYXQiOjE2MTUyMDMxNTgsImV4cCI6MTYxNTIwNjc1OH0.raFplypYNiaA0YAeoaiOM4htimIavRdI8zkQJhMwqJv4EMTil3louY-Wtrs2F37s6gVhh7CmABcDKYxeCQeRWZUabpcVJo09AP3m_Ps6tM6-h4kXMyr6wvhNleYFKXC7tV5lW7uIzn3s773P2TP1u7hPvrysYD0G2aDtibyaCU81MO3LoWlhat9LnNpkd-_Ubty_9CVnxjr28NAtEsNZ7W_e2X1jX0WPNuZdrJv9lIP4JAdwlg3AiKEnatyfpj5_psDGkZJbWrSJmKDKoWytUynMOeXGFOe6jzr1P0zhk-rqJBCm5TKVM9uDXkx5MWXyKCNer-wXX0ZC2vhnZEUIGA")
-  (verify-google-token token "806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com"))
+  (verify-google-token token "806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com")
+
+  (def keypair (generate-keypair 512))
+
+  (def public-key (.getPublic keypair))
+
+
+  )
