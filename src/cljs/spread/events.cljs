@@ -59,19 +59,67 @@
      (+ (Math/abs (- x1 x2)) padding)
      (+ (Math/abs (- y1 y2)) padding)]))
 
-(defn calculate-data-view-box [data-points]
-  {:center [110 110]
-   :radius 20})
+;; join both in map-size
+(def map-width    700)
+(def map-height   700)
+
+(defn screen-coord->proj-coord [translate scale [screen-x screen-y]]
+  (let [[tx ty] translate]
+    [(quot (- screen-x tx) scale)
+     (quot (- screen-y ty) scale)]))
+
+#_(defn calc-zoom-for-view-box [x1 y1 x2 y2]
+  (let [scale (/ map-width
+                 (max (- x2 x1) (- y2 y1)))
+        tx    (* -1 scale x1)
+        ty    (* -1 scale y1)]
+    
+    (println "Fitting to a scale of " scale " and a translation of " [tx ty])
+    {:translate [tx ty]
+     :scale     scale}))
+
+(defn calc-zoom-for-view-box [x1 y1 x2 y2]
+  (let [scale (/ map-width
+                 (max (- x2 x1) (- y2 y1)))
+        tx    (* -1 scale x1)
+        ty    (* -1 scale y1)]
+    
+    (println "Fitting to a scale of " scale " and a translation of " [tx ty])
+    {:translate [tx ty]
+     :scale     scale}))
+
+(re-frame/reg-event-db
+ ::map-set-view-box
+ (fn [db [_ {:keys [x1 y1 x2 y2]}]]
+   (let [{:keys [translate scale]} (:map-state db)]
+     (println "Setting view box to " [x1 y1] [x2 y2])
+     db
+     (let [{:keys [translate scale]} (calc-zoom-for-view-box x1 y1 x2 y2)]
+       (-> db
+           (assoc :map-state {:translate translate
+                              :scale     scale}))))))
+
 
 (re-frame/reg-event-fx
  ::load-data
  (fn [{:keys [db]} [_ _]]
-   (let [data-points [{:x1 104  :y1  110 :x2 120 :y2 130}]
-         {:keys [center radius]} (calculate-data-view-box data-points)]
+   (let [data-points [{:x1 104  :y1  110 :x2 120 :y2 130}
+                      #_{:x1 108  :y1  120 :x2 110 :y2 140}
+                      {:x1 108  :y1  120 :x2 120 :y2 121}
+                      #_{:x1 180  :y1  90 :x2 185 :y2 95}]
+         points (mapcat (fn [{:keys [x1 y1 x2 y2]}]
+                          [[x1 y1] [x2 y2]])
+                        data-points)
+         x1 (apply min (map first points))
+         y1 (apply min (map second points))
+         x2 (apply max (map first points))
+         y2 (apply max (map second points))]
+
      {:db (-> db
-              (assoc :data-points data-points
-                     :map-view-box-center center
-                     :map-view-box-radius radius))})
+              (assoc :data-points data-points))
+      ;; :dispatch [::map-set-view-box {:x1 x1 :y1 y1
+      ;;                                :x2 x2 :y2 y2}]
+      })
    #_{:http-xhrio {:method          :get
                  :uri             (str "http://localhost:1234/data/")
                  :timeout         8000 
@@ -82,14 +130,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Maps manipulation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def map-width    600)
-(def map-height   600)
-
-(defn screen-coord->proj-coord [translate scale [screen-x screen-y]]
-  (let [[tx ty] translate]
-    [(quot (- screen-x tx) scale)
-     (quot (- screen-y ty) scale)]))
 
 (def max-scale 2)
 (def min-scale 0.1)
@@ -110,6 +150,7 @@
                     [tx ty] translate
                     new-translate-x (+ tx x-scale-diff)
                     new-translate-y (+ ty y-scale-diff)]
+                
                 (if true #_(< min-scale new-scale max-scale)
                   (assoc map-state
                          :translate [(int new-translate-x) (int new-translate-y)]
@@ -122,14 +163,16 @@
    (zoom db delta [x y])))
 
 (re-frame/reg-event-db
- ::map-grab (fn [{:keys [map-view-box-center] :as db} [_ {:keys [x y]}]]
-              (-> db
-                  (assoc-in [:map-state :grab :screen-origin]  [x y])
-                  (assoc-in [:map-state :grab :screen-current]  [x y]))))
+ ::map-grab
+ (fn [{:keys [map-view-box-center] :as db} [_ {:keys [x y]}]]
+   (-> db
+       (assoc-in [:map-state :grab :screen-origin]  [x y])
+       (assoc-in [:map-state :grab :screen-current]  [x y]))))
 
 (re-frame/reg-event-db
- ::map-grab-release (fn [db _]
-                      (update db :map-state dissoc :grab)))
+ ::map-grab-release
+ (fn [db _]
+   (update db :map-state dissoc :grab)))
 
 (defn drag [{:keys [map-state] :as db} current-screen-coord]
   (if-let [{:keys [screen-origin]} (:grab map-state)]
@@ -138,24 +181,41 @@
           [current-proj-x current-proj-y] (screen-coord->proj-coord translate scale current-screen-coord)
           before-screen-coord (-> map-state :grab :screen-current)
           [drag-x drag-y] (let [[before-x before-y] (screen-coord->proj-coord translate scale before-screen-coord)]
-                            [(- current-proj-x before-x) (- current-proj-y before-y)])
-
-          db' (assoc-in db [:map-state :grab :screen-current] current-screen-coord)]
+                            [(- current-proj-x before-x) (- current-proj-y before-y)])]
       (let [[before-screen-x before-screen-y] before-screen-coord
             screen-drag-x (- screen-x before-screen-x)
             screen-drag-y (- screen-y before-screen-y)]
-        (-> db'
+        (-> db            
+            (assoc-in  [:map-state :grab :screen-current] current-screen-coord)
             (update-in [:map-state :translate 0] + screen-drag-x)
             (update-in [:map-state :translate 1] + screen-drag-y))))
     db))
 
 (re-frame/reg-event-db
- ::map-drag (fn [{:keys [map-state] :as db} [_ {:keys [x y]}]]
-              (drag db [x y])
-              #_(let [view-box (math-utils/outscribing-rectangle map-view-box-center map-view-box-radius) 
-                    [origin-x origin-y] (screen-coord->projection-coord view-box (:origin map-grab))
-                    [drag-x drag-y]     (screen-coord->projection-coord view-box [x y])
-                    [old-cx old-cy] (:center map-grab)
-                    dragged-center [(+ old-cx (- origin-x drag-x)) (+ old-cy (- origin-y drag-y))]]
-                (-> db
-                    (assoc :map-view-box-center dragged-center)))))
+ ::map-drag
+ (fn [{:keys [map-state] :as db} [_ {:keys [x y]}]]
+   (drag db [x y])))
+
+(re-frame/reg-event-db
+ ::map-zoom-rectangle-grab
+ (fn [{:keys [map-state] :as db} [_ {:keys [x y]}]]
+   (-> db
+       (assoc-in [:map-state :zoom-rectangle] {:origin [x y] :current [x y]}))))
+
+(re-frame/reg-event-db
+ ::map-zoom-rectangle-update
+ (fn [{:keys [map-state] :as db} [_ {:keys [x y]}]]
+   (when (:zoom-rectangle map-state)
+     (assoc-in db [:map-state :zoom-rectangle :current] [x y]))))
+
+(re-frame/reg-event-fx
+ ::map-zoom-rectangle-release
+ (fn [{:keys [db]} _]
+   (let [{:keys [map-state]} db
+         {:keys [translate scale zoom-rectangle]} map-state
+         {:keys [origin current]} zoom-rectangle
+         [x1 y1] (screen-coord->proj-coord translate scale origin)              
+         [x2 y2] (screen-coord->proj-coord translate scale current)]     
+     {:db (update db :map-state dissoc :zoom-rectangle)
+      :dispatch [::map-set-view-box {:x1 x1 :y1 y1
+                                     :x2 x2 :y2 y2}]})))

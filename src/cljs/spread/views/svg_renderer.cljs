@@ -63,7 +63,7 @@
 
 (defmethod geojson->svg :Point [{:keys [coordinates]}]
   (let [[long lat] (map-coord->screen-coord coordinates)]
-    [:circle {:cx long :cy lat :r 0.2 :fill (:data-point-color *theme*)}]))
+    [:circle {:cx long :cy lat :r 0.1 :fill (:data-point-color *theme*)}]))
 
 (defn svg-polygon [coords]
   (let [all-polys (->> coords
