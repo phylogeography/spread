@@ -3,6 +3,7 @@
 
 ;; These are just not to upset clj-kondo
 (declare upsert-user)
+(declare get-user-by-email)
 
 (hugsql/def-db-fns "sql/user.sql")
 (hugsql/def-sqlvec-fns "sql/user.sql")

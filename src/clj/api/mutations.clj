@@ -3,47 +3,38 @@
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [api.models.user :as user-model]
             [shared.utils :refer [clj->gql]]
             [aws.s3 :as aws-s3]
+            [api.auth :as auth]
             [aws.sqs :as aws-sqs]
             [clj-http.client :as http]
             [aws.utils :refer [s3-url->id]]
-            [shared.utils :refer [new-uuid]]
+            [shared.utils :refer [new-uuid decode-json]]
             [taoensso.timbre :as log]))
 
-;; https://developers.google.com/identity/protocols/oauth2/web-server#exchange-authorization-code
 (defn google-login [{:keys [google]} {code :code redirect-uri :redirectUri :as args} _]
   (try
-    ;; TODO : verify google token
-
-    (log/debug "@@@ google-login" args)
-
-    ;; code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7&
-    ;; client_id=your_client_id&
-    ;; client_secret=your_client_secret&
-    ;; redirect_uri=https%3A//oauth2.example.com/code&
-    ;; grant_type=authorization_code
-
     (let [{:keys [client-id client-secret]} google
+          {:keys [body]}                    (http/post "https://oauth2.googleapis.com/token"
+                                                       {:form-params  {:code          code
+                                                                       :client_id     client-id
+                                                                       :client_secret client-secret
+                                                                       :redirect_uri  redirect-uri
+                                                                       :grant_type    "authorization_code"}
+                                                        :content-type :json
+                                                        :accept       :json})
+          {:keys [id_token]} (decode-json body)
+          {:keys [email]} (auth/verify-google-token id_token client-id)
+          _       (log/debug "user" {:email email})
+          {:keys [id]} (user-model/get-user-by-email {:email email})]
 
-          params {:code          code
-                  :client_id     client-id
-                  :client_secret client-secret
-                  :redirect_uri  redirect-uri
-                  :grant_type    "authorization_code"
-                  }
-          _ (log/debug "@@@ request oarams" params)
+      (log/debug "user" {:email email :id id})
 
-          response (http/post "https://oauth2.googleapis.com/token"
-                              {:form-params  params
-                               ;; :body               #_"{\"json\": \"input\"}"
-                               ;; :headers            {"X-Api-Version" "2"}
-                               :content-type :json
-                               ;; :socket-timeout     1000 ;; in milliseconds
-                               ;; :connection-timeout 1000 ;; in milliseconds
-                               :accept       :json})]
-
-      (log/debug "@@@ google-response" {:resp response })
+      ;; create user if not exists
+      (when-not id
+        (user-model/upsert-user {:email email
+                                 :id    (new-uuid)}))
 
       ;; TODO: mint spread token and reply
       (clj->gql {:access-token "FUBAR"
@@ -51,15 +42,9 @@
 
       )
 
-
     (catch Exception e
-
       (log/error "Login with google failed" {:error e})
-
-      (throw e)
-      )
-
-    ))
+      (throw e))))
 
 (defn get-upload-urls
   [{:keys [s3-presigner authed-user-id bucket-name]} {:keys [files]} _]

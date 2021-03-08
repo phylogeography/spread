@@ -4,7 +4,8 @@
    [api.db :as db]
    [api.models.user :as user-model]
    [clj-http.client :as http]
-   [clojure.data.json :as json]
+   ;; [clojure.data.json :as json]
+   [shared.utils :refer [decode-json]]
    ))
 
 (defn run-query [{:keys [url query variables]
@@ -12,7 +13,8 @@
   (let [{:keys [body]} (http/post url {:form-params {:query query
                                                      :variables variables}
                                        :content-type "application/json"})]
-    (json/read-str body :key-fn keyword)))
+    (decode-json body)
+    #_(json/read-str body :key-fn keyword)))
 
 (defn db-fixture [f]
   (let [config (config/load!)

@@ -10,7 +10,10 @@
   ;; HTTP / NETWORKING
   com.cognitect/transit-clj        {:mvn/version "1.0.324"}
   com.walmartlabs/lacinia-pedestal {:mvn/version "0.15.0-alpha-2"}
-  clj-http/clj-http {:mvn/version "3.12.1"}
+  clj-http/clj-http                {:mvn/version "3.12.1"}
+
+  ;; AUTH / JWT
+  buddy/buddy-sign {:mvn/version "3.3.0"}
 
   ;; LOGGING
   com.taoensso/timbre {:mvn/version "5.1.0"}
@@ -36,7 +39,9 @@
 
   ;; UTILS
   mount                 {:mvn/version "0.1.16"}
-  jpmonettas/flow-storm {:mvn/version "0.2.6"}}
+  jpmonettas/flow-storm {:mvn/version "0.2.6"}
+  tick/tick             {:mvn/version "0.4.29-alpha"}
+  }
 
  :mvn/repos
  {"central" {:url "https://repo1.maven.org/maven2/"}

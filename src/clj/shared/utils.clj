@@ -1,6 +1,7 @@
 (ns shared.utils
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
+            [clojure.data.json :as json]
             [clojure.walk :as walk]
             [cognitect.transit :as transit])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]))
@@ -20,6 +21,11 @@
   (let [in (ByteArrayInputStream. (.getBytes s))
         reader (transit/reader in :json)]
     (transit/read reader)))
+
+(defn decode-json
+  "Decodes JSON string into a clojure datastructure"
+  [s]
+  (json/read-str s :key-fn keyword))
 
 (defn encode-transit
   "Encodes x into a transit json string."

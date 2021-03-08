@@ -1,11 +1,14 @@
 (ns api.config
   (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
             [shared.utils :refer [get-env-variable]]))
 
 (defn load! []
   (let [environment (or (get-env-variable "SPREAD_ENV") "dev")
         dev-env?    (= "dev" environment)
-        { {:keys [client-secret]} :google} (when dev-env? (edn/read-string (slurp "resources/secrets.edn")))]
+        { {:keys [client-secret]} :google} (when dev-env?
+                                             (-> (io/resource "secrets.edn") slurp edn/read-string)
+                                             #_(edn/read-string (slurp "secrets.edn")))]
 
     {:env     environment
      :logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug)}
