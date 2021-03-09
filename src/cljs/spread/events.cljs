@@ -93,9 +93,10 @@
  ::load-data
  (fn [{:keys [db]} [_ _]]
    (let [data-points [{:x1 104  :y1  110 :x2 120 :y2 130}
-                      #_{:x1 108  :y1  120 :x2 110 :y2 140}
-                      {:x1 108  :y1  120 :x2 120 :y2 121}
-                      #_{:x1 180  :y1  90 :x2 185 :y2 95}]
+                      
+                      #_{:x1 108  :y1  120 :x2 120 :y2 121}
+                      {:x1 99  :y1  120 :x2 125 :y2 121}
+                      ]
          points (mapcat (fn [{:keys [x1 y1 x2 y2]}]
                           [[x1 y1] [x2 y2]])
                         data-points)

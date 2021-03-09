@@ -51,11 +51,23 @@
                   -1)
         cx (+ x1 (/ (- x2 x1) 2))
         cy (line cx)
-        center-perp (fn [x] (- (+ (* perp-m x) cy) (* cx perp-m)))
-        ;; TODO: make kdist a function of the length instead of a constant
-        kdist 20]
-    {:f1 [(- cx kdist) (center-perp (- cx kdist))]
-     :f2 [(+ cx kdist) (center-perp (+ cx kdist)) ]}))
+        center-perp (fn [x] (- (+ (* perp-m x) cy) (* cx perp-m)))        
+        k 5 ;; we can increase/decrease k to make the arc (focus distance) bigger/smaller
+        ;; This was solved with wolframalfa using the next formula where
+        ;; f=fx,e=fy,m=perp-m,c=cx,d=cy
+        ;; It will yield two solutions (one for each focus)
+        ;; Solve[mx+d-mc-y=0 && (x-c)^2+(y-d)^2=k^2, {x,y}]
+        fx-fn (fn [sol-fn]
+                ;; calculates focus-x, which is the point x that belongs to the perpendicular line
+                ;; that goes thru the center, and also is at distance k from cx,cy
+                (/ (sol-fn (+ (* cx (pow perp-m 2)) cx) (sqrt (* (pow k 2) (+ (pow perp-m 2) 1))))
+                   (+ (pow perp-m 2) 1)))
+        f1x (fx-fn +)
+        f2x (fx-fn -)
+        f1y (center-perp f1x)
+        f2y (center-perp f2x)]
+    {:f1 [f1x f1y]
+     :f2 [f2x f2y]}))
 
 (defn outscribing-rectangle [[center-x center-y] radius]
   {:x (- center-x radius)

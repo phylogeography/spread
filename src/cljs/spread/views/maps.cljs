@@ -28,17 +28,18 @@
              :fill :transparent}]
      ;; enable for debugging
      #_[:g {}
-        [:circle {:cx f1x :cy f1y :r 2 :stroke :green :fill :green}]
-        [:circle {:cx f2x :cy f2y :r 2 :stroke :green :fill :green}]
-        [:line {:x1 x1 :y1 y1 :x2 x2 :y2 y2 :stroke :blue :stroke-width 0.1}]      
-        [:path {:d (str "M " x1 " " y1 " Q " f2x " " f2y " " x2 " " y2)
-                :stroke :green
-                :stroke-dasharray 5
-                :stroke-dashoffset 0
-                :fill :transparent}]
-        
-        [:text {:style {:font-size 3} :x x1   :y y1 :stroke :blue :stroke-width 0.1} (str (int l-length))]
-        [:text {:style {:font-size 3} :x f1x :y f1y :stroke :blue :stroke-width 0.1} (str (int c-length))]]]))
+      [:circle {:cx f1x :cy f1y :r 0.2 :stroke :green :fill :green}]
+      [:circle {:cx f2x :cy f2y :r 0.2 :stroke :green :fill :green}]
+      [:line {:x1 x1 :y1 y1 :x2 x2 :y2 y2 :stroke :cyan :stroke-width 0.1}]      
+      [:path {:d (str "M " x1 " " y1 " Q " f2x " " f2y " " x2 " " y2)
+              :stroke :yellow
+              :stroke-dasharray 1
+              :stroke-width 0.1
+              :stroke-dashoffset 0
+              :fill :transparent}]
+      
+      [:text {:style {:font-size 3} :x x1   :y y1 :stroke :cyan :stroke-width 0.1} (str (int l-length))]
+      [:text {:style {:font-size 3} :x f1x :y f1y :stroke :green :stroke-width 0.1} (str (int c-length))]]]))
 
 (def left-button  0)
 (def wheel-button 1)
