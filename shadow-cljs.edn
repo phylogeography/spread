@@ -3,7 +3,7 @@
  ["src/cljs" "src/cljc"]
 
  :dependencies
- [
+ [[akiroz.re-frame/storage "0.1.4"]
   [camel-snake-kebab "0.4.1"]
   [cider/cider-nrepl "0.25.5"]
   [cider/piggieback "0.5.2"]
@@ -15,8 +15,7 @@
   [mount "0.1.16"]
   [re-frame "1.1.2"]
   [reagent "1.0.0"]
-  [refactor-nrepl "2.5.0"]
-  ]
+  [refactor-nrepl "2.5.0"]]
 
  :nrepl
  {:port 46000

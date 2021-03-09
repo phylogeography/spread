@@ -6,6 +6,7 @@
             [taoensso.timbre :as log]
             ui.home.page
             ui.splash.page
+            ui.storage
             [ui.config :as config]
             [ui.home.events :as home-events]
             [ui.logging :as logging]
@@ -30,9 +31,11 @@
 
 (re-frame/reg-event-fx
   :ui/initialize
-  (fn [{:keys [db]} [_ config]]
-    {:db (-> db
-             (assoc :config config))
+  [(re-frame/inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]} [_ config]]
+    (log/debug "localstorage" {:state localstorage})
+    {:db             (-> db
+                         (assoc :config config))
      :forward-events {:register    :active-page-changed
                       :events      #{::router-events/active-page-changed}
                       :dispatch-to [:active-page-changed]}}))

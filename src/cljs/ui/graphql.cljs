@@ -25,7 +25,7 @@
 (defn gql->clj [m]
   (->> m
        (js->clj)
-       (camel-snake-extras/transform-keys gql-name->kw )))
+       (camel-snake-extras/transform-keys gql-name->kw)))
 
 (defmulti handler
   (fn [_ key value]
@@ -79,9 +79,8 @@
   ::query
   (fn [{:keys [db]} [_ {:keys [query variables]}]]
     (let [url          (get-in db [:config :graphql :url])
+          ;; TODO
           access-token (get-in db [:tokens :access-token])
-          _ (log/debug "@@@ QUERY" {:url url
-                                    :config (get-in db [:config])})
           params       (clj->js {:url     url
                                  :method  :post
                                  :headers (merge {"Content-Type" "application/json"
@@ -111,11 +110,12 @@
   (log/debug "user handler" user)
   {:db (assoc-in db [:users address] user)})
 
+;; TODO : save token in browser store
 (defmethod handler :google-login
-  [{:keys [db]} _ {:user/keys [address google-username] :as user}]
-  (log/debug "google-login handler" user)
-  {:db (assoc-in db [:users address] (merge user
-                                            {:user/user-name google-username}))})
+  [{:keys [db]} _ {:keys [access-token]}]
+  (log/debug "google-login handler" {:access-token access-token})
+  (re-frame/dispatch [:localstorage/persist :access-token access-token])
+  {:db (assoc-in db [:tokens :access-token] access-token)})
 
 (defmethod handler :api/error
   [_ _ _]

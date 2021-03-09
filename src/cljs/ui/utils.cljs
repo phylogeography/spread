@@ -13,3 +13,8 @@
   (str s
        (when-not (string/ends-with? s "/")
          "/")))
+
+(defn reg-empty-event-fx [id]
+  (re-frame/reg-event-fx
+   id
+   (constantly nil)))

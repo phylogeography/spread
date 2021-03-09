@@ -1,25 +1,20 @@
 (ns api.mutations
-  (:require [api.models.bayes-factor :as bayes-factor-model]
+  (:require [api.auth :as auth]
+            [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
-            [shared.utils :refer [clj->gql]]
             [aws.s3 :as aws-s3]
-            [api.auth :as auth]
             [aws.sqs :as aws-sqs]
-            [clj-http.client :as http]
             [aws.utils :refer [s3-url->id]]
-            [shared.utils :refer [new-uuid decode-json]]
+            [clj-http.client :as http]
+            [shared.utils :refer [clj->gql decode-json new-uuid]]
             [taoensso.timbre :as log]))
 
 (defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri :as args} _]
   (try
     (let [{:keys [client-id client-secret]} google
-
-          ;; _ (log/debug "@1" google)
-
-          ;; TODO : uncomment
           {:keys [body]}                    (http/post "https://oauth2.googleapis.com/token"
                                                        {:form-params  {:code          code
                                                                        :client_id     client-id
@@ -28,30 +23,17 @@
                                                                        :grant_type    "authorization_code"}
                                                         :content-type :json
                                                         :accept       :json})
-          ;; _ (log/debug "@2" {:body body})
           {:keys [id_token]}                (decode-json body)
-          _ (log/debug "@3" {:token id_token})
           {:keys [email]}                   (auth/verify-google-token id_token client-id)
-
-          ;; email        "fbielejec@gmail"
-          {:keys [id]} (user-model/get-user-by-email db {:email email})]
-
-      (log/debug "user" {:email email :id id})
-
-      (log/debug "key" {:private-key private-key})
-
-      ;; create user if not exists
-      (if-not id
-        (let [_ (user-model/upsert-user db {:email email
-                                            :id    (new-uuid)})
-              access-token (auth/generate-spread-access-token id private-key)]
-          (log/debug "access-token" access-token)
-          access-token
-          )
-        (let [access-token (auth/generate-spread-access-token id private-key)]
-          (log/debug "access-token" access-token)
-          access-token
-          )))
+          {:keys [id]}                      (user-model/get-user-by-email db {:email email})]
+      (log/info "google-login" {:email email :id id})
+      (if id
+        (clj->gql (auth/generate-spread-access-token id private-key))
+        ;; create user if not exists
+        (let [new-user-id (new-uuid)]
+          (user-model/upsert-user db {:email email
+                                      :id    new-user-id})
+          (clj->gql (auth/generate-spread-access-token new-user-id private-key)))))
     (catch Exception e
       (log/error "Login with google failed" {:error e})
       (throw e))))
