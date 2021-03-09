@@ -45,44 +45,33 @@
                  :on-success      [::map-loaded map-data]
                  :on-failure      [::bad-http-result]}}))
 
-#_(defn view-box-bounding-box
+(def map-screen-width    1200)
+(def map-screen-height   600)
 
-  "Calculates a screen bounding box (in screen coordinates) given a `map-box` (in long, lat)
-  adding `padding` around."
-  
-  [map-box padding]
+(def map-proj-width  360)
+(def map-proj-height 180)
 
-  (let [[x1 y1] (svg-renderer/map-coord->screen-coord [(:min-long map-box) (:min-lat map-box)])
-        [x2 y2] (svg-renderer/map-coord->screen-coord [(:max-long map-box) (:max-lat map-box)])]
-    [(- (min x1 x2) (/ padding 2))
-     (- (min y1 y2) (/ padding 2))
-     (+ (Math/abs (- x1 x2)) padding)
-     (+ (Math/abs (- y1 y2)) padding)]))
+(def proj-scale (/ map-screen-width map-proj-width))
 
-;; join both in map-size
-(def map-width    700)
-(def map-height   700)
+(def max-scale 22)
+(def min-scale 1)
+
+;; screen-coord: [x,y]      coordinates in screen pixels, 0 <= x <= map-width, 0 <= y <= map-height
+;; proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
+;; map-coord:    [lat,lon]  coordinates in map lat,long coords, -180 <= lon <= 180, -90 <= lat <= 90
 
 (defn screen-coord->proj-coord [translate scale [screen-x screen-y]]
   (let [[tx ty] translate]
-    [(quot (- screen-x tx) scale)
-     (quot (- screen-y ty) scale)]))
-
-#_(defn calc-zoom-for-view-box [x1 y1 x2 y2]
-  (let [scale (/ map-width
-                 (max (- x2 x1) (- y2 y1)))
-        tx    (* -1 scale x1)
-        ty    (* -1 scale y1)]
-    
-    (println "Fitting to a scale of " scale " and a translation of " [tx ty])
-    {:translate [tx ty]
-     :scale     scale}))
+    ;; translate the screen-coord and scale it twice (one for the proj-scale and the other for the zoom scale)
+    [(/ (- screen-x tx) (* proj-scale scale))
+     (/ (- screen-y ty) (* proj-scale scale))]))
 
 (defn calc-zoom-for-view-box [x1 y1 x2 y2]
-  (let [scale (/ map-width
-                 (max (- x2 x1) (- y2 y1)))
-        tx    (* -1 scale x1)
-        ty    (* -1 scale y1)]
+  (let [scale-x (/ map-proj-width  (max (- x2 x1)))
+        scale-y (/ map-proj-height (max (- y2 y1)))
+        scale (min scale-x scale-y)
+        tx    (* -1 scale proj-scale x1)
+        ty    (* -1 scale proj-scale y1)]
     
     (println "Fitting to a scale of " scale " and a translation of " [tx ty])
     {:translate [tx ty]
@@ -117,8 +106,8 @@
 
      {:db (-> db
               (assoc :data-points data-points))
-      ;; :dispatch [::map-set-view-box {:x1 x1 :y1 y1
-      ;;                                :x2 x2 :y2 y2}]
+      :dispatch [::map-set-view-box {:x1 x1 :y1 y1
+                                     :x2 x2 :y2 y2}]
       })
    #_{:http-xhrio {:method          :get
                  :uri             (str "http://localhost:1234/data/")
@@ -131,9 +120,6 @@
 ;; Maps manipulation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def max-scale 2)
-(def min-scale 0.1)
-
 (defn zoom [{:keys [map-state] :as db} delta screen-coords]
   (let [{:keys [translate scale]} map-state
         zoom-dir (if (pos? delta) -1 1)
@@ -141,17 +127,17 @@
     (update db :map-state
             (fn [{:keys [translate scale] :as map-state}]
               (let [new-scale (+ scale (* zoom-dir 0.8))
-                    scaled-proj-x (* proj-x scale)
-                    scaled-proj-y (* proj-y scale)
-                    new-scaled-proj-x (* proj-x new-scale)
-                    new-scaled-proj-y (* proj-y new-scale)
+                    scaled-proj-x (* proj-x scale proj-scale)
+                    scaled-proj-y (* proj-y scale proj-scale)
+                    new-scaled-proj-x (* proj-x new-scale proj-scale)
+                    new-scaled-proj-y (* proj-y new-scale proj-scale)
                     x-scale-diff (- scaled-proj-x new-scaled-proj-x)
                     y-scale-diff (- scaled-proj-y new-scaled-proj-y)
                     [tx ty] translate
                     new-translate-x (+ tx x-scale-diff)
                     new-translate-y (+ ty y-scale-diff)]
                 
-                (if true #_(< min-scale new-scale max-scale)
+                (if (< min-scale new-scale max-scale)
                   (assoc map-state
                          :translate [(int new-translate-x) (int new-translate-y)]
                          :scale new-scale)

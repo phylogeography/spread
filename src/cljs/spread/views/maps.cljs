@@ -27,7 +27,7 @@
              :stroke-dashoffset (+ c-length (* c-length clip-perc))
              :fill :transparent}]
      ;; enable for debugging
-     [:g {}
+     #_[:g {}
         [:circle {:cx f1x :cy f1y :r 2 :stroke :green :fill :green}]
         [:circle {:cx f2x :cy f2y :r 2 :stroke :green :fill :green}]
         [:line {:x1 x1 :y1 y1 :x2 x2 :y2 y2 :stroke :blue :stroke-width 0.1}]      
@@ -64,8 +64,8 @@
             {:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])            
             [translate-x translate-y] translate            
             ]
-        [:div {:style {:height (str events/map-height "px")
-                       :width  (str events/map-width  "px")}
+        [:div {:style {:height (str events/map-screen-height "px")
+                       :width  (str events/map-screen-width  "px")}
                :on-wheel (fn [evt]
                            (let [x (-> evt .-nativeEvent .-offsetX)
                                  y (-> evt .-nativeEvent .-offsetY)]
