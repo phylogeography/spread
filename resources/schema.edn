@@ -39,8 +39,7 @@
   }
 
  :objects
- {:JWT {:fields {:accessToken {:type (non-null String)}
-                 :expiresIn   {:type (non-null Int)}}}
+ {:JWT {:fields {:accessToken {:type (non-null String)}}}
 
   :ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                                :fields      {:id     {:type (non-null ID)}

@@ -6,13 +6,14 @@
 (defn load! []
   (let [environment (or (get-env-variable "SPREAD_ENV") "dev")
         dev-env?    (= "dev" environment)
-        { {:keys [client-secret]} :google} (when dev-env?
-                                             (-> (io/resource "secrets.edn") slurp edn/read-string)
-                                             #_(edn/read-string (slurp "secrets.edn")))]
+        {{:keys [client-secret]} :google
+         :keys                   [private-key]}
+        (when dev-env?
+          (-> (io/resource "secrets.edn") slurp edn/read-string))]
 
     {:env     environment
      :logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug)}
-     :api     {:port (Integer/parseInt (or (get-env-variable "API_PORT") "3001"))
+     :api     {:port            (Integer/parseInt (or (get-env-variable "API_PORT") "3001"))
                :allowed-origins #{"http://localhost:8020"}}
      :aws     (cond-> {:region (when-not dev-env?
                                  (get-env-variable "API_AWS_REGION"))
@@ -34,5 +35,11 @@
      :google
      {:client-id     (or (get-env-variable "GOOGLE_CLIENT_ID") "806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com")
       :client-secret (or (get-env-variable "GOOGLE_CLIENT_SECRET") client-secret)}
+
+     :public-key
+     (or (get-env-variable "PUBLIC_KEY")
+         "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJliLjOIAqGbnjGBM1RJml/l0MHayaRH\ncgEg00O9wBYvoNXrstFSzKTCKtG5MayUKgdG7C/98nu/TEzhvRFjINcCAwEAAQ==\n-----END PUBLIC KEY-----\n")
+
+     :private-key (or (get-env-variable "PRIVATE_KEY") private-key)
 
      }))

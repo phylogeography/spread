@@ -92,7 +92,7 @@
 (defn stop [this]
   (http/stop this))
 
-(defn start [{:keys [api aws db env google] :as config}]
+(defn start [{:keys [api aws db env google private-key] :as config}]
   (let [dev?                                    (= "dev" env)
         {:keys [port allowed-origins]}          api
         {:keys [workers-queue-url bucket-name]} aws
@@ -107,7 +107,8 @@
                                                  :db                db
                                                  :workers-queue-url workers-queue-url
                                                  :bucket-name       bucket-name
-                                                 :google google}
+                                                 :google google
+                                                 :private-key private-key}
         compiled-schema                         (-> schema
                                                     (lacinia-util/attach-resolvers (resolver-map))
                                                     (lacinia-util/attach-streamers (streamer-map))

@@ -16,7 +16,6 @@
                                  "mutation GoogleLogin($googleCode: String!, $redirectUri: String!) {
                                      googleLogin(code: $googleCode, redirectUri: $redirectUri) {
                                        accessToken
-                                       expiresIn
                                    }
                                  }"
                                  :variables {:googleCode code :redirectUri redirect-uri}}]}))

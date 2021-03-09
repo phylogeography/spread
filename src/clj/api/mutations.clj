@@ -13,39 +13,45 @@
             [shared.utils :refer [new-uuid decode-json]]
             [taoensso.timbre :as log]))
 
-(defn google-login [{:keys [google db]} {code :code redirect-uri :redirectUri :as args} _]
+(defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri :as args} _]
   (try
     (let [{:keys [client-id client-secret]} google
+
+          ;; _ (log/debug "@1" google)
+
           ;; TODO : uncomment
-          ;; {:keys [body]}                    (http/post "https://oauth2.googleapis.com/token"
-          ;;                                              {:form-params  {:code          code
-          ;;                                                              :client_id     client-id
-          ;;                                                              :client_secret client-secret
-          ;;                                                              :redirect_uri  redirect-uri
-          ;;                                                              :grant_type    "authorization_code"}
-          ;;                                               :content-type :json
-          ;;                                               :accept       :json})
-          ;; {:keys [id_token]} (decode-json body)
-          ;; {:keys [email]} (auth/verify-google-token id_token client-id)
+          {:keys [body]}                    (http/post "https://oauth2.googleapis.com/token"
+                                                       {:form-params  {:code          code
+                                                                       :client_id     client-id
+                                                                       :client_secret client-secret
+                                                                       :redirect_uri  redirect-uri
+                                                                       :grant_type    "authorization_code"}
+                                                        :content-type :json
+                                                        :accept       :json})
+          ;; _ (log/debug "@2" {:body body})
+          {:keys [id_token]}                (decode-json body)
+          _ (log/debug "@3" {:token id_token})
+          {:keys [email]}                   (auth/verify-google-token id_token client-id)
 
-
-
-          email        "fbielejec@gmail"
+          ;; email        "fbielejec@gmail"
           {:keys [id]} (user-model/get-user-by-email db {:email email})]
 
       (log/debug "user" {:email email :id id})
 
+      (log/debug "key" {:private-key private-key})
+
       ;; create user if not exists
-      (when-not id
-        (user-model/upsert-user db {:email email
-                                    :id    (new-uuid)}))
-
-      ;; TODO: mint spread token and reply
-      (clj->gql {:access-token "FUBAR"
-                 :expires-in   123})
-
-      )
-
+      (if-not id
+        (let [_ (user-model/upsert-user db {:email email
+                                            :id    (new-uuid)})
+              access-token (auth/generate-spread-access-token id private-key)]
+          (log/debug "access-token" access-token)
+          access-token
+          )
+        (let [access-token (auth/generate-spread-access-token id private-key)]
+          (log/debug "access-token" access-token)
+          access-token
+          )))
     (catch Exception e
       (log/error "Login with google failed" {:error e})
       (throw e))))
