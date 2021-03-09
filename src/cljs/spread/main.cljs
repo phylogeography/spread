@@ -5,6 +5,7 @@
             [day8.re-frame.http-fx]
             [spread.views.main-screen :as main-screen]
             [spread.events :as events]
+            [spread.fxs]
             ))
 
 (defn mount-root []

@@ -1,6 +1,7 @@
 (ns spread.views.maps
   (:require [spread.math-utils :as math-utils]
             [spread.views.svg-renderer :as svg-renderer]
+            [spread.events.map :as events.map]
             [spread.events :as events]
             [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [dispatch]]
@@ -65,15 +66,15 @@
             {:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])            
             [translate-x translate-y] translate            
             ]
-        [:div {:style {:height (str events/map-screen-height "px")
-                       :width  (str events/map-screen-width  "px")}
+        [:div {:style {:height (str events.map/map-screen-height "px")
+                       :width  (str events.map/map-screen-width  "px")}
                :on-wheel (fn [evt]
                            (let [x (-> evt .-nativeEvent .-offsetX)
                                  y (-> evt .-nativeEvent .-offsetY)]
                              ;; send x,y in world projection coordinates
-                             (dispatch [::events/zoom {:delta (.-deltaY evt)
-                                                       :x x
-                                                       :y y}])))
+                             (dispatch [:map/zoom {:delta (.-deltaY evt)
+                                                   :x x
+                                                   :y y}])))
                :on-mouse-down (fn [evt]
                                 (.stopPropagation evt)
                                 (.preventDefault evt)
@@ -83,31 +84,31 @@
 
                                    ;; left button pressed
                                    (= left-button (.-button evt))                                  
-                                   (dispatch [::events/map-grab {:x x :y y}])
+                                   (dispatch [:map/grab {:x x :y y}])
 
                                    ;; right button pressed
                                    (= wheel-button (.-button evt))
-                                   (dispatch [::events/map-zoom-rectangle-grab {:x x :y y}]))))
+                                   (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
                
                :on-mouse-move (fn [evt]
                                 (let [x (-> evt .-nativeEvent .-offsetX)
                                       y (-> evt .-nativeEvent .-offsetY)]
-                                  (reset! debug-a {:s [x y] :p (math-utils/screen-coord->proj-coord translate scale events/proj-scale [x y])})
+                                  (reset! debug-a {:s [x y] :p (math-utils/screen-coord->proj-coord translate scale events.map/proj-scale [x y])})
                                   (cond
                                     grab
-                                    (dispatch [::events/map-drag {:x x :y y}])
+                                    (dispatch [:map/drag {:x x :y y}])
 
                                     zoom-rectangle
-                                    (dispatch [::events/map-zoom-rectangle-update {:x x :y y}]))))
+                                    (dispatch [:map/zoom-rectangle-update {:x x :y y}]))))
                :on-mouse-up (fn [evt]
                               (.stopPropagation evt)
                               (.preventDefault evt)
                               (cond
                                 (= left-button (.-button evt))
-                                (dispatch [::events/map-grab-release])
+                                (dispatch [:map/grab-release])
 
                                 (= wheel-button (.-button evt))
-                                (dispatch [::events/map-zoom-rectangle-release])))}
+                                (dispatch [:map/zoom-rectangle-release])))}
          
          ;; Controls
          [:div
@@ -119,7 +120,7 @@
                                           (inct)
                                           (next-anim-step)))
                                  80))} "Play"]
-          [:button {:on-click #(dispatch [::events/download-current-map-as-svg])}
+          [:button {:on-click #(dispatch [:map/download-current-as-svg])}
            "Download"]
           #_[:span @time]
           #_[:span "T " (str translate)]
