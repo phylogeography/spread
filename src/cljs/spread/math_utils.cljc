@@ -69,8 +69,57 @@
     {:f1 [f1x f1y]
      :f2 [f2x f2y]}))
 
-(defn outscribing-rectangle [[center-x center-y] radius]
+(defn outscribing-rectangle
+  "Calculates x,y,w,h of the rectangle outscribing a circle of
+  center-x,center-y and radius."
+  [[center-x center-y] radius]
+
   {:x (- center-x radius)
    :y (- center-y radius)
    :w (* 2 radius)
    :h (* 2 radius)})
+
+(defn map-coord->proj-coord
+  "Convert from:
+      - map-coord: [lat,lon]  coordinates in map lat,long coords, -180 <= lon <= 180, -90 <= lat <= 90
+   into
+      - proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
+  "
+  [[long lat]]
+  
+  [(+ long 180) 
+   (+ (* -1 lat) 90)])
+
+(defn screen-coord->proj-coord
+  "Convert from:
+       - screen-coord: [x,y]      coordinates in screen pixels, 0 <= x <= map-width, 0 <= y <= map-height
+   into
+       - proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
+   `translate`: current map translation
+   `scale`: current map scale
+   `proj-scale`: the scale between the screen area and the map projection.
+  "
+  [translate scale proj-scale [screen-x screen-y]]
+  
+  (let [[tx ty] translate]
+    [(/ (- screen-x tx) (* proj-scale scale))
+     (/ (- screen-y ty) (* proj-scale scale))]))
+
+(defn calc-zoom-for-view-box
+  "Calculates a scale and a translation to fit the rectangle
+   defined by `x1`,`y1` `x2`,`y2` fully zoomed.
+   All parameter coordinates are in map proj-coord.
+   `proj-scale`: is the scale between the screen area and the map projection.
+   Assumes working with a map projection of 360x180."
+  [x1 y1 x2 y2 proj-scale]
+  (let [map-proj-width  360
+        map-proj-height 180
+        scale-x (/ map-proj-width  (max (- x2 x1)))
+        scale-y (/ map-proj-height (max (- y2 y1)))
+        scale (min scale-x scale-y)
+        tx    (* -1 scale proj-scale x1)
+        ty    (* -1 scale proj-scale y1)]
+    
+    {:translate [tx ty]
+     :scale     scale}))
+

@@ -4,7 +4,8 @@
   Api :
   - geojson->svg
   "
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [spread.math-utils :as math-utils]))
 
 
 (def ^:dynamic *theme* {:map-fill-color "#424242"
@@ -12,10 +13,6 @@
                         :map-text-color "pink"
                         :line-color "orange"
                         :data-point-color "#00ffa5"})
-
-(defn map-coord->screen-coord [[long lat]]
-  [(+ long 180) 
-   (+ (* -1 lat) 90) ])
 
 (defn all-coords
 
@@ -62,7 +59,7 @@
 (defmulti geojson->svg (fn [{:keys [type]}] (keyword type)))
 
 (defmethod geojson->svg :Point [{:keys [coordinates]}]
-  (let [[long lat] (map-coord->screen-coord coordinates)]
+  (let [[long lat] (math-utils/map-coord->proj-coord coordinates)]
     [:circle {:cx long :cy lat :r 0.1 :fill (:data-point-color *theme*)}]))
 
 (defn svg-polygon [coords]
@@ -71,9 +68,8 @@
                                [:polygon
                                 {:points (->> cs
                                               (map (fn [coord]
-                                                     (->> 
-                                                      (map-coord->screen-coord coord)
-                                                      (str/join " "))))
+                                                     (->> (math-utils/map-coord->proj-coord coord)
+                                                          (str/join " "))))
                                               (str/join ","))
                                  :stroke (:map-stroke-color *theme*)
                                  :fill (:map-fill-color *theme*)
@@ -96,17 +92,17 @@
           :stroke-width "0.1"}])
 
 (defmethod geojson->svg :LineString [{:keys [coordinates]}]
-  (svg-line (map map-coord->screen-coord coordinates)))
+  (svg-line (map math-utils/map-coord->proj-coord coordinates)))
 
 (defmethod geojson->svg :MultiLineString [{:keys [coordinates]}]
   (let [all-lines (->> coordinates
-                       (map (comp svg-line map-coord->screen-coord)))]
+                       (map (comp svg-line math-utils/map-coord->proj-coord)))]
     (into [:g {} all-lines])))
 
 (defn text-for-geo-json [geo-json text]
   (let [{:keys [min-long min-lat max-long max-lat]} (geo-json-bounding-box geo-json)
-        [text-x text-y] (map-coord->screen-coord [(+ (/ (Math/abs (- max-long min-long)) 2) min-long)
-                                                  (+ (/ (Math/abs (- max-lat min-lat)) 2) min-lat)])]
+        [text-x text-y] (math-utils/map-coord->proj-coord [(+ (/ (Math/abs (- max-long min-long)) 2) min-long)
+                                                           (+ (/ (Math/abs (- max-lat min-lat)) 2) min-lat)])]
     [:text {:x text-x :y text-y
             :font-size "0.02em" :fill (:map-text-color *theme*)
             :text-anchor "middle"} text]))

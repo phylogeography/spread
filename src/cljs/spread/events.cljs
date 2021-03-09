@@ -60,30 +60,13 @@
 ;; proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
 ;; map-coord:    [lat,lon]  coordinates in map lat,long coords, -180 <= lon <= 180, -90 <= lat <= 90
 
-(defn screen-coord->proj-coord [translate scale [screen-x screen-y]]
-  (let [[tx ty] translate]
-    ;; translate the screen-coord and scale it twice (one for the proj-scale and the other for the zoom scale)
-    [(/ (- screen-x tx) (* proj-scale scale))
-     (/ (- screen-y ty) (* proj-scale scale))]))
-
-(defn calc-zoom-for-view-box [x1 y1 x2 y2]
-  (let [scale-x (/ map-proj-width  (max (- x2 x1)))
-        scale-y (/ map-proj-height (max (- y2 y1)))
-        scale (min scale-x scale-y)
-        tx    (* -1 scale proj-scale x1)
-        ty    (* -1 scale proj-scale y1)]
-    
-    (println "Fitting to a scale of " scale " and a translation of " [tx ty])
-    {:translate [tx ty]
-     :scale     scale}))
-
 (re-frame/reg-event-db
  ::map-set-view-box
  (fn [db [_ {:keys [x1 y1 x2 y2]}]]
    (let [{:keys [translate scale]} (:map-state db)]
      (println "Setting view box to " [x1 y1] [x2 y2])
      db
-     (let [{:keys [translate scale]} (calc-zoom-for-view-box x1 y1 x2 y2)]
+     (let [{:keys [translate scale]} (math-utils/calc-zoom-for-view-box x1 y1 x2 y2 proj-scale)]
        (-> db
            (assoc :map-state {:translate translate
                               :scale     scale}))))))
@@ -124,7 +107,7 @@
 (defn zoom [{:keys [map-state] :as db} delta screen-coords]
   (let [{:keys [translate scale]} map-state
         zoom-dir (if (pos? delta) -1 1)
-        [proj-x proj-y] (screen-coord->proj-coord translate scale screen-coords)]
+        [proj-x proj-y] (math-utils/screen-coord->proj-coord translate scale proj-scale screen-coords)]
     (update db :map-state
             (fn [{:keys [translate scale] :as map-state}]
               (let [new-scale (+ scale (* zoom-dir 0.8))
@@ -165,9 +148,15 @@
   (if-let [{:keys [screen-origin]} (:grab map-state)]
     (let [{:keys [translate scale]} map-state
           [screen-x screen-y] current-screen-coord
-          [current-proj-x current-proj-y] (screen-coord->proj-coord translate scale current-screen-coord)
+          [current-proj-x current-proj-y] (math-utils/screen-coord->proj-coord translate
+                                                                               scale
+                                                                               proj-scale
+                                                                               current-screen-coord)
           before-screen-coord (-> map-state :grab :screen-current)
-          [drag-x drag-y] (let [[before-x before-y] (screen-coord->proj-coord translate scale before-screen-coord)]
+          [drag-x drag-y] (let [[before-x before-y] (math-utils/screen-coord->proj-coord translate
+                                                                                         scale
+                                                                                         proj-scale
+                                                                                         before-screen-coord)]
                             [(- current-proj-x before-x) (- current-proj-y before-y)])]
       (let [[before-screen-x before-screen-y] before-screen-coord
             screen-drag-x (- screen-x before-screen-x)
@@ -201,8 +190,8 @@
    (let [{:keys [map-state]} db
          {:keys [translate scale zoom-rectangle]} map-state
          {:keys [origin current]} zoom-rectangle
-         [x1 y1] (screen-coord->proj-coord translate scale origin)              
-         [x2 y2] (screen-coord->proj-coord translate scale current)]     
+         [x1 y1] (math-utils/screen-coord->proj-coord translate scale proj-scale origin)              
+         [x2 y2] (math-utils/screen-coord->proj-coord translate scale proj-scale current)]     
      {:db (update db :map-state dissoc :zoom-rectangle)
       :dispatch [::map-set-view-box {:x1 x1 :y1 y1
                                      :x2 x2 :y2 y2}]})))

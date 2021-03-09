@@ -24,7 +24,7 @@
      [:path {:d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
              :stroke "url(#grad)"
              :stroke-dasharray c-length
-             :stroke-dashoffset (+ c-length (* c-length clip-perc))
+             :stroke-dashoffset (- c-length (* c-length clip-perc))
              :fill :transparent}]
      ;; enable for debugging
      #_[:g {}
@@ -92,7 +92,7 @@
                :on-mouse-move (fn [evt]
                                 (let [x (-> evt .-nativeEvent .-offsetX)
                                       y (-> evt .-nativeEvent .-offsetY)]
-                                  (reset! debug-a {:s [x y] :p (events/screen-coord->proj-coord translate scale [x y])})
+                                  (reset! debug-a {:s [x y] :p (math-utils/screen-coord->proj-coord translate scale events/proj-scale [x y])})
                                   (cond
                                     grab
                                     (dispatch [::events/map-drag {:x x :y y}])
