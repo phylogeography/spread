@@ -63,13 +63,13 @@
    Clients are supposed to store that tooken safely and include in every request
    that requires authorization"
   [user-id private-key]
-  (let [now     (/ (time/millis (time/now)) 1000) ;; in seconds
-        expires (+ now 2628e6)                    ;; now + 1 month
+  (let [now     (int (/ (time/millis (time/now)) 1000)) ;; in seconds
+        expires (+ now 60 #_2.628e6)                    ;; now + 1 month
         token   (token-encode {:private-key private-key
-                               :claims      {:iss "spread"
+                               :claims      {:iss "spread-server"
                                              :iat now
                                              :exp expires
-                                             :aud "spread-client"
+                                             :aud "spread-ui"
                                              :sub user-id}})]
     {:access-token token}))
 

@@ -6,8 +6,8 @@
 (def >evt re-frame/dispatch)
 
 (defn url-encode
-  [string]
-  (some-> string str (js/encodeURIComponent) (.replace "+" "%20")))
+  [s]
+  (some-> s str (js/encodeURIComponent) (.replace "+" "%20")))
 
 (defn ensure-trailing-slash [s]
   (str s

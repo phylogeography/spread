@@ -7,6 +7,7 @@
             ui.home.page
             ui.splash.page
             ui.storage
+            ui.utils
             [ui.config :as config]
             [ui.home.events :as home-events]
             [ui.logging :as logging]
@@ -26,14 +27,12 @@
       (log/info "Active page changed" active-page)
       (case name
         :route/splash {:dispatch [::splash-events/initialize-page]}
-        :route/home {:dispatch [::home-events/initialize-page]}
+        :route/home   {:dispatch [::home-events/initialize-page]}
         nil))))
 
 (re-frame/reg-event-fx
   :ui/initialize
-  [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [_ config]]
-    (log/debug "localstorage" {:state localstorage})
+  (fn [{:keys [db]} [_ config]]
     {:db             (-> db
                          (assoc :config config))
      :forward-events {:register    :active-page-changed

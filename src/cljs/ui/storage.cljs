@@ -9,17 +9,3 @@
   {:fx   :localstorage ;; re-frame fx ID
    :cofx :localstorage ;; re-frame cofx ID
    })
-
-(re-frame/reg-event-fx
-  :localstorage/persist
-  [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [localstorage]} [_ k v]]
-
-    (prn "@@@ PERSISTING" {:k k :v v})
-
-    {:localstorage (assoc-in localstorage [k] v)}))
-
-(reg-empty-event-fx :localstorage/persisted)
-
-(comment
-  (re-frame/dispatch [:localstorage/persist :fu "bar"]))

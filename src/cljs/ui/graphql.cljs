@@ -74,13 +74,12 @@
     (promise-> (axios params)
                callback)))
 
-;; TODO : put token in store
 (re-frame/reg-event-fx
   ::query
-  (fn [{:keys [db]} [_ {:keys [query variables]}]]
+  [(re-frame/inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]} [_ {:keys [query variables]}]]
     (let [url          (get-in db [:config :graphql :url])
-          ;; TODO
-          access-token (get-in db [:tokens :access-token])
+          access-token (:access-token localstorage)
           params       (clj->js {:url     url
                                  :method  :post
                                  :headers (merge {"Content-Type" "application/json"
@@ -110,12 +109,10 @@
   (log/debug "user handler" user)
   {:db (assoc-in db [:users address] user)})
 
-;; TODO : save token in browser store
 (defmethod handler :google-login
   [{:keys [db]} _ {:keys [access-token]}]
   (log/debug "google-login handler" {:access-token access-token})
-  (re-frame/dispatch [:localstorage/persist :access-token access-token])
-  {:db (assoc-in db [:tokens :access-token] access-token)})
+  (re-frame/dispatch [:splash/login-success access-token]))
 
 (defmethod handler :api/error
   [_ _ _]
