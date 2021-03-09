@@ -118,10 +118,12 @@
                                           (inct)
                                           (next-anim-step)))
                                  80))} "Play"]
-          [:span @time]
-          [:span "T " (str translate)]
-          [:span "S " (str scale)]
-          [:span ">>>" @debug-a]]
+          [:button {:on-click #(dispatch [::events/download-current-map-as-svg])}
+           "Download"]
+          #_[:span @time]
+          #_[:span "T " (str translate)]
+          #_[:span "S " (str scale)]
+          #_[:span ">>>" @debug-a]]
 
          ;; SVG data map
          [:svg {:xmlns "http://www.w3.org/2000/svg"
@@ -129,7 +131,8 @@
                 :xmlns:xlink "http://www.w3.org/1999/xlink"
                 :version "1.1"
                 :width "100%"
-                :height "100%"}
+                :height "100%"
+                :id "map-and-data"}
 
           ;; gradients definitions
           [:defs {}

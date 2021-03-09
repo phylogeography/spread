@@ -205,3 +205,23 @@
      {:db (update db :map-state dissoc :zoom-rectangle)
       :dispatch [::map-set-view-box {:x1 x1 :y1 y1
                                      :x2 x2 :y2 y2}]})))
+
+(re-frame/reg-fx
+ ::download-current-map-as-svg
+ (fn [_]   
+   (let [svg-elem (js/document.getElementById "map-and-data")
+         svg-text (.-outerHTML svg-elem)
+         download-anchor (js/document.createElement "a")]
+
+     (.setAttribute download-anchor "href" (str "data:image/svg+xml;charset=utf-8," (js/encodeURIComponent svg-text)))
+     (.setAttribute download-anchor "download" "map.svg")
+     (set! (-> download-anchor .-style .-display) "none")
+     (js/document.body.appendChild download-anchor)
+     (.click download-anchor)
+     (js/document.body.removeChild download-anchor)
+     (println "Done"))))
+
+(re-frame/reg-event-fx
+ ::download-current-map-as-svg
+ (fn [_ _]
+   {::download-current-map-as-svg nil}))
