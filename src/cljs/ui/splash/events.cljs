@@ -1,14 +1,14 @@
 (ns ui.splash.events
-  (:require [taoensso.timbre :as log]
-            [ui.graphql :as graphql]
+  (:require [re-frame.core :as re-frame]
+            [taoensso.timbre :as log]
             [ui.auth :as auth]
-            [ui.router.events :as router-events]
-            [re-frame.core :as re-frame]))
+            [ui.graphql :as graphql]
+            [ui.router.events :as router-events]))
 
 (re-frame/reg-event-fx
   ::initialize-page
   [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]}]
+  (fn [{:keys [localstorage]}]
     ;; if no token or expired stay at page, else navigate to the home page
     (if-let [access-token (:access-token localstorage)]
       (let [{:keys [exp]} (auth/decode-token access-token)]
@@ -21,7 +21,7 @@
 
 (re-frame/reg-event-fx
   ::send-google-verification-code
-  (fn [{:keys [db]} [_ code redirect-uri]]
+  (fn [_ [_ code redirect-uri]]
     (log/debug {:code code :uri redirect-uri})
     {:dispatch [::graphql/query {:query
                                  "mutation GoogleLogin($googleCode: String!, $redirectUri: String!) {
@@ -34,7 +34,7 @@
 (re-frame/reg-event-fx
   :splash/login-success
   [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [_ access-token]]
+  (fn [{:keys [localstorage]} [_ access-token]]
     (log/debug "login success" {:access-token access-token})
     ;; saves token in browser localstorage and navigates to the home page
     {:localstorage (assoc localstorage :access-token access-token)

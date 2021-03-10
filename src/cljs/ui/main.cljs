@@ -1,22 +1,22 @@
 (ns ui.main
-  (:require [mount.core :as mount]
-            [re-frame.core :as re-frame]
-            [reagent.core :as r]
-            [reagent.dom :as rdom]
-            [taoensso.timbre :as log]
-            ui.home.page
-            ui.splash.page
-            ui.storage
-            ui.utils
-            [ui.config :as config]
-            [ui.home.events :as home-events]
-            [ui.logging :as logging]
-            [ui.router.component :refer [router]]
-            [ui.router.core :as router]
-            [ui.router.events :as router-events]
-            [ui.router.queries :as router-queries]
-            [ui.google :as google]
-            [ui.splash.events :as splash-events]))
+  (:require
+   [mount.core :as mount]
+   [re-frame.core :as re-frame]
+   [reagent.core :as r]
+   [reagent.dom :as rdom]
+   [taoensso.timbre :as log]
+   [ui.config :as config]
+   [ui.home.events :as home-events]
+   [ui.home.page]
+   [ui.logging :as logging]
+   [ui.router.component :refer [router]]
+   [ui.router.core :as router]
+   [ui.router.events :as router-events]
+   [ui.router.queries :as router-queries]
+   [ui.splash.events :as splash-events]
+   [ui.splash.page]
+   [ui.storage]
+   [ui.utils]))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
 

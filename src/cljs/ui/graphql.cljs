@@ -1,12 +1,13 @@
 (ns ui.graphql
-  (:require [camel-snake-kebab.core :as camel-snake]
-            [camel-snake-kebab.extras :as camel-snake-extras]
-            [clojure.string :as string]
-            [shared.macros :refer [promise->]]
-            [ui.utils :refer [>evt]]
-            [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]
-            ["axios" :as axios]))
+  (:require
+   ["axios" :as axios]
+   [camel-snake-kebab.core :as camel-snake]
+   [camel-snake-kebab.extras :as camel-snake-extras]
+   [clojure.string :as string]
+   [re-frame.core :as re-frame]
+   [shared.macros :refer [promise->]]
+   [taoensso.timbre :as log]
+   [ui.utils :refer [>evt]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -110,7 +111,7 @@
   {:db (assoc-in db [:users address] user)})
 
 (defmethod handler :google-login
-  [{:keys [db]} _ {:keys [access-token]}]
+  [_ _ {:keys [access-token]}]
   (log/debug "google-login handler" {:access-token access-token})
   (re-frame/dispatch [:splash/login-success access-token]))
 

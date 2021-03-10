@@ -1,8 +1,8 @@
 (ns ui.home.events
-  (:require [taoensso.timbre :as log]
-            [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [taoensso.timbre :as log]))
 
-;; TODO : dispatch initial query (analysis etc)
+;; TODO : dispatch initial query (user analysis etc)
 (re-frame/reg-event-fx
   ::initialize-page
   (fn [{:keys [db]}]

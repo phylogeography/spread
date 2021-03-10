@@ -65,7 +65,6 @@
    :mutation/startBayesFactorParser              (auth-decorator mutations/start-bayes-factor-parser)
    :query/getBayesFactorAnalysis                 resolvers/get-bayes-factor-analysis
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
-
    })
 
 (defn streamer-map []
@@ -90,8 +89,9 @@
     {:name ::auth-interceptor
      :enter
      (fn [{{:keys [headers uri request-method] :as request} :request :as context}]
+       ;; (log/debug "auth-interceptor" headers)
        (if-not (and (= uri "/api")
-                    (= request-method :post)) ;; Authenticate only GraphQL endpoint.
+                    (= request-method :post)) ;; Authenticate only GraphQL endpoint
          context
          (let [access-token (some-> headers
                                     (get "authorization")
@@ -100,18 +100,32 @@
                                     string/trim)]
            (assoc-in context [:request :lacinia-app-context :access-token] access-token))))}))
 
+(defn- ws-auth-interceptor
+  "Extracts acsess token from the connection parameters."
+  [config]
+  (interceptor
+    {:name ::ws-auth-interceptor
+     :enter
+     (fn [{:keys [connection-params] :as context}]
+       (log/debug "ws-auth-interceptor" connection-params)
+       (let [access-token (some-> connection-params
+                                  (get :Authorization)
+                                  (string/split #"Bearer ")
+                                  last
+                                  string/trim)]
+         (assoc-in context [:request :lacinia-app-context :access-token] access-token)))}))
+
 (defn- interceptors
   [schema extra-context]
   (-> (pedestal/default-interceptors schema nil)
       (inject (context-interceptor extra-context) :after ::pedestal/inject-app-context)
-      (inject (auth-interceptor extra-context) :after ::extra-context)
-      ))
+      (inject (auth-interceptor extra-context) :after ::extra-context)))
 
-;; TODO : auth interceptor
 (defn- subscription-interceptors
   [schema extra-context]
   (-> (pedestal-subscriptions/default-subscription-interceptors schema nil)
-      (inject (context-interceptor extra-context) :after :com.walmartlabs.lacinia.pedestal.subscriptions/inject-app-context)))
+      (inject (context-interceptor extra-context) :after :com.walmartlabs.lacinia.pedestal.subscriptions/inject-app-context)
+      (inject (ws-auth-interceptor extra-context) :after ::extra-context)))
 
 (defn load-schema []
   (-> (io/resource "schema.edn")
@@ -138,7 +152,7 @@
                                                  :bucket-name       bucket-name
                                                  :google            google
                                                  :private-key       private-key
-                                                 :public-key public-key}
+                                                 :public-key        public-key}
         compiled-schema                         (-> schema
                                                     (lacinia-util/attach-resolvers (resolver-map))
                                                     (lacinia-util/attach-streamers (streamer-map))
@@ -159,8 +173,7 @@
                                                   true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path        "/ws"
                                                                                                        ;; The interval at which keep-alive messages are sent to the client
                                                                                                        :keep-alive-ms             60000 ;; one minute
-                                                                                                       :subscription-interceptors subscription-interceptors
-                                                                                                       })
+                                                                                                       :subscription-interceptors subscription-interceptors})
                                                   dev? (merge {:env                  (keyword env)
                                                                ::http/secure-headers nil}))
         runnable-service                        (-> (http/create-server opts)
