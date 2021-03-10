@@ -8,11 +8,11 @@
 (re-frame/reg-event-fx
   ::initialize-page
   [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [localstorage]}]
+  (fn [{:keys [db localstorage]}]
     ;; if no token or expired stay at page, else navigate to the home page
     (if-let [access-token (:access-token localstorage)]
       (let [{:keys [exp]} (auth/decode-token access-token)]
-        ;; NOTE if the token is not expired navigate to home
+        ;; NOTE: if the token is not expired navigate to home
         ;; this does nothing to check the token validity
         ;; which is checked on the server
         (when (< (js/Date.now)
@@ -38,4 +38,4 @@
     (log/debug "login success" {:access-token access-token})
     ;; saves token in browser localstorage and navigates to the home page
     {:localstorage (assoc localstorage :access-token access-token)
-     :dispatch [::router-events/navigate :route/home]}))
+     :dispatch     [::router-events/navigate :route/home]}))

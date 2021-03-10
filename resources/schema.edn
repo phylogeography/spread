@@ -34,8 +34,6 @@
  {:File {:fields {:name      {:type String}
                   :extension {:type String}}}
 
-
-
   }
 
  :objects
@@ -54,6 +52,9 @@
 
   :BayesFactorParserStatus {:fields {:id     {:type (non-null ID)}
                                      :status {:type (non-null :BayesFactorStatus)}}}
+
+  :User {:fields {:id    {:type (non-null ID)}
+                  :email {:type (non-null String)}}}
 
   :ContinuousTree {:description "Represents ContinuousTree entity."
                    :fields      {:id                       {:description "Unique identifier."
@@ -135,7 +136,12 @@
                                                          :resolve :resolve/bayes-factor-analysis->bayes-factors}}}}
 
  :queries
- {:getContinuousTree {:type        :ContinuousTree
+ {:getAuthorizedUser {:type        :User
+                      :description "Returns a current user. Does not need ID which is read from the Authorization header"
+                      ;; :args {:id {:type (non-null ID)}}
+                      :resolve     :query/getAuthorizedUser
+                      }
+  :getContinuousTree {:type        :ContinuousTree
                       :description "Returns a ContinuousTree entity by id."
                       :args        {:id {:type (non-null ID)}}
                       :resolve     :query/getContinuousTree}
@@ -177,15 +183,11 @@
    :stream :subscription/timeSlicerParserStatus}}
 
  :mutations
- {
-
-  ;; TODO
-  :googleLogin {:type        :JWT
+ {:googleLogin {:type        :JWT
                 :description "Validates google token and returns a spread JWT access-token."
                 :args        {:code        {:type String}
                               :redirectUri {:type String}}
                 :resolve     :mutation/googleLogin}
-
 
   :getUploadUrls {:type        (list String)
                   :description "Returns one-time POST urls."

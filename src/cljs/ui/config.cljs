@@ -4,6 +4,7 @@
 (def environment (get-env-variable "SPREAD_ENV"))
 (def sentry-dsn (get-env-variable "SENTRY_DSN"))
 (def google-client-id (get-env-variable "GOOGLE_CLIENT_ID" :required))
+(def public-key (get-env-variable "PUBLIC_KEY" :required))
 (def version "0.1.0")
 
 (def default-config
@@ -17,7 +18,7 @@
                     ["/home" :route/home]]
     :default-route :route/splash
     :scroll-top?   true
-    :html5?        true #_false}
+    :html5?        true}
 
    :graphql
    {:url "http://127.0.0.1:3001/api"}
@@ -27,6 +28,8 @@
    :google
    {:client-id    google-client-id
     :redirect-uri "http://localhost:8020/?auth=google"}
+
+   :public-key public-key
 
    })
 

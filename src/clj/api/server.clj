@@ -8,6 +8,7 @@
             [aws.sqs :as aws-sqs]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [clojure.string :as string]
             [com.walmartlabs.lacinia.pedestal :refer [inject]]
             [com.walmartlabs.lacinia.pedestal.subscriptions
              :as
@@ -23,14 +24,22 @@
 (declare server)
 
 (defn auth-decorator [resolver-fn]
-  (fn [{:keys [headers] :as application-context} args value]
-    (if-let [user-id (auth/token->user-id (get headers "Authorization"))]
-      (resolver-fn (merge application-context {:authed-user-id user-id}) args value)
+  (fn [{:keys [access-token public-key] :as context} args value]
+    (if access-token
+      ;; this will throw an exception when token is invalid or expired
+      (let [{:keys [sub] :as claims} (auth/verify-token {:token      access-token
+                                                         :public-key public-key
+                                                         :claims     {:iss "spread"
+                                                                      :aud "spread-client"}})]
+        (log/debug "verified token claims" claims)
+        (resolver-fn (merge context {:authed-user-id sub}) args value))
       (throw (Exception. "Authorization required")))))
 
 (defn resolver-map []
   {:mutation/googleLogin   mutations/google-login
    :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
+
+   :query/getAuthorizedUser (auth-decorator resolvers/get-authorized-user)
 
    :mutation/uploadContinuousTree       (auth-decorator mutations/upload-continuous-tree)
    :mutation/updateContinuousTree       (auth-decorator mutations/update-continuous-tree)
@@ -65,21 +74,41 @@
    :subscription/bayesFactorParserStatus    (auth-decorator (subscriptions/create-bayes-factor-parser-status-sub))
    :subscription/timeSlicerParserStatus     (auth-decorator (subscriptions/create-time-slicer-parser-status-sub))})
 
-(defn ^:private context-interceptor
+(defn- context-interceptor
   [extra-context]
   (interceptor
     {:name  ::extra-context
      :enter (fn [context]
               (assoc-in context [:request :lacinia-app-context] extra-context))}))
 
-(defn ^:private interceptors
+(defn- auth-interceptor
+  "Adds the JWT access-token located in the request Authorization header to the applications context
+  this token is then validated by the `auth-decorator` that wraps resolvers/mutations/subscriptions
+  that need to authenticate the user."
+  [config]
+  (interceptor
+    {:name ::auth-interceptor
+     :enter
+     (fn [{{:keys [headers uri request-method] :as request} :request :as context}]
+       (if-not (and (= uri "/api")
+                    (= request-method :post)) ;; Authenticate only GraphQL endpoint.
+         context
+         (let [access-token (some-> headers
+                                    (get "authorization")
+                                    (string/split #"Bearer ")
+                                    last
+                                    string/trim)]
+           (assoc-in context [:request :lacinia-app-context :access-token] access-token))))}))
+
+(defn- interceptors
   [schema extra-context]
   (-> (pedestal/default-interceptors schema nil)
       (inject (context-interceptor extra-context) :after ::pedestal/inject-app-context)
-      #_(inject graphql-response-interceptor :before ::pedestal/query-executor)
+      (inject (auth-interceptor extra-context) :after ::extra-context)
       ))
 
-(defn ^:private subscription-interceptors
+;; TODO : auth interceptor
+(defn- subscription-interceptors
   [schema extra-context]
   (-> (pedestal-subscriptions/default-subscription-interceptors schema nil)
       (inject (context-interceptor extra-context) :after :com.walmartlabs.lacinia.pedestal.subscriptions/inject-app-context)))
@@ -92,7 +121,7 @@
 (defn stop [this]
   (http/stop this))
 
-(defn start [{:keys [api aws db env google private-key] :as config}]
+(defn start [{:keys [api aws db env google public-key private-key] :as config}]
   (let [dev?                                    (= "dev" env)
         {:keys [port allowed-origins]}          api
         {:keys [workers-queue-url bucket-name]} aws
@@ -107,8 +136,9 @@
                                                  :db                db
                                                  :workers-queue-url workers-queue-url
                                                  :bucket-name       bucket-name
-                                                 :google google
-                                                 :private-key private-key}
+                                                 :google            google
+                                                 :private-key       private-key
+                                                 :public-key public-key}
         compiled-schema                         (-> schema
                                                     (lacinia-util/attach-resolvers (resolver-map))
                                                     (lacinia-util/attach-streamers (streamer-map))
@@ -124,7 +154,7 @@
                                                          ::http/type :jetty
                                                          ::http/join? false
                                                          ::http/allowed-origins   {:allowed-origins (fn [origin]
-                                                                                                      (log/debug "checking allowed CORS" {:origin origin})
+                                                                                                      ;; (log/debug "checking allowed CORS" {:origin origin})
                                                                                                       (allowed-origins origin))}}
                                                   true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path        "/ws"
                                                                                                        ;; The interval at which keep-alive messages are sent to the client

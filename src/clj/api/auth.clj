@@ -6,7 +6,8 @@
             [clojure.string :as string]
             [clj-http.client :as http]
             [shared.time :as time]
-            [shared.utils :refer [decode-json]]))
+            [shared.utils :refer [decode-json]]
+            [taoensso.timbre :as log]))
 
 (defn token-decode-header
   "Decodes a JWT tokens header"
@@ -21,7 +22,7 @@
   :claims a map of claims to verify (:iss :aud)"
   [{:keys [token public-key claims]}]
   (jwt/unsign token
-              public-key
+              (buddy.keys/str->public-key public-key)
               (merge {:alg :rs256}
                      claims)))
 
@@ -66,10 +67,10 @@
   (let [now     (int (/ (time/millis (time/now)) 1000)) ;; in seconds
         expires (+ now 60 #_2.628e6)                    ;; now + 1 month
         token   (token-encode {:private-key private-key
-                               :claims      {:iss "spread-server"
+                               :claims      {:iss "spread"
                                              :iat now
                                              :exp expires
-                                             :aud "spread-ui"
+                                             :aud "spread-client"
                                              :sub user-id}})]
     {:access-token token}))
 
@@ -77,7 +78,10 @@
 ;; read token from the bearer header
 ;; verify token
 ;; return user-id (or nil)
-(defn token->user-id [_]
+#_(defn token->user-id [header]
+
+  (log/debug "@@@ token->user-id" {:auth/header header})
+
   "ffffffff-ffff-ffff-ffff-ffffffffffff")
 
 (comment
