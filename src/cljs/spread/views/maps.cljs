@@ -12,16 +12,19 @@
   "The padding around the databox in the final render."
   5)
 
-(defn svg-cuad-curve-data-points [{:keys [x1 y1 x2 y2 clip-perc]}]
+(defn svg-cuad-curve-data-points [{:keys [x1 y1 x2 y2 clip-perc scale]
+                                   :or {scale 1}}]
   (let [{:keys [f1 f2]} (math-utils/cuad-curve-focuses x1 y1 x2 y2)
         [f1x f1y] f1
         [f2x f2y] f2         
         curve-path-info {:d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
-                         :stroke "url(#grad)"                         
+                         :stroke "url(#grad)"
+                         :stroke-width (/ 0.6 scale)
                          :fill :transparent}]
+    (println "RAD" (/ 0.4 scale))
     [:g {}
-     [:circle {:cx x1 :cy y1 :r 0.4 :stroke :red :fill :red}] 
-     [:circle {:cx x2 :cy y2 :r 0.4 :stroke :red :fill :red}]
+     [:circle {:cx x1 :cy y1 :r (/ 0.4 scale) :stroke :red :fill :blue}] 
+     [:circle {:cx x2 :cy y2 :r (/ 0.4 scale) :stroke :red :fill :blue}]
      [:path (if clip-perc
 
               ;; animated dashed curves
@@ -71,6 +74,7 @@
                          (js/setTimeout
                           (fn [] (when (< time (- 1 animation-increment))
                                    (inc-time-fn)
+                                   (println "Incrementing")
                                    (next-anim-step)))
                           animation-delta-t))} "Play"]
    
@@ -171,7 +175,7 @@
             [:g {}
              (for [{:keys [x1 y1 x2 y2]} data-points]
                ^{:key (str x1 y1 x2 y2)}
-               [svg-cuad-curve-data-points {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc t}])]]]
+               [svg-cuad-curve-data-points {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc t :scale scale}])]]]
 
           (when zoom-rectangle
             (let [[x1 y1] (:origin zoom-rectangle)
