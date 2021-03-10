@@ -120,8 +120,7 @@ jobs:
             -----END RSA PRIVATE KEY-----
             EOF
             )
-
-            echo $PRIVATE_KEY >> $BASH_ENV
+            echo "export PRIVATE_KEY=$PRIVATE_KEY >> $BASH_ENV
 
             #cat \<<EOF >> $BASH_ENV
             #-----BEGIN RSA PRIVATE KEY-----
