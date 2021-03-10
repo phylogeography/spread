@@ -19,7 +19,13 @@ export WORKERS_QUEUE_URL="http://localhost:9324/queue/workers"
 
 export GOOGLE_CLIENT_ID=806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com
 
-export PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJliLjOIAqGbnjGBM1RJml/l0MHayaRH\ncgEg00O9wBYvoNXrstFSzKTCKtG5MayUKgdG7C/98nu/TEzhvRFjINcCAwEAAQ==\n-----END PUBLIC KEY-----\n"
+export PUBLIC_KEY=$(cat <<EOF
+-----BEGIN PUBLIC KEY-----
+MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJliLjOIAqGbnjGBM1RJml/l0MHayaRH
+cgEg00O9wBYvoNXrstFSzKTCKtG5MayUKgdG7C/98nu/TEzhvRFjINcCAwEAAQ==
+-----END PUBLIC KEY-----
+EOF
+)
 
 # SECRETS (use resources/secrets.edn file to set secrets in the dev env)
 # export GOOGLE_CLIENT_SECRET=secret
