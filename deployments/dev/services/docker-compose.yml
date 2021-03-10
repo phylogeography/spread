@@ -18,11 +18,11 @@ services:
       - BUCKET_NAME=$BUCKET_NAME
       - WORKERS_QUEUE_URL=$WORKERS_QUEUE_URL
       - DB_DATABASE=$DB_DATABASE
-      - DB_HOST=$DB_HOST                        
+      - DB_HOST=$DB_HOST
       - DB_PORT=$DB_PORT
       - DB_USER=$DB_USER
       - DB_PASSWORD=$DB_PASSWORD
-      
+
   api:
     image: api-service:latest
     container_name: dev_api
@@ -41,7 +41,11 @@ services:
       - BUCKET_NAME=$BUCKET_NAME
       - WORKERS_QUEUE_URL=$WORKERS_QUEUE_URL
       - DB_DATABASE=$DB_DATABASE
-      - DB_HOST=$DB_HOST                        
+      - DB_HOST=$DB_HOST
       - DB_PORT=$DB_PORT
       - DB_USER=$DB_USER
       - DB_PASSWORD=$DB_PASSWORD
+      - PUBLIC_KEY=$PUBLIC_KEY
+      - PRIVATE_KEY=$PRIVATE_KEY
+      - GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
