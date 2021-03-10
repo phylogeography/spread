@@ -3,13 +3,22 @@
             [clojure.java.io :as io]
             [shared.utils :refer [get-env-variable]]))
 
+(defn try-secrets [path]
+  (try
+    (-> (io/resource path)
+        slurp
+        edn/read-string)
+    (catch Exception _
+      ;; ignore any errors, like missing file
+      )))
+
 (defn load! []
   (let [environment (or (get-env-variable "SPREAD_ENV") "dev")
         dev-env?    (= "dev" environment)
         {{:keys [client-secret]} :google
          :keys                   [private-key]}
         (when dev-env?
-          (-> (io/resource "secrets.edn") slurp edn/read-string))]
+          (try-secrets "secrets.edn"))]
 
     {:env     environment
      :logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug)}
@@ -41,7 +50,4 @@
      :public-key
      (or (get-env-variable "PUBLIC_KEY")
          "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJliLjOIAqGbnjGBM1RJml/l0MHayaRH\ncgEg00O9wBYvoNXrstFSzKTCKtG5MayUKgdG7C/98nu/TEzhvRFjINcCAwEAAQ==\n-----END PUBLIC KEY-----\n")
-
-     :private-key (or (get-env-variable "PRIVATE_KEY") private-key)
-
-     }))
+     :private-key (or (get-env-variable "PRIVATE_KEY") private-key)}))
