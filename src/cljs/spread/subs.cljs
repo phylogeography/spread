@@ -3,14 +3,17 @@
             [spread.views.svg-renderer]
             [spread.math-utils :as math-utils]))
 
+(defn geo-json-data-map [db-maps]
+  (let [maps {:type "FeatureCollection"
+              :features (->> db-maps                              
+                             (sort-by :map/z-index <)
+                             (map :map/geo-json))}]     
+    (assoc maps :map-box (spread.views.svg-renderer/geo-json-bounding-box maps))))
+
 (re-frame/reg-sub
  ::map-data
- (fn [db _] 
-   (let [maps {:type "FeatureCollection"
-               :features (->> (:maps db)                              
-                              (sort-by :map/z-index <)
-                              (map :map/geo-json))}]     
-     (assoc maps :map-box (spread.views.svg-renderer/geo-json-bounding-box maps)))))
+ (fn [db _]
+   (geo-json-data-map (:maps db))))
 
 (re-frame/reg-sub
  ::map-view-box

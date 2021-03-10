@@ -1,6 +1,8 @@
 {:source-paths ["src/cljs"]
  :dependencies [[reagent "1.0.0"]
                 [re-frame "1.1.2"]
+                ;; for rendering maps and that from svg hiccup to a string for downlaod
+                [hiccups "0.3.0"] 
                 [day8.re-frame/http-fx "0.2.3"]]
  :dev-http {9500 "resources/public/"}
  :builds {:app {:output-dir "resources/public/js/"

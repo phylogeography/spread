@@ -12,21 +12,28 @@
   "The padding around the databox in the final render."
   5)
 
-(defn clipped-svg-cuad-curve [{:keys [x1 y1 x2 y2 clip-perc]}]
+(defn svg-cuad-curve-data-points [{:keys [x1 y1 x2 y2 clip-perc]}]
   (let [{:keys [f1 f2]} (math-utils/cuad-curve-focuses x1 y1 x2 y2)
         [f1x f1y] f1
-        [f2x f2y] f2 
-        l-length (math-utils/sqrt (+ (math-utils/pow (- x2 x1) 2)
-                                     (math-utils/pow (- y2 y1) 2)))
-        c-length (int (math-utils/cuad-curve-length x1 y1 f1x f1y x2 y2))]
+        [f2x f2y] f2         
+        curve-path-info {:d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
+                         :stroke "url(#grad)"                         
+                         :fill :transparent}]
     [:g {}
      [:circle {:cx x1 :cy y1 :r 0.4 :stroke :red :fill :red}] 
      [:circle {:cx x2 :cy y2 :r 0.4 :stroke :red :fill :red}]
-     [:path {:d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
-             :stroke "url(#grad)"
-             :stroke-dasharray c-length
-             :stroke-dashoffset (- c-length (* c-length clip-perc))
-             :fill :transparent}]
+     [:path (if clip-perc
+
+              ;; animated dashed curves
+              (let [l-length (math-utils/sqrt (+ (math-utils/pow (- x2 x1) 2)
+                                                 (math-utils/pow (- y2 y1) 2)))
+                    c-length (int (math-utils/cuad-curve-length x1 y1 f1x f1y x2 y2))]
+                (assoc curve-path-info
+                       :stroke-dasharray c-length
+                       :stroke-dashoffset (- c-length (* c-length clip-perc))))
+
+              ;; normal curves
+              curve-path-info)]
      ;; enable for debugging
      #_[:g {}
       [:circle {:cx f1x :cy f1y :r 0.2 :stroke :green :fill :green}]
@@ -46,32 +53,49 @@
 (def wheel-button 1)
 (def right-button 2)
 
-(defn animated-data-map []
-  (let [theme {:map-fill-color "#424242"
-               :background-color "#292929"
-               :map-stroke-color "pink"
-               :map-text-color "pink"
-               :line-color "orange"
-               :data-point-color "#00ffa5"}
-        time (reagent/atom 0)
-        dt 0.1
-        inct (fn [] (if (< @time (- 1 dt)) (swap! time #(+ % dt)) (reset! time 1)))
-        dect (fn [] (if (> @time dt) (swap! time #(- % dt)) (reset! time 0)))
+(def theme {:map-fill-color "#424242"
+            :background-color "#292929"
+            :map-stroke-color "pink"
+            :map-text-color "pink"
+            :line-color "orange"
+            :data-point-color "#00ffa5"})
 
-        debug-a (reagent/atom {})]
+(def animation-delta-t 80)
+(def animation-increment 0.1)
+
+(defn controls [{:keys [dec-time-fn inc-time-fn time]}]
+  [:div
+   [:button {:on-click dec-time-fn} "<"]
+   [:button {:on-click inc-time-fn} ">"]
+   [:button {:on-click (fn next-anim-step []
+                         (js/setTimeout
+                          (fn [] (when (< time (- 1 animation-increment))
+                                   (inc-time-fn)
+                                   (next-anim-step)))
+                          animation-delta-t))} "Play"]
+   
+   [:button {:on-click #(dispatch [:map/download-current-as-svg])}
+    "Download"]])
+
+(defn animated-data-map []
+  (let [time (reagent/atom 0)
+        inct (fn [] (if (< @time (- 1 animation-increment))
+                      (swap! time #(+ % animation-increment))
+                      (reset! time 1)))
+        dect (fn [] (if (> @time animation-increment)
+                      (swap! time #(- % animation-increment))
+                      (reset! time 0)))]
     (fn []
       (let [t            @time
             geo-json-map @(re-frame/subscribe [::subs/map-data])
             data-points  @(re-frame/subscribe [::subs/data-points])
             {:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])            
-            [translate-x translate-y] translate            
-            ]
+            [translate-x translate-y] translate]
         [:div {:style {:height (str events.map/map-screen-height "px")
                        :width  (str events.map/map-screen-width  "px")}
                :on-wheel (fn [evt]
                            (let [x (-> evt .-nativeEvent .-offsetX)
                                  y (-> evt .-nativeEvent .-offsetY)]
-                             ;; send x,y in world projection coordinates
                              (dispatch [:map/zoom {:delta (.-deltaY evt)
                                                    :x x
                                                    :y y}])))
@@ -80,20 +104,19 @@
                                 (.preventDefault evt)
                                 (let [x (-> evt .-nativeEvent .-offsetX)
                                       y (-> evt .-nativeEvent .-offsetY)]
-                                 (cond
+                                  (cond
 
-                                   ;; left button pressed
-                                   (= left-button (.-button evt))                                  
-                                   (dispatch [:map/grab {:x x :y y}])
+                                    ;; left button pressed
+                                    (= left-button (.-button evt))                                  
+                                    (dispatch [:map/grab {:x x :y y}])
 
-                                   ;; right button pressed
-                                   (= wheel-button (.-button evt))
-                                   (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
+                                    ;; wheel button pressed
+                                    (= wheel-button (.-button evt))
+                                    (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
                
                :on-mouse-move (fn [evt]
                                 (let [x (-> evt .-nativeEvent .-offsetX)
                                       y (-> evt .-nativeEvent .-offsetY)]
-                                  (reset! debug-a {:s [x y] :p (math-utils/screen-coord->proj-coord translate scale events.map/proj-scale [x y])})
                                   (cond
                                     grab
                                     (dispatch [:map/drag {:x x :y y}])
@@ -111,21 +134,9 @@
                                 (dispatch [:map/zoom-rectangle-release])))}
          
          ;; Controls
-         [:div
-          [:button {:on-click dect} "<"]
-          [:button {:on-click inct} ">"]
-          [:button {:on-click (fn next-anim-step []
-                                (js/setTimeout
-                                 (fn [] (when (< @time (- 1 dt))
-                                          (inct)
-                                          (next-anim-step)))
-                                 80))} "Play"]
-          [:button {:on-click #(dispatch [:map/download-current-as-svg])}
-           "Download"]
-          #_[:span @time]
-          #_[:span "T " (str translate)]
-          #_[:span "S " (str scale)]
-          #_[:span ">>>" @debug-a]]
+         [controls {:dec-time-fn dect
+                    :inc-time-fn inct
+                    :time t}]
 
          ;; SVG data map
          [:svg {:xmlns "http://www.w3.org/2000/svg"
@@ -144,7 +155,7 @@
 
           ;; map background
           [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color theme)}]
-                    
+          
           ;; map and data svg
           [:g {:transform (gstr/format "translate(%f %f) scale(%f %f)"
                                        translate-x
@@ -160,7 +171,7 @@
             [:g {}
              (for [{:keys [x1 y1 x2 y2]} data-points]
                ^{:key (str x1 y1 x2 y2)}
-               [clipped-svg-cuad-curve {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc t}])]]]
+               [svg-cuad-curve-data-points {:x1 x1  :y1 y1 :x2 x2 :y2 y2 :clip-perc t}])]]]
 
           (when zoom-rectangle
             (let [[x1 y1] (:origin zoom-rectangle)

@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [spread.events.animation :as events.animation]
             [spread.events.map :as events.map]
+            [spread.subs :as subs]
             [spread.math-utils :as math-utils]
             [spread.db :as db]
             [ajax.core :as ajax]))
@@ -46,26 +47,37 @@
                  :on-success      [::map-loaded map-data]
                  :on-failure      [::bad-http-result]}}))
 
+(def data-example
+  ;; in lon,lat (map-coord) https://www.latlong.net/
+  [;;     Uruguay                     Spain
+   {:from [-56.045698 -33.724340] :to [-3.627909, 39.909736]}
+   ;;     Salto                       Montevideo
+   {:from [-57.777694 -31.240985] :to [-56.150632 -34.903953]}])
+
 (re-frame/reg-event-fx
  ::load-data
  (fn [{:keys [db]} [_ _]]
-   (let [data-points [{:x1 104  :y1  110 :x2 120 :y2 130}
-                      
-                      #_{:x1 108  :y1  120 :x2 120 :y2 121}
-                      {:x1 99  :y1  120 :x2 125 :y2 121}
-                      ]
+   (let [data-points (->> data-example
+                          (map (fn [{:keys [from to]}]
+                                 (let [[x1 y1] (math-utils/map-coord->proj-coord from)
+                                       [x2 y2] (math-utils/map-coord->proj-coord to)]
+                                  {:x1 x1
+                                   :y1 y1
+                                   :x2 x2
+                                   :y2 y2}))))
          points (mapcat (fn [{:keys [x1 y1 x2 y2]}]
                           [[x1 y1] [x2 y2]])
                         data-points)
          x1 (apply min (map first points))
          y1 (apply min (map second points))
          x2 (apply max (map first points))
-         y2 (apply max (map second points))]
+         y2 (apply max (map second points))
+         padding 2]
 
      {:db (-> db
               (assoc :data-points data-points))
-      :dispatch [:map/set-view-box {:x1 x1 :y1 y1
-                                    :x2 x2 :y2 y2}]
+      :dispatch [:map/set-view-box {:x1 (- x1 padding) :y1 (- y1 padding)
+                                    :x2 (+ x2 padding) :y2 (+ y2 padding)}]
       })
    #_{:http-xhrio {:method          :get
                  :uri             (str "http://localhost:1234/data/")
@@ -102,5 +114,6 @@
 
 (re-frame/reg-event-fx
  :map/download-current-as-svg
- (fn [_ _]
-   {::download-current-map-as-svg nil}))
+ (fn [{:keys [db]} _]
+   {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps db))
+                                         :data-points (:data-points db)}}))
