@@ -121,7 +121,7 @@ jobs:
             #EOF
             #)
 
-            echo "export PRIVATE_KEY=$(cat <<EOF
+            echo "export PRIVATE_KEY=$(cat \<<EOF
             -----BEGIN RSA PRIVATE KEY-----
             $PRIVATE_KEY_DEV
             -----END RSA PRIVATE KEY-----
