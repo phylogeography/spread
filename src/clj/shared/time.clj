@@ -13,4 +13,4 @@
   (inst-ms instant))
 
 (defn minus [instant amount units]
-  (time/<< (time/now) (time/new-period amount units)))
+  (time/<< instant (time/new-period amount units)))

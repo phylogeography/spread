@@ -1,7 +1,7 @@
 (ns shared.utils
-  (:require [clojure.java.io :as io]
+  (:require [clojure.data.json :as json]
+            [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.data.json :as json]
             [clojure.walk :as walk]
             [cognitect.transit :as transit])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]))

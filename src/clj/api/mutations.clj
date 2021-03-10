@@ -12,7 +12,7 @@
             [shared.utils :refer [clj->gql decode-json new-uuid]]
             [taoensso.timbre :as log]))
 
-(defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri :as args} _]
+(defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri} _]
   (try
     (let [{:keys [client-id client-secret]} google
           {:keys [body]}                    (http/post "https://oauth2.googleapis.com/token"

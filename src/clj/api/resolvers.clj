@@ -9,7 +9,7 @@
             [taoensso.timbre :as log]))
 
 (defn get-authorized-user
-  [{:keys [authed-user-id db] :as ctx} _ _]
+  [{:keys [authed-user-id db]} _ _]
   (log/info "get-authorized-user" {:authed-user-id authed-user-id})
   (clj->gql (user-model/get-user-by-id db {:id authed-user-id})))
 

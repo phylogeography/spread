@@ -84,11 +84,11 @@
   "Adds the JWT access-token located in the request Authorization header to the applications context
   this token is then validated by the `auth-decorator` that wraps resolvers/mutations/subscriptions
   that need to authenticate the user."
-  [config]
+  []
   (interceptor
     {:name ::auth-interceptor
      :enter
-     (fn [{{:keys [headers uri request-method] :as request} :request :as context}]
+     (fn [{{:keys [headers uri request-method]} :request :as context}]
        ;; (log/debug "auth-interceptor" headers)
        (if-not (and (= uri "/api")
                     (= request-method :post)) ;; Authenticate only GraphQL endpoint
@@ -102,7 +102,7 @@
 
 (defn- ws-auth-interceptor
   "Extracts acsess token from the connection parameters."
-  [config]
+  []
   (interceptor
     {:name ::ws-auth-interceptor
      :enter
@@ -119,13 +119,13 @@
   [schema extra-context]
   (-> (pedestal/default-interceptors schema nil)
       (inject (context-interceptor extra-context) :after ::pedestal/inject-app-context)
-      (inject (auth-interceptor extra-context) :after ::extra-context)))
+      (inject (auth-interceptor) :after ::extra-context)))
 
 (defn- subscription-interceptors
   [schema extra-context]
   (-> (pedestal-subscriptions/default-subscription-interceptors schema nil)
       (inject (context-interceptor extra-context) :after :com.walmartlabs.lacinia.pedestal.subscriptions/inject-app-context)
-      (inject (ws-auth-interceptor extra-context) :after ::extra-context)))
+      (inject (ws-auth-interceptor) :after ::extra-context)))
 
 (defn load-schema []
   (-> (io/resource "schema.edn")

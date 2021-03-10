@@ -8,12 +8,11 @@
             [taoensso.timbre :as log]))
 
 (defn- create-status-subscription [sub-name callback]
-  (fn [{:keys [authed-user-id db access-token] :as ctx} {:keys [id]} source-stream]
+  (fn [{:keys [authed-user-id db access-token]} {:keys [id]} source-stream]
     (log/debug "client subscribed to"  {:name        sub-name
                                         :user/id     authed-user-id
                                         :analysis/id id
-                                        :token       access-token
-                                        })
+                                        :token       access-token})
     ;; create the subscription
     (let [subscription (go-loop []
                          (when-let [{:keys [status]} (callback db id)]
