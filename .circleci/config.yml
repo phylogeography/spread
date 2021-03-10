@@ -113,21 +113,23 @@ jobs:
             # this works because this machine uses bash
             cat env/dev >> $BASH_ENV
 
-            cat \<<EOF >> $BASH_ENV
+            # trickery to get newlines in the ENV var
+            export PRIVATE_KEY=$(cat \<<EOF
             -----BEGIN RSA PRIVATE KEY-----
             $PRIVATE_KEY_PAYLOAD
             -----END RSA PRIVATE KEY-----
             EOF
+            )
 
-            source $BASH_ENV
+            cat $PRIVATE_KEY >> $BASH_ENV
 
-            # trickery to get newlines in the ENV var
-            #export PRIVATE_KEY=$(cat \<<EOF
+            #cat \<<EOF >> $BASH_ENV
             #-----BEGIN RSA PRIVATE KEY-----
             #$PRIVATE_KEY_PAYLOAD
             #-----END RSA PRIVATE KEY-----
             #EOF
-            #)
+
+            source $BASH_ENV
 
             echo "env: $SPREAD_ENV"
       - attach_workspace:
