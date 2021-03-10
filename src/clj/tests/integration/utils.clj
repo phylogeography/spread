@@ -20,7 +20,6 @@
 (defn db-fixture [f]
   (let [config (config/load!)
         db     (db/init (:db config))]
-    ;; TODO : randomize user once we have auth
     (user-model/upsert-user db {:id    "a1195874-0bbe-4a8c-96f5-14cdf9097e02"
                                 :email "test@test.com"})
     (f)))
