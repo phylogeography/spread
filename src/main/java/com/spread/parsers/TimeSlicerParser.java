@@ -192,7 +192,6 @@ public class TimeSlicerParser {
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         LinkedList<Area> areasList = new LinkedList<Area>();
 
-        // TODO : multithreaded execution
         for (Double sliceHeight : slicesMap.keySet()) {
 
             List<double[]> coords = slicesMap.get(sliceHeight);
@@ -202,11 +201,6 @@ public class TimeSlicerParser {
             double[] y = new double[n];
 
             for (int i = 0; i < n; i++) {
-
-                // if (coords.get(i) == null) {
-                //     System.err.println("null found");
-                // }
-
                 x[i] = coords.get(i)[ParsersUtils.LONGITUDE_INDEX];
                 y[i] = coords.get(i)[ParsersUtils.LATITUDE_INDEX];
             } // END: i loop
