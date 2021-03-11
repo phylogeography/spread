@@ -33,7 +33,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-public class ContinuousTreeParser {
+import com.spread.progress.IHandler;
+
+public class ContinuousTreeParser  {
 
     @Getter @Setter
     private String treeFilePath;
@@ -50,6 +52,8 @@ public class ContinuousTreeParser {
     private double timescaleMultiplier;
     @Getter @Setter
     private String mostRecentSamplingDate;
+
+    private IHandler handler;
 
     public ContinuousTreeParser() {
     }
@@ -69,6 +73,8 @@ public class ContinuousTreeParser {
         this.hasExternalAnnotations = hasExternalAnnotations;
         this.timescaleMultiplier = timescaleMultiplier;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
+
+        // this.progress = new ProgressManager ();
     }
 
     public String parse() throws IOException, ImportException, SpreadException {
@@ -91,18 +97,14 @@ public class ContinuousTreeParser {
 
         // remove digits to get name
         String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
+        String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
-        String modalityAttributeName = "";
-
-        try {
-
-            modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
-
-        } catch (Exception e) {
-            throw new SpreadException("Trouble creating HPD modality attribute name. I suspect this is not a continuously annotated tree.");
-        }
-
+        int progress = 0;
         for (Node node : rootedTree.getNodes()) {
+
+            handler.handleProgress(progress);
+            progress++;
+
             if (!rootedTree.isRoot(node)) {
 
                 // node parsed first
@@ -210,10 +212,10 @@ public class ContinuousTreeParser {
                         modality = (Integer) ParsersUtils.getObjectNodeAttribute(node, modalityAttributeName);
 
                     } catch (SpreadException e) {
-                        String nodeType = (rootedTree.isExternal(node) ? "external" : "internal");
-                        String message = modalityAttributeName + " attribute could not be found on the " + nodeType
-                            + " node. Resulting visualisation may be incomplete!";
-                        System.out.println (message);
+                        // String nodeType = (rootedTree.isExternal(node) ? "external" : "internal");
+                        // String message = modalityAttributeName + " attribute could not be found on the " + nodeType
+                        //     + " node. Resulting visualisation may be incomplete!";
+                        // System.out.println (message);
                         continue;
                     }
 
@@ -306,6 +308,7 @@ public class ContinuousTreeParser {
                 pointsMap.put(node, rootPoint);
 
             } // END: root check
+
         } // END: nodes loop
 
         pointsList.addAll(pointsMap.values());
@@ -595,6 +598,10 @@ public class ContinuousTreeParser {
         Point point = new Point(coordinate, startTime, attributes);
 
         return point;
-    }// END: createPoint
+    }
+
+    public void setProgressHandler(IHandler handler) {
+        this.handler = handler;
+    }
 
 }
