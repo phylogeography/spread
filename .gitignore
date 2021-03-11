@@ -30,9 +30,15 @@ target/
 test.json
 spread_data_simple_example.json
 *.tar.gz
+resources/secrets.edn
 
 ## -- CLJ-KONDO
 .clj-kondo/.cache/
 
 ## -- SERVERLESS
 .serverless/
+
+## -- CLJS
+.shadow-cljs/
+node_modules/
+resources/public/js/

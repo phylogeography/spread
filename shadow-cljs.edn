@@ -1,0 +1,45 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/cljs" "src/cljc"]
+
+ :dependencies
+ [[akiroz.re-frame/storage "0.1.4"]
+  [camel-snake-kebab "0.4.1"]
+  [cider/cider-nrepl "0.25.5"]
+  [cider/piggieback "0.5.2"]
+  [com.taoensso/timbre "5.1.2"]
+  [day8.re-frame/async-flow-fx "0.1.0"]
+  [day8.re-frame/forward-events-fx "0.0.6"]
+  [district0x/bide "1.6.1"]
+  [lambdaisland/uri "1.4.54"]
+  [mount "0.1.16"]
+  [re-frame "1.1.2"]
+  [reagent "1.0.0"]
+  [refactor-nrepl "2.5.0"]]
+
+ :nrepl
+ {:port 46000
+  :middleware [cider.piggieback/wrap-cljs-repl
+               refactor-nrepl.middleware/wrap-refactor]}
+
+ :http
+ {:port 3449
+  :host "0.0.0.0"}
+
+ :builds
+ {:ui {:target           :browser
+       :output-dir       "resources/public/js"
+       :asset-path       "/js"
+       :js-options       {:js-package-dirs ["node_modules"]}
+       :modules
+       {:main ;; <- becomes resources/public/js/main.js
+        {:entries [ui.main]}}
+       :devtools
+       {:before-load kepler.core/stop
+        :after-load  kepler.core/start
+        :http-root   "resources/public"
+        :http-port   8020}
+       :release
+       {:compiler-options {:warnings-as-errors true
+                           :infer-externs      :auto
+                           :optimizations      :advanced}}}}}

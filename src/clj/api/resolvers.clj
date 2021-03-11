@@ -3,11 +3,15 @@
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [api.models.user :as user-model]
             [clojure.data.json :as json]
             [shared.utils :refer [clj->gql]]
             [taoensso.timbre :as log]))
 
-;; TODO : write middleware/interceptor that logs args and results
+(defn get-authorized-user
+  [{:keys [authed-user-id db]} _ _]
+  (log/info "get-authorized-user" {:authed-user-id authed-user-id})
+  (clj->gql (user-model/get-user-by-id db {:id authed-user-id})))
 
 (defn get-continuous-tree
   [{:keys [db]} {id :id :as args} _]
