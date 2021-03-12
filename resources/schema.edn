@@ -41,6 +41,7 @@
 
   :ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                                :fields      {:id     {:type (non-null ID)}
+                                             :progress {:type (non-null Float)}
                                              :status {:type (non-null :ContinuousTreeStatus)}}}
 
   :DiscreteTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
@@ -191,7 +192,7 @@
 
   :getUploadUrls {:type        (list String)
                   :description "Returns one-time POST urls."
-                  :args        {:files {:type (list :File)}}
+                  :args        {:files {:type (non-null (list :File))}}
                   :resolve     :mutation/getUploadUrls}
 
   :uploadContinuousTree {:type        :ContinuousTreeParserStatus

@@ -12,7 +12,8 @@
             [mount.core :as mount :refer [defstate]]
             [shared.utils :refer [file-exists?]]
             [taoensso.timbre :as log])
-  (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]))
+  (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]
+           [com.spread.progress IProgressObserver IProgressReporter]))
 
 (declare listener)
 
@@ -122,6 +123,7 @@
       (continuous-tree-model/update! db {:id id
                                          :status :ERROR}))))
 
+;; TODO : progress listener
 (defmethod handler :parse-continuous-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-continuous-tree" args)
@@ -149,6 +151,19 @@
                    (.hasExternalAnnotations has-external-annotations)
                    (.setTimescaleMultiplier timescale-multiplier)
                    (.setMostRecentSamplingDate most-recent-sampling-date))
+
+          progress-handler (proxy [IProgressObserver] []
+                             (init [^IProgressReporter reporter]
+                               (.registerProgressObserver reporter this))
+                             (handleProgress [progress]
+
+                               (log/debug "@@@ progress:" progress)
+
+                               ))
+
+          _ (doto progress-handler
+              (.init parser))
+
           output-object-key (str user-id "/" id ".json")
           output-object-path (str tmp-dir "/" output-object-key)
           _ (spit output-object-path (.parse parser) :append false)

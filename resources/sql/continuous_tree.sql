@@ -26,7 +26,8 @@ readable_name = :readable-name
 
 UPDATE continuous_tree
 SET
-status = :status,
+status = IF(:status IS NOT NULL, :status, status),
+progress = IF(:progress IS NOT NULL, :progress, progress),
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 x_coordinate_attribute_name = IF(:x-coordinate-attribute-name IS NOT NULL, :x-coordinate-attribute-name, x_coordinate_attribute_name),
 y_coordinate_attribute_name = IF(:y-coordinate-attribute-name IS NOT NULL, :y-coordinate-attribute-name, y_coordinate_attribute_name),
@@ -100,6 +101,7 @@ WHERE :id = id
 
 SELECT
 id,
-status
+status,
+progress
 FROM continuous_tree
 WHERE :id = id

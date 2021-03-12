@@ -3,21 +3,28 @@ package com.spread;
 import com.spread.progress.IProgressObserver;
 import com.spread.progress.IProgressReporter;
 
-public class ConsoleProgressHandler extends Thread implements IProgressObserver  {
+public class ConsoleProgressHandler extends Thread implements IProgressObserver {
 
     private static final String anim = "|/-\\";
-    protected IProgressReporter reporter;
 
     private boolean showProgress;
     private double progress;
     private final int barLength;
 
-    public ConsoleProgressHandler(IProgressReporter reporter) {
+    public ConsoleProgressHandler() {
         this.barLength = 100;
+    }
+
+    @Override
+    public void init(IProgressReporter reporter) {
         this.showProgress = true;
         this.progress = 0;
-        this.reporter = reporter;
-        this.reporter.registerProgressObserver(this);
+        reporter.registerProgressObserver(this);
+    }
+
+    @Override
+    public void handleProgress(double progress) {
+        this.progress = progress;
     }
 
     public void start() {
@@ -60,22 +67,14 @@ public class ConsoleProgressHandler extends Thread implements IProgressObserver 
         }
     }
 
-    public void showCompleted() {
+    private void showCompleted() {
         String progress = "\r[";
         for (int i = 0; i < barLength - 1; i++) {
             progress += ("*");
         }
         progress += ("]");
         System.out.print(progress);
-    }
-
-    // public void setShowProgress(boolean showProgress) {
-    //     this.showProgress = showProgress;
-    // }
-
-    @Override
-    public void handleProgress(double progress) {
-        this.progress = progress;
+        // System.out.print("\n");
     }
 
 }

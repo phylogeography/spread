@@ -15,9 +15,10 @@
                                         :token       access-token})
     ;; create the subscription
     (let [subscription (go-loop []
-                         (when-let [{:keys [status]} (callback db id)]
-                           (source-stream (clj->gql {:id     id
-                                                     :status status}))
+                         (when-let [{:keys [status progress]} (callback db id)]
+                           (source-stream (clj->gql {:id       id
+                                                     :status   status
+                                                     :progress (or progress 0.0)}))
                            (<! (timeout 1000))
                            (recur)))]
       ;; return a function to cleanup the subscription

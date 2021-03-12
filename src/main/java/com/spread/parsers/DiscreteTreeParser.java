@@ -176,7 +176,7 @@ public class DiscreteTreeParser {
 
             } else {
 
-                System.out.println("At the root node");
+                // System.out.println("At the root node");
 
                 String rootState = getNodeState(node, this.locationTraitAttributeName);
 

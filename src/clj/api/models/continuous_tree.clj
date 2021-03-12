@@ -22,6 +22,7 @@
    :user-id nil
    :tree-file-url nil
    :status nil
+   :progress nil
    :readable-name nil
    :x-coordinate-attribute-name nil
    :y-coordinate-attribute-name nil

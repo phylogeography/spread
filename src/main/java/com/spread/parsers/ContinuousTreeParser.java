@@ -97,20 +97,19 @@ public class ContinuousTreeParser implements IProgressReporter {
         String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
         String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
-        // float progress = 0;
 
-        this.updateProgress(0.01);
+
+        // this.updateProgress(0.01);
+        int nodesRead = 0;
         for (Node node : rootedTree.getNodes()) {
 
-            // this.updateProgress(progress);
-            // progress++;
+            this.updateProgress(nodesRead / 100.0);
+            nodesRead++;
 
             try {
-                Thread.sleep(200);
-                // System.out.println(node.toString());
+                Thread.sleep(100);
             } catch (Exception e) {
             }
-            // progress++;
 
             if (!rootedTree.isRoot(node)) {
 
@@ -151,10 +150,8 @@ public class ContinuousTreeParser implements IProgressReporter {
 
                 // parent node parsed second
 
-                // this spills to the root node, resulting in exception
-                // if not anotated
-                // root node will be annotated with locations but not with e.g.
-                // rate (facepalm)
+                // this spills to the root node, resulting in exception if not anotated
+                // root node will be annotated with locations but not with e.g. rate (facepalm)
                 Node parentNode = rootedTree.getParent(node);
 
                 Double parentCoordinateX = null;
@@ -508,7 +505,7 @@ public class ContinuousTreeParser implements IProgressReporter {
 
             } // END: attributes loop
 
-        } // END: points loop
+        } // END: areas loop
 
         uniqueAreaAttributes.addAll(areasAttributesMap.values());
         this.updateProgress(0.99);
@@ -536,6 +533,12 @@ public class ContinuousTreeParser implements IProgressReporter {
                                                null, // locations
                                                layersList);
         this.updateProgress(1.0);
+
+        // System.out.println ("# nodes: " + rootedTree.getNodes().size() +
+        //                     "# lines: " + linesList.size() +
+        //                     "# points" + pointsList.size () +
+        //                     "# areas" + areasList.size ());
+
         return new GsonBuilder().create().toJson(spreadData);
     }
 
@@ -545,14 +548,12 @@ public class ContinuousTreeParser implements IProgressReporter {
         RootedTree tree = ParsersUtils.importRootedTree(this.treeFilePath);
 
         Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
-            .flatMap(node -> node.getAttributeNames().stream()).map(name -> {
-                    return name;
-                }).collect(Collectors.toSet());
+            .flatMap(node -> node.getAttributeNames().stream())
+            .map(name -> name)
+            .collect(Collectors.toSet());
 
         Set<String> hpdLevels = uniqueAttributes.stream().filter(attributeName -> attributeName.contains("HPD_modality"))
-            .map(hpdString -> {
-                    return hpdString.replaceAll("\\D+", "");
-                })
+            .map(hpdString -> hpdString.replaceAll("\\D+", ""))
             .collect(Collectors.toSet());
 
         Object pair = new Object[] {uniqueAttributes, hpdLevels};

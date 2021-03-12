@@ -149,11 +149,10 @@ public class TimeSlicerParser {
         HashMap<Double, List<double[]>> slicesMap = new HashMap<Double, List<double[]>>(sliceHeights.length);
 
         RootedTree currentTree;
-        int treesRead = 0;
+        // int treesRead = 0;
+
         int counter = 0;
-
         while (treesImporter.hasTree()) {
-
             currentTree = (RootedTree) treesImporter.importNextTree();
             if (counter >= burnIn) {
                 new TimeSliceTree(slicesMap, //
@@ -162,8 +161,7 @@ public class TimeSlicerParser {
                                   this.traitName, //
                                   this.rrwRateName //
                                   ).call();
-
-                treesRead++;
+                // treesRead++;
             } // END: burnin check
 
             counter++;
@@ -174,8 +172,8 @@ public class TimeSlicerParser {
         // progressBar.showCompleted();
         // progressBar.setShowProgress(false);
 
-        System.out.print("\n");
-        System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter + " trees");
+        // System.out.print("\n");
+        // System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter + " trees");
 
         // --- make contours ---//
 
@@ -183,7 +181,7 @@ public class TimeSlicerParser {
         // System.out.println("0                        25                       50                       75                       100%");
         // System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
-        counter = 0;
+        // counter = 0;
         // stepSize = (double) barLength / (double) slicesMap.size();
 
         // progressBar = new ProgressBar(barLength);
@@ -231,7 +229,7 @@ public class TimeSlicerParser {
 
             } // END: paths loop
 
-            counter++;
+            // counter++;
             // double progress = (stepSize * counter) / barLength;
             // progressBar.setProgressPercentage(progress);
         } // END: iterate

@@ -100,7 +100,7 @@ public class BayesFactorParser {
 
         Double[][] indicators = new LogParser(this.logFilePath, this.burnIn).parseIndicators();
 
-        System.out.println("Imported log file");
+        // System.out.println("Imported log file");
 
         LinkedList<Location> locationsList = null;
         if (this.locationsFilePath != null) {
@@ -155,7 +155,7 @@ public class BayesFactorParser {
             posteriorProbabilities.add(pk[row]);
         }
 
-        System.out.println("Calculated Bayes Factors");
+        // System.out.println("Calculated Bayes Factors");
 
         LinkedList<String> from = new LinkedList<String>();
         LinkedList<String> to = new LinkedList<String>();
@@ -254,7 +254,7 @@ public class BayesFactorParser {
 
         LinkedList<Point> pointsList = new LinkedList<Point>(pointsMap.values());
 
-        System.out.println("Parsed points and lines");
+        // System.out.println("Parsed points and lines");
 
         // collect attributes from lines
         HashMap<String, Attribute> branchAttributesMap = new HashMap<String, Attribute>();
