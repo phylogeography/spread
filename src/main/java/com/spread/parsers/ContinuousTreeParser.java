@@ -97,7 +97,6 @@ public class ContinuousTreeParser implements IProgressReporter {
         String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
         String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
-
         int nodesRead = 0;
         for (Node node : rootedTree.getNodes()) {
 

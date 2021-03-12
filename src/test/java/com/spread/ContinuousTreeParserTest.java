@@ -35,9 +35,9 @@ public class ContinuousTreeParserTest {
                                                                 1.0,
                                                                 mostRecentSamplingDate);
 
-        ConsoleProgressHandler progressHandler = new ConsoleProgressHandler();
-        progressHandler.init (parser);
-        progressHandler.start ();
+        ConsoleProgressObserver progressObserver = new ConsoleProgressObserver();
+        progressObserver.init (parser);
+        progressObserver.start ();
 
         String json = parser.parse();
         Gson gson = new Gson();

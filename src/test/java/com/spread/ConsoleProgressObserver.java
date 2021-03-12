@@ -3,7 +3,7 @@ package com.spread;
 import com.spread.progress.IProgressObserver;
 import com.spread.progress.IProgressReporter;
 
-public class ConsoleProgressHandler extends Thread implements IProgressObserver {
+public class ConsoleProgressObserver extends Thread implements IProgressObserver {
 
     private static final String anim = "|/-\\";
 
@@ -11,7 +11,7 @@ public class ConsoleProgressHandler extends Thread implements IProgressObserver 
     private double progress;
     private final int barLength;
 
-    public ConsoleProgressHandler() {
+    public ConsoleProgressObserver() {
         this.barLength = 100;
     }
 
