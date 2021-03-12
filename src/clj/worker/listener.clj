@@ -157,7 +157,11 @@
                                (.registerProgressObserver reporter this))
                              (handleProgress [progress]
 
-                               (log/debug "@@@ progress:" progress)
+                               (log/debug "@@@ progress:" {:id       id
+                                                           :progress progress})
+
+                               #_(continuous-tree-model/update! db {:id       id
+                                                                  :progress progress})
 
                                ))
 

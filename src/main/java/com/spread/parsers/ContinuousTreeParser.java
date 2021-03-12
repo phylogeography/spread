@@ -98,15 +98,13 @@ public class ContinuousTreeParser implements IProgressReporter {
         String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
 
-
-        // this.updateProgress(0.01);
         int nodesRead = 0;
         for (Node node : rootedTree.getNodes()) {
 
-            this.updateProgress(nodesRead / 100.0);
-            nodesRead++;
-
+            // TOOD : remove
             try {
+                this.updateProgress(nodesRead / 100.0);
+                nodesRead++;
                 Thread.sleep(100);
             } catch (Exception e) {
             }
@@ -189,8 +187,7 @@ public class ContinuousTreeParser implements IProgressReporter {
                                      nodePoint.getId(), //
                                      parentPoint.getStartTime(), //
                                      nodePoint.getStartTime(), //
-                                     nodePoint.getAttributes() //
-                                     );
+                                     nodePoint.getAttributes());
 
                 linesList.add(line);
 
@@ -312,7 +309,6 @@ public class ContinuousTreeParser implements IProgressReporter {
                 pointsMap.put(node, rootPoint);
 
             } // END: root check
-
         } // END: nodes loop
 
         pointsList.addAll(pointsMap.values());
@@ -323,7 +319,6 @@ public class ContinuousTreeParser implements IProgressReporter {
         Map<String, Attribute> branchAttributesMap = new HashMap<String, Attribute>();
 
         for (Line line : linesList) {
-
             for (Entry<String, Object> entry : line.getAttributes().entrySet()) {
 
                 String attributeId = entry.getKey();
@@ -376,7 +371,6 @@ public class ContinuousTreeParser implements IProgressReporter {
                 } // END: key check
 
             } // END: attributes loop
-
         } // END: lines loop
 
         uniqueBranchAttributes.addAll(branchAttributesMap.values());

@@ -30,8 +30,6 @@ import com.spread.data.primitive.Coordinate;
 import com.spread.data.primitive.Polygon;
 import com.spread.exceptions.SpreadException;
 import com.spread.utils.ParsersUtils;
-import com.spread.utils.PrintUtils;
-import com.spread.utils.ProgressBar;
 
 import jebl.evolution.io.ImportException;
 import jebl.evolution.io.NexusImporter;
