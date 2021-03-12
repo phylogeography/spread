@@ -18,7 +18,7 @@ public class ConsoleProgressHandler extends Thread implements IProgressObserver 
     @Override
     public void init(IProgressReporter reporter) {
         this.showProgress = true;
-        this.progress = 0;
+        this.progress = 0.0;
         reporter.registerProgressObserver(this);
     }
 

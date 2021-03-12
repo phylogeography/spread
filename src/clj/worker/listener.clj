@@ -128,8 +128,9 @@
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-continuous-tree" args)
   (try
-    (let [_ (continuous-tree-model/update! db {:id id
-                                               :status :RUNNING})
+    (let [
+          ;; _ (continuous-tree-model/update! db {:id id
+          ;;                                      :status :RUNNING})
           {:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
                   hpd-level has-external-annotations timescale-multiplier
                   most-recent-sampling-date]}
@@ -160,7 +161,8 @@
                                (log/debug "@@@ progress:" {:id       id
                                                            :progress progress})
 
-                               #_(continuous-tree-model/update! db {:id       id
+                               (continuous-tree-model/update! db {:id       id
+                                                                  :status :RUNNING
                                                                   :progress progress})
 
                                ))
