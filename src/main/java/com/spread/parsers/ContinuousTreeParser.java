@@ -33,9 +33,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import com.spread.progress.IHandler;
+import com.spread.progress.IProgressReporter;
+import com.spread.progress.IProgressObserver;
 
-public class ContinuousTreeParser  {
+public class ContinuousTreeParser implements IProgressReporter {
 
     @Getter @Setter
     private String treeFilePath;
@@ -52,8 +53,7 @@ public class ContinuousTreeParser  {
     private double timescaleMultiplier;
     @Getter @Setter
     private String mostRecentSamplingDate;
-
-    private IHandler handler;
+    private IProgressObserver progressObserver;
 
     public ContinuousTreeParser() {
     }
@@ -73,8 +73,6 @@ public class ContinuousTreeParser  {
         this.hasExternalAnnotations = hasExternalAnnotations;
         this.timescaleMultiplier = timescaleMultiplier;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
-
-        // this.progress = new ProgressManager ();
     }
 
     public String parse() throws IOException, ImportException, SpreadException {
@@ -99,11 +97,20 @@ public class ContinuousTreeParser  {
         String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
         String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
-        int progress = 0;
+        // float progress = 0;
+
+        this.updateProgress(0.01);
         for (Node node : rootedTree.getNodes()) {
 
-            handler.handleProgress(progress);
-            progress++;
+            // this.updateProgress(progress);
+            // progress++;
+
+            try {
+                Thread.sleep(200);
+                // System.out.println(node.toString());
+            } catch (Exception e) {
+            }
+            // progress++;
 
             if (!rootedTree.isRoot(node)) {
 
@@ -312,6 +319,7 @@ public class ContinuousTreeParser  {
         } // END: nodes loop
 
         pointsList.addAll(pointsMap.values());
+        this.updateProgress(0.25);
 
         // ---collect attributes from lines---//
 
@@ -375,6 +383,7 @@ public class ContinuousTreeParser  {
         } // END: lines loop
 
         uniqueBranchAttributes.addAll(branchAttributesMap.values());
+        this.updateProgress(0.50);
 
         // ---collect attributes from nodes---//
 
@@ -438,6 +447,7 @@ public class ContinuousTreeParser  {
         } // END: points loop
 
         uniqueNodeAttributes.addAll(nodeAttributesMap.values());
+        this.updateProgress(0.75);
 
         // ---collect attributes from areas---//
 
@@ -501,6 +511,7 @@ public class ContinuousTreeParser  {
         } // END: points loop
 
         uniqueAreaAttributes.addAll(areasAttributesMap.values());
+        this.updateProgress(0.99);
 
         AxisAttributes axis = new AxisAttributes(this.xCoordinateAttributeName,
                                                  this.yCoordinateAttributeName);
@@ -508,13 +519,6 @@ public class ContinuousTreeParser  {
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
         // --- DATA LAYER (TREE LINES & POINTS, AREAS) --- //
-
-        // String treeLayerId = ParsersUtils.splitString(this.treeFilePath, "/");
-        // Layer treeLayer = new Layer(treeLayerId, //
-        //                             "Tree layer", //
-        //                             pointsList, //
-        //                             linesList, //
-        //                             areasList);
 
         Layer treeLayer = new Layer.Builder ()
             .withPoints (pointsList)
@@ -531,7 +535,7 @@ public class ContinuousTreeParser  {
                                                uniqueAreaAttributes, //
                                                null, // locations
                                                layersList);
-
+        this.updateProgress(1.0);
         return new GsonBuilder().create().toJson(spreadData);
     }
 
@@ -600,8 +604,16 @@ public class ContinuousTreeParser  {
         return point;
     }
 
-    public void setProgressHandler(IHandler handler) {
-        this.handler = handler;
+    @Override
+    public void registerProgressObserver(IProgressObserver observer) {
+        this.progressObserver = observer;
+    }
+
+    @Override
+    public void updateProgress(double progress) {
+        if (this.progressObserver != null) {
+            this.progressObserver.handleProgress(progress);
+        }
     }
 
 }

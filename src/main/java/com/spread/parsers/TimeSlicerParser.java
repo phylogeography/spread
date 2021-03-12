@@ -119,9 +119,9 @@ public class TimeSlicerParser {
 
         // ---parse trees---//
 
-        int barLength = 100;
-        int assumedTrees = getAssumedTrees(this.treesFilePath);
-        double stepSize = (double) barLength / (double) assumedTrees;
+        // int barLength = 100;
+        // int assumedTrees = getAssumedTrees(this.treesFilePath);
+        // double stepSize = (double) barLength / (double) assumedTrees;
 
         Double sliceHeights[] = null;
         if (this.sliceHeightsFilePath == null) {
@@ -134,16 +134,16 @@ public class TimeSlicerParser {
         // sort them in ascending order
         Arrays.sort(sliceHeights);
 
-        System.out.println("Using as slice heights: ");
-        PrintUtils.printArray(sliceHeights);
+        // System.out.println("Using as slice heights: ");
+        // PrintUtils.printArray(sliceHeights);
 
-        System.out.println("Reading trees (bar assumes " + assumedTrees + " trees)");
+        // System.out.println("Reading trees (bar assumes " + assumedTrees + " trees)");
 
-        ProgressBar progressBar = new ProgressBar(barLength);
-        progressBar.start();
+        // ProgressBar progressBar = new ProgressBar(barLength);
+        // progressBar.start();
 
-        System.out.println("0                        25                       50                       75                       100%");
-        System.out.println("|------------------------|------------------------|------------------------|------------------------|");
+        // System.out.println("0                        25                       50                       75                       100%");
+        // System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
         HashMap<Double, List<double[]>> slicesMap = new HashMap<Double, List<double[]>>(sliceHeights.length);
@@ -167,27 +167,27 @@ public class TimeSlicerParser {
             } // END: burnin check
 
             counter++;
-            double progress = (stepSize * counter) / barLength;
-            progressBar.setProgressPercentage(progress);
+            // double progress = (stepSize * counter) / barLength;
+            // progressBar.setProgressPercentage(progress);
         }
 
-        progressBar.showCompleted();
-        progressBar.setShowProgress(false);
+        // progressBar.showCompleted();
+        // progressBar.setShowProgress(false);
 
         System.out.print("\n");
         System.out.println("Analyzed " + treesRead + " trees with burn-in of " + burnIn + " for the total of " + counter + " trees");
 
         // --- make contours ---//
 
-        System.out.println("Creating contours for " + traitName + " trait at " + hpdLevel + " HPD level");
-        System.out.println("0                        25                       50                       75                       100%");
-        System.out.println("|------------------------|------------------------|------------------------|------------------------|");
+        // System.out.println("Creating contours for " + traitName + " trait at " + hpdLevel + " HPD level");
+        // System.out.println("0                        25                       50                       75                       100%");
+        // System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
         counter = 0;
-        stepSize = (double) barLength / (double) slicesMap.size();
+        // stepSize = (double) barLength / (double) slicesMap.size();
 
-        progressBar = new ProgressBar(barLength);
-        progressBar.start();
+        // progressBar = new ProgressBar(barLength);
+        // progressBar.start();
 
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         LinkedList<Area> areasList = new LinkedList<Area>();
@@ -232,13 +232,13 @@ public class TimeSlicerParser {
             } // END: paths loop
 
             counter++;
-            double progress = (stepSize * counter) / barLength;
-            progressBar.setProgressPercentage(progress);
+            // double progress = (stepSize * counter) / barLength;
+            // progressBar.setProgressPercentage(progress);
         } // END: iterate
 
-        progressBar.showCompleted();
-        progressBar.setShowProgress(false);
-        System.out.print("\n");
+        // progressBar.showCompleted();
+        // progressBar.setShowProgress(false);
+        // System.out.print("\n");
 
         // ---collect attributes from areas---//
 
