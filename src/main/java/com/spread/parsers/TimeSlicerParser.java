@@ -41,35 +41,25 @@ public class TimeSlicerParser implements IProgressReporter {
 
     @Setter
     private String treesFilePath;
-
     @Setter
     private String sliceHeightsFilePath;
-
     @Setter
     private int numberOfIntervals;
-
     @Setter
     private int burnIn;
-
     @Setter
     private String traitName;
-
     @Setter
     private String rrwRateName;
-
     @Setter
     private double hpdLevel;
-
     @Setter
     private int gridSize;
-
     @Setter
     private String mostRecentSamplingDate;
-
     @Setter
     private double timescaleMultiplier;
-
-        private IProgressObserver progressObserver;
+    private IProgressObserver progressObserver;
 
     public TimeSlicerParser() {
     }
@@ -82,8 +72,7 @@ public class TimeSlicerParser implements IProgressReporter {
                             double hpdLevel,
                             int gridSize,
                             String mostRecentSamplingDate,
-                            double timescaleMultiplier
-                            ) {
+                            double timescaleMultiplier) {
         this.treesFilePath = treesFilePath;
         this.sliceHeightsFilePath = sliceHeightsFilePath;
         this.burnIn = burnIn;
@@ -103,8 +92,7 @@ public class TimeSlicerParser implements IProgressReporter {
                             double hpdLevel,
                             int gridSize,
                             String mostRecentSamplingDate,
-                            double timescaleMultiplier
-                            ) {
+                            double timescaleMultiplier) {
         this.treesFilePath = treesFilePath;
         this.burnIn = burnIn;
         this.numberOfIntervals = numberOfIntervals;
@@ -124,10 +112,6 @@ public class TimeSlicerParser implements IProgressReporter {
 
         // ---parse trees---//
 
-        // int barLength = 100;
-        // int assumedTrees = getAssumedTrees(this.treesFilePath);
-        // double stepSize = (double) barLength / (double) assumedTrees;
-
         Double sliceHeights[] = null;
         if (this.sliceHeightsFilePath == null) {
             sliceHeights = generateSliceHeights(this.treesFilePath, this.numberOfIntervals);
@@ -135,20 +119,8 @@ public class TimeSlicerParser implements IProgressReporter {
             SliceHeightsParser sliceHeightsParser = new SliceHeightsParser(this.sliceHeightsFilePath);
             sliceHeights = sliceHeightsParser.parseSliceHeights();
         }
-
         // sort them in ascending order
         Arrays.sort(sliceHeights);
-
-        // System.out.println("Using as slice heights: ");
-        // PrintUtils.printArray(sliceHeights);
-
-        // System.out.println("Reading trees (bar assumes " + assumedTrees + " trees)");
-
-        // ProgressBar progressBar = new ProgressBar(barLength);
-        // progressBar.start();
-
-        // System.out.println("0                        25                       50                       75                       100%");
-        // System.out.println("|------------------------|------------------------|------------------------|------------------------|");
 
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
         HashMap<Double, List<double[]>> slicesMap = new HashMap<Double, List<double[]>>(sliceHeights.length);
@@ -172,13 +144,6 @@ public class TimeSlicerParser implements IProgressReporter {
         }
 
         // --- make contours ---//
-
-
-        // counter = 0;
-        // stepSize = (double) barLength / (double) slicesMap.size();
-
-        // progressBar = new ProgressBar(barLength);
-        // progressBar.start();
 
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         LinkedList<Area> areasList = new LinkedList<Area>();
@@ -223,7 +188,6 @@ public class TimeSlicerParser implements IProgressReporter {
 
                 Area area = new Area(polygon, startTime, areaAttributesMap);
                 areasList.add(area);
-
             }
         }
 
@@ -304,8 +268,7 @@ public class TimeSlicerParser implements IProgressReporter {
                                                null, // pointAttributes
                                                uniqueAreaAttributes , // areaAttributes
                                                null, // locationsList
-                                               layersList //
-                                               );
+                                               layersList);
         this.updateProgress(1.0);
         return new GsonBuilder().create().toJson(spreadData);
     }
@@ -359,7 +322,6 @@ public class TimeSlicerParser implements IProgressReporter {
             if (rootHeight > maxRootHeight) {
                 maxRootHeight = rootHeight;
             }
-
         }
 
         for (int i = 0; i < numberOfIntervals; i++) {
@@ -390,16 +352,16 @@ public class TimeSlicerParser implements IProgressReporter {
         return new GsonBuilder().create().toJson(tuple);
     }
 
-        @Override
-        public void registerProgressObserver(IProgressObserver observer) {
-            this.progressObserver = observer;
-        }
+    @Override
+    public void registerProgressObserver(IProgressObserver observer) {
+        this.progressObserver = observer;
+    }
 
-        @Override
-        public void updateProgress(double progress) {
-            if (this.progressObserver != null) {
-                this.progressObserver.handleProgress(progress);
-            }
+    @Override
+    public void updateProgress(double progress) {
+        if (this.progressObserver != null) {
+            this.progressObserver.handleProgress(progress);
         }
+    }
 
 }
