@@ -91,6 +91,7 @@ has_external_annotations,
 timescale_multiplier,
 most_recent_sampling_date,
 status,
+progress,
 output_file_url,
 readable_name
 FROM continuous_tree

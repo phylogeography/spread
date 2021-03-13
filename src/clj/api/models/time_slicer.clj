@@ -15,23 +15,23 @@
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-time-slicer
-  {:id nil
-   :user-id nil
-   :trees-file-url nil
-   :slice-heights-file-url nil
-   :status nil
-   :readable-name nil
-   :burn-in nil
-   :number-of-intervals nil
+  {:id                                      nil
+   :user-id                                 nil
+   :trees-file-url                          nil
+   :slice-heights-file-url                  nil
+   :status                                  nil
+   :progress                                nil
+   :readable-name                           nil
+   :burn-in                                 nil
+   :number-of-intervals                     nil
    :relaxed-random-walk-rate-attribute-name nil
-   :trait-attribute-name nil
-   :hpd-level nil
-   :contouring-grid-size nil
-   :timescale-multiplier nil
-   :most-recent-sampling-date nil
-   :output-file-url nil
-   :trees-count nil
-   })
+   :trait-attribute-name                    nil
+   :hpd-level                               nil
+   :contouring-grid-size                    nil
+   :timescale-multiplier                    nil
+   :most-recent-sampling-date               nil
+   :output-file-url                         nil
+   :trees-count                             nil})
 
 (defn upsert! [db time-slicer]
   (let [time-slicer (->> time-slicer

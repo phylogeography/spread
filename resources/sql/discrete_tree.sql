@@ -29,7 +29,8 @@ readable_name = :readable-name
 
 UPDATE discrete_tree
 SET
-status = :status,
+status = IF(:status IS NOT NULL, :status, status),
+progress = IF(:progress IS NOT NULL, :progress, progress),
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 location_attribute_name = IF(:location-attribute-name IS NOT NULL, :location-attribute-name, location_attribute_name),
 timescale_multiplier = IF(:timescale-multiplier IS NOT NULL, :timescale-multiplier, timescale_multiplier),
@@ -72,6 +73,7 @@ location_attribute_name,
 timescale_multiplier,
 most_recent_sampling_date,
 status,
+progress,
 output_file_url,
 readable_name
 FROM discrete_tree
@@ -82,6 +84,7 @@ WHERE :id = id
 
 SELECT
 id,
-status
+status,
+progress
 FROM discrete_tree
 WHERE :id = id

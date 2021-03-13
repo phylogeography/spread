@@ -22,6 +22,7 @@
    :locations-file-url  nil
    :number-of-locations nil
    :status              nil
+   :progress            nil
    :readable-name       nil
    :burn-in             nil
    :output-file-url     nil})

@@ -18,19 +18,19 @@
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-tree
-  {:id nil
-   :user-id nil
-   :tree-file-url nil
-   :status nil
-   :progress nil
-   :readable-name nil
+  {:id                          nil
+   :user-id                     nil
+   :tree-file-url               nil
+   :status                      nil
+   :progress                    nil
+   :readable-name               nil
    :x-coordinate-attribute-name nil
    :y-coordinate-attribute-name nil
-   :hpd-level nil
-   :has-external-annotations nil
-   :timescale-multiplier nil
-   :most-recent-sampling-date nil
-   :output-file-url nil})
+   :hpd-level                   nil
+   :has-external-annotations    nil
+   :timescale-multiplier        nil
+   :most-recent-sampling-date   nil
+   :output-file-url             nil})
 
 (defn upsert! [db tree]
   (let [tree (->> tree

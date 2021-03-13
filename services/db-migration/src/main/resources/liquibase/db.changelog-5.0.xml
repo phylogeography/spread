@@ -15,15 +15,14 @@
         <constraints nullable="false" />
       </column>
       <column name="locations_file_url" type="VARCHAR(200)"/>
-      <!--   <constraints nullable="true" /> -->
-      <!-- </column> -->
       <column name="status" type="VARCHAR(50)">
         <constraints nullable="false" />
       </column>
+      <column name="progress" type="float" defaultValueNumeric="0"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
       <column name="burn_in" type="FLOAT"/>
-      <column name="number_of_locations" type="INT"/>      
+      <column name="number_of_locations" type="INT"/>
     </createTable>
   </changeSet>
 

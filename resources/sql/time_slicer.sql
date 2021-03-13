@@ -29,7 +29,8 @@ readable_name = :readable-name
 
 UPDATE time_slicer
 SET
-status = :status,
+status = IF(:status IS NOT NULL, :status, status),
+progress = IF(:progress IS NOT NULL, :progress, progress),
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
 number_of_intervals = IF(:number-of-intervals IS NOT NULL, :number-of-intervals, number_of_intervals),
@@ -52,6 +53,7 @@ user_id,
 trees_file_url,
 slice_heights_file_url,
 status,
+progress,
 readable_name,
 burn_in,
 number_of_intervals,
@@ -94,6 +96,7 @@ WHERE id = :id
 
 SELECT
 id,
-status
+status,
+progress
 FROM time_slicer
 WHERE :id = id

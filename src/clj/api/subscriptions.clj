@@ -18,7 +18,7 @@
                          (when-let [{:keys [status progress]} (callback db id)]
                            (source-stream (clj->gql {:id       id
                                                      :status   status
-                                                     :progress (or progress 0.0)}))
+                                                     :progress progress}))
                            (<! (timeout 1000))
                            (recur)))]
       ;; return a function to cleanup the subscription

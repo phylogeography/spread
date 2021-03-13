@@ -34,7 +34,8 @@ readable_name = :readable-name
 
 UPDATE bayes_factor_analysis
 SET
-status = :status,
+status = IF(:status IS NOT NULL, :status, status),
+progress = IF(:progress IS NOT NULL, :progress, progress),
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
 number_of_locations = IF(:number-of-locations IS NOT NULL, :number-of-locations, number_of_locations),
@@ -58,6 +59,7 @@ log_file_url,
 locations_file_url,
 burn_in,
 status,
+progress,
 output_file_url,
 readable_name
 FROM bayes_factor_analysis
@@ -87,6 +89,7 @@ WHERE bayes_factor_analysis_id = :bayes-factor-analysis-id
 
 SELECT
 id,
-status
+status,
+progress
 FROM bayes_factor
 WHERE :id = id

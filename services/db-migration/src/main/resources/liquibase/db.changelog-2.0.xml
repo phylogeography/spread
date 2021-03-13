@@ -17,7 +17,7 @@
       <column name="status" type="VARCHAR(50)">
         <constraints nullable="false" />
       </column>
-      <column name="progress" type="float"/>
+      <column name="progress" type="float" defaultValueNumeric="0"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
       <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
