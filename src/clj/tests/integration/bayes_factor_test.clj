@@ -82,11 +82,12 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status outputFileUrl bayesFactors]} (get-in (run-query {:query
-                                                              "query GetResults($id: ID!) {
+        {:keys [id status progress outputFileUrl bayesFactors]} (get-in (run-query {:query
+                                                                                    "query GetResults($id: ID!) {
                                                                        getBayesFactorAnalysis(id: $id) {
                                                                          id
                                                                          status
+                                                                         progress
                                                                          outputFileUrl
                                                                              bayesFactors {
                                                                                from
@@ -96,10 +97,11 @@
                                                                              }
                                                                        }
                                                                      }"
-                                                              :variables {:id id}})
-                                                  [:data :getBayesFactorAnalysis])]
+                                                                                    :variables {:id id}})
+                                                                        [:data :getBayesFactorAnalysis])]
     (log/debug "response" {:id id :status status :bayes-factors bayesFactors})
     (is (sequential? bayesFactors))
     (is (= 21 (count bayesFactors)))
     (is #{"from" "to" "bayesFactors" "posteriorProbability"} (-> bayesFactors first keys set))
+    (is (= 1.0 progress))
     (is outputFileUrl)))
