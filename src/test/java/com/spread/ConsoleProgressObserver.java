@@ -24,7 +24,7 @@ public class ConsoleProgressObserver extends Thread implements IProgressObserver
 
     @Override
     public void handleProgress(double progress) {
-        assert ((progress >= 0.0) && (progress <= 1.0)) : "make sure that 0 ≤ progress ≤ 1";
+        assert ((progress >= 0.0) && (progress <= 1.0)) : "Got progress value " + progress + ". Make sure that 0 ≤ progress ≤ 1";
         this.progress = progress;
     }
 

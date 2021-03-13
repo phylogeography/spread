@@ -210,9 +210,7 @@ public class TimeSlicerParser implements IProgressReporter {
                     Attribute attribute = areasAttributesMap.get(attributeId);
 
                     if (attribute.getScale().equals(Attribute.ORDINAL)) {
-
                         attribute.getDomain().add(attributeValue);
-
                     } else {
 
                         double value = ParsersUtils
@@ -248,9 +246,7 @@ public class TimeSlicerParser implements IProgressReporter {
                     areasAttributesMap.put(attributeId, attribute);
 
                 } // END: key check
-
             } // END: attributes loop
-
         } // END: points loop
 
         LinkedList<Attribute> uniqueAreaAttributes = new LinkedList<Attribute>();
@@ -307,18 +303,17 @@ public class TimeSlicerParser implements IProgressReporter {
         }
     }
 
-    private Double[] generateSliceHeights(String treesFilePath, int numberOfIntervals) throws IOException, ImportException {
+    private Double[] generateSliceHeights(String treesFilePath, int numberOfIntervals)
+            throws IOException, ImportException {
+
         Double[] timeSlices = new Double[numberOfIntervals];
-
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
-
         double maxRootHeight = 0;
         RootedTree currentTree = null;
+
         while (treesImporter.hasTree()) {
             currentTree = (RootedTree) treesImporter.importNextTree();
-
             double rootHeight = currentTree.getHeight(currentTree.getRootNode());
-
             if (rootHeight > maxRootHeight) {
                 maxRootHeight = rootHeight;
             }
@@ -341,12 +336,9 @@ public class TimeSlicerParser implements IProgressReporter {
         RootedTree tree = (RootedTree) treesImporter.importNextTree();
 
         Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
-            .flatMap(node -> node.getAttributeNames().stream()).map(name -> {
-                    return name;
-                }).collect(Collectors.toSet());
+            .flatMap(node -> node.getAttributeNames().stream()).map(name -> name).collect(Collectors.toSet());
 
         int treesCount = getTreesCount(this.treesFilePath);
-
         Object tuple = new Object[] {uniqueAttributes, treesCount};
 
         return new GsonBuilder().create().toJson(tuple);

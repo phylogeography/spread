@@ -17,6 +17,8 @@ import com.spread.data.attributable.Line;
 import com.spread.data.attributable.Point;
 import com.spread.data.primitive.Coordinate;
 import com.spread.exceptions.SpreadException;
+import com.spread.progress.IProgressObserver;
+import com.spread.progress.IProgressReporter;
 import com.spread.utils.ParsersUtils;
 
 import lombok.Setter;
@@ -24,7 +26,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.EqualsAndHashCode;
 
-public class BayesFactorParser {
+public class BayesFactorParser implements IProgressReporter {
 
     public static final String BAYES_FACTOR = "bayesFactor";
     public static final String POSTERIOR_PROBABILITY = "posteriorProbability";
@@ -38,8 +40,7 @@ public class BayesFactorParser {
     @Setter
     private Integer numberOfLocations;
 
-    private final Double poissonPriorMean = Math.log(2);;
-    private Integer poissonPriorOffset;
+    private IProgressObserver progressObserver;
 
     public class BayesFactorParserOutput {
         public LinkedList<BayesFactor> bayesFactors;
@@ -50,7 +51,6 @@ public class BayesFactorParser {
             this.bayesFactors = bayesFactors;
             this.spreadData = spreadData;
         }
-
     }
 
     @EqualsAndHashCode
@@ -98,11 +98,13 @@ public class BayesFactorParser {
 
     public String parse() throws IOException, SpreadException {
 
+        double progress = 0;
+        double progressStepSize = 0;
+        this.updateProgress(progress);
+
         Double[][] indicators = new LogParser(this.logFilePath, this.burnIn).parseIndicators();
-
-        // System.out.println("Imported log file");
-
         LinkedList<Location> locationsList = null;
+
         if (this.locationsFilePath != null) {
             locationsList = new DiscreteLocationsParser(this.locationsFilePath, false)
                 .parseLocations();
@@ -113,7 +115,8 @@ public class BayesFactorParser {
         }
 
         int numberOfLocations = locationsList.size();
-        this.poissonPriorOffset = numberOfLocations - 1;
+        int poissonPriorOffset = numberOfLocations - 1;
+        double poissonPriorMean = Math.log(2);
         int nrow = indicators.length;
         int ncol = indicators[0].length;
 
@@ -139,23 +142,26 @@ public class BayesFactorParser {
 
         double priorOdds = qk / (1 - qk);
         double[] pk = getColumnMeans(indicators);
+        this.updateProgress(0.1);
 
         LinkedList<Double> bayesFactors = new LinkedList<Double>();
         LinkedList<Double> posteriorProbabilities = new LinkedList<Double>();
+
+        progressStepSize = 0.2 / (double) pk.length;
         for (int row = 0; row < pk.length; row++) {
 
-            double bf = (pk[row] / (1 - pk[row])) / priorOdds;
+            progress += progressStepSize;
+            this.updateProgress(progress);
 
+            double bf = (pk[row] / (1 - pk[row])) / priorOdds;
+            // correcting for infinite bf
             if (bf == Double.POSITIVE_INFINITY) {
                 bf = ((pk[row] - (double) (1.0 / nrow)) / (1 - (pk[row] - (double) (1.0 / nrow)))) / priorOdds;
-                System.out.println("Correcting for infinite bf: " + bf);
             }
 
             bayesFactors.add(bf);
             posteriorProbabilities.add(pk[row]);
         }
-
-        // System.out.println("Calculated Bayes Factors");
 
         LinkedList<String> from = new LinkedList<String>();
         LinkedList<String> to = new LinkedList<String>();
@@ -181,13 +187,14 @@ public class BayesFactorParser {
         }
 
         HashMap<Location, Point> pointsMap = new HashMap<Location, Point>();
-
-        // Location dummy;
         LinkedList<Line> linesList = new LinkedList<Line>();
+        progressStepSize = 0.2 / (double) bayesFactors.size();
         for (int i = 0; i < bayesFactors.size(); i++) {
 
-            // from is parsed first
+            progress += progressStepSize;
+            this.updateProgress(progress);
 
+            // from is parsed first
             Location dummy = new Location(from.get(i));
             int fromLocationIndex = Integer.MAX_VALUE;
             if (locationsList.contains(dummy)) {
@@ -205,7 +212,6 @@ public class BayesFactorParser {
             }
 
             // to is parsed second
-
             dummy = new Location(to.get(i));
             int toLocationIndex = Integer.MAX_VALUE;
             if (locationsList.contains(dummy)) {
@@ -254,13 +260,13 @@ public class BayesFactorParser {
 
         LinkedList<Point> pointsList = new LinkedList<Point>(pointsMap.values());
 
-        // System.out.println("Parsed points and lines");
-
         // collect attributes from lines
         HashMap<String, Attribute> branchAttributesMap = new HashMap<String, Attribute>();
-
+        progressStepSize = 0.2 / (double) linesList.size();
         for (Line line : linesList) {
 
+            progress += progressStepSize;
+            this.updateProgress(progress);
             for (Entry<String, Object> entry : line.getAttributes().entrySet()) {
 
                 String attributeId = entry.getKey();
@@ -306,12 +312,11 @@ public class BayesFactorParser {
                     } // END: isNumeric check
 
                     branchAttributesMap.put(attributeId, attribute);
-                } // END: key check
-            } // END: attributes loop
+                }
+            }
+        }
 
-        } // END: lines loop
-
-        LinkedList<Attribute> uniqueLineAttributes = new LinkedList<Attribute> (branchAttributesMap.values());
+        LinkedList<Attribute> uniqueLineAttributes = new LinkedList<Attribute>(branchAttributesMap.values());
 
         LinkedList<Attribute> rangeAttributes = getCoordinateRangeAttributes(locationsList);
         Attribute xCoordinate = rangeAttributes.get(ParsersUtils.X_INDEX);
@@ -340,17 +345,21 @@ public class BayesFactorParser {
                                                layersList);
 
         LinkedList<BayesFactor> bayesFactorsData = new LinkedList<BayesFactor>();
+        progressStepSize = 0.2 / (double) bayesFactors.size();
         for (int i = 0; i < bayesFactors.size(); i++) {
+            progress += progressStepSize;
+            this.updateProgress(progress);
             bayesFactorsData.add(new BayesFactor(from.get(i),
                                                  to.get(i),
                                                  bayesFactors.get(i),
                                                  posteriorProbabilities.get(i)));
         }
 
-        BayesFactorParserOutput out = new BayesFactorParserOutput (bayesFactorsData, spreadData);
-        String json = new GsonBuilder().create().toJson(out);
+        this.updateProgress(1.0);
 
-        return json;
+        return new GsonBuilder()
+            .create()
+            .toJson(new BayesFactorParserOutput (bayesFactorsData, spreadData));
     }
 
     private LinkedList<Attribute> getCoordinateRangeAttributes(LinkedList<Location> locationsList) throws SpreadException {
@@ -462,6 +471,18 @@ public class BayesFactorParser {
         }
 
         return locationsList;
+    }
+
+    @Override
+    public void registerProgressObserver(IProgressObserver observer) {
+        this.progressObserver = observer;
+    }
+
+    @Override
+    public void updateProgress(double progress) {
+        if (this.progressObserver != null) {
+            this.progressObserver.handleProgress(progress);
+        }
     }
 
 }
