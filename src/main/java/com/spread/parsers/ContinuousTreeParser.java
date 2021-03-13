@@ -100,7 +100,7 @@ public class ContinuousTreeParser implements IProgressReporter {
         String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
         String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
-        progress = 0;
+        // progress = 0;
         progressStepSize = 0.25 / (double) rootedTree.getNodes().size();
         for (Node node : rootedTree.getNodes()) {
 
@@ -548,11 +548,11 @@ public class ContinuousTreeParser implements IProgressReporter {
             .collect(Collectors.toSet());
 
         Object pair = new Object[] {uniqueAttributes, hpdLevels};
-
         return new GsonBuilder().create().toJson(pair);
     }
 
-    private Point createPoint(Node node, Coordinate coordinate, RootedTree rootedTree, TimeParser timeParser) throws SpreadException {
+    private Point createPoint(Node node, Coordinate coordinate, RootedTree rootedTree, TimeParser timeParser)
+        throws SpreadException {
 
         Double height = ParsersUtils.getNodeHeight(rootedTree, node) * this.timescaleMultiplier;
         String startTime = timeParser.getNodeDate(height);
@@ -561,13 +561,9 @@ public class ContinuousTreeParser implements IProgressReporter {
         for (String attributeName : node.getAttributeNames()) {
 
             Object nodeAttribute = node.getAttribute(attributeName);
-
             if (!(nodeAttribute instanceof Object[])) {
-
                 // remove invalid characters
-                attributeName = attributeName.replaceAll("%", "");
-                attributeName = attributeName.replaceAll("!", "");
-
+                attributeName = attributeName.replaceAll("%", "").replaceAll("!", "");
                 attributes.put(attributeName, nodeAttribute);
             } // END: multivariate check
 
@@ -583,19 +579,16 @@ public class ContinuousTreeParser implements IProgressReporter {
             value = "internal";
         }
 
-        String attributeName = "nodeName";
-        attributes.put(attributeName, value);
+        attributes.put("nodeName", value);
 
         // external nodes have no posterior annotated, need to fix that
         if (rootedTree.isExternal(node)) {
             attributes.put(ParsersUtils.POSTERIOR, 1.0);
         }
 
-        Point point = new Point(coordinate, startTime, attributes);
-
-        return point;
+        return new Point(coordinate, startTime, attributes);
     }
-
+    
     @Override
     public void registerProgressObserver(IProgressObserver observer) {
         this.progressObserver = observer;
