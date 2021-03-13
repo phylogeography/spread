@@ -24,6 +24,8 @@ import com.spread.data.attributable.Point;
 import com.spread.data.primitive.Coordinate;
 import com.spread.data.primitive.Polygon;
 import com.spread.exceptions.SpreadException;
+import com.spread.progress.IProgressObserver;
+import com.spread.progress.IProgressReporter;
 import com.spread.utils.ParsersUtils;
 
 import jebl.evolution.graphs.Node;
@@ -32,9 +34,6 @@ import jebl.evolution.trees.RootedTree;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.spread.progress.IProgressReporter;
-import com.spread.progress.IProgressObserver;
 
 public class ContinuousTreeParser implements IProgressReporter {
 
@@ -77,6 +76,10 @@ public class ContinuousTreeParser implements IProgressReporter {
 
     public String parse() throws IOException, ImportException, SpreadException {
 
+        double progress = 0;
+        double progressStepSize = 0;
+        this.updateProgress(progress);
+
         RootedTree rootedTree = ParsersUtils.importRootedTree(treeFilePath);
         TimeParser timeParser = new TimeParser(this.getMostRecentSamplingDate());
         TimeLine timeLine = timeParser.getTimeLine(rootedTree.getHeight(rootedTree.getRootNode()));
@@ -97,16 +100,12 @@ public class ContinuousTreeParser implements IProgressReporter {
         String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
         String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
-        int nodesRead = 0;
+        progress = 0;
+        progressStepSize = 0.25 / (double) rootedTree.getNodes().size();
         for (Node node : rootedTree.getNodes()) {
 
-            // TOOD : remove
-            try {
-                this.updateProgress(nodesRead / 100.0);
-                nodesRead++;
-                Thread.sleep(100);
-            } catch (Exception e) {
-            }
+            progress += progressStepSize;
+            this.updateProgress(progress);
 
             if (!rootedTree.isRoot(node)) {
 
@@ -131,7 +130,7 @@ public class ContinuousTreeParser implements IProgressReporter {
                         + " child node. Resulting visualisation may be incomplete!";
                     System.out.println (message);
                     continue;
-                } // END: try-catch
+                }
 
                 nodeCoordinate = new Coordinate(nodeCoordinateY, // latitude
                                                 nodeCoordinateX // longitude
@@ -143,7 +142,7 @@ public class ContinuousTreeParser implements IProgressReporter {
                 if (nodePoint == null) {
                     nodePoint = createPoint(node, nodeCoordinate, rootedTree, timeParser);
                     pointsMap.put(node, nodePoint);
-                } // END: null check
+                }
 
                 // parent node parsed second
 
@@ -169,7 +168,7 @@ public class ContinuousTreeParser implements IProgressReporter {
                         + " parent node. Resulting visualisation may be incomplete!";
                     System.out.println (message);
                     continue;
-                } // END: try-catch
+                }
 
                 Coordinate parentCoordinate = new Coordinate(parentCoordinateY, // lat
                                                              parentCoordinateX // long
@@ -178,7 +177,7 @@ public class ContinuousTreeParser implements IProgressReporter {
                 if (parentPoint == null) {
                     parentPoint = createPoint(parentNode, parentCoordinate, rootedTree, timeParser);
                     pointsMap.put(parentNode, parentPoint);
-                } // END: null check
+                }
 
                 // ---LINES PARSED SECOND DO NOT CHANGE ORDER---//
 
@@ -201,7 +200,7 @@ public class ContinuousTreeParser implements IProgressReporter {
 
                 } else {
                     parseNode = true;
-                } // END: parse logic
+                }
 
                 if (parseNode) {
 
@@ -247,23 +246,18 @@ public class ContinuousTreeParser implements IProgressReporter {
                                 + " attribute could not be found on the child node. Resulting visualisation may be incomplete!";
                             System.out.println (message);
                             continue;
-                        } // END: try-catch
+                        }
 
                         List<Coordinate> coordinateList = new ArrayList<Coordinate>();
                         for (int c = 0; c < xCoordinateHPD.length; c++) {
-
                             Double xCoordinate = (Double) xCoordinateHPD[c];
                             Double yCoordinate = (Double) yCoordinateHPD[c];
 
-                            Coordinate coordinate = new Coordinate(
-                                                                   // xCoordinate,
-                                                                   // yCoordinate
-                                                                   yCoordinate, // lat
+                            Coordinate coordinate = new Coordinate(yCoordinate, // lat
                                                                    xCoordinate // long
                                                                    );
                             coordinateList.add(coordinate);
-
-                        } // END: c loop
+                        }
 
                         Polygon polygon = new Polygon(coordinateList);
 
@@ -274,9 +268,9 @@ public class ContinuousTreeParser implements IProgressReporter {
                         Area area = new Area(polygon, nodePoint.getStartTime(), areaAttributesMap);
                         areasList.add(area);
 
-                    } // END: modality loop
+                    }
 
-                } // parse check
+                }
 
             } else {
 
@@ -298,7 +292,7 @@ public class ContinuousTreeParser implements IProgressReporter {
                         + "Resulting visualisation may be incomplete!";
                     System.out.println (message);
                     continue;
-                } // END: try-catch
+                }
 
                 Coordinate rootCoordinate = new Coordinate(rootCoordinateY, // lat
                                                            rootCoordinateX // long
@@ -307,17 +301,21 @@ public class ContinuousTreeParser implements IProgressReporter {
                 Point rootPoint = createPoint(node, rootCoordinate, rootedTree, timeParser);
                 pointsMap.put(node, rootPoint);
 
-            } // END: root check
-        } // END: nodes loop
+            }
+        }
 
         pointsList.addAll(pointsMap.values());
-        this.updateProgress(0.25);
 
         // ---collect attributes from lines---//
 
         Map<String, Attribute> branchAttributesMap = new HashMap<String, Attribute>();
 
+        progressStepSize = 0.25 / (double) linesList.size();
         for (Line line : linesList) {
+
+            progress += progressStepSize;
+            this.updateProgress(progress);
+
             for (Entry<String, Object> entry : line.getAttributes().entrySet()) {
 
                 String attributeId = entry.getKey();
@@ -373,13 +371,16 @@ public class ContinuousTreeParser implements IProgressReporter {
         } // END: lines loop
 
         uniqueBranchAttributes.addAll(branchAttributesMap.values());
-        this.updateProgress(0.50);
 
         // ---collect attributes from nodes---//
 
         Map<String, Attribute> nodeAttributesMap = new HashMap<String, Attribute>();
 
+        progressStepSize = 0.25 / (double) pointsList.size();
         for (Point point : pointsList) {
+
+            progress += progressStepSize;
+            this.updateProgress(progress);
 
             for (Entry<String, Object> entry : point.getAttributes().entrySet()) {
 
@@ -437,13 +438,16 @@ public class ContinuousTreeParser implements IProgressReporter {
         } // END: points loop
 
         uniqueNodeAttributes.addAll(nodeAttributesMap.values());
-        this.updateProgress(0.75);
 
         // ---collect attributes from areas---//
 
         Map<String, Attribute> areasAttributesMap = new HashMap<String, Attribute>();
 
+        progressStepSize = 0.24 / (double) areasList.size();
         for (Area area : areasList) {
+
+            progress += progressStepSize;
+            this.updateProgress(progress);
 
             for (Entry<String, Object> entry : area.getAttributes().entrySet()) {
 
@@ -501,7 +505,6 @@ public class ContinuousTreeParser implements IProgressReporter {
         } // END: areas loop
 
         uniqueAreaAttributes.addAll(areasAttributesMap.values());
-        this.updateProgress(0.99);
 
         AxisAttributes axis = new AxisAttributes(this.xCoordinateAttributeName,
                                                  this.yCoordinateAttributeName);
@@ -525,13 +528,8 @@ public class ContinuousTreeParser implements IProgressReporter {
                                                uniqueAreaAttributes, //
                                                null, // locations
                                                layersList);
+
         this.updateProgress(1.0);
-
-        // System.out.println ("# nodes: " + rootedTree.getNodes().size() +
-        //                     "# lines: " + linesList.size() +
-        //                     "# points" + pointsList.size () +
-        //                     "# areas" + areasList.size ());
-
         return new GsonBuilder().create().toJson(spreadData);
     }
 
