@@ -38,6 +38,10 @@ public class DiscreteTreeParserTest {
                                                            1.0,
                                                            mostRecentSamplingDate);
 
+        ConsoleProgressObserver progressObserver = new ConsoleProgressObserver();
+        progressObserver.init (parser);
+        progressObserver.start ();
+
         String json = parser.parse();
         Gson gson = new Gson();
         SpreadData data = gson.fromJson(json, SpreadData.class);

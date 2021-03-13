@@ -137,7 +137,6 @@ public class TimeSlicerParser implements IProgressReporter {
                                   this.traitName, //
                                   this.rrwRateName).call();
             } // END: burnin check
-
             treesReadCounter++;
             progress += progressStepSize;
             this.updateProgress(progress);
