@@ -8,6 +8,13 @@
    [ui.config :as config]
    [ui.home.events :as home-events]
    [ui.home.page]
+
+   ;; [websocket-fx.core :as websocket]
+   ;; [haslett.format :as formats]
+   ;; [haslett.client :as ws]
+   ;; [cljs.core.async :as async]
+
+   [ui.ws :as websocket]
    [ui.logging :as logging]
    [ui.router.component :refer [router]]
    [ui.router.core :as router]
@@ -19,6 +26,7 @@
    [ui.utils]))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
+(def socket-id :default)
 
 (re-frame/reg-event-fx
   :active-page-changed
@@ -33,11 +41,14 @@
 (re-frame/reg-event-fx
   :ui/initialize
   (fn [{:keys [db]} [_ config]]
-    {:db             (-> db
+    {:db                 (-> db
                          (assoc :config config))
-     :forward-events {:register    :active-page-changed
-                      :events      #{::router-events/active-page-changed}
-                      :dispatch-to [:active-page-changed]}}))
+     :dispatch [::websocket/connect socket-id {:url       "ws://127.0.0.1:3001/ws"
+                                               :format    :json
+                                               :protocols ["graphql-ws"]}]
+     :forward-events     {:register    :active-page-changed
+                          :events      #{::router-events/active-page-changed}
+                          :dispatch-to [:active-page-changed]}}))
 
 (defn ^:dev/before-load stop []
   (log/debug "Stopping...")
@@ -60,5 +71,14 @@
 (defn ^:export init []
   (start))
 
+;; (defn test-it []
+;;   (async/go
+;;     (let [conn (async/<! (ws/connect "ws://127.0.0.1:3001/ws" {:format    formats/json
+;;                                                                :protocols ["graphql-ws"]}))]
+;;       (log/debug "connection status" conn))))
+
 (comment
+
+(re-frame/dispatch [::websocket/status :default])
+
   (re-frame/dispatch [::router-events/navigate :route/home]))
