@@ -18,6 +18,7 @@
           watched-params                 (:params opts)
           watched-query                  (:query opts)
           [event-name name params query] event-v]
+      ;; NOTE: not very idiomatic, can we refactor and use a referred namespace keyword?
       (when (and (= :ui.router.events/active-page-changed event-name)
                  (or (nil? watched-name)
                      (and (or (keyword? watched-name)

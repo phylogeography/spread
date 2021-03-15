@@ -40,6 +40,7 @@
 
 (re-frame/reg-event-fx
   :ui/initialize
+  [(re-frame/inject-cofx :localstorage)]
   (fn [{:keys [db]} [_ config]]
     {:db                 (-> db
                          (assoc :config config))
@@ -79,6 +80,8 @@
 
 (comment
 
-(re-frame/dispatch [::websocket/status :default])
+  @(re-frame/subscribe [::websocket/status :default])
+
+  @(re-frame/subscribe [::websocket/open-subscriptions :default])
 
   (re-frame/dispatch [::router-events/navigate :route/home]))
