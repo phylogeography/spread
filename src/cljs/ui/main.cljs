@@ -14,7 +14,8 @@
    ;; [haslett.client :as ws]
    ;; [cljs.core.async :as async]
 
-   [ui.ws :as websocket]
+   [ui.graphql :as graphql]
+   [ui.websocket-fx :as websocket]
    [ui.logging :as logging]
    [ui.router.component :refer [router]]
    [ui.router.core :as router]
@@ -40,12 +41,13 @@
 
 (re-frame/reg-event-fx
   :ui/initialize
-  [(re-frame/inject-cofx :localstorage)]
+  ;; [(re-frame/inject-cofx :localstorage)]
   (fn [{:keys [db]} [_ config]]
     {:db                 (-> db
                          (assoc :config config))
      :dispatch [::websocket/connect socket-id {:url       "ws://127.0.0.1:3001/ws"
                                                :format    :json
+                                               ;; :on-connect [::graphql/ws-authorize]
                                                :protocols ["graphql-ws"]}]
      :forward-events     {:register    :active-page-changed
                           :events      #{::router-events/active-page-changed}
@@ -82,6 +84,10 @@
 
   @(re-frame/subscribe [::websocket/status :default])
 
+  (re-frame/dispatch [::graphql/ws-authorize])
+
   @(re-frame/subscribe [::websocket/open-subscriptions :default])
 
-  (re-frame/dispatch [::router-events/navigate :route/home]))
+  (re-frame/dispatch [::router-events/navigate :route/home])
+
+  )

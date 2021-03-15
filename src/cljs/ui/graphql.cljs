@@ -4,10 +4,11 @@
    [camel-snake-kebab.core :as camel-snake]
    [camel-snake-kebab.extras :as camel-snake-extras]
    [clojure.string :as string]
+   [ui.websocket-fx :as websocket]
    [re-frame.core :as re-frame]
    [shared.macros :refer [promise->]]
    [taoensso.timbre :as log]
-   [ui.utils :refer [>evt]]))
+   [ui.utils :refer [>evt reg-empty-event-fx]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -97,6 +98,64 @@
                            (>evt [::response (gql->clj (.-data (.-data response)))])
                            (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
       {::query [params callback]})))
+
+;; TODO
+
+;; (reg-empty-event-fx ::ws-authorized)
+
+(re-frame/reg-event-fx
+  ::ws-authorized
+  (fn [{:keys [db ]}]
+
+    (log/debug "ws-authorized")
+
+    ))
+
+(re-frame/reg-event-fx
+  ::ws-authorized-failed
+  (fn [{:keys [db ] } [_ why?]]
+
+    (log/warn "ws-authorized-failed" {:error why?})
+
+    ))
+
+(re-frame/reg-event-fx
+  ::ws-authorize
+  [(re-frame/inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]}]
+    (let [url          (get-in db [:config :graphql :ws-url])
+          access-token (:access-token localstorage)]
+
+      (log/debug "ws-auth" {:url   url
+                            :token access-token})
+
+      {:dispatch [::websocket/request :default
+                  {:message
+                   {:type    "connection_init"
+                    :payload {"Authorization"
+                              "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzcHJlYWQiLCJpYXQiOjEuNjE1Mjk2NzI1MzY5RTksImV4cCI6NC4yNDMyOTY3MjUzNjlFOSwiYXVkIjoic3ByZWFkLWNsaWVudCIsInN1YiI6ImExMTk1ODc0LTBiYmUtNGE4Yy05NmY1LTE0Y2RmOTA5N2UwMiJ9.ZdT-j8BJStTC4FZFawZPoZBXlHJ1AQc2A9T3xxzQYUdBntyCtxUPuKGBNyHLdJmfzdUm66LgVlZw1kiyXbh4xw"}}
+                   :on-response [::ws-authorized]
+                   :on-timeout  [::ws-authorized-failed]
+                   :timeout     3000}]})))
+
+#_(re-frame/reg-event-fx
+  ::ws-authorize
+  [(re-frame/inject-cofx :localstorage)]
+  (fn [{:keys [db localstorage]}]
+    (let [url          (get-in db [:config :graphql :ws-url])
+          access-token (:access-token localstorage)]
+
+      (log/debug "ws-auth" {:url   url
+                            :token access-token})
+
+      {:dispatch [::websocket/request-response :default
+                  {:message
+                   {:type    "connection_init"
+                    :payload {"Authorization"
+                              "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzcHJlYWQiLCJpYXQiOjEuNjE1Mjk2NzI1MzY5RTksImV4cCI6NC4yNDMyOTY3MjUzNjlFOSwiYXVkIjoic3ByZWFkLWNsaWVudCIsInN1YiI6ImExMTk1ODc0LTBiYmUtNGE4Yy05NmY1LTE0Y2RmOTA5N2UwMiJ9.ZdT-j8BJStTC4FZFawZPoZBXlHJ1AQc2A9T3xxzQYUdBntyCtxUPuKGBNyHLdJmfzdUm66LgVlZw1kiyXbh4xw"}}
+                   :on-response [::ws-authorized]
+                   :on-timeout  [::ws-authorized-failed]
+                   :timeout     3000}]})))
 
 (defmethod handler :default
   [cofx k values]
