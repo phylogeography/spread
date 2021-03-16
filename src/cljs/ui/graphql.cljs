@@ -105,9 +105,9 @@
 
 (re-frame/reg-event-fx
   ::ws-authorized
-  (fn [{:keys [db ]}]
+  (fn [{:keys [db ]} [_ resp]]
 
-    (log/debug "ws-authorized")
+    (log/debug "ws-authorized" {:resp resp})
 
     ))
 

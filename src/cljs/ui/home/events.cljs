@@ -10,9 +10,9 @@
 
     (log/debug "home/initialize-page" db)
 
-    #_{:forward-events     {:register    :websocket-connected?
-                          :events      #{::websocket/connected}
-                          :dispatch-to [::initial-query]}}
+    #_{:forward-events {:register    :websocket-connected?
+                        :events      #{::websocket/connected}
+                        :dispatch-to [::initial-query]}}
 
     #_{:dispatch [::websocket/subscribe :default {:message
                                                   {:id      "1"
@@ -70,20 +70,22 @@
 
 (comment
 
-  (re-frame/dispatch [::websocket/subscribe :default {:message
-                                                      {:id      "1"
-                                                       :type    "start"
-                                                       :payload {:variables     {"Id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}
-                                                                 :extensions    {}
-                                                                 :operationName nil
-                                                                 :query         "subscription SubscriptionRoot($Id: ID!) {
+  (re-frame/dispatch [::websocket/subscribe :default
+                      :home-page
+                      {:message
+                       {:id      "1"
+                        :type    "start"
+                        :payload {:variables     {"Id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}
+                                  :extensions    {}
+                                  :operationName nil
+                                  :query         "subscription SubscriptionRoot($Id: ID!) {
                                                                                    discreteTreeParserStatus(id: $Id) {
                                                                                      status
                                                                                    }
                                                                                  }"}}
-                                                      :on-message [:ui.home.events/on-message]
-                                                      ;; :on-close   [::users-watch-closed]
-                                                      }])
+                       :on-message [:ui.home.events/on-message]
+                       ;; :on-close   [::users-watch-closed]
+                       }])
 
 
 

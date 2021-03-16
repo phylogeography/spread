@@ -90,7 +90,7 @@
                          (let [path    [::sockets socket-id :requests request-id]
                                request (get-in db path)]
 
-                           ;; (log/debug "@@@ request-response" more)
+                           (log/debug "@@@ request-response" more)
 
                            (cond-> {:db (dissoc-in db path)}
                              (contains? request :on-response)
@@ -182,24 +182,34 @@
 
                 (cond
                   (#{:request} proto)
-                  (let [xform         (filter (fn [msg]
+                  (let [xform (filter (fn [msg]
 
-                                                (log/debug "xform" msg)
+                                        ;; (log/debug "request/xform" msg)
 
-                                                (or
-                                                  (= (get msg "type") "connection_ack")
-                                                  (= (:id msg) id))))
+                                        (or
+                                          ;; NOTE : lacinia does not return id with the connection_init so we must assume that this is the response to the last request
+                                          (= (get msg "type") "connection_ack")
+                                          (= (:id msg) id))))
                         response-chan (async/tap mult (async/chan 1 xform))
                         timeout-chan  (async/timeout timeout)]
                     (async/go
                       (let [[value _] (async/alts! [timeout-chan response-chan])]
+
                         (log/debug "go-loop/req-resp" {:id id :value value})
+
                         (if (some? value)
-                          (re-frame/dispatch [::request-response socket-id id (:data value)])
+                          (re-frame/dispatch [::request-response socket-id id value])
                           (re-frame/dispatch [::request-timeout socket-id id :timeout])))))
 
                   (#{:subscription} proto)
-                  (let [xform         (filter (fn [msg] (= (:id msg) id)))
+                  (let [xform (filter (fn [msg]
+
+                                        #_(log/debug "sub/xform" {:id  id
+                                                                  :msg msg})
+
+                                        (or
+                                          (= (keyword (get msg "id")) id)
+                                          (= (:id msg) id))))
                         response-chan (async/tap mult (async/chan 1 xform))]
                     (async/go-loop []
                       (when-some [{:keys [data close] :as response} (async/<! response-chan)]
@@ -209,13 +219,14 @@
                         (if (true? close)
                           (do (async/close! response-chan)
                               (re-frame/dispatch [::subscription-closed socket-id id]))
-                          (do (re-frame/dispatch [::subscription-message socket-id id data])
+                          (do (re-frame/dispatch [::subscription-message socket-id id response])
                               (recur)))))))
+
                 (when (if (some? close)
                         (async/>! sink {:id id :proto proto :close close})
                         (do
 
-                          (log/debug "go-loop/sink" data)
+                          (log/debug "go-loop/sink" request)
 
                           (async/>! sink (merge data {:id id :proto proto
                                                       ;; :data data
@@ -237,12 +248,7 @@
     (log/debug "ws-message" message)
 
     (if-some [{:keys [sink]} (get @CONNECTIONS socket-id)]
-      (async/put! sink
-                  #_(merge message {:type    "connection_init"
-                                  :payload {"Authorization"
-                                            "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzcHJlYWQiLCJpYXQiOjEuNjE1Mjk2NzI1MzY5RTksImV4cCI6NC4yNDMyOTY3MjUzNjlFOSwiYXVkIjoic3ByZWFkLWNsaWVudCIsInN1YiI6ImExMTk1ODc0LTBiYmUtNGE4Yy05NmY1LTE0Y2RmOTA5N2UwMiJ9.ZdT-j8BJStTC4FZFawZPoZBXlHJ1AQc2A9T3xxzQYUdBntyCtxUPuKGBNyHLdJmfzdUm66LgVlZw1kiyXbh4xw"}})
-
-                  message)
+      (async/put! sink message)
       (log/error (str "Socket with id " socket-id " does not exist.")))))
 
 ;; INTROSPECTION

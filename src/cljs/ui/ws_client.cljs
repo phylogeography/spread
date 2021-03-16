@@ -48,7 +48,8 @@
      (set! (.-onopen socket)     (fn [_] (a/put! return stream)))
      (set! (.-onmessage socket)  (fn [e]
 
-                                   ;; (log/debug "ws-client/response" (fmt/read format (.-data e)))
+                                   ;; TODO : keywordize keys
+                                   #_(log/debug "@ ws-client/response" (fmt/read format (.-data e)))
 
                                    (a/put! source (fmt/read format (.-data e)))))
      (set! (.-onclose socket)    (fn [e]
@@ -58,12 +59,9 @@
                                    (a/put! return stream)))
      (go-loop []
        (when-let [msg (<! sink)]
-         (log/debug "ws-client/connect" msg)
+         (log/debug "@ ws-client/sink" msg)
          (.send socket
-                (fmt/write format msg)
-                #_(fmt/write format (merge msg {:type    "connection_init"
-                                              :payload {"Authorization"
-                                                        "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzcHJlYWQiLCJpYXQiOjEuNjE1Mjk2NzI1MzY5RTksImV4cCI6NC4yNDMyOTY3MjUzNjlFOSwiYXVkIjoic3ByZWFkLWNsaWVudCIsInN1YiI6ImExMTk1ODc0LTBiYmUtNGE4Yy05NmY1LTE0Y2RmOTA5N2UwMiJ9.ZdT-j8BJStTC4FZFawZPoZBXlHJ1AQc2A9T3xxzQYUdBntyCtxUPuKGBNyHLdJmfzdUm66LgVlZw1kiyXbh4xw"}})))
+                (fmt/write format msg))
          (recur))
        (close stream))
      return)))
