@@ -27,12 +27,12 @@
    :output-file-url     nil})
 
 (defn upsert! [db analysis]
-  (let [analysis (merge analysis nil-bayes-factor-analysis)]
+  (let [analysis (merge nil-bayes-factor-analysis analysis)]
     (log/debug "upsert!" analysis)
     (upsert-bayes-factor-analysis db analysis)))
 
 (defn update! [db analysis]
-  (let [analysis (merge analysis nil-bayes-factor-analysis)]
+  (let [analysis (merge nil-bayes-factor-analysis analysis)]
     (log/debug "update!" analysis)
     (update-bayes-factor-analysis db analysis)))
 
