@@ -4,46 +4,43 @@
             [ui.graphql :as graphql]
             [taoensso.timbre :as log]))
 
-;; TODO : dispatch initial query (user analysis etc)
 (re-frame/reg-event-fx
   ::initialize-page
   (fn [{:keys [db]}]
-    ;; (log/debug "home/initialize-page" db)
     {:forward-events {:register    :websocket-athorized?
                       :events      #{::graphql/ws-authorized}
                       :dispatch-to [::initial-query]}}))
 
-
 (re-frame/reg-event-fx
   ::initial-query
   (fn [{:keys [db]}]
-
-    (log/debug "home/initial-query" db)
-
-    {:dispatch [::graphql/subscription {:id    "home-page"
-                                        :query "subscription SubscriptionRoot($id: ID!) {
-                                                  discreteTreeParserStatus(id: $id) {
-                                                    id
-                                                    status
-                                                  }
-                                                }"
-                                        :variables {"id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}}]}))
-
-(re-frame/reg-event-fx
-  ::on-message
-  (fn [{:keys [db]} [_ message]]
-
-    (log/debug "home/on-message" message)
-
-    ))
-
+    {:dispatch-n [[::graphql/query {:query
+                                    "query {
+                                       getAuthorizedUser {
+                                         id
+                                         email
+                                       }
+                                     }"}]
+                  ;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
+                  [::graphql/subscription {:id        :home-page
+                                           :query     "subscription SubscriptionRoot($id: ID!) {
+                                                         discreteTreeParserStatus(id: $id) {
+                                                           id
+                                                           status
+                                                        }
+                                                      }"
+                                           :variables {"id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}}]]}))
 
 (comment
+  (re-frame/reg-event-fx
+    ::on-message
+    (fn [{:keys [db]} [_ message]]
+      (log/debug "home/on-message" message)))
 
   (re-frame/dispatch [::websocket/subscribe :default
                       "home-page"
                       {:message
-                       {;;:id      "1"
+                       {:id      "home-page"
                         :type    "start"
                         :payload {:variables     {"Id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}
                                   :extensions    {}
@@ -53,13 +50,4 @@
                                                                                      status
                                                                                    }
                                                                                  }"}}
-                       :on-message [:ui.home.events/on-message]
-                       ;; :on-close   [::users-watch-closed]
-                       }])
-
-
-
-
-
-
-  )
+                       :on-message [:ui.home.events/on-message]}]))

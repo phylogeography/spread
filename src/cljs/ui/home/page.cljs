@@ -1,8 +1,6 @@
 (ns ui.home.page
   (:require [ui.router.component :refer [page]]
-            [ui.graphql :as graphql]))
-
-;; (rf/dispatch [::wfx/request socket-id request])
+            [re-frame.core :as re-frame]))
 
 (defmethod page :route/home []
   (fn []

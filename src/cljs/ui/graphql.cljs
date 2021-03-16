@@ -1,14 +1,13 @@
 (ns ui.graphql
-  (:require
-   ["axios" :as axios]
-   [camel-snake-kebab.core :as camel-snake]
-   [camel-snake-kebab.extras :as camel-snake-extras]
-   [clojure.string :as string]
-   [ui.websocket-fx :as websocket]
-   [re-frame.core :as re-frame]
-   [shared.macros :refer [promise->]]
-   [taoensso.timbre :as log]
-   [ui.utils :refer [>evt reg-empty-event-fx]]))
+  (:require ["axios" :as axios]
+            [camel-snake-kebab.core :as camel-snake]
+            [camel-snake-kebab.extras :as camel-snake-extras]
+            [clojure.string :as string]
+            [re-frame.core :as re-frame]
+            [shared.macros :refer [promise->]]
+            [taoensso.timbre :as log]
+            [ui.utils :refer [>evt reg-empty-event-fx]]
+            [ui.websocket-fx :as websocket]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -99,14 +98,7 @@
                            (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
       {::query [params callback]})))
 
-;; TODO
-
 (reg-empty-event-fx ::ws-authorized)
-
-#_(re-frame/reg-event-fx
-  ::ws-authorized
-  (fn [{:keys [db ]} [_ resp]]
-    (log/debug "ws-authorized" {:resp resp})))
 
 (re-frame/reg-event-fx
   ::ws-authorize
@@ -114,41 +106,32 @@
   (fn [{:keys [db localstorage]} [_ {:keys [on-timeout]}]]
     (let [url          (get-in db [:config :graphql :ws-url])
           access-token (:access-token localstorage)]
-
-      (log/debug "ws-auth" {:url   url
-                            :token access-token
-                            :on-timeout on-timeout})
-
       {:dispatch [::websocket/request :default
                   {:message
                    {:type    "connection_init"
                     :payload {"Authorization"
                               (str "Bearer " access-token)}}
                    :on-response [::ws-authorized]
-                   :on-timeout  on-timeout #_[::ws-authorized-failed]
+                   :on-timeout  on-timeout
                    :timeout     3000}]})))
+
+(re-frame/reg-event-fx
+  ::subscription-response
+  (fn [cofx [_ response]]
+    (reduce-handlers cofx (gql->clj (get-in response [:payload :data])))))
 
 (re-frame/reg-event-fx
   ::subscription
   (fn [{:keys [db]} [_ {:keys [id query variables]}]]
     {:dispatch [::websocket/subscribe :default
-                id
+                (name id)
                 {:message
-                 {;;:id      id
-                  :type    "start"
+                 {:type    "start"
                   :payload {:variables     variables
                             :extensions    {}
                             :operationName nil
                             :query         query}}
-                 :on-message [::subscription-response]
-                 ;; :on-close   []
-                 }]}))
-
-(re-frame/reg-event-fx
-  ::subscription-response
-  (fn [cofx [_ response]]
-    (log/debug "received subscription response" response)
-    (reduce-handlers cofx (gql->clj (get-in response [:payload :data])))))
+                 :on-message [::subscription-response]}]}))
 
 (defmethod handler :default
   [cofx k values]
@@ -159,19 +142,17 @@
 
 (defmethod handler :discrete-tree-parser-status
   [{:keys [db]} _ {:keys [id status]}]
-  (log/debug "discrete-tree-parser-status handler" db)
-  {:db (assoc-in db [:discrete-tree-parser id :status] status)})
+  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
-(defmethod handler :user
-  [{:keys [db]} _ {:user/keys [address] :as user}]
-  (log/debug "user handler" user)
-  {:db (assoc-in db [:users address] user)})
+(defmethod handler :get-authorized-user
+  [{:keys [db]} _ {:keys [id email] :as user}]
+  {:db (-> db
+           (assoc-in [:users :authorized-user] user)
+           (assoc-in [:users id] user))})
 
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]
-  (log/debug "google-login handler" {:access-token access-token})
   (re-frame/dispatch [:splash/login-success access-token]))
-
 
 (defmethod handler :api/error
   [_ _ _]
