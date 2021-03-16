@@ -1,6 +1,5 @@
 (ns ui.ws-client
-  (:require [cljs.core.async :as a :refer [<!]]
-            [taoensso.timbre :as log])
+  (:require [cljs.core.async :as a :refer [<!]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 ;; NOTE: adapted from https://github.com/weavejester/haslett

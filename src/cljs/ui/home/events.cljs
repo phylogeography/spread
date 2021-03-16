@@ -1,19 +1,19 @@
 (ns ui.home.events
   (:require [re-frame.core :as re-frame]
-            [ui.websocket-fx :as websocket]
+            [taoensso.timbre :as log]
             [ui.graphql :as graphql]
-            [taoensso.timbre :as log]))
+            [ui.websocket-fx :as websocket]))
 
 (re-frame/reg-event-fx
   ::initialize-page
-  (fn [{:keys [db]}]
+  (fn [_]
     {:forward-events {:register    :websocket-athorized?
                       :events      #{::graphql/ws-authorized}
                       :dispatch-to [::initial-query]}}))
 
 (re-frame/reg-event-fx
   ::initial-query
-  (fn [{:keys [db]}]
+  (fn [_]
     {:dispatch-n [[::graphql/query {:query
                                     "query {
                                        getAuthorizedUser {
@@ -34,7 +34,7 @@
 (comment
   (re-frame/reg-event-fx
     ::on-message
-    (fn [{:keys [db]} [_ message]]
+    (fn [_ [_ message]]
       (log/debug "home/on-message" message)))
 
   (re-frame/dispatch [::websocket/subscribe :default

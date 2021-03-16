@@ -103,9 +103,8 @@
 (re-frame/reg-event-fx
   ::ws-authorize
   [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [_ {:keys [on-timeout]}]]
-    (let [url          (get-in db [:config :graphql :ws-url])
-          access-token (:access-token localstorage)]
+  (fn [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
+    (let [access-token (:access-token localstorage)]
       {:dispatch [::websocket/request :default
                   {:message
                    {:type    "connection_init"
@@ -122,7 +121,7 @@
 
 (re-frame/reg-event-fx
   ::subscription
-  (fn [{:keys [db]} [_ {:keys [id query variables]}]]
+  (fn [_ [_ {:keys [id query variables]}]]
     {:dispatch [::websocket/subscribe :default
                 (name id)
                 {:message
@@ -145,7 +144,7 @@
   {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
 (defmethod handler :get-authorized-user
-  [{:keys [db]} _ {:keys [id email] :as user}]
+  [{:keys [db]} _ {:keys [id] :as user}]
   {:db (-> db
            (assoc-in [:users :authorized-user] user)
            (assoc-in [:users id] user))})

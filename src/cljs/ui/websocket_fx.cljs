@@ -152,7 +152,8 @@
               (when (some? on-disconnect) (re-frame/dispatch on-disconnect))))
           (when-not (async/poll! close-status)
             (async/go-loop []
-              (when-some [{:keys [id proto data close timeout] :or {timeout 10000} :as request} (async/<! sink-proxy)]
+              (when-some [{:keys [id proto data close timeout]
+                           :or   {timeout 10000}} (async/<! sink-proxy)]
                 (cond
                   (#{:request} proto)
                   (let [xform         (filter (fn [msg]
@@ -174,7 +175,7 @@
                                                   (= (:id msg) id))))
                         response-chan (async/tap mult (async/chan 1 xform))]
                     (async/go-loop []
-                      (when-some [{:keys [data close] :as response} (async/<! response-chan)]
+                      (when-some [{:keys [close] :as response} (async/<! response-chan)]
                         (if (true? close)
                           (do (async/close! response-chan)
                               (re-frame/dispatch [::subscription-closed socket-id id]))

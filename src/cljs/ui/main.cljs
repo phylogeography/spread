@@ -37,7 +37,7 @@
 
 (re-frame/reg-event-fx
   ::ws-authorize-failed
-  (fn [{:keys [db ]} [_ why?]]
+  (fn [_ [_ why?]]
     (log/warn "Failed to authorize websocket connection" {:error why?})
     {:dispatch [::router-events/navigate :route/splash]}))
 
@@ -45,7 +45,7 @@
   :ui/initialize
   (fn [{:keys [db]} [_ config]]
     {:db             (assoc db :config config)
-     :dispatch       [::websocket/connect socket-id {:url        "ws://127.0.0.1:3001/ws"
+     :dispatch       [::websocket/connect socket-id {:url        (-> config :graphql :ws-url)
                                                      :format     :json
                                                      :on-connect [::graphql/ws-authorize
                                                                   {:on-timeout [::ws-authorize-failed]}]

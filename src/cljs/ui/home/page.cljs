@@ -1,7 +1,7 @@
 (ns ui.home.page
-  (:require [ui.router.component :refer [page]]
-            [ui.subscriptions :as subs]
-            [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [ui.router.component :refer [page]]
+            [ui.subscriptions :as subs]))
 
 ;; TODO : just for graphql subs POC
 (def id "60b08880-03e6-4a3f-a170-29f3c75cb43f")
