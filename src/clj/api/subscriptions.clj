@@ -18,7 +18,7 @@
                          (when-let [{:keys [status progress]} (callback db id)]
                            (source-stream (clj->gql {:id       id
                                                      :status   status
-                                                     :progress progress}))
+                                                     :progress (or progress 0)}))
                            (<! (timeout 1000))
                            (recur)))]
       ;; return a function to cleanup the subscription
@@ -30,16 +30,16 @@
 
 (defn create-continuous-tree-parser-status-sub []
   (create-status-subscription "continuous-tree" (fn [db id]
-                                                  (continuous-tree-model/get-status db {:id id}))))
+                                                  (continuous-tree-model/get-status db {:tree-id id}))))
 
 (defn create-discrete-tree-parser-status-sub []
   (create-status-subscription "discrete-tree" (fn [db id]
-                                                (discrete-tree-model/get-status db {:id id}))))
+                                                (discrete-tree-model/get-status db {:tree-id id}))))
 
 (defn create-bayes-factor-parser-status-sub []
   (create-status-subscription "bayes-factor" (fn [db id]
-                                               (bayes-factor-model/get-status db {:id id}))))
+                                               (bayes-factor-model/get-status db {:bayes-factor-analysis-id id}))))
 
 (defn create-time-slicer-parser-status-sub []
   (create-status-subscription "time-slicer" (fn [db id]
-                                              (time-slicer-model/get-status db {:id id}))))
+                                              (time-slicer-model/get-status db {:time-slicer-id id}))))

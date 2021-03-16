@@ -15,10 +15,6 @@
         <constraints nullable="false" />
       </column>
       <column name="slice_heights_file_url" type="VARCHAR(200)"/>
-      <column name="status" type="VARCHAR(50)">
-        <constraints nullable="false" />
-      </column>
-      <column name="progress" type="float" defaultValueNumeric="0"/>
       <column name="burn_in" type="INT"/>
       <column name="number_of_intervals" type="INT"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
@@ -63,7 +59,7 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="2.0-5">
+  <changeSet author="filip" id="4.0-5">
     <addForeignKeyConstraint constraintName="time_slicer_attributes_SLASH_timeslicer_FK"
                              baseColumnNames="time_slicer_id"
                              baseTableName="time_slicer_attributes"
@@ -78,6 +74,31 @@
         columnNames="time_slicer_id, attribute_name"
         constraintName="unique_time_slicer_attribute_names"
         tableName="time_slicer_attributes"/>
+  </changeSet>
+
+  <changeSet author="filip" id="4.0-6">
+    <createTable tableName="time_slicer_status">
+      <column name="time_slicer_id" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="status" type="VARCHAR(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="progress" type="float" defaultValueNumeric="0"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="filip" id="4.0-7">
+    <addForeignKeyConstraint constraintName="time_slicer_status_SLASH_time_slicer_FK"
+                             baseColumnNames="time_slicer_id"
+                             baseTableName="time_slicer_status"
+                             referencedColumnNames="id"
+                             referencedTableName="time_slicer"
+                             onDelete="CASCADE"
+                             onUpdate="RESTRICT"
+                             deferrable="false"
+                             initiallyDeferred="false"
+                             validate="true"/>
   </changeSet>
 
 </databaseChangeLog>

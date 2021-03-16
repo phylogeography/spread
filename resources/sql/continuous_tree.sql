@@ -5,20 +5,17 @@ INSERT INTO continuous_tree(
 id,
 user_id,
 tree_file_url,
-status,
 readable_name
 )
 VALUES (
 :id,
 :user-id,
 :tree-file-url,
-:status,
 :readable-name
 )
 ON DUPLICATE KEY UPDATE
 user_id = user_id,
 tree_file_url = IF(:tree-file-url IS NOT NULL, :tree-file-url, tree_file_url),
-status = :status,
 readable_name = :readable-name
 
 -- :name update-tree :! :n
@@ -26,8 +23,6 @@ readable_name = :readable-name
 
 UPDATE continuous_tree
 SET
-status = IF(:status IS NOT NULL, :status, status),
-progress = IF(:progress IS NOT NULL, :progress, progress),
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 x_coordinate_attribute_name = IF(:x-coordinate-attribute-name IS NOT NULL, :x-coordinate-attribute-name, x_coordinate_attribute_name),
 y_coordinate_attribute_name = IF(:y-coordinate-attribute-name IS NOT NULL, :y-coordinate-attribute-name, y_coordinate_attribute_name),
@@ -90,19 +85,35 @@ hpd_level,
 has_external_annotations,
 timescale_multiplier,
 most_recent_sampling_date,
-status,
-progress,
 output_file_url,
 readable_name
 FROM continuous_tree
+JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id
 WHERE :id = id
+
+-- :name upsert-status :! :n
+-- :doc Upsert a continuous tree status
+
+INSERT INTO continuous_tree_status(
+tree_id,
+status,
+progress
+)
+VALUES (
+:tree-id,
+:status,
+:progress
+)
+ON DUPLICATE KEY UPDATE
+status = IF(:status IS NOT NULL, :status, status),
+progress = IF(:progress IS NOT NULL, :progress, progress)
 
 -- :name get-status :? :1
 -- :doc Get analysis status by id
 
 SELECT
-id,
+tree_id,
 status,
 progress
-FROM continuous_tree
-WHERE :id = id
+FROM continuous_tree_status
+WHERE tree_id = :tree-id
