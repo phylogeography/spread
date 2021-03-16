@@ -101,61 +101,54 @@
 
 ;; TODO
 
-;; (reg-empty-event-fx ::ws-authorized)
+(reg-empty-event-fx ::ws-authorized)
 
-(re-frame/reg-event-fx
+#_(re-frame/reg-event-fx
   ::ws-authorized
   (fn [{:keys [db ]} [_ resp]]
-
-    (log/debug "ws-authorized" {:resp resp})
-
-    ))
-
-(re-frame/reg-event-fx
-  ::ws-authorized-failed
-  (fn [{:keys [db ] } [_ why?]]
-
-    (log/warn "ws-authorized-failed" {:error why?})
-
-    ))
+    (log/debug "ws-authorized" {:resp resp})))
 
 (re-frame/reg-event-fx
   ::ws-authorize
   [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]}]
+  (fn [{:keys [db localstorage]} [_ {:keys [on-timeout]}]]
     (let [url          (get-in db [:config :graphql :ws-url])
           access-token (:access-token localstorage)]
 
       (log/debug "ws-auth" {:url   url
-                            :token access-token})
+                            :token access-token
+                            :on-timeout on-timeout})
 
       {:dispatch [::websocket/request :default
                   {:message
                    {:type    "connection_init"
                     :payload {"Authorization"
-                              "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzcHJlYWQiLCJpYXQiOjEuNjE1Mjk2NzI1MzY5RTksImV4cCI6NC4yNDMyOTY3MjUzNjlFOSwiYXVkIjoic3ByZWFkLWNsaWVudCIsInN1YiI6ImExMTk1ODc0LTBiYmUtNGE4Yy05NmY1LTE0Y2RmOTA5N2UwMiJ9.ZdT-j8BJStTC4FZFawZPoZBXlHJ1AQc2A9T3xxzQYUdBntyCtxUPuKGBNyHLdJmfzdUm66LgVlZw1kiyXbh4xw"}}
+                              (str "Bearer " access-token)}}
                    :on-response [::ws-authorized]
-                   :on-timeout  [::ws-authorized-failed]
+                   :on-timeout  on-timeout #_[::ws-authorized-failed]
                    :timeout     3000}]})))
 
-#_(re-frame/reg-event-fx
-  ::ws-authorize
-  [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]}]
-    (let [url          (get-in db [:config :graphql :ws-url])
-          access-token (:access-token localstorage)]
+(re-frame/reg-event-fx
+  ::subscription
+  (fn [{:keys [db]} [_ {:keys [id query variables]}]]
+    {:dispatch [::websocket/subscribe :default
+                id
+                {:message
+                 {;;:id      id
+                  :type    "start"
+                  :payload {:variables     variables
+                            :extensions    {}
+                            :operationName nil
+                            :query         query}}
+                 :on-message [::subscription-response]
+                 ;; :on-close   []
+                 }]}))
 
-      (log/debug "ws-auth" {:url   url
-                            :token access-token})
-
-      {:dispatch [::websocket/request-response :default
-                  {:message
-                   {:type    "connection_init"
-                    :payload {"Authorization"
-                              "Bearer eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJzcHJlYWQiLCJpYXQiOjEuNjE1Mjk2NzI1MzY5RTksImV4cCI6NC4yNDMyOTY3MjUzNjlFOSwiYXVkIjoic3ByZWFkLWNsaWVudCIsInN1YiI6ImExMTk1ODc0LTBiYmUtNGE4Yy05NmY1LTE0Y2RmOTA5N2UwMiJ9.ZdT-j8BJStTC4FZFawZPoZBXlHJ1AQc2A9T3xxzQYUdBntyCtxUPuKGBNyHLdJmfzdUm66LgVlZw1kiyXbh4xw"}}
-                   :on-response [::ws-authorized]
-                   :on-timeout  [::ws-authorized-failed]
-                   :timeout     3000}]})))
+(re-frame/reg-event-fx
+  ::subscription-response
+  (fn [cofx [_ response]]
+    (log/debug "received subscription response" response)
+    (reduce-handlers cofx (gql->clj (get-in response [:payload :data])))))
 
 (defmethod handler :default
   [cofx k values]
@@ -163,6 +156,11 @@
   ;; that have nothing to do besides reducing over their response values
   (log/debug "default handler" {:k k})
   (reduce-handlers cofx values))
+
+(defmethod handler :discrete-tree-parser-status
+  [{:keys [db]} _ {:keys [id status]}]
+  (log/debug "discrete-tree-parser-status handler" db)
+  {:db (assoc-in db [:discrete-tree-parser id :status] status)})
 
 (defmethod handler :user
   [{:keys [db]} _ {:user/keys [address] :as user}]
@@ -173,6 +171,7 @@
   [_ _ {:keys [access-token]}]
   (log/debug "google-login handler" {:access-token access-token})
   (re-frame/dispatch [:splash/login-success access-token]))
+
 
 (defmethod handler :api/error
   [_ _ _]

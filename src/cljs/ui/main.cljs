@@ -14,6 +14,8 @@
    ;; [haslett.client :as ws]
    ;; [cljs.core.async :as async]
 
+   [day8.re-frame.forward-events-fx]
+
    [ui.graphql :as graphql]
    [ui.websocket-fx :as websocket]
    [ui.logging :as logging]
@@ -40,18 +42,24 @@
         nil))))
 
 (re-frame/reg-event-fx
+  ::ws-authorize-failed
+  (fn [{:keys [db ]} [_ why?]]
+    (log/warn "Failed to authorize websocket conection" {:error why?})
+    {:dispatch [::router-events/navigate :route/splash]}))
+
+(re-frame/reg-event-fx
   :ui/initialize
-  ;; [(re-frame/inject-cofx :localstorage)]
   (fn [{:keys [db]} [_ config]]
-    {:db                 (-> db
+    {:db             (-> db
                          (assoc :config config))
-     :dispatch [::websocket/connect socket-id {:url       "ws://127.0.0.1:3001/ws"
-                                               :format    :json
-                                               ;; :on-connect [::graphql/ws-authorize]
-                                               :protocols ["graphql-ws"]}]
-     :forward-events     {:register    :active-page-changed
-                          :events      #{::router-events/active-page-changed}
-                          :dispatch-to [:active-page-changed]}}))
+     :dispatch       [::websocket/connect socket-id {:url        "ws://127.0.0.1:3001/ws"
+                                                     :format     :json
+                                                     :on-connect [::graphql/ws-authorize
+                                                                  {:on-timeout [::ws-authorize-failed]}]
+                                                     :protocols  ["graphql-ws"]}]
+     :forward-events {:register    :active-page-changed
+                      :events      #{::router-events/active-page-changed}
+                      :dispatch-to [:active-page-changed]}}))
 
 (defn ^:dev/before-load stop []
   (log/debug "Stopping...")

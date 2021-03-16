@@ -154,6 +154,8 @@
 
 ;; FX HANDLERS
 
+;; TODO keywordize response
+;; TODO remove the need for the `data` key ?
 (re-frame/reg-fx
   ::connect
   (fn [{socket-id
@@ -187,8 +189,8 @@
                                         ;; (log/debug "request/xform" msg)
 
                                         (or
-                                          ;; NOTE : lacinia does not return id with the connection_init so we must assume that this is the response to the last request
-                                          (= (get msg "type") "connection_ack")
+                                          ;; NOTE : lacinia does not return id with the connection_init so we must assume that this is the response to the last sent ws request
+                                          (= (:type msg) "connection_ack")
                                           (= (:id msg) id))))
                         response-chan (async/tap mult (async/chan 1 xform))
                         timeout-chan  (async/timeout timeout)]
@@ -208,8 +210,8 @@
                                                                   :msg msg})
 
                                         (or
-                                          (= (keyword (get msg "id")) id)
-                                          (= (:id msg) id))))
+                                          (= (:id msg) id)
+                                          #_(= (-> msg :id keyword) id))))
                         response-chan (async/tap mult (async/chan 1 xform))]
                     (async/go-loop []
                       (when-some [{:keys [data close] :as response} (async/<! response-chan)]

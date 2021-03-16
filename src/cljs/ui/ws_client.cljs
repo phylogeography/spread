@@ -1,9 +1,16 @@
 (ns ui.ws-client
-  "A namespace for opening WebSockets in ClojureScript."
   (:require [cljs.core.async :as a :refer [<! >!]]
-            [haslett.format :as fmt]
+            ;; [haslett.format :as fmt]
             [taoensso.timbre :as log])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
+
+;; NOTE: adapted from https://github.com/weavejester/haslett
+
+;; (def json
+;;   "Read and write data encoded in JSON."
+;;   (reify Format
+;;     (read  [_ s] (js->clj (js/JSON.parse s)))
+;;     (write [_ v] (js/JSON.stringify (clj->js v)))))
 
 (defn close
   "Close a stream opened by connect."
@@ -39,7 +46,7 @@
          socket    (js/WebSocket. url protocols)
          source    (:source options (a/chan))
          sink      (:sink   options (a/chan))
-         format    (:format options fmt/identity)
+         ;; format    (:format options fmt/identity)
          status    (a/promise-chan)
          return    (a/promise-chan)
          close?    (:close-chan? options true)
@@ -51,7 +58,11 @@
                                    ;; TODO : keywordize keys
                                    #_(log/debug "@ ws-client/response" (fmt/read format (.-data e)))
 
-                                   (a/put! source (fmt/read format (.-data e)))))
+                                   (a/put! source (-> (.-data e)
+                                                      js/JSON.parse
+                                                      (js->clj :keywordize-keys true))
+
+                                           #_(fmt/read format (.-data e)))))
      (set! (.-onclose socket)    (fn [e]
                                    (a/put! status {:reason (.-reason e) :code (.-code e)})
                                    (when close? (a/close! source))
@@ -60,8 +71,9 @@
      (go-loop []
        (when-let [msg (<! sink)]
          (log/debug "@ ws-client/sink" msg)
-         (.send socket
-                (fmt/write format msg))
+         (.send socket (js/JSON.stringify (clj->js msg))
+                ;; (fmt/write format msg)
+                )
          (recur))
        (close stream))
      return)))
