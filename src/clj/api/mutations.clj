@@ -202,7 +202,8 @@
                                                 :status  :ERROR})))))
 
 (defn upload-time-slicer [{:keys [sqs workers-queue-url authed-user-id db]}
-                          {trees-file-url         :treesFileUrl readable-name :readableName
+                          {trees-file-url         :treesFileUrl
+                           readable-name :readableName
                            slice-heights-file-url :sliceHeightsFileUrl
                            :as                    args} _]
   (log/info "upload-time-slicer" {:user/id authed-user-id

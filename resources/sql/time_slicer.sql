@@ -19,7 +19,6 @@ ON DUPLICATE KEY UPDATE
 user_id = user_id,
 trees_file_url = IF(:trees-file-url IS NOT NULL, :trees-file-url, trees_file_url),
 slice_heights_file_url = IF(:slice-heights-file-url IS NOT NULL, :slice-heights-file-url, slice_heights_file_url),
-status = :status,
 readable_name = :readable-name
 
 -- :name update-time-slicer :! :n
@@ -62,7 +61,7 @@ trees_count,
 status,
 progress
 FROM time_slicer
-JOIN time_slicer_status ON time_slicer_status.tree_id = time_slicer.id
+JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id
 WHERE :id = id
 
 -- :name insert-attribute :! :n

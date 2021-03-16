@@ -82,7 +82,7 @@
         <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="status" type="VARCHAR(50)">
-        <constraints nullable="false" />
+        <constraints nullable="false"/>
       </column>
       <column name="progress" type="float" defaultValueNumeric="0"/>
     </createTable>
