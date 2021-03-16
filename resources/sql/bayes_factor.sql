@@ -61,7 +61,9 @@ burn_in,
 status,
 progress,
 output_file_url,
-readable_name
+readable_name,
+status,
+progress
 FROM bayes_factor_analysis
 JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id
 WHERE id = :id

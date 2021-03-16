@@ -68,7 +68,9 @@ location_attribute_name,
 timescale_multiplier,
 most_recent_sampling_date,
 output_file_url,
-readable_name
+readable_name,
+status,
+progress
 FROM discrete_tree
 JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id
 WHERE :id = id

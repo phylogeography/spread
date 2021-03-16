@@ -147,8 +147,8 @@
                                        :user-id            authed-user-id
                                        :tree-file-url      tree-file-url
                                        :locations-file-url locations-file-url})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  status})
+      (discrete-tree-model/upsert-status! db {:tree-id id
+                                              :status  status})
       ;; sends message to worker to parse attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
                                                    :id           id

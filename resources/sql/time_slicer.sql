@@ -58,7 +58,9 @@ hpd_level,
 timescale_multiplier,
 most_recent_sampling_date,
 output_file_url,
-trees_count
+trees_count,
+status,
+progress
 FROM time_slicer
 JOIN time_slicer_status ON time_slicer_status.tree_id = time_slicer.id
 WHERE :id = id

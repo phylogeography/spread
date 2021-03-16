@@ -86,7 +86,9 @@ has_external_annotations,
 timescale_multiplier,
 most_recent_sampling_date,
 output_file_url,
-readable_name
+readable_name,
+status,
+progress
 FROM continuous_tree
 JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id
 WHERE :id = id
