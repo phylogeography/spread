@@ -20,7 +20,9 @@
     (loop [current-status (query-status id)]
       (if (= status current-status)
         current-status
-        (recur (query-status id))))))
+        (do
+          (Thread/sleep 1000)
+          (recur (query-status id)))))))
 
 (deftest time-slicer-test
   (let [[url _] (get-in (run-query {:query

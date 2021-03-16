@@ -21,7 +21,9 @@
     (loop [current-status (query-status id)]
       (if (= status current-status)
         current-status
-        (recur (query-status id))))))
+        (do
+          (Thread/sleep 1000)
+          (recur (query-status id)))))))
 
 (deftest discrete-tree-test
   (let [[tree-url locations-url] (get-in (run-query {:query
