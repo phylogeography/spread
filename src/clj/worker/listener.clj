@@ -10,7 +10,7 @@
             [clojure.core.match :refer [match]]
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
-            [shared.utils :refer [file-exists?]]
+            [shared.utils :refer [file-exists? round]]
             [taoensso.timbre :as log])
   (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]
            [com.spread.progress IProgressObserver IProgressReporter]))
@@ -89,12 +89,13 @@
                                  (.setTimescaleMultiplier timescale-multiplier)
                                  (.setMostRecentSamplingDate most-recent-sampling-date))
           progress-handler     (new-progress-handler (fn [progress]
-                                                       (let [progress (with-precision 2 progress)]
-                                                         (log/debug "discrete tree progress" {:id       id
-                                                                                              :progress progress})
-                                                         (discrete-tree-model/upsert-status! db {:tree-id  id
-                                                                                                 :status   :RUNNING
-                                                                                                 :progress progress}))))
+                                                       (let [progress (round 2 progress)]
+                                                         (when (= (mod progress 0.1) 0.0)
+                                                           (log/debug "discrete tree progress" {:id       id
+                                                                                                :progress progress})
+                                                           (discrete-tree-model/upsert-status! db {:tree-id  id
+                                                                                                   :status   :RUNNING
+                                                                                                   :progress progress})))))
           _                    (doto progress-handler
                                  (.init parser))
           output-object-key    (str user-id "/" id ".json")
@@ -166,12 +167,13 @@
                                (.setTimescaleMultiplier timescale-multiplier)
                                (.setMostRecentSamplingDate most-recent-sampling-date))
           progress-handler   (new-progress-handler (fn [progress]
-                                                     (let [progress (with-precision 2 progress)]
-                                                       (log/debug "continuous tree progress" {:id       id
-                                                                                              :progress progress})
-                                                       (continuous-tree-model/upsert-status! db {:tree-id  id
-                                                                                                 :status   :RUNNING
-                                                                                                 :progress progress}))))
+                                                     (let [progress (round 2 progress)]
+                                                       (when (= (mod progress 0.1) 0.0)
+                                                         (log/debug "continuous tree progress" {:id       id
+                                                                                                :progress progress})
+                                                         (continuous-tree-model/upsert-status! db {:tree-id  id
+                                                                                                   :status   :RUNNING
+                                                                                                   :progress progress})))))
           _                  (doto progress-handler
                                (.init parser))
           output-object-key  (str user-id "/" id ".json")
@@ -252,12 +254,13 @@
                                (.setTimescaleMultiplier timescale-multiplier)
                                (.setMostRecentSamplingDate most-recent-sampling-date))
           progress-handler   (new-progress-handler (fn [progress]
-                                                     (let [progress (with-precision 2 progress)]
-                                                       (log/debug "time-slicer progress" {:id       id
-                                                                                          :progress progress})
-                                                       (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                                                                             :status         :RUNNING
-                                                                                             :progress       progress}))))
+                                                     (let [progress (round 2 progress)]
+                                                       (when (= (mod progress 0.1) 0.0)
+                                                         (log/debug "time-slicer progress" {:id       id
+                                                                                            :progress progress})
+                                                         (time-slicer-model/upsert-status! db {:time-slicer-id id
+                                                                                               :status         :RUNNING
+                                                                                               :progress       progress})))))
           _                  (doto progress-handler
                                (.init parser))
           output-object-key  (str user-id "/" id ".json")
@@ -330,22 +333,24 @@
                                  {:why?   "You need to specify one of `log-file-path` and `number-of-locations`"
                                   :where? ::parse-bayes-factors}))
                  :else (throw (Exception. "Unexpected error")))
-          progress-handler (new-progress-handler (fn [progress]
-                                                   (log/debug "bayes factor progress" {:id       id
-                                                                                       :progress progress})
-                                                   (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
-                                                                                          :status                   :RUNNING
-                                                                                          :progress                 progress})))
-          _                (doto progress-handler
+          progress-handler                  (new-progress-handler (fn [progress]
+                                                                    (let [progress (round 2 progress)]
+                                                     (when (= (mod progress 0.1) 0.0)
+                                                       (log/debug "bayes factor progress" {:id       id
+                                                                                           :progress progress})
+                                                       (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
+                                                                                              :status                   :RUNNING
+                                                                                              :progress                 progress})))))
+          _                                 (doto progress-handler
                              (.init parser))
           {:keys [bayesFactors spreadData]} (-> (.parse parser) (json/read-str :key-fn keyword))
-          output-object-key  (str user-id "/" id ".json")
-          output-object-path (str tmp-dir "/" output-object-key)
-          _                  (spit output-object-path (json/write-str spreadData) :append false)
-          _                  (aws-s3/upload-file s3 {:bucket    bucket-name
-                                                     :key       output-object-key
-                                                     :file-path output-object-path})
-          url                (aws-s3/build-url aws-config bucket-name output-object-key)]
+          output-object-key                 (str user-id "/" id ".json")
+          output-object-path                (str tmp-dir "/" output-object-key)
+          _                                 (spit output-object-path (json/write-str spreadData) :append false)
+          _                                 (aws-s3/upload-file s3 {:bucket    bucket-name
+                                                                    :key       output-object-key
+                                                                    :file-path output-object-path})
+          url                               (aws-s3/build-url aws-config bucket-name output-object-key)]
       ;; TODO : in a transaction
       (bayes-factor-model/insert-bayes-factors db {:bayes-factor-analysis-id id
                                                    :bayes-factors            (json/write-str bayesFactors)})
