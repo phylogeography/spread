@@ -1,7 +1,6 @@
 package com.spread;
 
 import com.spread.progress.IProgressObserver;
-import com.spread.progress.IProgressReporter;
 
 public class ConsoleProgressObserver extends Thread implements IProgressObserver {
 
@@ -13,13 +12,8 @@ public class ConsoleProgressObserver extends Thread implements IProgressObserver
 
     public ConsoleProgressObserver() {
         this.barLength = 100;
-    }
-
-    @Override
-    public void init(IProgressReporter reporter) {
         this.showProgress = true;
         this.progress = 0.0;
-        reporter.registerProgressObserver(this);
     }
 
     @Override

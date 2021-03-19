@@ -40,7 +40,7 @@ public class TimeSlicerParserTest {
                                                         1.0);
 
         ConsoleProgressObserver progressObserver = new ConsoleProgressObserver();
-        progressObserver.init (parser);
+        parser.registerProgressObserver(progressObserver);
         progressObserver.start ();
 
         String json = parser.parse();

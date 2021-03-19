@@ -36,7 +36,7 @@ public class ContinuousTreeParserTest {
                                                                 mostRecentSamplingDate);
 
         ConsoleProgressObserver progressObserver = new ConsoleProgressObserver();
-        progressObserver.init (parser);
+        parser.registerProgressObserver(progressObserver);
         progressObserver.start ();
 
         String json = parser.parse();
