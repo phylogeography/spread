@@ -21,8 +21,6 @@
 
 (defn new-progress-handler [callback]
   (proxy [IProgressObserver] []
-    (init [^IProgressReporter reporter]
-      (.registerProgressObserver reporter this))
     (handleProgress [progress]
       (callback progress))))
 
@@ -82,12 +80,6 @@
                                  (aws-s3/download-file s3 {:bucket    bucket-name
                                                            :key       locations-object-key
                                                            :dest-path locations-file-path}))
-          parser               (doto (new DiscreteTreeParser)
-                                 (.setTreeFilePath tree-file-path)
-                                 (.setLocationsFilePath locations-file-path)
-                                 (.setLocationTraitAttributeName location-attribute-name)
-                                 (.setTimescaleMultiplier timescale-multiplier)
-                                 (.setMostRecentSamplingDate most-recent-sampling-date))
           progress-handler     (new-progress-handler (fn [progress]
                                                        (let [progress (round 2 progress)]
                                                          (when (= (mod progress 0.1) 0.0)
@@ -96,8 +88,13 @@
                                                            (discrete-tree-model/upsert-status! db {:tree-id  id
                                                                                                    :status   :RUNNING
                                                                                                    :progress progress})))))
-          _                    (doto progress-handler
-                                 (.init parser))
+          parser               (doto (new DiscreteTreeParser)
+                                 (.setTreeFilePath tree-file-path)
+                                 (.setLocationsFilePath locations-file-path)
+                                 (.setLocationTraitAttributeName location-attribute-name)
+                                 (.setTimescaleMultiplier timescale-multiplier)
+                                 (.setMostRecentSamplingDate most-recent-sampling-date)
+                                 (.registerProgressObserver progress-handler))
           output-object-key    (str user-id "/" id ".json")
           output-object-path   (str tmp-dir "/" output-object-key)
           _                    (spit output-object-path (.parse parser) :append false)
@@ -157,15 +154,6 @@
                                (aws-s3/download-file s3 {:bucket    bucket-name
                                                          :key       tree-object-key
                                                          :dest-path tree-file-path}))
-          ;; call all setters
-          parser             (doto (new ContinuousTreeParser)
-                               (.setTreeFilePath tree-file-path)
-                               (.setXCoordinateAttributeName x-coordinate-attribute-name)
-                               (.setYCoordinateAttributeName y-coordinate-attribute-name)
-                               (.setHpdLevel hpd-level)
-                               (.hasExternalAnnotations has-external-annotations)
-                               (.setTimescaleMultiplier timescale-multiplier)
-                               (.setMostRecentSamplingDate most-recent-sampling-date))
           progress-handler   (new-progress-handler (fn [progress]
                                                      (let [progress (round 2 progress)]
                                                        (when (= (mod progress 0.1) 0.0)
@@ -174,8 +162,16 @@
                                                          (continuous-tree-model/upsert-status! db {:tree-id  id
                                                                                                    :status   :RUNNING
                                                                                                    :progress progress})))))
-          _                  (doto progress-handler
-                               (.init parser))
+          ;; call all setters
+          parser             (doto (new ContinuousTreeParser)
+                               (.setTreeFilePath tree-file-path)
+                               (.setXCoordinateAttributeName x-coordinate-attribute-name)
+                               (.setYCoordinateAttributeName y-coordinate-attribute-name)
+                               (.setHpdLevel hpd-level)
+                               (.hasExternalAnnotations has-external-annotations)
+                               (.setTimescaleMultiplier timescale-multiplier)
+                               (.setMostRecentSamplingDate most-recent-sampling-date)
+                               (.registerProgressObserver progress-handler))
           output-object-key  (str user-id "/" id ".json")
           output-object-path (str tmp-dir "/" output-object-key)
           _                  (spit output-object-path (.parse parser) :append false)
@@ -242,6 +238,14 @@
                                (aws-s3/download-file s3 {:bucket    bucket-name
                                                          :key       trees-object-key
                                                          :dest-path trees-file-path}))
+          progress-handler   (new-progress-handler (fn [progress]
+                                                     (let [progress (round 2 progress)]
+                                                       (when (= (mod progress 0.1) 0.0)
+                                                         (log/debug "time-slicer progress" {:id       id
+                                                                                            :progress progress})
+                                                         (time-slicer-model/upsert-status! db {:time-slicer-id id
+                                                                                               :status         :RUNNING
+                                                                                               :progress       progress})))))
           ;; call all setters
           parser             (doto (new TimeSlicerParser)
                                (.setTreesFilePath trees-file-path)
@@ -252,17 +256,8 @@
                                (.setHpdLevel hpd-level)
                                (.setGridSize contouring-grid-size)
                                (.setTimescaleMultiplier timescale-multiplier)
-                               (.setMostRecentSamplingDate most-recent-sampling-date))
-          progress-handler   (new-progress-handler (fn [progress]
-                                                     (let [progress (round 2 progress)]
-                                                       (when (= (mod progress 0.1) 0.0)
-                                                         (log/debug "time-slicer progress" {:id       id
-                                                                                            :progress progress})
-                                                         (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                                                                               :status         :RUNNING
-                                                                                               :progress       progress})))))
-          _                  (doto progress-handler
-                               (.init parser))
+                               (.setMostRecentSamplingDate most-recent-sampling-date)
+                               (.registerProgressObserver progress-handler))
           output-object-key  (str user-id "/" id ".json")
           output-object-path (str tmp-dir "/" output-object-key)
           _                  (spit output-object-path (.parse parser) :append false)
@@ -284,22 +279,29 @@
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-bayes-factors" args)
   (try
-    (let [_              (bayes-factor-model/update! db {:id     id
-                                                         :status :RUNNING})
+    (let [_                (bayes-factor-model/update! db {:id     id
+                                                           :status :RUNNING})
           {:keys [user-id
-                  ;; log-file-url
                   locations-file-url
                   number-of-locations
                   burn-in]}
           (bayes-factor-model/get-bayes-factor-analysis db {:id id})
           ;; TODO: parse extension
-          log-object-key (str user-id "/" id ".log")
-          log-file-path  (str tmp-dir "/" log-object-key)
+          log-object-key   (str user-id "/" id ".log")
+          log-file-path    (str tmp-dir "/" log-object-key)
           ;; is it cached on disk?
-          _              (when-not (file-exists? log-file-path)
-                           (aws-s3/download-file s3 {:bucket    bucket-name
-                                                     :key       log-object-key
-                                                     :dest-path log-file-path}))
+          _                (when-not (file-exists? log-file-path)
+                             (aws-s3/download-file s3 {:bucket    bucket-name
+                                                       :key       log-object-key
+                                                       :dest-path log-file-path}))
+          progress-handler (new-progress-handler (fn [progress]
+                                                   (let [progress (round 2 progress)]
+                                                     (when (= (mod progress 0.1) 0.0)
+                                                       (log/debug "bayes factor progress" {:id       id
+                                                                                           :progress progress})
+                                                       (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
+                                                                                              :status                   :RUNNING
+                                                                                              :progress                 progress})))))
           parser
           (match [(nil? locations-file-url) (nil? number-of-locations)]
 
@@ -307,7 +309,8 @@
                  (doto (new BayesFactorParser)
                    (.setLogFilePath log-file-path)
                    (.setNumberOfGeneratedLocations number-of-locations)
-                   (.setBurnIn (double burn-in)))
+                   (.setBurnIn (double burn-in))
+                   (.registerProgressObserver progress-handler))
 
                  [false true]
                  (let [locations-file-id    (s3-url->id locations-file-url user-id)
@@ -322,7 +325,8 @@
                    (doto (new BayesFactorParser)
                      (.setLogFilePath log-file-path)
                      (.setLocationsFilePath locations-file-path)
-                     (.setBurnIn (double burn-in))))
+                     (.setBurnIn (double burn-in))
+                     (.registerProgressObserver progress-handler)))
 
                  [true true]
                  (throw (ex-info "Bad input settings"
@@ -333,16 +337,6 @@
                                  {:why?   "You need to specify one of `log-file-path` and `number-of-locations`"
                                   :where? ::parse-bayes-factors}))
                  :else (throw (Exception. "Unexpected error")))
-          progress-handler                  (new-progress-handler (fn [progress]
-                                                                    (let [progress (round 2 progress)]
-                                                     (when (= (mod progress 0.1) 0.0)
-                                                       (log/debug "bayes factor progress" {:id       id
-                                                                                           :progress progress})
-                                                       (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
-                                                                                              :status                   :RUNNING
-                                                                                              :progress                 progress})))))
-          _                                 (doto progress-handler
-                             (.init parser))
           {:keys [bayesFactors spreadData]} (-> (.parse parser) (json/read-str :key-fn keyword))
           output-object-key                 (str user-id "/" id ".json")
           output-object-path                (str tmp-dir "/" output-object-key)
