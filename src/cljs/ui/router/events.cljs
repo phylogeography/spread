@@ -19,7 +19,7 @@
   ::active-page-changed*
   interceptors
   (fn [{:keys [:db]} [name params query]]
-    (if (queries/bide-router db)                            ;; Initial :on-navigate is fired before ::start
+    (if (queries/bide-router db) ;; Initial :on-navigate is fired before ::start
       {:dispatch [::active-page-changed name params query]}
       {::async-flow-fx/async-flow {:first-dispatch [::do-nothing*]
                                    :rules          [{:when     :seen?

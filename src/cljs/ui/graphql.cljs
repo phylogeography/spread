@@ -1,13 +1,13 @@
 (ns ui.graphql
-  (:require
-   ["axios" :as axios]
-   [camel-snake-kebab.core :as camel-snake]
-   [camel-snake-kebab.extras :as camel-snake-extras]
-   [clojure.string :as string]
-   [re-frame.core :as re-frame]
-   [shared.macros :refer [promise->]]
-   [taoensso.timbre :as log]
-   [ui.utils :refer [>evt]]))
+  (:require ["axios" :as axios]
+            [camel-snake-kebab.core :as camel-snake]
+            [camel-snake-kebab.extras :as camel-snake-extras]
+            [clojure.string :as string]
+            [re-frame.core :as re-frame]
+            [shared.macros :refer [promise->]]
+            [taoensso.timbre :as log]
+            [ui.utils :refer [>evt reg-empty-event-fx]]
+            [ui.websocket-fx :as websocket]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -98,6 +98,40 @@
                            (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
       {::query [params callback]})))
 
+(reg-empty-event-fx ::ws-authorized)
+
+(re-frame/reg-event-fx
+  ::ws-authorize
+  [(re-frame/inject-cofx :localstorage)]
+  (fn [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
+    (let [access-token (:access-token localstorage)]
+      {:dispatch [::websocket/request :default
+                  {:message
+                   {:type    "connection_init"
+                    :payload {"Authorization"
+                              (str "Bearer " access-token)}}
+                   :on-response [::ws-authorized]
+                   :on-timeout  on-timeout
+                   :timeout     3000}]})))
+
+(re-frame/reg-event-fx
+  ::subscription-response
+  (fn [cofx [_ response]]
+    (reduce-handlers cofx (gql->clj (get-in response [:payload :data])))))
+
+(re-frame/reg-event-fx
+  ::subscription
+  (fn [_ [_ {:keys [id query variables]}]]
+    {:dispatch [::websocket/subscribe :default
+                (name id)
+                {:message
+                 {:type    "start"
+                  :payload {:variables     variables
+                            :extensions    {}
+                            :operationName nil
+                            :query         query}}
+                 :on-message [::subscription-response]}]}))
+
 (defmethod handler :default
   [cofx k values]
   ;; NOTE: this is the default handler that is intented for queries and mutations
@@ -105,14 +139,18 @@
   (log/debug "default handler" {:k k})
   (reduce-handlers cofx values))
 
-(defmethod handler :user
-  [{:keys [db]} _ {:user/keys [address] :as user}]
-  (log/debug "user handler" user)
-  {:db (assoc-in db [:users address] user)})
+(defmethod handler :discrete-tree-parser-status
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
+
+(defmethod handler :get-authorized-user
+  [{:keys [db]} _ {:keys [id] :as user}]
+  {:db (-> db
+           (assoc-in [:users :authorized-user] user)
+           (assoc-in [:users id] user))})
 
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]
-  (log/debug "google-login handler" {:access-token access-token})
   (re-frame/dispatch [:splash/login-success access-token]))
 
 (defmethod handler :api/error

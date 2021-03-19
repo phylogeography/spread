@@ -101,7 +101,7 @@
            (assoc-in context [:request :lacinia-app-context :access-token] access-token))))}))
 
 (defn- ws-auth-interceptor
-  "Extracts acsess token from the connection parameters."
+  "Extracts access token from the connection parameters."
   []
   (interceptor
     {:name ::ws-auth-interceptor
