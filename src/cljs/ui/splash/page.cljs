@@ -4,7 +4,7 @@
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
             [ui.splash.events :as events]
-            [ui.subs :as subs]
+            [ui.subscriptions :as subs]
             [ui.utils :as utils :refer [<sub >evt]]))
 
 (defmethod page :route/splash []

@@ -1,11 +1,13 @@
 (ns ui.main
   (:require
+   [day8.re-frame.forward-events-fx]
    [mount.core :as mount]
    [re-frame.core :as re-frame]
    [reagent.core :as r]
    [reagent.dom :as rdom]
    [taoensso.timbre :as log]
    [ui.config :as config]
+   [ui.graphql :as graphql]
    [ui.home.events :as home-events]
    [ui.home.page]
    [ui.logging :as logging]
@@ -16,9 +18,12 @@
    [ui.splash.events :as splash-events]
    [ui.splash.page]
    [ui.storage]
-   [ui.utils]))
+   [ui.utils]
+   [ui.websocket-fx :as websocket]
+   ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
+(def socket-id :default)
 
 (re-frame/reg-event-fx
   :active-page-changed
@@ -31,10 +36,20 @@
         nil))))
 
 (re-frame/reg-event-fx
+  ::ws-authorize-failed
+  (fn [_ [_ why?]]
+    (log/warn "Failed to authorize websocket connection" {:error why?})
+    {:dispatch [::router-events/navigate :route/splash]}))
+
+(re-frame/reg-event-fx
   :ui/initialize
   (fn [{:keys [db]} [_ config]]
-    {:db             (-> db
-                         (assoc :config config))
+    {:db             (assoc db :config config)
+     :dispatch       [::websocket/connect socket-id {:url        (-> config :graphql :ws-url)
+                                                     :format     :json
+                                                     :on-connect [::graphql/ws-authorize
+                                                                  {:on-timeout [::ws-authorize-failed]}]
+                                                     :protocols  ["graphql-ws"]}]
      :forward-events {:register    :active-page-changed
                       :events      #{::router-events/active-page-changed}
                       :dispatch-to [:active-page-changed]}}))
@@ -61,4 +76,7 @@
   (start))
 
 (comment
+  @(re-frame/subscribe [::websocket/status :default])
+  (re-frame/dispatch [::graphql/ws-authorize])
+  @(re-frame/subscribe [::websocket/open-subscriptions :default])
   (re-frame/dispatch [::router-events/navigate :route/home]))

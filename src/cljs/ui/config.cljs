@@ -21,7 +21,8 @@
     :html5?        true}
 
    :graphql
-   {:url "http://127.0.0.1:3001/api"}
+   {:ws-url "ws://127.0.0.1:3001/ws"
+    :url "http://127.0.0.1:3001/api"}
 
    :root-url "http://localhost:8020"
 
