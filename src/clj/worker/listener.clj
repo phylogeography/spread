@@ -13,7 +13,7 @@
             [shared.utils :refer [file-exists? round]]
             [taoensso.timbre :as log])
   (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]
-           [com.spread.progress IProgressObserver IProgressReporter]))
+           [com.spread.progress IProgressObserver]))
 
 (declare listener)
 

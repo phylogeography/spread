@@ -68,9 +68,9 @@
   {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
    :main-opts  ["-m" "hf.depstar.uberjar"]}
 
-  :clj-kondo
+  :lint
   {:extra-deps {clj-kondo {:mvn/version "2021.01.20"}}
-   :main-opts  ["-m" "clj-kondo.main"]}
+   :main-opts  ["-m" "clj-kondo.main" "--lint src/clj"]}
 
   :repl
   {:extra-deps {refactor-nrepl {:mvn/version "2.5.0"}}}

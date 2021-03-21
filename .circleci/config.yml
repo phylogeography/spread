@@ -49,7 +49,7 @@ orbs:
           - run:
               name: Lint namespaces
               command: |
-                clojure -A:clj-kondo --lint src/clj
+                clojure -A:lint --lint src/clj
               # working_directory: services/<< parameters.service >>
           - run:
               name: Build docker image
