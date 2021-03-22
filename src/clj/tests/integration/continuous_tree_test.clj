@@ -21,14 +21,16 @@
     (loop [current-status (query-status id)]
       (if (= status current-status)
         current-status
-        (recur (query-status id))))))
+        (do
+          (Thread/sleep 1000)
+          (recur (query-status id)))))))
 
 (deftest continuous-tree-test
   (let [[url _] (get-in (run-query {:query
                                     "mutation GetUploadUrl($files: [File]) {
                                        getUploadUrls(files: $files)
                                      }"
-                                    :variables {:files [{:name "speciesDiffusion.MCC"
+                                    :variables {:files [{:name      "speciesDiffusion.MCC"
                                                          :extension "tree"}]}})
                         [:data :getUploadUrls])
 
@@ -76,10 +78,10 @@
                                                      status
                                                    }
                                               }"
-                                             :variables {:id id
-                                                         :x "trait2"
-                                                         :y "trait1"
-                                                         :hpd "80"
+                                             :variables {:id   id
+                                                         :x    "trait2"
+                                                         :y    "trait1"
+                                                         :hpd  "80"
                                                          :mrsd "2019/02/12"}})
                                  [:data :updateContinuousTree])
 
@@ -98,18 +100,19 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status outputFileUrl]} (get-in (run-query {:query
-                                                              "query GetTree($id: ID!) {
+        {:keys [id status progress outputFileUrl]} (get-in (run-query {:query
+                                                                       "query GetTree($id: ID!) {
                                                                             getContinuousTree(id: $id) {
                                                                               id
                                                                               status
+                                                                              progress
                                                                               outputFileUrl
                                                                             }
                                                                           }"
-                                                              :variables {:id id}})
-                                                  [:data :getContinuousTree])]
+                                                                       :variables {:id id}})
+                                                           [:data :getContinuousTree])]
 
-    (log/debug "response" {:id id :status status})
+    (log/debug "response" {:id id :status status :progress progress})
 
     (is #{"height" "height_95%_HPD" "height_median" "height_range"
           "length" "length_95%_HPD" "length_median" "length_range"
@@ -125,5 +128,7 @@
         (set attributeNames))
 
     (is #{"80"} (set hpdLevels))
+
+    (is (= 1.0 progress))
 
     (is outputFileUrl)))

@@ -21,18 +21,16 @@ import com.spread.data.attributable.Line;
 import com.spread.data.attributable.Point;
 import com.spread.data.primitive.Coordinate;
 import com.spread.exceptions.SpreadException;
+import com.spread.progress.IProgressObserver;
+import com.spread.progress.IProgressReporter;
 import com.spread.utils.ParsersUtils;
 
 import jebl.evolution.graphs.Node;
 import jebl.evolution.io.ImportException;
 import jebl.evolution.trees.RootedTree;
-import lombok.Getter;
 import lombok.Setter;
 
-public class DiscreteTreeParser {
-
-    // private static final String X_COORDINATE = "xCoordinate";
-    // private static final String Y_COORDINATE = "yCoordinate";
+public class DiscreteTreeParser implements IProgressReporter {
 
     public static final String COUNT = "count";
     private static final Integer UNRESOLVED_INDEX = Integer.MAX_VALUE;
@@ -47,6 +45,7 @@ public class DiscreteTreeParser {
     private double timescaleMultiplier;
     @Setter
     private String mostRecentSamplingDate;
+    private IProgressObserver progressObserver;
 
     public DiscreteTreeParser() {
     }
@@ -55,16 +54,19 @@ public class DiscreteTreeParser {
                               String locationsFilePath,
                               String locationTraitAttributeName,
                               double timescaleMultiplier,
-                              String mostRecentSamplingDate
-                              ) {
+                              String mostRecentSamplingDate) {
         this.treeFilePath = treeFilePath;
         this.locationsFilePath = locationsFilePath;
         this.locationTraitAttributeName = locationTraitAttributeName;
         this.timescaleMultiplier = timescaleMultiplier;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
-    }// END: Constructor
+    }
 
     public String parse() throws IOException, ImportException, SpreadException {
+
+        double progress = 0;
+        double progressStepSize = 0;
+        this.updateProgress(progress);
 
         RootedTree rootedTree = ParsersUtils.importRootedTree(this.treeFilePath);
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
@@ -86,8 +88,12 @@ public class DiscreteTreeParser {
         int[][] locationCounts = new int[sliceHeights.length][locationsList.size()];
 
         Location dummy;
+        progressStepSize = 0.25 / (double) rootedTree.getNodes().size();
         for (Node node : rootedTree.getNodes()) {
             if (!rootedTree.isRoot(node)) {
+
+                progress += progressStepSize;
+                this.updateProgress(progress);
 
                 // node parsed first
                 String nodeState = getNodeState(node, this.locationTraitAttributeName);
@@ -162,24 +168,18 @@ public class DiscreteTreeParser {
                                 && (rootedTree.getHeight(parentNode) > sliceHeight)) {
 
                                 if (nodeLocation.equals(parentLocation) && parentLocation.equals(location)) {
-
                                     int j = locationsList.lastIndexOf(location);
                                     locationCounts[i][j]++;
+                                }
 
-                                } // END: location check
-
-                            } // END:
-                        } // END: locations loop
-                    } // END: sliceHeights lop
-
-                } // END: state check
+                            }
+                        }
+                    }
+                }
 
             } else {
 
-                System.out.println("At the root node");
-
                 String rootState = getNodeState(node, this.locationTraitAttributeName);
-
                 dummy = new Location(rootState);
                 int locationIndex = UNRESOLVED_INDEX;
                 if (locationsList.contains(dummy)) {
@@ -196,19 +196,21 @@ public class DiscreteTreeParser {
                 Location location = locationsList.get(locationIndex);
                 Point rootPoint = createPoint(node, location, rootedTree, timeParser);
                 pointsMap.put(node, rootPoint);
-
-            } // END: root check
-        } // END: node loop
+            }
+        }
 
         pointsList.addAll(pointsMap.values());
 
         // create Points list with count attributes
-
         Double[] countRange = new Double[2];
         countRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
         countRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
 
+        progressStepSize = 0.25 / (double) locationCounts.length;
         for (int sliceIndex = 0; sliceIndex < locationCounts.length; sliceIndex++) {
+
+            progress += progressStepSize;
+            this.updateProgress(progress);
 
             double height = sliceHeights[sliceIndex];
             double nextHeight = sliceIndex < locationCounts.length - 1 ? sliceHeights[sliceIndex + 1] : 0.0;
@@ -245,9 +247,11 @@ public class DiscreteTreeParser {
 
         // collect attributes from lines
         Map<String, Attribute> branchAttributesMap = new HashMap<String, Attribute>();
-
+        progressStepSize = 0.25 / (double) linesList.size();
         for (Line line : linesList) {
 
+            progress += progressStepSize;
+            this.updateProgress(progress);
             for (Entry<String, Object> entry : line.getAttributes().entrySet()) {
 
                 String attributeId = entry.getKey();
@@ -279,37 +283,30 @@ public class DiscreteTreeParser {
 
                     Attribute attribute;
                     if (attributeValue instanceof Double) {
-
                         Double[] range = new Double[2];
                         range[Attribute.MIN_INDEX] = (Double) attributeValue;
                         range[Attribute.MAX_INDEX] = (Double) attributeValue;
-
                         attribute = new Attribute(attributeId, range);
-
                     } else {
-
                         HashSet<Object> domain = new HashSet<Object>();
                         domain.add(attributeValue);
-
                         attribute = new Attribute(attributeId, domain);
-
                     } // END: isNumeric check
 
                     branchAttributesMap.put(attributeId, attribute);
-
-                } // END: key check
-
-            } // END: attributes loop
-
-        } // END: lines loop
+                }
+            }
+        }
 
         uniqueBranchAttributes.addAll(branchAttributesMap.values());
 
         // collect attributes from nodes
         Map<String, Attribute> nodeAttributesMap = new HashMap<String, Attribute>();
-
+        progressStepSize = 0.24 / (double) pointsList.size();
         for (Point point : pointsList) {
 
+            progress += progressStepSize;
+            this.updateProgress(progress);
             for (Entry<String, Object> entry : point.getAttributes().entrySet()) {
 
                 String attributeId = entry.getKey();
@@ -359,11 +356,9 @@ public class DiscreteTreeParser {
 
                     nodeAttributesMap.put(attributeId, attribute);
 
-                } // END: key check
-
-            } // END: attributes loop
-
-        } // END: points loop
+                }
+            }
+        }
 
         uniqueNodeAttributes.addAll(branchAttributesMap.values());
         // we dump it here with node attributes
@@ -399,9 +394,9 @@ public class DiscreteTreeParser {
                                               uniqueNodeAttributes, //
                                               null, // areaAttributes
                                               locationsList, //
-                                              layersList //
-                                              );
+                                              layersList);
 
+        this.updateProgress(1.0);
         return new GsonBuilder().create().toJson(spreadData);
     }// END: parse
 
@@ -540,4 +535,16 @@ public class DiscreteTreeParser {
         return new GsonBuilder().create().toJson(uniqueAttributes);
     }
 
-}// END: class
+    @Override
+    public void registerProgressObserver(IProgressObserver observer) {
+        this.progressObserver = observer;
+    }
+
+    @Override
+    public void updateProgress(double progress) {
+        if (this.progressObserver != null) {
+            this.progressObserver.handleProgress(progress);
+        }
+    }
+
+}

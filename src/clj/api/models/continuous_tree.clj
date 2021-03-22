@@ -11,6 +11,7 @@
 (declare delete-tree)
 (declare get-attributes)
 (declare get-hpd-levels)
+(declare upsert-status)
 (declare get-status)
 
 (hugsql/def-db-fns "sql/continuous_tree.sql")
@@ -18,30 +19,25 @@
 
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-tree
-  {:id nil
-   :user-id nil
-   :tree-file-url nil
-   :status nil
-   :readable-name nil
+  {:id                          nil
+   :user-id                     nil
+   :tree-file-url               nil
+   :readable-name               nil
    :x-coordinate-attribute-name nil
    :y-coordinate-attribute-name nil
-   :hpd-level nil
-   :has-external-annotations nil
-   :timescale-multiplier nil
-   :most-recent-sampling-date nil
-   :output-file-url nil})
+   :hpd-level                   nil
+   :has-external-annotations    nil
+   :timescale-multiplier        nil
+   :most-recent-sampling-date   nil
+   :output-file-url             nil})
 
 (defn upsert! [db tree]
-  (let [tree (->> tree
-                  (merge nil-tree)
-                  (#(update % :status name)))]
+  (let [tree (merge nil-tree tree)]
     (log/debug "upsert-tree!" tree)
     (upsert-tree db tree)))
 
 (defn update! [db tree]
-  (let [tree (->> tree
-                  (merge nil-tree)
-                  (#(update % :status name)))]
+  (let [tree (merge nil-tree tree)]
     (log/debug "update-tree!" tree)
     (update-tree db tree)))
 
@@ -52,3 +48,10 @@
 (defn insert-hpd-levels! [db tree-id levels]
   (doseq [lvl levels ]
     (insert-hpd-level db {:tree-id tree-id :level lvl})))
+
+(defn upsert-status! [db status]
+  (let [status (->> status
+                    (merge {:tree-id nil :status nil :progress nil})
+                    (#(update % :status name)))]
+    (log/debug "upsert-status!" status)
+    (upsert-status db status)))

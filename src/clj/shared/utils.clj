@@ -58,6 +58,12 @@
   [path]
   (.exists (io/file path)))
 
+(defn round
+  "Round a double to the given precision"
+  [precision d]
+  (let [factor (Math/pow 10 precision)]
+    (/ (Math/round (* d factor)) factor)))
+
 (comment
   (decode-transit (encode-transit {:a 1}))
   (clj->gql {:tree-id "fubar"}))

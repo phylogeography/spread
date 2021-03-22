@@ -37,6 +37,10 @@ public class BayesFactorParserTest {
                                                          0.1,
                                                          locationsFile.getAbsolutePath());
 
+        ConsoleProgressObserver progressObserver = new ConsoleProgressObserver();
+        parser.registerProgressObserver(progressObserver);
+        progressObserver.start ();
+
         LinkedList<BayesFactor> expected =
             new LinkedList<BayesFactor>(Arrays.asList(new BayesFactor ("Fujian", "Guangdong", 19.014687619229807, 0.8989450305385897),
                                                       new BayesFactor ("Fujian", "Guangxi", 2.914568793008483, 0.5769017212659634),

@@ -6,7 +6,6 @@ id,
 user_id,
 trees_file_url,
 slice_heights_file_url,
-status,
 readable_name
 )
 VALUES (
@@ -14,14 +13,12 @@ VALUES (
 :user-id,
 :trees-file-url,
 :slice-heights-file-url,
-:status,
 :readable-name
 )
 ON DUPLICATE KEY UPDATE
 user_id = user_id,
 trees_file_url = IF(:trees-file-url IS NOT NULL, :trees-file-url, trees_file_url),
 slice_heights_file_url = IF(:slice-heights-file-url IS NOT NULL, :slice-heights-file-url, slice_heights_file_url),
-status = :status,
 readable_name = :readable-name
 
 -- :name update-time-slicer :! :n
@@ -29,7 +26,6 @@ readable_name = :readable-name
 
 UPDATE time_slicer
 SET
-status = :status,
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
 number_of_intervals = IF(:number-of-intervals IS NOT NULL, :number-of-intervals, number_of_intervals),
@@ -51,7 +47,6 @@ id,
 user_id,
 trees_file_url,
 slice_heights_file_url,
-status,
 readable_name,
 burn_in,
 number_of_intervals,
@@ -62,8 +57,11 @@ hpd_level,
 timescale_multiplier,
 most_recent_sampling_date,
 output_file_url,
-trees_count
+trees_count,
+status,
+progress
 FROM time_slicer
+JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id
 WHERE :id = id
 
 -- :name insert-attribute :! :n
@@ -89,11 +87,29 @@ DELETE
 FROM time_slicer
 WHERE id = :id
 
+-- :name upsert-status :! :n
+-- :doc Upsert a continuous tree status
+
+INSERT INTO time_slicer_status(
+time_slicer_id,
+status,
+progress
+)
+VALUES (
+:time-slicer-id,
+:status,
+:progress
+)
+ON DUPLICATE KEY UPDATE
+status = IF(:status IS NOT NULL, :status, status),
+progress = IF(:progress IS NOT NULL, :progress, progress)
+
 -- :name get-status :? :1
 -- :doc Get analysis status by id
 
 SELECT
-id,
-status
-FROM time_slicer
-WHERE :id = id
+time_slicer_id,
+status,
+progress
+FROM time_slicer_status
+WHERE :time-slicer-id = time_slicer_id

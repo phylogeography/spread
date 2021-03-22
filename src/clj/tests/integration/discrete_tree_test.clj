@@ -21,22 +21,24 @@
     (loop [current-status (query-status id)]
       (if (= status current-status)
         current-status
-        (recur (query-status id))))))
+        (do
+          (Thread/sleep 1000)
+          (recur (query-status id)))))))
 
 (deftest discrete-tree-test
   (let [[tree-url locations-url] (get-in (run-query {:query
                                                      "mutation GetUploadUrls($files: [File]) {
                                                         getUploadUrls(files: $files)
                                                       }"
-                                                     :variables {:files [{:name "H5N1_HA_discrete_MCC"
+                                                     :variables {:files [{:name      "H5N1_HA_discrete_MCC"
                                                                           :extension "tree"}
-                                                                         {:name "locationCoordinates_H5N1"
+                                                                         {:name      "locationCoordinates_H5N1"
                                                                           :extension "txt"}]}})
                                          [:data :getUploadUrls])
-        _ (http/put tree-url {:body (io/file "src/test/resources/discrete/H5N1_HA_discrete_MCC.tree")})
-        _ (http/put locations-url {:body (io/file "src/test/resources/discrete/locationCoordinates_H5N1")})
-        {:keys [id status]} (get-in (run-query {:query
-                                                "mutation UploadTree($treeUrl: String!,
+        _                        (http/put tree-url {:body (io/file "src/test/resources/discrete/H5N1_HA_discrete_MCC.tree")})
+        _                        (http/put locations-url {:body (io/file "src/test/resources/discrete/locationCoordinates_H5N1")})
+        {:keys [id status]}      (get-in (run-query {:query
+                                                     "mutation UploadTree($treeUrl: String!,
                                                                      $locationsUrl: String!) {
                                                    uploadDiscreteTree(treeFileUrl: $treeUrl,
                                                                       locationsFileUrl: $locationsUrl) {
@@ -44,12 +46,12 @@
                                                      status
                                                    }
                                                 }"
-                                                :variables {:treeUrl (-> tree-url
-                                                                         (string/split  #"\?")
-                                                                         first)
-                                                            :locationsUrl (-> locations-url
+                                                     :variables {:treeUrl      (-> tree-url
                                                                               (string/split  #"\?")
-                                                                              first)}})
+                                                                              first)
+                                                                 :locationsUrl (-> locations-url
+                                                                                   (string/split  #"\?")
+                                                                                   first)}})
                                     [:data :uploadDiscreteTree])
 
         _ (is :TREE_AND_LOCATIONS_UPLOADED (keyword status))
@@ -75,9 +77,9 @@
                                                   status
                                                 }
                                               }"
-                                             :variables {:id id
+                                             :variables {:id                id
                                                          :locationAttribute "states"
-                                                         :mrsd "2019/02/12"}})
+                                                         :mrsd              "2019/02/12"}})
                                  [:data :updateDiscreteTree])
 
         _ (is :PARSER_ARGUMENTS_SET (keyword status))
@@ -95,25 +97,29 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status outputFileUrl]} (get-in (run-query {:query
-                                                              "query GetTree($id: ID!) {
+        {:keys [id status progress outputFileUrl]} (get-in (run-query {:query
+                                                                       "query GetTree($id: ID!) {
                                                                        getDiscreteTree(id: $id) {
                                                                          id
                                                                          status
+                                                                         progress
                                                                          outputFileUrl
                                                                        }
                                                                      }"
-                                                              :variables {:id id}})
-                                                  [:data :getDiscreteTree])]
+                                                                       :variables {:id id}})
+                                                           [:data :getDiscreteTree])]
 
-    (log/debug "response" {:id id
-                           :status status
-                           :tree/url tree-url
+    (log/debug "response" {:id            id
+                           :status        status
+                           :progress      progress
+                           :tree/url      tree-url
                            :locations/url locations-url})
 
     (is #{"height" "height_95%_HPD" "height_median" "height_range" "length" "length_95%_HPD"
           "length_median" "length_range" "posterior" "rate" "rate_95%_HPD" "rate_median"
           "rate_range" "states" "states.prob" "states.set" "states.set.prob"}
         (set attributeNames))
+
+    (is (= 1.0 progress))
 
     (is outputFileUrl)))

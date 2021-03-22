@@ -39,6 +39,10 @@ public class TimeSlicerParserTest {
                                                         mostRecentSamplingDate,
                                                         1.0);
 
+        ConsoleProgressObserver progressObserver = new ConsoleProgressObserver();
+        parser.registerProgressObserver(progressObserver);
+        progressObserver.start ();
+
         String json = parser.parse();
         Gson gson = new Gson();
         SpreadData data = gson.fromJson(json, SpreadData.class);

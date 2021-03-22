@@ -20,14 +20,16 @@
     (loop [current-status (query-status id)]
       (if (= status current-status)
         current-status
-        (recur (query-status id))))))
+        (do
+          (Thread/sleep 1000)
+          (recur (query-status id)))))))
 
 (deftest time-slicer-test
   (let [[url _] (get-in (run-query {:query
                                     "mutation GetUploadUrl($files: [File]) {
                                        getUploadUrls(files: $files)
                                      }"
-                                    :variables {:files [{:name "WNV_small"
+                                    :variables {:files [{:name      "WNV_small"
                                                          :extension "trees"}]}})
                         [:data :getUploadUrls])
 
@@ -80,14 +82,14 @@
                                                      status
                                                    }
                                               }"
-                                             :variables {:id id
-                                                         :traitAttributeName "location"
+                                             :variables {:id                   id
+                                                         :traitAttributeName   "location"
                                                          :rrwRateAttributeName "rate"
-                                                         :contouringGridSize 100
-                                                         :burnIn 1
-                                                         :numberOfIntervals 10
-                                                         :hpd 0.8
-                                                         :mrsd "2021/01/12"}})
+                                                         :contouringGridSize   100
+                                                         :burnIn               1
+                                                         :numberOfIntervals    10
+                                                         :hpd                  0.8
+                                                         :mrsd                 "2021/01/12"}})
                                  [:data :updateContinuousTree])
 
         _ (is :PARSER_ARGUMENTS_SET (keyword status))
@@ -105,19 +107,19 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [outputFileUrl]} (get-in (run-query {:query
-                                                    "query GetTree($id: ID!) {
+        {:keys [outputFileUrl progress]} (get-in (run-query {:query
+                                                             "query GetTree($id: ID!) {
                                                                             getTimeSlicer(id: $id) {
                                                                               id
                                                                               status
+                                                                              progress
                                                                               outputFileUrl
                                                                             }
                                                                           }"
-                                                    :variables {:id id}})
-                                        [:data :getTimeSlicer])]
+                                                             :variables {:id id}})
+                                                 [:data :getTimeSlicer])]
 
     (is #{"rate" "location"} (set attributeNames))
-
     (is (= 10 treesCount))
-
+    (is (= 1.0 progress))
     (is outputFileUrl)))

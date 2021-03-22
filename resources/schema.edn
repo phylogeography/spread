@@ -40,18 +40,22 @@
  {:JWT {:fields {:accessToken {:type (non-null String)}}}
 
   :ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
-                               :fields      {:id     {:type (non-null ID)}
-                                             :status {:type (non-null :ContinuousTreeStatus)}}}
+                               :fields      {:id       {:type (non-null ID)}
+                                             :progress {:type (non-null Float)}
+                                             :status   {:type (non-null :ContinuousTreeStatus)}}}
 
   :DiscreteTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
-                             :fields      {:id     {:type (non-null ID)}
-                                           :status {:type (non-null :DiscreteTreeStatus)}}}
+                             :fields      {:id       {:type (non-null ID)}
+                                           :progress {:type (non-null Float)}
+                                           :status   {:type (non-null :DiscreteTreeStatus)}}}
 
-  :TimeSlicerParserStatus {:fields {:id     {:type (non-null ID)}
-                                    :status {:type (non-null :TimeSlicerStatus)}}}
+  :TimeSlicerParserStatus {:fields {:id       {:type (non-null ID)}
+                                    :progress {:type (non-null Float)}
+                                    :status   {:type (non-null :TimeSlicerStatus)}}}
 
-  :BayesFactorParserStatus {:fields {:id     {:type (non-null ID)}
-                                     :status {:type (non-null :BayesFactorStatus)}}}
+  :BayesFactorParserStatus {:fields {:id       {:type (non-null ID)}
+                                     :progress {:type (non-null Float)}
+                                     :status   {:type (non-null :BayesFactorStatus)}}}
 
   :User {:fields {:id    {:type (non-null ID)}
                   :email {:type (non-null String)}}}
@@ -70,6 +74,7 @@
                                  :timescaleMultiplier      {:type Float}
                                  :mostRecentSamplingDate   {:type String}
                                  :status                   {:type :ContinuousTreeStatus}
+                                 :progress                 {:type Float}
                                  :attributeNames           {:type    (list String)
                                                             :resolve :resolve/continuous-tree->attributes}
                                  :hpdLevels                {:type    (list String)
@@ -88,6 +93,7 @@
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
                                :status                 {:type :DiscreteTreeStatus}
+                               :progress               {:type Float}
                                :attributeNames         {:type    (list String)
                                                         :resolve :resolve/discrete-tree->attributes}
                                :outputFileUrl          {:type String}}}
@@ -111,6 +117,7 @@
                              :timescaleMultiplier                {:type Float}
                              :mostRecentSamplingDate             {:type String}
                              :status                             {:type :TimeSlicerStatus}
+                             :progress                           {:type Float}
                              :attributeNames                     {:type    (list String)
                                                                   :resolve :resolve/time-slicer->attributes}
                              :outputFileUrl                      {:type String}}}
@@ -130,6 +137,7 @@
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}
                                       :status           {:type :BayesFactorStatus}
+                                      :progress         {:type Float}
                                       :burnIn           {:type Float}
                                       :outputFileUrl    {:type String}
                                       :bayesFactors     {:type    (list :BayesFactor)
@@ -138,9 +146,7 @@
  :queries
  {:getAuthorizedUser {:type        :User
                       :description "Returns a current user. Does not need ID which is read from the Authorization header"
-                      ;; :args {:id {:type (non-null ID)}}
-                      :resolve     :query/getAuthorizedUser
-                      }
+                      :resolve     :query/getAuthorizedUser}
   :getContinuousTree {:type        :ContinuousTree
                       :description "Returns a ContinuousTree entity by id."
                       :args        {:id {:type (non-null ID)}}
@@ -191,7 +197,7 @@
 
   :getUploadUrls {:type        (list String)
                   :description "Returns one-time POST urls."
-                  :args        {:files {:type (list :File)}}
+                  :args        {:files {:type (non-null (list :File))}}
                   :resolve     :mutation/getUploadUrls}
 
   :uploadContinuousTree {:type        :ContinuousTreeParserStatus

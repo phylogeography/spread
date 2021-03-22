@@ -7,7 +7,6 @@ log_file_url,
 locations_file_url,
 number_of_locations,
 burn_in,
-status,
 readable_name
 )
 VALUES (
@@ -17,7 +16,6 @@ VALUES (
 :locations-file-url,
 :number-of-locations,
 :burn-in,
-:status,
 :readable-name
 )
 ON DUPLICATE KEY UPDATE
@@ -26,7 +24,6 @@ log_file_url = IF(:log-file-url IS NOT NULL, :log-file-url, log_file_url),
 locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
 number_of_locations = IF(:number-of-locations IS NOT NULL, :number-of-locations, number_of_locations),
 burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
-status = :status,
 readable_name = :readable-name
 
 -- :name update-bayes-factor-analysis :! :n
@@ -34,7 +31,6 @@ readable_name = :readable-name
 
 UPDATE bayes_factor_analysis
 SET
-status = :status,
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
 number_of_locations = IF(:number-of-locations IS NOT NULL, :number-of-locations, number_of_locations),
@@ -58,9 +54,13 @@ log_file_url,
 locations_file_url,
 burn_in,
 status,
+progress,
 output_file_url,
-readable_name
+readable_name,
+status,
+progress
 FROM bayes_factor_analysis
+JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id
 WHERE id = :id
 
 -- :name insert-bayes-factors :! :n
@@ -81,12 +81,29 @@ bayes_factors
 FROM bayes_factors
 WHERE bayes_factor_analysis_id = :bayes-factor-analysis-id
 
+-- :name upsert-status :! :n
+-- :doc Upsert a continuous tree status
+
+INSERT INTO bayes_factor_analysis_status(
+bayes_factor_analysis_id,
+status,
+progress
+)
+VALUES (
+:bayes-factor-analysis-id,
+:status,
+:progress
+)
+ON DUPLICATE KEY UPDATE
+status = IF(:status IS NOT NULL, :status, status),
+progress = IF(:progress IS NOT NULL, :progress, progress)
 
 -- :name get-status :? :1
 -- :doc Get analysis status by id
 
 SELECT
-id,
-status
-FROM bayes_factor
-WHERE :id = id
+bayes_factor_analysis_id,
+status,
+progress
+FROM bayes_factor_status
+WHERE :bayes-factor-analysis-id = bayes_factor_analysis_id
