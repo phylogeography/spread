@@ -3,7 +3,6 @@
             [taoensso.timbre :as log]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
-            [ui.splash.events :as events]
             [ui.subscriptions :as subs]
             [ui.utils :as utils :refer [<sub >evt]]))
 
@@ -18,7 +17,7 @@
                               (when-let [code (:code query)]
                                 (case (-> query :auth keyword)
                                   :google
-                                  (>evt [::events/send-google-verification-code code redirect-uri])
+                                  (>evt [:splash/send-google-verification-code code redirect-uri])
                                   nil)))
        :reagent-render
        (fn []

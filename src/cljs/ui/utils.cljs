@@ -23,8 +23,3 @@
 
 (defn concatv [& more]
   (vec (apply concat more)))
-
-(defn reg-empty-event-fx [id]
-  (re-frame/reg-event-fx
-   id
-   (constantly nil)))

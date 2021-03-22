@@ -1,35 +1,29 @@
-(ns ui.home.events
+(ns ui.events.home 
   (:require [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]
-            [ui.graphql :as graphql]
-            [ui.websocket-fx :as websocket]))
+            [taoensso.timbre :as log]))
 
-(re-frame/reg-event-fx
-  ::initialize-page
-  (fn [_]
-    {:forward-events {:register    :websocket-athorized?
-                      :events      #{::graphql/ws-authorized}
-                      :dispatch-to [::initial-query]}}))
+(defn initialize-page [_]
+  {:forward-events {:register    :websocket-authorized?
+                    :events      #{:graphql/ws-authorized}
+                    :dispatch-to [:home/initial-query]}})
 
-(re-frame/reg-event-fx
-  ::initial-query
-  (fn [_]
-    {:dispatch-n [[::graphql/query {:query
-                                    "query {
+(defn initialize-query [_]
+  {:dispatch-n [[:graphql/query {:query
+                                 "query {
                                        getAuthorizedUser {
                                          id
                                          email
                                        }
                                      }"}]
-                  ;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
-                  [::graphql/subscription {:id        :home-page
-                                           :query     "subscription SubscriptionRoot($id: ID!) {
+                ;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
+                [:graphql/subscription {:id        :home-page
+                                        :query     "subscription SubscriptionRoot($id: ID!) {
                                                          discreteTreeParserStatus(id: $id) {
                                                            id
                                                            status
                                                         }
                                                       }"
-                                           :variables {"id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}}]]}))
+                                        :variables {"id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}}]]})
 
 (comment
   (re-frame/reg-event-fx
@@ -37,7 +31,7 @@
     (fn [_ [_ message]]
       (log/debug "home/on-message" message)))
 
-  (re-frame/dispatch [::websocket/subscribe :default
+  (re-frame/dispatch [:websocket/subscribe :default
                       "home-page"
                       {:message
                        {:id      "home-page"
