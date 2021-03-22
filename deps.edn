@@ -42,7 +42,7 @@
   ;; UTILS
   mount                 {:mvn/version "0.1.16"}
   jpmonettas/flow-storm {:mvn/version "0.2.6"}
-  tick/tick             {:mvn/version "0.4.29-alpha"}
+  tick/tick             {:mvn/version "0.4.9-alpha"}
 
   ;; SPEC
   org.clojure/spec.alpha                 {:mvn/version "0.2.194"}

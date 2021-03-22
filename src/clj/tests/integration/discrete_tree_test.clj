@@ -2,9 +2,10 @@
   (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.test :refer [use-fixtures deftest is]]
+            [clojure.test :refer [deftest is use-fixtures]]
+            [shared.time :as time]
             [taoensso.timbre :as log]
-            [tests.integration.utils :refer [run-query db-fixture]]))
+            [tests.integration.utils :refer [db-fixture run-query]]))
 
 (use-fixtures :once db-fixture)
 
@@ -39,20 +40,20 @@
         _                        (http/put locations-url {:body (io/file "src/test/resources/discrete/locationCoordinates_H5N1")})
         {:keys [id status]}      (get-in (run-query {:query
                                                      "mutation UploadTree($treeUrl: String!,
-                                                                     $locationsUrl: String!) {
-                                                   uploadDiscreteTree(treeFileUrl: $treeUrl,
-                                                                      locationsFileUrl: $locationsUrl) {
-                                                     id
-                                                     status
-                                                   }
-                                                }"
+                                                                          $locationsUrl: String!) {
+                                                        uploadDiscreteTree(treeFileUrl: $treeUrl,
+                                                                           locationsFileUrl: $locationsUrl) {
+                                                          id
+                                                          status
+                                                        }
+                                                      }"
                                                      :variables {:treeUrl      (-> tree-url
-                                                                              (string/split  #"\?")
-                                                                              first)
+                                                                                   (string/split  #"\?")
+                                                                                   first)
                                                                  :locationsUrl (-> locations-url
                                                                                    (string/split  #"\?")
                                                                                    first)}})
-                                    [:data :uploadDiscreteTree])
+                                         [:data :uploadDiscreteTree])
 
         _ (is :TREE_AND_LOCATIONS_UPLOADED (keyword status))
 
@@ -97,23 +98,31 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status progress outputFileUrl]} (get-in (run-query {:query
-                                                                       "query GetTree($id: ID!) {
-                                                                       getDiscreteTree(id: $id) {
-                                                                         id
-                                                                         status
-                                                                         progress
-                                                                         outputFileUrl
-                                                                       }
-                                                                     }"
-                                                                       :variables {:id id}})
-                                                           [:data :getDiscreteTree])]
+        {:keys [id readableName createdOn status progress outputFileUrl]}
+        (get-in (run-query {:query
+                            "query GetTree($id: ID!) {
+                                     getDiscreteTree(id: $id) {
+                                       id
+                                       readableName
+                                       createdOn
+                                       status
+                                       progress
+                                       outputFileUrl
+                                     }
+                                   }"
+                            :variables {:id id}})
+                [:data :getDiscreteTree])]
 
     (log/debug "response" {:id            id
+                           :name          readableName
+                           :created-on    createdOn
                            :status        status
                            :progress      progress
                            :tree/url      tree-url
                            :locations/url locations-url})
+
+    (is (= (:dd (time/now))
+           (:dd (time/from-millis createdOn))))
 
     (is #{"height" "height_95%_HPD" "height_median" "height_range" "length" "length_95%_HPD"
           "length_median" "length_range" "posterior" "rate" "rate_95%_HPD" "rate_median"

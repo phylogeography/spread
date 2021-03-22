@@ -65,6 +65,7 @@ WHERE :tree-id = tree_id
 SELECT
 id,
 user_id,
+created_on,
 tree_file_url,
 locations_file_url,
 location_attribute_name,

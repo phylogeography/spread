@@ -2,6 +2,8 @@
   (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [taoensso.timbre :as log]
+            [shared.time :as time]
             [clojure.test :refer [use-fixtures deftest is]]
             [tests.integration.utils :refer [run-query db-fixture]]))
 
@@ -107,18 +109,28 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [outputFileUrl progress]} (get-in (run-query {:query
-                                                             "query GetTree($id: ID!) {
-                                                                            getTimeSlicer(id: $id) {
-                                                                              id
-                                                                              status
-                                                                              progress
-                                                                              outputFileUrl
-                                                                            }
-                                                                          }"
-                                                             :variables {:id id}})
-                                                 [:data :getTimeSlicer])]
+        {:keys [id status outputFileUrl progress readableName createdOn]}
+        (get-in (run-query {:query
+                            "query GetTree($id: ID!) {
+                                     getTimeSlicer(id: $id) {
+                                       id
+                                       readableName
+                                       createdOn
+                                       status
+                                       progress
+                                       outputFileUrl
+                                     }
+                                   }"
+                            :variables {:id id}})
+                [:data :getTimeSlicer])]
 
+    (log/debug "response" {:id         id
+                           :name       readableName
+                           :created-on createdOn
+                           :status     status})
+
+    (is (= (:dd (time/now))
+           (:dd (time/from-millis createdOn))))
     (is #{"rate" "location"} (set attributeNames))
     (is (= 10 treesCount))
     (is (= 1.0 progress))

@@ -54,7 +54,6 @@
                              :key         (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-;; TODO : timestamp
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                               {tree-file-url :treeFileUrl readable-name :readableName
                                :as           args} _]
@@ -132,7 +131,6 @@
         (continuous-tree-model/upsert-status! db {:tree-id id
                                                   :status  :ERROR})))))
 
-;; TODO : timestamp
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url      :treeFileUrl
                              locations-file-url :locationsFileUrl
@@ -206,7 +204,6 @@
         (discrete-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR})))))
 
-;; TODO : timestamp
 (defn upload-time-slicer [{:keys [sqs workers-queue-url authed-user-id db]}
                           {trees-file-url         :treesFileUrl
                            readable-name          :readableName
@@ -291,7 +288,6 @@
         (time-slicer-model/upsert-status! db {:time-slicer-id id
                                               :status         :ERROR})))))
 
-;; TODO : timestamp
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
                                     {log-file-url        :logFileUrl
                                      locations-file-url  :locationsFileUrl
