@@ -19,7 +19,8 @@
  {:Analysis
   {:fields {:id           {:type (non-null ID)}
             :userId       {:type (non-null ID)}
-            :readableName {:type String}
+            :readableName {:description "Human-readable name. Usually tree file name."
+                           :type        String}
             :createdOn    {:type (non-null :BigInt)}
             :progress     {:type Float}
             :status       {:type :AnalysisStatus}
@@ -68,8 +69,7 @@
                    :fields      {:id                       {:description "Unique identifier."
                                                             :type        (non-null ID)}
                                  :userId                   {:type (non-null ID)}
-                                 :readableName             {:description "Human-readable name. Usually tree file name."
-                                                            :type        String}
+                                 :readableName             {:type String}
                                  :createdOn                {:type (non-null :BigInt)}
                                  :treeFileUrl              {:type (non-null String)}
                                  :xCoordinateAttributeName {:type String}
@@ -91,8 +91,7 @@
                  :fields      {:id                     {:description "Unique identifier."
                                                         :type        (non-null ID)}
                                :userId                 {:type (non-null ID)}
-                               :readableName           {:description "Human-readable name. Usually tree file name."
-                                                        :type        String}
+                               :readableName           {:type String}
                                :createdOn              {:type (non-null :BigInt)}
                                :treeFileUrl            {:type (non-null String)}
                                :locationsFileUrl       {:type (non-null String)}
@@ -110,8 +109,7 @@
                :fields      {:id                                 {:description "Unique identifier."
                                                                   :type        (non-null ID)}
                              :userId                             {:type (non-null ID)}
-                             :readableName                       {:description "Human-readable name. Usually trees file name."
-                                                                  :type        String}
+                             :readableName                       {:type String}
                              :createdOn                          {:type (non-null :BigInt)}
                              :treesFileUrl                       {:type (non-null String)}
                              :sliceHeightsFileUrl                {:type String}
@@ -141,8 +139,7 @@
                         :fields      {:id               {:description "Unique identifier."
                                                          :type        (non-null ID)}
                                       :userId           {:type (non-null ID)}
-                                      :readableName     {:description "Human-readable name. Usually log file name."
-                                                         :type        String}
+                                      :readableName     {:type String}
                                       :createdOn        {:type (non-null :BigInt)}
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}

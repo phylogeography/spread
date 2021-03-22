@@ -70,7 +70,7 @@
     (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
 
-;; TODO
+;; TODO: https://lacinia.readthedocs.io/en/latest/resolve/type-tags.html?highlight=fragments
 (defn search-user-analysis
   [{:keys [db authed-user-id]} args _]
   (log/info "search-user-analysis" args)
