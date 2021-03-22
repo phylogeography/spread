@@ -9,42 +9,7 @@
                             :QUEUED
                             :RUNNING
                             :SUCCEEDED
-                            :ERROR
-                            ]}
-
-  ;; :ContinuousTreeStatus {:values [:TREE_UPLOADED
-  ;;                                 :ATTRIBUTES_AND_HPD_LEVELS_PARSED
-  ;;                                 :PARSER_ARGUMENTS_SET
-  ;;                                 :QUEUED
-  ;;                                 :RUNNING
-  ;;                                 :SUCCEEDED
-  ;;                                 :ERROR]}
-
-  ;; :DiscreteTreeStatus {:values [:TREE_AND_LOCATIONS_UPLOADED
-  ;;                               :ATTRIBUTES_PARSED
-  ;;                               :PARSER_ARGUMENTS_SET
-  ;;                               :QUEUED
-  ;;                               :RUNNING
-  ;;                               :SUCCEEDED
-  ;;                               :ERROR]}
-
-  ;; :TimeSlicerStatus {:values [:TREES_UPLOADED
-  ;;                             :ATTRIBUTES_AND_TREES_COUNT_PARSED
-  ;;                             :PARSER_ARGUMENTS_SET
-  ;;                             :QUEUED
-  ;;                             :RUNNING
-  ;;                             :SUCCEEDED
-  ;;                             :ERROR]}
-
-  ;; :BayesFactorStatus {:values [:DATA_UPLOADED
-  ;;                              :PARSER_ARGUMENTS_SET
-  ;;                              :QUEUED
-  ;;                              :RUNNING
-  ;;                              :SUCCEEDED
-  ;;                              :ERROR]}
-
-
-  }
+                            :ERROR]}}
 
  :input-objects
  {:File {:fields {:name      {:type String}
@@ -56,8 +21,8 @@
             :userId       {:type (non-null ID)}
             :readableName {:type String}
             :createdOn    {:type (non-null :BigInt)}
-            :progress     {:type (non-null Float)}
-            :status       {:type (non-null :AnalysisStatus)}
+            :progress     {:type Float}
+            :status       {:type :AnalysisStatus}
             }}}
 
  :objects
@@ -99,6 +64,7 @@
                   :email {:type (non-null String)}}}
 
   :ContinuousTree {:description "Represents ContinuousTree entity."
+                   :implements  [:Analysis]
                    :fields      {:id                       {:description "Unique identifier."
                                                             :type        (non-null ID)}
                                  :userId                   {:type (non-null ID)}
@@ -121,6 +87,7 @@
                                  :outputFileUrl            {:type String}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
+                 :implements  [:Analysis]
                  :fields      {:id                     {:description "Unique identifier."
                                                         :type        (non-null ID)}
                                :userId                 {:type (non-null ID)}
@@ -139,6 +106,7 @@
                                :outputFileUrl          {:type String}}}
 
   :TimeSlicer {:description "Represents TimeSlicer entity."
+               :implements  [:Analysis]
                :fields      {:id                                 {:description "Unique identifier."
                                                                   :type        (non-null ID)}
                              :userId                             {:type (non-null ID)}
@@ -169,6 +137,7 @@
                               :posteriorProbability {:type Float}}}
 
   :BayesFactorAnalysis {:description "Represents BayesFactorAnalysis entity."
+                        :implements  [:Analysis]
                         :fields      {:id               {:description "Unique identifier."
                                                          :type        (non-null ID)}
                                       :userId           {:type (non-null ID)}
