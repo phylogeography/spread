@@ -1,4 +1,8 @@
-{:enums
+{:scalars
+ {:BigInt {:parse :scalar/parse-big-int
+           :serialize :scalar/serialize-big-int}}
+
+ :enums
  {:ContinuousTreeStatus {:values [:TREE_UPLOADED
                                   :ATTRIBUTES_AND_HPD_LEVELS_PARSED
                                   :PARSER_ARGUMENTS_SET
@@ -52,10 +56,7 @@
 
   :AnalysisConnection {:fields {:totalCount {:type Int}
                                 :pageInfo   {:type (non-null :PageInfo)}
-                                :edges      {:type (list (non-null :AnalysisEdge))}
-
-
-                                }}
+                                :edges      {:type (list (non-null :AnalysisEdge))}}}
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
@@ -69,13 +70,15 @@
                                            :progress {:type (non-null Float)}
                                            :status   {:type (non-null :DiscreteTreeStatus)}}}
 
-  :TimeSlicerParserStatus {:fields {:id       {:type (non-null ID)}
-                                    :progress {:type (non-null Float)}
-                                    :status   {:type (non-null :TimeSlicerStatus)}}}
+  :TimeSlicerParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
+                           :fields      {:id       {:type (non-null ID)}
+                                         :progress {:type (non-null Float)}
+                                         :status   {:type (non-null :TimeSlicerStatus)}}}
 
-  :BayesFactorParserStatus {:fields {:id       {:type (non-null ID)}
-                                     :progress {:type (non-null Float)}
-                                     :status   {:type (non-null :BayesFactorStatus)}}}
+  :BayesFactorParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
+                            :fields      {:id       {:type (non-null ID)}
+                                          :progress {:type (non-null Float)}
+                                          :status   {:type (non-null :BayesFactorStatus)}}}
 
   :User {:fields {:id    {:type (non-null ID)}
                   :email {:type (non-null String)}}}
@@ -86,7 +89,7 @@
                                  :userId                   {:type (non-null ID)}
                                  :readableName             {:description "Human-readable name. Usually tree file name."
                                                             :type        String}
-                                 :createdOn                {:type (non-null Int)}
+                                 :createdOn                {:type (non-null :BigInt)}
                                  :treeFileUrl              {:type (non-null String)}
                                  :xCoordinateAttributeName {:type String}
                                  :yCoordinateAttributeName {:type String}
@@ -108,7 +111,7 @@
                                :userId                 {:type (non-null ID)}
                                :readableName           {:description "Human-readable name. Usually tree file name."
                                                         :type        String}
-                               :createdOn              {:type (non-null Int)}
+                               :createdOn              {:type (non-null :BigInt)}
                                :treeFileUrl            {:type (non-null String)}
                                :locationsFileUrl       {:type (non-null String)}
                                :locationAttributeName  {:type String}
@@ -127,7 +130,7 @@
                              :userId                             {:type (non-null ID)}
                              :readableName                       {:description "Human-readable name. Usually trees file name."
                                                                   :type        String}
-                             :createdOn                          {:type (non-null Int)}
+                             :createdOn                          {:type (non-null :BigInt)}
                              :treesFileUrl                       {:type (non-null String)}
                              :sliceHeightsFileUrl                {:type String}
                              :burnIn                             {:type Int}
@@ -157,7 +160,7 @@
                                       :userId           {:type (non-null ID)}
                                       :readableName     {:description "Human-readable name. Usually log file name."
                                                          :type        String}
-                                      :createdOn        {:type (non-null Int)}
+                                      :createdOn        {:type (non-null :BigInt)}
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}
                                       :status           {:type :BayesFactorStatus}

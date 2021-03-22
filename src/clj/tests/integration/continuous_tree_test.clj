@@ -37,13 +37,15 @@
         _ (http/put url {:body (io/file "src/test/resources/continuous/speciesDiffusion.MCC.tre")})
 
         {:keys [id status]} (get-in (run-query {:query
-                                                "mutation UploadTree($url: String!) {
-                                                   uploadContinuousTree(treeFileUrl: $url) {
+                                                "mutation UploadTree($url: String!, $name: String!) {
+                                                   uploadContinuousTree(treeFileUrl: $url,
+                                                                        readableName: $name) {
                                                      id
                                                      status
                                                    }
                                                 }"
-                                                :variables {:url (-> url
+                                                :variables {:name "speciesDiffusion.MCC.tre"
+                                                            :url  (-> url
                                                                      (string/split  #"\?")
                                                                      first)}})
                                     [:data :uploadContinuousTree])
@@ -100,19 +102,23 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status progress outputFileUrl]} (get-in (run-query {:query
-                                                                       "query GetTree($id: ID!) {
-                                                                            getContinuousTree(id: $id) {
-                                                                              id
-                                                                              status
-                                                                              progress
-                                                                              outputFileUrl
-                                                                            }
-                                                                          }"
-                                                                       :variables {:id id}})
-                                                           [:data :getContinuousTree])]
+        {:keys [id readableName createdOn status progress outputFileUrl]} (get-in (run-query {:query
+                                                                                              "query GetTree($id: ID!) {
+                                                                                                 getContinuousTree(id: $id) {
+                                                                                                   id
+                                                                                                   readableName
+                                                                                                   createdOn
+                                                                                                   status
+                                                                                                   progress
+                                                                                                   outputFileUrl
+                                                                                                 }
+                                                                                               }"
+                                                                                              :variables {:id id}})
+                                                                                  [:data :getContinuousTree])]
 
-    (log/debug "response" {:id id :status status :progress progress})
+    (log/debug "response" {:id id :name readableName :created-on createdOn :status status :progress progress })
+
+    (is (= "speciesDiffusion.MCC.tre" readableName))
 
     (is #{"height" "height_95%_HPD" "height_median" "height_range"
           "length" "length_95%_HPD" "length_median" "length_range"
