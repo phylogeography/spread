@@ -56,7 +56,7 @@
                                                                               first)}})
                                     [:data :uploadBayesFactorAnalysis])
 
-        _ (is :DATA_UPLOADED (keyword status))
+        _ (is :UPLOADED (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateBayesFactor($id: ID!,
@@ -70,7 +70,7 @@
                                                          :burnIn 0.1}})
                                  [:data :updateBayesFactorAnalysis])
 
-        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+        _ (is :ARGUMENTS_SET (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
@@ -106,10 +106,10 @@
                             :variables {:id id}})
                 [:data :getBayesFactorAnalysis])]
 
-    (log/debug "response" {:id id
+    (log/debug "response" {:id            id
                            :name          readableName
                            :created-on    createdOn
-                           :status status
+                           :status        status
                            :bayes-factors bayesFactors})
 
     (is (= (:dd (time/now))

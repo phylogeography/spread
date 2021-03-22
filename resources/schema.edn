@@ -1,55 +1,70 @@
 {:scalars
- {:BigInt {:parse :scalar/parse-big-int
+ {:BigInt {:parse     :scalar/parse-big-int
            :serialize :scalar/serialize-big-int}}
 
  :enums
- {:ContinuousTreeStatus {:values [:TREE_UPLOADED
-                                  :ATTRIBUTES_AND_HPD_LEVELS_PARSED
-                                  :PARSER_ARGUMENTS_SET
-                                  :QUEUED
-                                  :RUNNING
-                                  :SUCCEEDED
-                                  :ERROR]}
+ {:AnalysisStatus {:values [:UPLOADED
+                            :ATTRIBUTES_PARSED
+                            :ARGUMENTS_SET
+                            :QUEUED
+                            :RUNNING
+                            :SUCCEEDED
+                            :ERROR
+                            ]}
 
-  :DiscreteTreeStatus {:values [:TREE_AND_LOCATIONS_UPLOADED
-                                :ATTRIBUTES_PARSED
-                                :PARSER_ARGUMENTS_SET
-                                :QUEUED
-                                :RUNNING
-                                :SUCCEEDED
-                                :ERROR]}
+  ;; :ContinuousTreeStatus {:values [:TREE_UPLOADED
+  ;;                                 :ATTRIBUTES_AND_HPD_LEVELS_PARSED
+  ;;                                 :PARSER_ARGUMENTS_SET
+  ;;                                 :QUEUED
+  ;;                                 :RUNNING
+  ;;                                 :SUCCEEDED
+  ;;                                 :ERROR]}
 
-  :TimeSlicerStatus {:values [:TREES_UPLOADED
-                              :ATTRIBUTES_AND_TREES_COUNT_PARSED
-                              :PARSER_ARGUMENTS_SET
-                              :QUEUED
-                              :RUNNING
-                              :SUCCEEDED
-                              :ERROR]}
+  ;; :DiscreteTreeStatus {:values [:TREE_AND_LOCATIONS_UPLOADED
+  ;;                               :ATTRIBUTES_PARSED
+  ;;                               :PARSER_ARGUMENTS_SET
+  ;;                               :QUEUED
+  ;;                               :RUNNING
+  ;;                               :SUCCEEDED
+  ;;                               :ERROR]}
 
-  :BayesFactorStatus {:values [:DATA_UPLOADED
-                               :PARSER_ARGUMENTS_SET
-                               :QUEUED
-                               :RUNNING
-                               :SUCCEEDED
-                               :ERROR]}}
+  ;; :TimeSlicerStatus {:values [:TREES_UPLOADED
+  ;;                             :ATTRIBUTES_AND_TREES_COUNT_PARSED
+  ;;                             :PARSER_ARGUMENTS_SET
+  ;;                             :QUEUED
+  ;;                             :RUNNING
+  ;;                             :SUCCEEDED
+  ;;                             :ERROR]}
 
- :input-objects
- {:File {:fields {:name      {:type String}
-                  :extension {:type String}}}
+  ;; :BayesFactorStatus {:values [:DATA_UPLOADED
+  ;;                              :PARSER_ARGUMENTS_SET
+  ;;                              :QUEUED
+  ;;                              :RUNNING
+  ;;                              :SUCCEEDED
+  ;;                              :ERROR]}
+
 
   }
 
- :unions
+ :input-objects
+ {:File {:fields {:name      {:type String}
+                  :extension {:type String}}}}
+
+ :interfaces
  {:Analysis
-  {:members [:ContinuousTree :DiscreteTree :TimeSlicer :BayesFactor]}}
+  {:fields {:id           {:type (non-null ID)}
+            :userId       {:type (non-null ID)}
+            :readableName {:type String}
+            :createdOn    {:type (non-null :BigInt)}
+            :progress     {:type (non-null Float)}
+            :status       {:type (non-null :AnalysisStatus)}
+            }}}
 
  :objects
  {:PageInfo {:fields {:hasPreviousPage {:type (non-null Boolean)}
                       :hasNextPage     {:type (non-null Boolean)}
                       :startCursor     {:type (non-null String)}
-                      :endCursor       {:type (non-null String)}
-                      }}
+                      :endCursor       {:type (non-null String)}}}
 
   :AnalysisEdge {:fields {:node   {:type :Analysis}
                           :cursor {:type String}}}
@@ -63,22 +78,22 @@
   :ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                                :fields      {:id       {:type (non-null ID)}
                                              :progress {:type (non-null Float)}
-                                             :status   {:type (non-null :ContinuousTreeStatus)}}}
+                                             :status   {:type (non-null :AnalysisStatus)}}}
 
   :DiscreteTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                              :fields      {:id       {:type (non-null ID)}
                                            :progress {:type (non-null Float)}
-                                           :status   {:type (non-null :DiscreteTreeStatus)}}}
+                                           :status   {:type (non-null :AnalysisStatus)}}}
 
   :TimeSlicerParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                            :fields      {:id       {:type (non-null ID)}
                                          :progress {:type (non-null Float)}
-                                         :status   {:type (non-null :TimeSlicerStatus)}}}
+                                         :status   {:type (non-null :AnalysisStatus)}}}
 
   :BayesFactorParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                             :fields      {:id       {:type (non-null ID)}
                                           :progress {:type (non-null Float)}
-                                          :status   {:type (non-null :BayesFactorStatus)}}}
+                                          :status   {:type (non-null :AnalysisStatus)}}}
 
   :User {:fields {:id    {:type (non-null ID)}
                   :email {:type (non-null String)}}}
@@ -97,7 +112,7 @@
                                  :hasExternalAnnotations   {:type Boolean}
                                  :timescaleMultiplier      {:type Float}
                                  :mostRecentSamplingDate   {:type String}
-                                 :status                   {:type :ContinuousTreeStatus}
+                                 :status                   {:type :AnalysisStatus}
                                  :progress                 {:type Float}
                                  :attributeNames           {:type    (list String)
                                                             :resolve :resolve/continuous-tree->attributes}
@@ -117,12 +132,11 @@
                                :locationAttributeName  {:type String}
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
-                               :status                 {:type :DiscreteTreeStatus}
+                               :status                 {:type :AnalysisStatus}
                                :progress               {:type Float}
                                :attributeNames         {:type    (list String)
                                                         :resolve :resolve/discrete-tree->attributes}
                                :outputFileUrl          {:type String}}}
-
 
   :TimeSlicer {:description "Represents TimeSlicer entity."
                :fields      {:id                                 {:description "Unique identifier."
@@ -142,7 +156,7 @@
                              :hpdLevel                           {:type String}
                              :timescaleMultiplier                {:type Float}
                              :mostRecentSamplingDate             {:type String}
-                             :status                             {:type :TimeSlicerStatus}
+                             :status                             {:type :AnalysisStatus}
                              :progress                           {:type Float}
                              :attributeNames                     {:type    (list String)
                                                                   :resolve :resolve/time-slicer->attributes}
@@ -163,7 +177,7 @@
                                       :createdOn        {:type (non-null :BigInt)}
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}
-                                      :status           {:type :BayesFactorStatus}
+                                      :status           {:type :AnalysisStatus}
                                       :progress         {:type Float}
                                       :burnIn           {:type Float}
                                       :outputFileUrl    {:type String}

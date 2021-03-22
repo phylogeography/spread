@@ -49,9 +49,9 @@
                                                                      first)}})
                                     [:data :uploadTimeSlicer])
 
-        _ (is :TREES_UPLOADED (keyword status))
+        _ (is :UPLOADED (keyword status))
 
-        _ (block-on-status id :ATTRIBUTES_AND_TREES_COUNT_PARSED)
+        _ (block-on-status id :ATTRIBUTES_PARSED)
 
         {:keys [id attributeNames treesCount]} (get-in (run-query {:query
                                                                    "query GetTree($id: ID!) {
@@ -94,7 +94,7 @@
                                                          :mrsd                 "2021/01/12"}})
                                  [:data :updateContinuousTree])
 
-        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+        _ (is :ARGUMENTS_SET (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {

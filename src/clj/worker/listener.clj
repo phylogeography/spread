@@ -132,7 +132,7 @@
       (continuous-tree-model/insert-attributes! db id attributes)
       (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
       (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  :ATTRIBUTES_AND_HPD_LEVELS_PARSED}))
+                                                :status  :ATTRIBUTES_PARSED}))
     (catch Exception e
       (log/error "Exception when handling continuous-tree-upload" {:error e})
       (continuous-tree-model/upsert-status! db {:tree-id id
@@ -210,7 +210,7 @@
       (time-slicer-model/update! db {:id          id
                                      :trees-count trees-count})
       (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                            :status         :ATTRIBUTES_AND_TREES_COUNT_PARSED}))
+                                            :status         :ATTRIBUTES_PARSED}))
     (catch Exception e
       (log/error "Exception when handling time-slicer-upload" {:error e})
       (time-slicer-model/upsert-status! db {:time-slicer-id id

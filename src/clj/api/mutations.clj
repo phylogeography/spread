@@ -60,7 +60,7 @@
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args    args})
   (let [id     (s3-url->id tree-file-url authed-user-id)
-        status :TREE_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (continuous-tree-model/upsert! db {:id            id
@@ -96,7 +96,7 @@
   (log/info "update continuous tree" {:user/id authed-user-id
                                       :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
       (continuous-tree-model/update! db {:id                          id
                                          :readable-name               readable-name
@@ -141,7 +141,7 @@
   (let [id     (s3-url->id tree-file-url authed-user-id)
         ;; NOTE: uploads mutation generates different ids for each uploaded file
         ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
-        status :TREE_AND_LOCATIONS_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (discrete-tree-model/upsert! db {:id                 id
@@ -174,7 +174,7 @@
   (log/info "update discrete tree" {:user/id authed-user-id
                                     :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       (discrete-tree-model/update! db {:id                        id
                                        :readable-name             readable-name
                                        :location-attribute-name   location-attribute-name
@@ -212,7 +212,7 @@
   (log/info "upload-time-slicer" {:user/id authed-user-id
                                   :args    args})
   (let [id     (s3-url->id trees-file-url authed-user-id)
-        status :TREES_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (time-slicer-model/upsert! db {:id                     id
@@ -252,7 +252,7 @@
   (log/info "update time-slicer" {:user/id authed-user-id
                                   :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
       (time-slicer-model/update! db {:id                                      id
                                      :readable-name                           readable-name
@@ -301,7 +301,7 @@
   (let [id     (s3-url->id log-file-url authed-user-id)
         ;; NOTE: uploads mutation generates different ids for each uploaded file
         ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
-        status :DATA_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (bayes-factor-model/upsert! db {:id                  id
@@ -332,7 +332,7 @@
   (log/info "update bayes factor analysis" {:user/id authed-user-id
                                             :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
       (discrete-tree-model/update! db {:id                  id
                                        :readable-name       readable-name

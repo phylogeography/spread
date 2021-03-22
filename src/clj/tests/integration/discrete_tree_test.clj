@@ -40,14 +40,17 @@
         _                        (http/put locations-url {:body (io/file "src/test/resources/discrete/locationCoordinates_H5N1")})
         {:keys [id status]}      (get-in (run-query {:query
                                                      "mutation UploadTree($treeUrl: String!,
-                                                                          $locationsUrl: String!) {
-                                                        uploadDiscreteTree(treeFileUrl: $treeUrl,
+                                                                          $locationsUrl: String!,
+                                                                          $name: String!) {
+                                                        uploadDiscreteTree(readableName: $name,
+                                                                           treeFileUrl: $treeUrl,
                                                                            locationsFileUrl: $locationsUrl) {
                                                           id
                                                           status
                                                         }
                                                       }"
-                                                     :variables {:treeUrl      (-> tree-url
+                                                     :variables {:name         "H5N1_HA_discrete_MCC"
+                                                                 :treeUrl      (-> tree-url
                                                                                    (string/split  #"\?")
                                                                                    first)
                                                                  :locationsUrl (-> locations-url
@@ -55,7 +58,7 @@
                                                                                    first)}})
                                          [:data :uploadDiscreteTree])
 
-        _ (is :TREE_AND_LOCATIONS_UPLOADED (keyword status))
+        _ (is :UPLOADED (keyword status))
 
         _ (block-on-status id :ATTRIBUTES_PARSED)
 
@@ -83,7 +86,7 @@
                                                          :mrsd              "2019/02/12"}})
                                  [:data :updateDiscreteTree])
 
-        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+        _ (is :ARGUMENTS_SET (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
