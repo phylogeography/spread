@@ -43,6 +43,11 @@
   mount                 {:mvn/version "0.1.16"}
   jpmonettas/flow-storm {:mvn/version "0.2.6"}
   tick/tick             {:mvn/version "0.4.29-alpha"}
+
+  ;; SPEC
+  org.clojure/spec.alpha                 {:mvn/version "0.2.194"}
+  org.clojure/test.check                 {:mvn/version "1.1.0"}
+
   }
 
  :mvn/repos

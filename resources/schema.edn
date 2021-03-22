@@ -36,8 +36,28 @@
 
   }
 
+ :unions
+ {:Analysis
+  {:members [:ContinuousTree :DiscreteTree :TimeSlicer :BayesFactor]}}
+
  :objects
- {:JWT {:fields {:accessToken {:type (non-null String)}}}
+ {:PageInfo {:fields {:hasPreviousPage {:type (non-null Boolean)}
+                      :hasNextPage     {:type (non-null Boolean)}
+                      :startCursor     {:type (non-null String)}
+                      :endCursor       {:type (non-null String)}
+                      }}
+
+  :AnalysisEdge {:fields {:node   {:type :Analysis}
+                          :cursor {:type String}}}
+
+  :AnalysisConnection {:fields {:totalCount {:type Int}
+                                :pageInfo   {:type (non-null :PageInfo)}
+                                :edges      {:type (list (non-null :AnalysisEdge))}
+
+
+                                }}
+
+  :JWT {:fields {:accessToken {:type (non-null String)}}}
 
   :ContinuousTreeParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
                                :fields      {:id       {:type (non-null ID)}
@@ -66,6 +86,7 @@
                                  :userId                   {:type (non-null ID)}
                                  :readableName             {:description "Human-readable name. Usually tree file name."
                                                             :type        String}
+                                 :createdOn                {:type (non-null Int)}
                                  :treeFileUrl              {:type (non-null String)}
                                  :xCoordinateAttributeName {:type String}
                                  :yCoordinateAttributeName {:type String}
@@ -87,6 +108,7 @@
                                :userId                 {:type (non-null ID)}
                                :readableName           {:description "Human-readable name. Usually tree file name."
                                                         :type        String}
+                               :createdOn              {:type (non-null Int)}
                                :treeFileUrl            {:type (non-null String)}
                                :locationsFileUrl       {:type (non-null String)}
                                :locationAttributeName  {:type String}
@@ -105,6 +127,7 @@
                              :userId                             {:type (non-null ID)}
                              :readableName                       {:description "Human-readable name. Usually trees file name."
                                                                   :type        String}
+                             :createdOn                          {:type (non-null Int)}
                              :treesFileUrl                       {:type (non-null String)}
                              :sliceHeightsFileUrl                {:type String}
                              :burnIn                             {:type Int}
@@ -134,6 +157,7 @@
                                       :userId           {:type (non-null ID)}
                                       :readableName     {:description "Human-readable name. Usually log file name."
                                                          :type        String}
+                                      :createdOn        {:type (non-null Int)}
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}
                                       :status           {:type :BayesFactorStatus}
@@ -145,7 +169,7 @@
 
  :queries
  {:getAuthorizedUser {:type        :User
-                      :description "Returns a current user. Does not need ID which is read from the Authorization header"
+                      :description "Returns a current user. Does not need ID which is read from the Authorization header."
                       :resolve     :query/getAuthorizedUser}
   :getContinuousTree {:type        :ContinuousTree
                       :description "Returns a ContinuousTree entity by id."
@@ -165,7 +189,18 @@
   :getBayesFactorAnalysis {:type        :BayesFactorAnalysis
                            :description "Returns a BayesFactorAnalysis entity by id."
                            :args        {:id {:type (non-null ID)}}
-                           :resolve     :query/getBayesFactorAnalysis}}
+                           :resolve     :query/getBayesFactorAnalysis}
+
+  :searchUserAnalysis {:type        :AnalysisConnection
+                       :description "Returns paginated result with completed analysis for the authenticated user."
+                       :args        {:first  {:type Int}
+                                     :after  {:type String}
+                                     :last   {:type Int}
+                                     :before {:type String}}
+                       :resolve     :query/searchUserAnalysis
+                       }
+
+  }
 
  :subscriptions
  {:continuousTreeParserStatus
@@ -231,7 +266,7 @@
                        :resolve     :mutation/uploadDiscreteTree}
 
   :updateDiscreteTree {:type        :DiscreteTreeParserStatus
-                       :description "Updates the entity with settings for parsing the tree graph"
+                       :description "Updates the entity with settings for parsing the tree graph."
                        :args        {:id                     {:type (non-null ID)}
                                      :readableName           {:type String}
                                      :locationAttributeName  {:type (non-null String)}

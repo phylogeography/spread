@@ -26,6 +26,9 @@
       <column name="timescale_multiplier" type="FLOAT"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
       <column name="trees_count" type="INT"/>
+      <column name="created_on" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
     </createTable>
   </changeSet>
 

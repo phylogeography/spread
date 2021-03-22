@@ -6,6 +6,7 @@
             [api.models.user :as user-model]
             [clojure.data.json :as json]
             [shared.utils :refer [clj->gql]]
+            [ com.walmartlabs.lacinia.schema :refer [tag-with-type]]
             [taoensso.timbre :as log]))
 
 (defn get-authorized-user
@@ -68,3 +69,9 @@
         bayes-factors (json/read-str bayes-factors)]
     (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
+
+;; TODO
+(defn search-user-analysis
+  [{:keys [db authed-user-id]} args _]
+  (log/info "search-user-analysis" args)
+  (clj->gql {:fu :bar}))

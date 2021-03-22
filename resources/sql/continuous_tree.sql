@@ -5,16 +5,19 @@ INSERT INTO continuous_tree(
 id,
 user_id,
 tree_file_url,
-readable_name
+readable_name,
+created_on
 )
 VALUES (
 :id,
 :user-id,
 :tree-file-url,
-:readable-name
+:readable-name,
+:created-on
 )
 ON DUPLICATE KEY UPDATE
 user_id = user_id,
+created_on = created_on,
 tree_file_url = IF(:tree-file-url IS NOT NULL, :tree-file-url, tree_file_url),
 readable_name = :readable-name
 
@@ -78,6 +81,7 @@ WHERE :tree-id = tree_id
 SELECT
 id,
 user_id,
+created_on,
 tree_file_url,
 x_coordinate_attribute_name,
 y_coordinate_attribute_name,
