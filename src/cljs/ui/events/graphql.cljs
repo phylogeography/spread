@@ -1,4 +1,4 @@
-(ns ui.graphql
+(ns ui.events.graphql
   (:require ["axios" :as axios]
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [shared.macros :refer [promise->]]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt reg-empty-event-fx]]
+            [ui.utils :refer [>evt]]
             [ui.websocket-fx :as websocket]))
 
 (defn gql-name->kw [gql-name]
@@ -64,10 +64,8 @@
                         (handler fxs k v))
                       response))
 
-(re-frame/reg-event-fx
-  ::response
-  (fn [cofx [_ response]]
-    (reduce-handlers cofx response)))
+(defn response [cofx [_ response]]
+  (reduce-handlers cofx response))
 
 (re-frame/reg-fx
   ::query
@@ -75,62 +73,55 @@
     (promise-> (axios params)
                callback)))
 
-(re-frame/reg-event-fx
-  ::query
-  [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [db localstorage]} [_ {:keys [query variables]}]]
-    (let [url          (get-in db [:config :graphql :url])
-          access-token (:access-token localstorage)
-          params       (clj->js {:url     url
-                                 :method  :post
-                                 :headers (merge {"Content-Type" "application/json"
-                                                  "Accept"       "application/json"}
-                                                 (when access-token
-                                                   {"Authorization" (str "Bearer " access-token)}))
-                                 :data    (js/JSON.stringify
-                                            (clj->js {:query     query
-                                                      :variables variables}))})
-          callback     (fn [^js response]
-                         (if (= 200 (.-status response))
-                           ;; TODO we can still have errors even with a 200
-                           ;; so we should log them or handle in some other way
-                           (>evt [::response (gql->clj (.-data (.-data response)))])
-                           (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
-      {::query [params callback]})))
+(defn query [{:keys [db localstorage]} [_ {:keys [query variables]}]]
+  (let [url          (get-in db [:config :graphql :url])
+        access-token (:access-token localstorage)
+        params       (clj->js {:url     url
+                               :method  :post
+                               :headers (merge {"Content-Type" "application/json"
+                                                "Accept"       "application/json"}
+                                               (when access-token
+                                                 {"Authorization" (str "Bearer " access-token)}))
+                               :data    (js/JSON.stringify
+                                         (clj->js {:query     query
+                                                   :variables variables}))})
+        callback     (fn [^js response]
+                       (if (= 200 (.-status response))
+                         ;; TODO we can still have errors even with a 200
+                         ;; so we should log them or handle in some other way
+                         (>evt [:graphql/response (gql->clj (.-data (.-data response)))])
+                         (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
+    {::query [params callback]}))
 
-(reg-empty-event-fx ::ws-authorized)
 
-(re-frame/reg-event-fx
-  ::ws-authorize
-  [(re-frame/inject-cofx :localstorage)]
-  (fn [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
-    (let [access-token (:access-token localstorage)]
-      {:dispatch [::websocket/request :default
-                  {:message
-                   {:type    "connection_init"
-                    :payload {"Authorization"
-                              (str "Bearer " access-token)}}
-                   :on-response [::ws-authorized]
-                   :on-timeout  on-timeout
-                   :timeout     3000}]})))
-
-(re-frame/reg-event-fx
-  ::subscription-response
-  (fn [cofx [_ response]]
-    (reduce-handlers cofx (gql->clj (get-in response [:payload :data])))))
-
-(re-frame/reg-event-fx
-  ::subscription
-  (fn [_ [_ {:keys [id query variables]}]]
-    {:dispatch [::websocket/subscribe :default
-                (name id)
+(defn ws-authorize [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
+  (let [access-token (:access-token localstorage)]
+    {:dispatch [:websocket/request :default
                 {:message
-                 {:type    "start"
-                  :payload {:variables     variables
-                            :extensions    {}
-                            :operationName nil
-                            :query         query}}
-                 :on-message [::subscription-response]}]}))
+                 {:type    "connection_init"
+                  :payload {"Authorization"
+                            (str "Bearer " access-token)}}
+                 :on-response [:graphql/ws-authorized]
+                 :on-timeout  on-timeout
+                 :timeout     3000}]}))
+
+(defn ws-authorize-failed [_ [_ why?]]
+  (log/warn "Failed to authorize websocket connection" {:error why?})
+  {:dispatch [:router/navigate :route/splash]})
+
+(defn subscription-response [cofx [_ response]]
+  (reduce-handlers cofx (gql->clj (get-in response [:payload :data]))))
+
+(defn subscription [_ [_ {:keys [id query variables]}]]
+  {:dispatch [:websocket/subscribe :default
+              (name id)
+              {:message
+               {:type    "start"
+                :payload {:variables     variables
+                          :extensions    {}
+                          :operationName nil
+                          :query         query}}
+               :on-message [:graphql/subscription-response]}]})
 
 (defmethod handler :default
   [cofx k values]
