@@ -11,6 +11,7 @@
   [com.taoensso/timbre "5.1.2"]
   [day8.re-frame/async-flow-fx "0.1.0"]
   [day8.re-frame/forward-events-fx "0.0.6"]
+  [day8.re-frame/http-fx "0.2.3"]
   [district0x/bide "1.6.1"]
   [haslett "0.1.6"]
   [lambdaisland/uri "1.4.54"]
@@ -18,7 +19,8 @@
   [org.clojure/core.match "1.0.0"]
   [re-frame "1.1.2"]
   [reagent "1.0.0"]
-  [refactor-nrepl "2.5.0"]]
+  [refactor-nrepl "2.5.0"]
+  [hiccups "0.3.0"]]
 
  :nrepl
  {:port       46000

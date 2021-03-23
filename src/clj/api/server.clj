@@ -1,5 +1,5 @@
 (ns api.server
-  (:require [api.auth :as auth]
+  (:require [api.auth :as auth]      
             [api.db :as db]
             [api.mutations :as mutations]
             [api.resolvers :as resolvers]
@@ -11,15 +11,14 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [com.walmartlabs.lacinia.pedestal :refer [inject]]
-            [com.walmartlabs.lacinia.pedestal.subscriptions
-             :as
-             pedestal-subscriptions]
+            [com.walmartlabs.lacinia.pedestal.subscriptions :as pedestal-subscriptions]
             [com.walmartlabs.lacinia.pedestal2 :as pedestal]
             [com.walmartlabs.lacinia.schema :as schema]
             [com.walmartlabs.lacinia.util :as lacinia-util]
             [io.pedestal.http :as http]
             [io.pedestal.interceptor :refer [interceptor]]
             [mount.core :as mount :refer [defstate]]
+            [shared.utils :as shared-utils]
             [taoensso.timbre :as log]))
 
 (declare server)
@@ -73,6 +72,8 @@
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
+
+   :resolve/analysis->maps resolvers/analysis->maps
    })
 
 (defn streamer-map []
@@ -140,6 +141,34 @@
       slurp
       edn/read-string))
 
+(defn load-maps-files
+  "Load all maps files from resources."
+  []
+  {:countries-maps (into [] (.listFiles (io/file (io/resource "maps/countries"))))
+   :world-maps     (into [] (.listFiles (io/file (io/resource "maps/world"))))})
+
+(defn ensure-maps-uploaded
+  "For every map file in resources check if it is already in our s3 bucket.
+  Upload it if not."
+  [aws-config s3 bucket-name]
+  (try
+   (let [{:keys [countries-maps world-maps]} (load-maps-files)
+         maps-files (into countries-maps world-maps)]
+     (doseq [map-file maps-files]
+       (let [map-rel-path (-> map-file str (string/split #"resources/") second)
+             map-url (str "http://" (aws-s3/build-url aws-config bucket-name map-rel-path))]
+         (when-not (shared-utils/http-file-exists? map-url)
+           (log/info (str "Map file " map-url " doesn't exist, uploading..."))
+           (aws-s3/upload-file s3 {:bucket bucket-name
+                                   :key map-rel-path
+                                   :file-path (str map-file)})))))
+   (catch Exception e
+     ;; This is because I couldn't figure out how to get a dir listing of all maps in resources when
+     ;; runing from a jar after trying a bunch of different strategies.
+     ;; When running in other than dev environmets we can upload map json files to s3
+     ;; with other approaches, like manually or running a script.
+     (log/error "ensure-maps-uploaded failed. This is ok if we are running from inside a jar, ignore it." {:exception-message (.getMessage e)}))))
+
 (defn stop [this]
   (http/stop this))
 
@@ -189,6 +218,9 @@
                                                     http/start)]
 
     (log/info "Starting server" config)
+
+    ;; Make sure all maps had been uploaded to s3, if not upload them
+    (ensure-maps-uploaded aws s3 bucket-name)
 
     (when-not (contains? (set (:Buckets (aws-s3/list-buckets s3))) bucket-name)
       (aws-s3/create-bucket s3 {:bucket-name bucket-name}))

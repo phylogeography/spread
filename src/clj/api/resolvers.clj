@@ -121,3 +121,11 @@
     (clj->gql {:total-count total-count
                :edges       edges'
                :page-info   page-info})))
+
+(defn analysis->maps [_ _ _]
+  #_[{:keys [db]} _ {analysis-id :id :as parent}]
+  ;; TODO: implement this once we have refactored the db and added bounding boxes to the analysis parent table
+  [
+   "http://127.0.0.1:9000/spread-dev-uploads/maps/countries/australiaLow.json"
+   "http://127.0.0.1:9000/spread-dev-uploads/maps/countries/tanzaniaLow.json"
+   "http://127.0.0.1:9000/spread-dev-uploads/maps/world/worldLow.json"])

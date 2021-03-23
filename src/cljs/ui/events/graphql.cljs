@@ -1,10 +1,10 @@
 (ns ui.events.graphql
-  (:require ["axios" :as axios]
+  (:require [ajax.core :as ajax]
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
             [clojure.string :as string]
+            [day8.re-frame.http-fx]
             [re-frame.core :as re-frame]
-            [shared.macros :refer [promise->]]
             [taoensso.timbre :as log]
             [ui.utils :refer [>evt dispatch-n]]))
 
@@ -64,34 +64,26 @@
                       response))
 
 (defn response [cofx [_ response]]
-  (reduce-handlers cofx response))
-
-(re-frame/reg-fx
-  ::query
-  (fn [[params callback]]
-    (promise-> (axios params)
-               callback)))
+  (reduce-handlers cofx (gql->clj (:data response))))
 
 (defn query
-  [{:keys [db localstorage]} [_ {:keys [query variables callback]
-                                 :or   {callback (fn [^js response]
-                                                   (if (= 200 (.-status response))
-                                                     ;; TODO we can still have errors even with a 200
-                                                     ;; so we should log them or handle in some other way
-                                                     (>evt [:graphql/response (gql->clj (.-data (.-data response)))])
-                                                     (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}}]]
+  [{:keys [db localstorage]} [_ {:keys [query variables]}]]
   (let [url          (get-in db [:config :graphql :url])
-        access-token (:access-token localstorage)
-        params       (clj->js {:url     url
-                               :method  :post
-                               :headers (merge {"Content-Type" "application/json"
-                                                "Accept"       "application/json"}
-                                               (when access-token
-                                                 {"Authorization" (str "Bearer " access-token)}))
-                               :data    (js/JSON.stringify
-                                          (clj->js {:query     query
-                                                    :variables variables}))})]
-    {::query [params callback]}))
+        access-token (:access-token localstorage)]
+    {:http-xhrio {:method          :post
+                  :uri             url
+                  :headers (merge {"Content-Type" "application/json"
+                                   "Accept"       "application/json"}
+                                  (when access-token
+                                    {"Authorization" (str "Bearer " access-token)}))
+                  :body (js/JSON.stringify
+                         (clj->js {:query     query
+                                   :variables variables}))
+                  :timeout         8000
+                  
+                  :response-format (ajax/json-response-format {:keywords? true})
+                  :on-success      [:graphql/response]
+                  :on-failure      [:log-error]}}))
 
 (defn ws-authorize [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
   (let [access-token (:access-token localstorage)]
@@ -128,7 +120,7 @@
   [cofx k values]
   ;; NOTE: this is the default handler that is intented for queries and mutations
   ;; that have nothing to do besides reducing over their response values
-  (log/debug "default handler" {:k k})
+  (log/info "default handler" {:k k})
   (reduce-handlers cofx values))
 
 (defmethod handler :discrete-tree-parser-status
@@ -223,7 +215,15 @@
   [_ _ {:keys [access-token]}]
   (re-frame/dispatch [:splash/login-success access-token]))
 
-#_(defmethod handler :api/error
+(defmethod handler :get-continuous-tree
+  [_ _ {:keys [maps output-file-url]}]
+  (re-frame/dispatch [:map/initialize
+                      maps
+                      :continuous-tree
+                      ;; TODO: fix this, why is it coming without protocol?
+                      (str "http://" output-file-url)]))
+
+(defmethod handler :api/error
   [_ _ _]
   ;; NOTE: this handler is here only to catch errors
   )
