@@ -52,6 +52,7 @@ Deploy the database schema changes:
 ```bash
 cd services/db-migration
 source ../../env/dev
+mvn package
 mvn liquibase:update
 ```
 

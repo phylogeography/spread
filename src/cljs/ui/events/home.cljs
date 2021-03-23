@@ -1,7 +1,8 @@
 (ns ui.events.home
   (:require [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]
-            [ui.home.page :refer [analysis-id]]))
+            [taoensso.timbre :as log]))
+
+(def analysis-id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
 
 ;; TODO : move to general
 

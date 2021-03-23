@@ -1,5 +1,6 @@
 (ns shared.utils
-  (:require [clojure.data.json :as json]
+  (:require [clj-http.client :as http-cli]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.walk :as walk]
@@ -64,6 +65,14 @@
 (defn file-exists?
   [path]
   (.exists (io/file path)))
+
+(defn http-file-exists?
+  "Checks that a resource under `url` exists without retrieving content."
+  [url]
+  (boolean
+   (try
+     (http-cli/head url)
+     (catch Exception _ nil))))
 
 (defn round
   "Round a double to the given precision"

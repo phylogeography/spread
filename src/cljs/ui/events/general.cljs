@@ -25,6 +25,7 @@
                                                    :on-connect [:graphql/ws-authorize
                                                                 {:on-timeout [:graphql/ws-authorize-failed]}]
                                                    :protocols  ["graphql-ws"]}]
+
                     [:graphql/query {:query
                                      "query {
                                        getAuthorizedUser {

@@ -57,7 +57,9 @@
   (aws/invoke s3 {:op :ListBuckets}))
 
 (defn create-bucket [s3 {:keys [bucket-name]}]
-  (aws/invoke s3 {:op :CreateBucket :request {:Bucket bucket-name}}))
+  (aws/invoke s3 {:op :CreateBucket
+                  :request {:Bucket bucket-name
+                            :ACL "public-read"}}))
 
 (defn get-signed-url [s3-presigner {:keys [bucket-name key]}]
   (let [putObjectRequest (-> (PutObjectRequest/builder)
@@ -105,7 +107,7 @@
 (defn build-url [aws-config bucket key]
   (if-let [s3-host (:s3-host aws-config)]
     ;; this is MinIO
-    (format "%s:%s/minio/%s/%s"
+    (format "%s:%s/%s/%s"
             s3-host
             (:s3-port aws-config)
             bucket

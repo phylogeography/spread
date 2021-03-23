@@ -65,6 +65,10 @@
                                  :progress                 {:type Float}
                                  :attributeNames           {:type    (list String)
                                                             :resolve :resolve/continuous-tree->attributes}
+                                 ;; TODO: are we going to repeat all this common fields in every analysis type
+                                 ;; isn't there a way to abstract it away with union types?
+                                 :maps                     {:type    (list String)
+                                                            :resolve :resolve/analysis->maps}
                                  :hpdLevels                {:type    (list String)
                                                             :resolve :resolve/continuous-tree->hpd-levels}
                                  :outputFileUrl            {:type String}}}

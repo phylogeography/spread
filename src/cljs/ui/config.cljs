@@ -19,7 +19,7 @@
                     ["/new-analysis" :route/new-analysis]
                     ["/analysis-results" :route/analysis-results]
                     ["/documentation" :route/documentation]
-                    ]
+                    ["/map" :route/map]]
     :default-route :route/splash
     :scroll-top?   true
     :html5?        true}
