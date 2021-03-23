@@ -9,7 +9,7 @@
 
   ;; HTTP / NETWORKING
   com.cognitect/transit-clj        {:mvn/version "1.0.324"}
-  com.walmartlabs/lacinia-pedestal {:mvn/version "0.15.0-alpha-2"}
+  com.walmartlabs/lacinia-pedestal {:mvn/version "0.15.0"}
   clj-http/clj-http                {:mvn/version "3.12.1"}
 
   ;; AUTH / JWT

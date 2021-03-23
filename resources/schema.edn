@@ -19,7 +19,7 @@
  {:Analysis
   {:fields {:id           {:type (non-null ID)}
             :userId       {:type (non-null ID)}
-            :readableName {:description "Human-readable name. Usually tree file name."
+            :readableName {:description "Human-readable name. Usually file name."
                            :type        String}
             :createdOn    {:type (non-null :BigInt)}
             :progress     {:type Float}

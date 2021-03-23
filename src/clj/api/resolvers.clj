@@ -6,7 +6,7 @@
             [api.models.user :as user-model]
             [clojure.data.json :as json]
             [shared.utils :refer [clj->gql]]
-            [ com.walmartlabs.lacinia.schema :refer [tag-with-type]]
+            [com.walmartlabs.lacinia.schema :refer [tag-with-type]]
             [taoensso.timbre :as log]))
 
 (defn get-authorized-user
@@ -66,7 +66,7 @@
   [{:keys [db]} _ {bayes-factor-analysis-id :id :as parent}]
   (log/info "bayes-factor-analysis->bayes-factors" parent)
   (let [{:keys [bayes-factors]} (bayes-factor-model/get-bayes-factors db {:bayes-factor-analysis-id bayes-factor-analysis-id})
-        bayes-factors (json/read-str bayes-factors)]
+        bayes-factors           (json/read-str bayes-factors)]
     (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
 
@@ -74,4 +74,16 @@
 (defn search-user-analysis
   [{:keys [db authed-user-id]} args _]
   (log/info "search-user-analysis" args)
-  (clj->gql {:fu :bar}))
+  (clj->gql {:total-count 10
+             :edges       [(tag-with-type {:cursor "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"
+                                           :node   {:id            "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"
+                                                    :user-id       "a1195874-0bbe-4a8c-96f5-14cdf9097e02"
+                                                    :readable-name "tree-named-wanda"
+                                                    :created-on    (bigint 1616431613670)
+                                                    :status        :SUCCEEDED
+                                                    :progress      1.0}} :ContinuousTree)]
+             :page-info   {:has-previous-page true
+                           :has-next-page     true
+                           :start-cursor      "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"
+                           :end-cursor        "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"}
+             }))
