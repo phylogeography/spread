@@ -46,5 +46,5 @@ SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "time_s
 JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id
 WHERE user_id = :user-id
 ORDER BY created_on
-LIMIT :limit
-OFFSET :offset
+-- LIMIT :limit
+-- OFFSET :offset

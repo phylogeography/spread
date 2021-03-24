@@ -6,8 +6,8 @@
             [api.models.user :as user-model]
             [clojure.data.json :as json]
             [shared.utils :refer [clj->gql]]
-            [com.walmartlabs.lacinia.schema :refer [tag-with-type]]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [com.walmartlabs.lacinia.schema :as schema]))
 
 (defn get-authorized-user
   [{:keys [authed-user-id db]} _ _]
@@ -71,19 +71,40 @@
     (clj->gql bayes-factors)))
 
 ;; TODO: https://lacinia.readthedocs.io/en/latest/resolve/type-tags.html?highlight=fragments
+;; TODO : opaque cursor
 (defn search-user-analysis
-  [{:keys [db authed-user-id]} args _]
+  [{:keys [db authed-user-id]} {first-n :first last-n :last before :before after :after :as args} _]
+
   (log/info "search-user-analysis" args)
-  (clj->gql {:total-count 10
-             :edges       [(tag-with-type {:cursor "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"
-                                           :node   {:id            "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"
-                                                    :user-id       "a1195874-0bbe-4a8c-96f5-14cdf9097e02"
-                                                    :readable-name "tree-named-wanda"
-                                                    :created-on    (bigint 1616431613670)
-                                                    :status        :SUCCEEDED
-                                                    :progress      1.0}} :ContinuousTree)]
-             :page-info   {:has-previous-page true
-                           :has-next-page     true
-                           :start-cursor      "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"
-                           :end-cursor        "cb67b1c8-bb7a-4cfc-8d4c-e1455539c0c5"}
-             }))
+
+  (let [
+        results (user-model/search-user-analysis db {:user-id authed-user-id})
+
+        edges (cond->> results
+                after  (drop-while #(not= after (:id %)))
+                after  (drop 1)
+                before (take-while #(not= before (:id %))))
+
+        edges' (cond->> edges
+                 first-n (take first-n)
+                 last-n  (take-last last-n)
+                 true    (map #(hash-map :cursor (:id %) :node %)))
+
+        ;; TODO : match
+        page-info (cond-> {:has-next-page false
+                           :has-previous-page false}
+                    (and last-n (< last-n (count edges)))                                         (assoc :has-previous-page true)
+                    (and after (not-empty (take-while #(not= after (:id %)) results)))            (assoc :has-previous-page true)
+                    (and first-n (< first-n (count edges)))                                       (assoc :has-next-page true)
+                    (and before (not-empty (drop 1 (drop-while #(not= before (:id %)) results)))) (assoc :has-next-page true)
+                    true                                                                          (assoc :start-cursor (-> edges' first :cursor))
+                    true                                                                          (assoc :end-cursor (-> edges' last :cursor)))
+
+        ]
+
+    (log/debug "@@@" {:edges     edges'
+                      :page-info page-info})
+
+    (clj->gql {:total-count (count results)
+               :edges       edges'
+               :page-info   page-info})))

@@ -15,6 +15,7 @@
  {:File {:fields {:name      {:type String}
                   :extension {:type String}}}}
 
+ ;; TODO : tagging broken
  :interfaces
  {:Analysis
   {:fields {:id           {:type (non-null ID)}
@@ -52,7 +53,7 @@
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
-  :ParserStatus {:description "Return id and status. Mostly for querying the workers progress but also for kicking off new analysis."
+  :ParserStatus {:description "Return id and status. Mostly used for querying workers progress."
                  :fields      {:id       {:type (non-null ID)}
                                :progress {:type (non-null Float)}
                                :status   {:type (non-null :AnalysisStatus)}}}
