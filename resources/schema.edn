@@ -16,11 +16,9 @@
                   :extension {:type String}}}}
 
  :objects
- {:PageInfo {:fields {
-                      :hasPreviousPage {:type (non-null Boolean)}
-                      :hasNextPage     {:type (non-null Boolean)}
-                      :startCursor     {:type (non-null String)}
-                      :endCursor       {:type (non-null String)}}}
+ {:PageInfo {:fields {:hasNextPage {:type (non-null Boolean)}
+                      :startCursor {:type String}
+                      :endCursor   {:type String}}}
 
   :Analysis
   {:fields {:id           {:type (non-null ID)}
@@ -117,7 +115,6 @@
                               :posteriorProbability {:type Float}}}
 
   :BayesFactorAnalysis {:description "Represents BayesFactorAnalysis entity."
-                        :implements  [:Analysis]
                         :fields      {:id               {:description "Unique identifier."
                                                          :type        (non-null ID)}
                                       :userId           {:type (non-null ID)}
@@ -158,13 +155,10 @@
 
   :searchUserAnalysis {:type        :AnalysisConnection
                        :description "Returns paginated result with completed analysis for the authenticated user."
-                       :args        {
-                                     :first  {:type Int}
+                       :args        {:first  {:type Int}
                                      :after  {:type String}
-                                     :last   {:type Int}
-                                     :before {:type String}}
-                       :resolve     :query/searchUserAnalysis
-                       }
+                                     :statuses {:type (list :AnalysisStatus)}}
+                       :resolve     :query/searchUserAnalysis}
 
   }
 
