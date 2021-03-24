@@ -15,25 +15,14 @@
  {:File {:fields {:name      {:type String}
                   :extension {:type String}}}}
 
- ;; TODO : tagging broken
- :interfaces
- {:Analysis
-  {:fields {:id           {:type (non-null ID)}
-            :userId       {:type (non-null ID)}
-            :readableName {:description "Human-readable name. Usually file name."
-                           :type        String}
-            :createdOn    {:type (non-null :BigInt)}
-            :progress     {:type Float}
-            :status       {:type :AnalysisStatus}
-            }}}
-
  :objects
- {:PageInfo {:fields {:hasPreviousPage {:type (non-null Boolean)}
+ {:PageInfo {:fields {
+                      :hasPreviousPage {:type (non-null Boolean)}
                       :hasNextPage     {:type (non-null Boolean)}
                       :startCursor     {:type (non-null String)}
                       :endCursor       {:type (non-null String)}}}
 
-  :Analysis2
+  :Analysis
   {:fields {:id           {:type (non-null ID)}
             :userId       {:type (non-null ID)}
             :readableName {:description "Human-readable name. Usually file name."
@@ -41,10 +30,9 @@
             :createdOn    {:type (non-null :BigInt)}
             :progress     {:type Float}
             :status       {:type :AnalysisStatus}
-            :ofType       {:type (non-null String)}
-            }}
+            :ofType       {:type (non-null String)}}}
 
-  :AnalysisEdge {:fields {:node   {:type :Analysis2}
+  :AnalysisEdge {:fields {:node   {:type :Analysis}
                           :cursor {:type String}}}
 
   :AnalysisConnection {:fields {:totalCount {:type Int}
@@ -62,7 +50,6 @@
                   :email {:type (non-null String)}}}
 
   :ContinuousTree {:description "Represents ContinuousTree entity."
-                   :implements  [:Analysis]
                    :fields      {:id                       {:description "Unique identifier."
                                                             :type        (non-null ID)}
                                  :userId                   {:type (non-null ID)}
@@ -84,7 +71,6 @@
                                  :outputFileUrl            {:type String}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
-                 :implements  [:Analysis]
                  :fields      {:id                     {:description "Unique identifier."
                                                         :type        (non-null ID)}
                                :userId                 {:type (non-null ID)}
@@ -102,7 +88,6 @@
                                :outputFileUrl          {:type String}}}
 
   :TimeSlicer {:description "Represents TimeSlicer entity."
-               :implements  [:Analysis]
                :fields      {:id                                 {:description "Unique identifier."
                                                                   :type        (non-null ID)}
                              :userId                             {:type (non-null ID)}
@@ -173,7 +158,8 @@
 
   :searchUserAnalysis {:type        :AnalysisConnection
                        :description "Returns paginated result with completed analysis for the authenticated user."
-                       :args        {:first  {:type Int}
+                       :args        {
+                                     :first  {:type Int}
                                      :after  {:type String}
                                      :last   {:type Int}
                                      :before {:type String}}

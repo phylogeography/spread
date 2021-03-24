@@ -5,9 +5,8 @@
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
             [clojure.data.json :as json]
-            [shared.utils :refer [clj->gql]]
-            [taoensso.timbre :as log]
-            [com.walmartlabs.lacinia.schema :as schema]))
+            [shared.utils :refer [clj->gql decode-base64 encode-base64]]
+            [taoensso.timbre :as log]))
 
 (defn get-authorized-user
   [{:keys [authed-user-id db]} _ _]
@@ -70,41 +69,27 @@
     (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
 
-;; TODO: https://lacinia.readthedocs.io/en/latest/resolve/type-tags.html?highlight=fragments
-;; TODO : opaque cursor
 (defn search-user-analysis
-  [{:keys [db authed-user-id]} {first-n :first last-n :last before :before after :after :as args} _]
-
+  "Returns paginated user analysis, following the Relay specification:
+  https://relay.dev/graphql/connections.htm.
+  Clients can ask for next page using an opaque cursor."
+  [{:keys [db authed-user-id]} {first-n :first
+                                after   :after
+                                :as     args} _]
   (log/info "search-user-analysis" args)
-
-  (let [
-        results (user-model/search-user-analysis db {:user-id authed-user-id})
-
-        edges (cond->> results
-                after  (drop-while #(not= after (:id %)))
-                after  (drop 1)
-                before (take-while #(not= before (:id %))))
-
-        edges' (cond->> edges
-                 first-n (take first-n)
-                 last-n  (take-last last-n)
-                 true    (map #(hash-map :cursor (:id %) :node %)))
-
-        ;; TODO : match
-        page-info (cond-> {:has-next-page false
-                           :has-previous-page false}
-                    (and last-n (< last-n (count edges)))                                         (assoc :has-previous-page true)
-                    (and after (not-empty (take-while #(not= after (:id %)) results)))            (assoc :has-previous-page true)
-                    (and first-n (< first-n (count edges)))                                       (assoc :has-next-page true)
-                    (and before (not-empty (drop 1 (drop-while #(not= before (:id %)) results)))) (assoc :has-next-page true)
-                    true                                                                          (assoc :start-cursor (-> edges' first :cursor))
-                    true                                                                          (assoc :end-cursor (-> edges' last :cursor)))
-
-        ]
-
-    (log/debug "@@@" {:edges     edges'
-                      :page-info page-info})
-
-    (clj->gql {:total-count (count results)
+  (let [after                 (if after
+                                (-> after decode-base64 Integer/parseInt inc)
+                                0)
+        {:keys [total-count]} (user-model/count-user-analysis db {:user-id authed-user-id})
+        results               (user-model/search-user-analysis db {:user-id authed-user-id
+                                                                   :limit   first-n
+                                                                   :offset  after})
+        edges                 (map-indexed (fn [index item] (hash-map :cursor (+ after index)
+                                                                      :node item)) results)
+        edges'                (map (fn [item] (update item :cursor (comp encode-base64 str)) ) edges)
+        page-info             {:has-next-page (< (-> edges last :cursor) total-count)
+                               :start-cursor  (-> edges' first :cursor)
+                               :end-cursor    (-> edges' last :cursor)}]
+    (clj->gql {:total-count total-count
                :edges       edges'
                :page-info   page-info})))

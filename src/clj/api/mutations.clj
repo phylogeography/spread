@@ -9,9 +9,9 @@
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
             [clj-http.client :as http]
+            [shared.time :as time]
             [shared.utils :refer [clj->gql decode-json new-uuid]]
-            [taoensso.timbre :as log]
-            [shared.time :as time]))
+            [taoensso.timbre :as log]))
 
 (defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri} _]
   (try

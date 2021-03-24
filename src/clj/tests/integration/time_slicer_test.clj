@@ -2,10 +2,10 @@
   (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [taoensso.timbre :as log]
+            [clojure.test :refer [deftest is use-fixtures]]
             [shared.time :as time]
-            [clojure.test :refer [use-fixtures deftest is]]
-            [tests.integration.utils :refer [run-query db-fixture]]))
+            [taoensso.timbre :as log]
+            [tests.integration.utils :refer [db-fixture run-query]]))
 
 (use-fixtures :once db-fixture)
 

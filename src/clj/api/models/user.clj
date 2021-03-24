@@ -5,6 +5,7 @@
 (declare upsert-user)
 (declare get-user-by-id)
 (declare get-user-by-email)
+(declare count-user-analysis)
 (declare search-user-analysis)
 
 (hugsql/def-db-fns "sql/user.sql")

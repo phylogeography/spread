@@ -4,7 +4,8 @@
             [clojure.string :as string]
             [clojure.walk :as walk]
             [cognitect.transit :as transit])
-  (:import [java.io ByteArrayInputStream ByteArrayOutputStream]))
+  (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
+           [java.util Base64]))
 
 (defn get-env-variable
   [var-name & [required?]]
@@ -37,6 +38,12 @@
         writer (transit/writer out :json)]
     (transit/write writer x)
     (.toString out)))
+
+(defn encode-base64 [to-encode]
+  (.encodeToString (Base64/getEncoder) (.getBytes to-encode)))
+
+(defn decode-base64 [to-decode]
+  (String. (.decode (Base64/getDecoder) to-decode)))
 
 (defn new-uuid [] (str (java.util.UUID/randomUUID)))
 
