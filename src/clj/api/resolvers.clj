@@ -87,9 +87,7 @@
                                                          :ERROR]}
                                 :as           args} _]
   (log/info "search-user-analysis" args)
-  (let [
-        ;; {:keys [total-count]} (user-model/count-user-analysis db {:user-id authed-user-id :statuses statuses})
-        after                          (if after-cursor
+  (let [after                          (if after-cursor
                                          (-> after-cursor decode-base64 Integer/parseInt)
                                          0)
         before                         (when before-cursor
