@@ -17,6 +17,7 @@
 
  :objects
  {:PageInfo {:fields {:hasNextPage {:type (non-null Boolean)}
+                      :hasPreviousPage {:type (non-null Boolean)}
                       :startCursor {:type String}
                       :endCursor   {:type String}}}
 
@@ -157,6 +158,8 @@
                        :description "Returns paginated result with completed analysis for the authenticated user."
                        :args        {:first  {:type Int}
                                      :after  {:type String}
+                                     :last {:type Int}
+                                     :before {:type String}
                                      :statuses {:type (list :AnalysisStatus)}}
                        :resolve     :query/searchUserAnalysis}
 

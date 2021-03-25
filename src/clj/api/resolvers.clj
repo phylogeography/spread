@@ -73,34 +73,53 @@
   "Returns paginated user analysis, following the Relay specification:
   https://relay.dev/graphql/connections.htm.
   Clients can ask for the next page using an opaque cursor."
-  [{:keys [db authed-user-id]} {first-n  :first
-                                after    :after
-                                statuses :statuses
-                                :or      {statuses [:UPLOADED
-                                                    :ATTRIBUTES_PARSED
-                                                    :ARGUMENTS_SET
-                                                    :QUEUED
-                                                    :RUNNING
-                                                    :SUCCEEDED
-                                                    :ERROR]}
-                                :as      args} _]
+  [{:keys [db authed-user-id]} {first-n       :first
+                                after-cursor  :after
+                                last-n        :last
+                                before-cursor :before
+                                statuses      :statuses
+                                :or           {statuses [:UPLOADED
+                                                         :ATTRIBUTES_PARSED
+                                                         :ARGUMENTS_SET
+                                                         :QUEUED
+                                                         :RUNNING
+                                                         :SUCCEEDED
+                                                         :ERROR]}
+                                :as           args} _]
   (log/info "search-user-analysis" args)
-  (let [after                 (if after
-                                (-> after decode-base64 Integer/parseInt inc)
-                                0)
-        {:keys [total-count]} (user-model/count-user-analysis db {:user-id authed-user-id :statuses (map name statuses)})
-        results               (user-model/search-user-analysis db {:user-id  authed-user-id
-                                                                   :statuses (map name statuses)
-                                                                   :limit    first-n
-                                                                   :offset   after})
-        edges                 (map-indexed (fn [index item] (hash-map :cursor (+ after index)
-                                                                      :node item))
-                                           results)
-        edges'                (map (fn [item] (update item :cursor (comp encode-base64 str)))
-                                   edges)
-        page-info             {:has-next-page (if (pos? total-count) (< (-> edges last :cursor) total-count) false)
-                               :start-cursor  (-> edges' first :cursor)
-                               :end-cursor    (-> edges' last :cursor)}]
+  (let [
+        ;; {:keys [total-count]} (user-model/count-user-analysis db {:user-id authed-user-id :statuses statuses})
+        after                          (if after-cursor
+                                         (-> after-cursor decode-base64 Integer/parseInt)
+                                         0)
+        before                         (when before-cursor
+                                         (-> before-cursor decode-base64 Integer/parseInt))
+        {:keys [total-count analysis]} (user-model/search-user-analysis db (merge (cond
+                                                                                    (or first (and first after-cursor))
+                                                                                    {:lower after
+                                                                                     :upper (inc (+ after first-n))}
+
+                                                                                    (and last before-cursor)
+                                                                                    {:lower (dec (+ before last-n))
+                                                                                     :upper before}
+
+                                                                                    :else {:lower 0
+                                                                                           :upper 0})
+                                                                                  {:user-id  authed-user-id
+                                                                                   :statuses statuses}))
+        edges     (map-indexed (fn [index item] {:cursor (inc (+ after index)) ;; NOTE: inc to match SQL which indexes rows from 1
+                                                 :node   item})
+                               analysis)
+        edges'    (map (fn [item] (update item :cursor (comp encode-base64 str)))
+                       edges)
+        page-info {:has-next-page     (if-not (empty? edges)
+                                        (< (-> edges last :cursor) total-count)
+                                        false)
+                   :has-previous-page (if-not (empty? edges)
+                                        (< 1 (-> edges first :cursor))
+                                        false)
+                   :start-cursor      (-> edges' first :cursor)
+                   :end-cursor        (-> edges' last :cursor)}]
     (clj->gql {:total-count total-count
                :edges       edges'
                :page-info   page-info})))
