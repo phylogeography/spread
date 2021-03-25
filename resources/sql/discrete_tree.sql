@@ -6,17 +6,20 @@ id,
 user_id,
 tree_file_url,
 locations_file_url,
-readable_name
+readable_name,
+created_on
 )
 VALUES (
 :id,
 :user-id,
 :tree-file-url,
 :locations-file-url,
-:readable-name
+:readable-name,
+:created-on
 )
 ON DUPLICATE KEY UPDATE
 user_id = user_id,
+created_on = created_on,
 tree_file_url = IF(:tree-file-url IS NOT NULL, :tree-file-url, tree_file_url),
 locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
 readable_name = :readable-name
@@ -62,6 +65,7 @@ WHERE :tree-id = tree_id
 SELECT
 id,
 user_id,
+created_on,
 tree_file_url,
 locations_file_url,
 location_attribute_name,

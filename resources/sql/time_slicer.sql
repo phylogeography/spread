@@ -6,17 +6,20 @@ id,
 user_id,
 trees_file_url,
 slice_heights_file_url,
-readable_name
+readable_name,
+created_on
 )
 VALUES (
 :id,
 :user-id,
 :trees-file-url,
 :slice-heights-file-url,
-:readable-name
+:readable-name,
+:created-on
 )
 ON DUPLICATE KEY UPDATE
 user_id = user_id,
+created_on = created_on,
 trees_file_url = IF(:trees-file-url IS NOT NULL, :trees-file-url, trees_file_url),
 slice_heights_file_url = IF(:slice-heights-file-url IS NOT NULL, :slice-heights-file-url, slice_heights_file_url),
 readable_name = :readable-name
@@ -45,6 +48,7 @@ WHERE id = :id
 SELECT
 id,
 user_id,
+created_on,
 trees_file_url,
 slice_heights_file_url,
 readable_name,

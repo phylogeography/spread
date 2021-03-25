@@ -3,6 +3,7 @@
             [api.db :as db]
             [api.mutations :as mutations]
             [api.resolvers :as resolvers]
+            [api.scalars :as scalars]
             [api.subscriptions :as subscriptions]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
@@ -35,6 +36,11 @@
         (resolver-fn (merge context {:authed-user-id sub}) args value))
       (throw (Exception. "Authorization required")))))
 
+(defn scalar-map
+  []
+  {:scalar/parse-big-int          scalars/parse-big-int
+   :scalar/serialize-big-int      scalars/serialize-big-int})
+
 (defn resolver-map []
   {:mutation/googleLogin   mutations/google-login
    :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
@@ -65,6 +71,8 @@
    :mutation/startBayesFactorParser              (auth-decorator mutations/start-bayes-factor-parser)
    :query/getBayesFactorAnalysis                 resolvers/get-bayes-factor-analysis
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
+
+   :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
    })
 
 (defn streamer-map []
@@ -154,6 +162,7 @@
                                                  :private-key       private-key
                                                  :public-key        public-key}
         compiled-schema                         (-> schema
+                                                    (lacinia-util/attach-scalar-transformers (scalar-map))
                                                     (lacinia-util/attach-resolvers (resolver-map))
                                                     (lacinia-util/attach-streamers (streamer-map))
                                                     schema/compile)

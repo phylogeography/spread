@@ -19,6 +19,9 @@
       <column name="readable_name" type="VARCHAR(200)"/>
       <column name="burn_in" type="FLOAT"/>
       <column name="number_of_locations" type="INT"/>
+      <column name="created_on" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
     </createTable>
   </changeSet>
 

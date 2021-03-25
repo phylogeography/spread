@@ -22,6 +22,9 @@
       <column name="location_attribute_name" type="VARCHAR(50)"/>
       <column name="timescale_multiplier" type="float"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
+      <column name="created_on" type="BIGINT">
+        <constraints nullable="false"/>
+      </column>
     </createTable>
   </changeSet>
 

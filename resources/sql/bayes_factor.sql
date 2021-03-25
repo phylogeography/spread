@@ -7,7 +7,8 @@ log_file_url,
 locations_file_url,
 number_of_locations,
 burn_in,
-readable_name
+readable_name,
+created_on
 )
 VALUES (
 :id,
@@ -16,10 +17,12 @@ VALUES (
 :locations-file-url,
 :number-of-locations,
 :burn-in,
-:readable-name
+:readable-name,
+:created-on
 )
 ON DUPLICATE KEY UPDATE
 user_id = user_id,
+created_on = created_on,
 log_file_url = IF(:log-file-url IS NOT NULL, :log-file-url, log_file_url),
 locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
 number_of_locations = IF(:number-of-locations IS NOT NULL, :number-of-locations, number_of_locations),
@@ -50,6 +53,7 @@ WHERE id = :id
 SELECT
 id,
 user_id,
+created_on,
 log_file_url,
 locations_file_url,
 burn_in,

@@ -2,9 +2,10 @@
   (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.test :refer [use-fixtures deftest is]]
+            [clojure.test :refer [deftest is use-fixtures]]
+            [shared.time :as time]
             [taoensso.timbre :as log]
-            [tests.integration.utils :refer [run-query db-fixture]]))
+            [tests.integration.utils :refer [db-fixture run-query]]))
 
 (use-fixtures :once db-fixture)
 
@@ -55,7 +56,7 @@
                                                                               first)}})
                                     [:data :uploadBayesFactorAnalysis])
 
-        _ (is :DATA_UPLOADED (keyword status))
+        _ (is :UPLOADED (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateBayesFactor($id: ID!,
@@ -69,7 +70,7 @@
                                                          :burnIn 0.1}})
                                  [:data :updateBayesFactorAnalysis])
 
-        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+        _ (is :ARGUMENTS_SET (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
@@ -84,26 +85,42 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status progress outputFileUrl bayesFactors]} (get-in (run-query {:query
-                                                                                    "query GetResults($id: ID!) {
-                                                                       getBayesFactorAnalysis(id: $id) {
-                                                                         id
-                                                                         status
-                                                                         progress
-                                                                         outputFileUrl
-                                                                             bayesFactors {
-                                                                               from
-                                                                               to
-                                                                               bayesFactor
-                                                                               posteriorProbability
-                                                                             }
-                                                                       }
-                                                                     }"
-                                                                                    :variables {:id id}})
-                                                                        [:data :getBayesFactorAnalysis])]
-    (log/debug "response" {:id id :status status :bayes-factors bayesFactors})
+        {:keys [id readableName createdOn status progress outputFileUrl bayesFactors]}
+        (get-in (run-query {:query
+                            "query GetResults($id: ID!) {
+                                     getBayesFactorAnalysis(id: $id) {
+                                       id
+                                       readableName
+                                       createdOn
+                                       status
+                                       progress
+                                       outputFileUrl
+                                           bayesFactors {
+                                             from
+                                             to
+                                             bayesFactor
+                                             posteriorProbability
+                                           }
+                                     }
+                                   }"
+                            :variables {:id id}})
+                [:data :getBayesFactorAnalysis])]
+
+    (log/debug "response" {:id            id
+                           :name          readableName
+                           :created-on    createdOn
+                           :status        status
+                           :bayes-factors bayesFactors})
+
+    (is (= (:dd (time/now))
+           (:dd (time/from-millis createdOn))))
+
     (is (sequential? bayesFactors))
+
     (is (= 21 (count bayesFactors)))
+
     (is #{"from" "to" "bayesFactors" "posteriorProbability"} (-> bayesFactors first keys set))
+
     (is (= 1.0 progress))
+
     (is outputFileUrl)))

@@ -2,8 +2,10 @@
   (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.test :refer [use-fixtures deftest is]]
-            [tests.integration.utils :refer [run-query db-fixture]]))
+            [clojure.test :refer [deftest is use-fixtures]]
+            [shared.time :as time]
+            [taoensso.timbre :as log]
+            [tests.integration.utils :refer [db-fixture run-query]]))
 
 (use-fixtures :once db-fixture)
 
@@ -47,9 +49,9 @@
                                                                      first)}})
                                     [:data :uploadTimeSlicer])
 
-        _ (is :TREES_UPLOADED (keyword status))
+        _ (is :UPLOADED (keyword status))
 
-        _ (block-on-status id :ATTRIBUTES_AND_TREES_COUNT_PARSED)
+        _ (block-on-status id :ATTRIBUTES_PARSED)
 
         {:keys [id attributeNames treesCount]} (get-in (run-query {:query
                                                                    "query GetTree($id: ID!) {
@@ -92,7 +94,7 @@
                                                          :mrsd                 "2021/01/12"}})
                                  [:data :updateContinuousTree])
 
-        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+        _ (is :ARGUMENTS_SET (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
@@ -107,18 +109,28 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [outputFileUrl progress]} (get-in (run-query {:query
-                                                             "query GetTree($id: ID!) {
-                                                                            getTimeSlicer(id: $id) {
-                                                                              id
-                                                                              status
-                                                                              progress
-                                                                              outputFileUrl
-                                                                            }
-                                                                          }"
-                                                             :variables {:id id}})
-                                                 [:data :getTimeSlicer])]
+        {:keys [id status outputFileUrl progress readableName createdOn]}
+        (get-in (run-query {:query
+                            "query GetTree($id: ID!) {
+                                     getTimeSlicer(id: $id) {
+                                       id
+                                       readableName
+                                       createdOn
+                                       status
+                                       progress
+                                       outputFileUrl
+                                     }
+                                   }"
+                            :variables {:id id}})
+                [:data :getTimeSlicer])]
 
+    (log/debug "response" {:id         id
+                           :name       readableName
+                           :created-on createdOn
+                           :status     status})
+
+    (is (= (:dd (time/now))
+           (:dd (time/from-millis createdOn))))
     (is #{"rate" "location"} (set attributeNames))
     (is (= 10 treesCount))
     (is (= 1.0 progress))

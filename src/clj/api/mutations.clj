@@ -9,6 +9,7 @@
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
             [clj-http.client :as http]
+            [shared.time :as time]
             [shared.utils :refer [clj->gql decode-json new-uuid]]
             [taoensso.timbre :as log]))
 
@@ -59,11 +60,12 @@
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args    args})
   (let [id     (s3-url->id tree-file-url authed-user-id)
-        status :TREE_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (continuous-tree-model/upsert! db {:id            id
                                          :readable-name readable-name
+                                         :created-on    (time/millis (time/now))
                                          :user-id       authed-user-id
                                          :tree-file-url tree-file-url})
       (continuous-tree-model/upsert-status! db {:tree-id id
@@ -94,7 +96,7 @@
   (log/info "update continuous tree" {:user/id authed-user-id
                                       :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
       (continuous-tree-model/update! db {:id                          id
                                          :readable-name               readable-name
@@ -139,11 +141,12 @@
   (let [id     (s3-url->id tree-file-url authed-user-id)
         ;; NOTE: uploads mutation generates different ids for each uploaded file
         ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
-        status :TREE_AND_LOCATIONS_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (discrete-tree-model/upsert! db {:id                 id
                                        :readable-name      readable-name
+                                       :created-on         (time/millis (time/now))
                                        :user-id            authed-user-id
                                        :tree-file-url      tree-file-url
                                        :locations-file-url locations-file-url})
@@ -171,7 +174,7 @@
   (log/info "update discrete tree" {:user/id authed-user-id
                                     :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       (discrete-tree-model/update! db {:id                        id
                                        :readable-name             readable-name
                                        :location-attribute-name   location-attribute-name
@@ -203,17 +206,18 @@
 
 (defn upload-time-slicer [{:keys [sqs workers-queue-url authed-user-id db]}
                           {trees-file-url         :treesFileUrl
-                           readable-name :readableName
+                           readable-name          :readableName
                            slice-heights-file-url :sliceHeightsFileUrl
                            :as                    args} _]
   (log/info "upload-time-slicer" {:user/id authed-user-id
                                   :args    args})
   (let [id     (s3-url->id trees-file-url authed-user-id)
-        status :TREES_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (time-slicer-model/upsert! db {:id                     id
                                      :readable-name          readable-name
+                                     :created-on             (time/millis (time/now))
                                      :user-id                authed-user-id
                                      :trees-file-url         trees-file-url
                                      :slice-heights-file-url slice-heights-file-url})
@@ -248,7 +252,7 @@
   (log/info "update time-slicer" {:user/id authed-user-id
                                   :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
       (time-slicer-model/update! db {:id                                      id
                                      :readable-name                           readable-name
@@ -297,11 +301,12 @@
   (let [id     (s3-url->id log-file-url authed-user-id)
         ;; NOTE: uploads mutation generates different ids for each uploaded file
         ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
-        status :DATA_UPLOADED]
+        status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (bayes-factor-model/upsert! db {:id                  id
                                       :readable-name       readable-name
+                                      :created-on          (time/millis (time/now))
                                       :user-id             authed-user-id
                                       :log-file-url        log-file-url
                                       :locations-file-url  locations-file-url
@@ -327,7 +332,7 @@
   (log/info "update bayes factor analysis" {:user/id authed-user-id
                                             :args    args})
   (try
-    (let [status :PARSER_ARGUMENTS_SET]
+    (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
       (discrete-tree-model/update! db {:id                  id
                                        :readable-name       readable-name

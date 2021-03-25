@@ -2,9 +2,10 @@
   (:require [clj-http.client :as http]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.test :refer [use-fixtures deftest is]]
+            [clojure.test :refer [deftest is use-fixtures]]
+            [shared.time :as time]
             [taoensso.timbre :as log]
-            [tests.integration.utils :refer [run-query db-fixture]]))
+            [tests.integration.utils :refer [db-fixture run-query]]))
 
 (use-fixtures :once db-fixture)
 
@@ -37,20 +38,22 @@
         _ (http/put url {:body (io/file "src/test/resources/continuous/speciesDiffusion.MCC.tre")})
 
         {:keys [id status]} (get-in (run-query {:query
-                                                "mutation UploadTree($url: String!) {
-                                                   uploadContinuousTree(treeFileUrl: $url) {
+                                                "mutation UploadTree($url: String!, $name: String!) {
+                                                   uploadContinuousTree(treeFileUrl: $url,
+                                                                        readableName: $name) {
                                                      id
                                                      status
                                                    }
                                                 }"
-                                                :variables {:url (-> url
-                                                                     (string/split  #"\?")
-                                                                     first)}})
+                                                :variables {:name "speciesDiffusion.MCC.tre"
+                                                            :url  (-> url
+                                                                      (string/split  #"\?")
+                                                                      first)}})
                                     [:data :uploadContinuousTree])
 
-        _ (is :TREE_UPLOADED (keyword status))
+        _ (is :UPLOADED (keyword status))
 
-        _ (block-on-status id :ATTRIBUTES_AND_HPD_LEVELS_PARSED)
+        _ (block-on-status id :ATTRIBUTES_PARSED)
 
         {:keys [id attributeNames hpdLevels]} (get-in (run-query {:query
                                                                   "query GetTree($id: ID!) {
@@ -85,7 +88,7 @@
                                                          :mrsd "2019/02/12"}})
                                  [:data :updateContinuousTree])
 
-        _ (is :PARSER_ARGUMENTS_SET (keyword status))
+        _ (is :ARGUMENTS_SET (keyword status))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
@@ -100,19 +103,31 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id status progress outputFileUrl]} (get-in (run-query {:query
-                                                                       "query GetTree($id: ID!) {
-                                                                            getContinuousTree(id: $id) {
-                                                                              id
-                                                                              status
-                                                                              progress
-                                                                              outputFileUrl
-                                                                            }
-                                                                          }"
-                                                                       :variables {:id id}})
-                                                           [:data :getContinuousTree])]
+        {:keys [id readableName createdOn status progress outputFileUrl]}
+        (get-in (run-query {:query
+                            "query GetTree($id: ID!) {
+                                     getContinuousTree(id: $id) {
+                                       id
+                                       readableName
+                                       createdOn
+                                       status
+                                       progress
+                                       outputFileUrl
+                                     }
+                                   }"
+                            :variables {:id id}})
+                [:data :getContinuousTree])]
 
-    (log/debug "response" {:id id :status status :progress progress})
+    (log/debug "response" {:id         id
+                           :name       readableName
+                           :created-on createdOn
+                           :status     status
+                           :progress   progress })
+
+    (is (= (:dd (time/now))
+           (:dd (time/from-millis createdOn))))
+
+    (is (= "speciesDiffusion.MCC.tre" readableName))
 
     (is #{"height" "height_95%_HPD" "height_median" "height_range"
           "length" "length_95%_HPD" "length_median" "length_range"
