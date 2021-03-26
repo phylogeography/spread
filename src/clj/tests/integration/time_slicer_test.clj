@@ -53,20 +53,19 @@
 
         _ (block-on-status id :ATTRIBUTES_PARSED)
 
-        {:keys [id attributeNames treesCount]} (get-in (run-query {:query
-                                                                   "query GetTree($id: ID!) {
+        {:keys [id attributeNames]} (get-in (run-query {:query
+                                                        "query GetTree($id: ID!) {
                                                                             getTimeSlicer(id: $id) {
                                                                               id
-                                                                              treesCount
                                                                               attributeNames
                                                                             }
                                                                           }"
-                                                                   :variables {:id id}})
-                                                       [:data :getTimeSlicer])
+                                                        :variables {:id id}})
+                                            [:data :getTimeSlicer])
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateTree($id: ID!,
-                                                                  $burnIn: Int!,
+                                                                  $burnIn: Float!,
                                                                   $numberOfIntervals : Int!,
                                                                   $rrwRateAttributeName: String!,
                                                                   $traitAttributeName: String!,
@@ -88,7 +87,7 @@
                                                          :traitAttributeName   "location"
                                                          :rrwRateAttributeName "rate"
                                                          :contouringGridSize   100
-                                                         :burnIn               1
+                                                         :burnIn               0.1
                                                          :numberOfIntervals    10
                                                          :hpd                  0.8
                                                          :mrsd                 "2021/01/12"}})
@@ -132,6 +131,5 @@
     (is (= (:dd (time/now))
            (:dd (time/from-millis createdOn))))
     (is #{"rate" "location"} (set attributeNames))
-    (is (= 10 treesCount))
     (is (= 1.0 progress))
     (is outputFileUrl)))

@@ -15,7 +15,7 @@
         <constraints nullable="false" />
       </column>
       <column name="slice_heights_file_url" type="VARCHAR(200)"/>
-      <column name="burn_in" type="INT"/>
+      <column name="burn_in" type="FLOAT"/>
       <column name="number_of_intervals" type="INT"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
@@ -25,7 +25,6 @@
       <column name="contouring_grid_size" type="INT"/>
       <column name="timescale_multiplier" type="FLOAT"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
-      <column name="trees_count" type="INT"/>
       <column name="created_on" type="BIGINT">
         <constraints nullable="false"/>
       </column>

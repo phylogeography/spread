@@ -191,24 +191,21 @@
 
 (defmethod handler :time-slicer-upload
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
-  (log/info "handling timeslicer-upload" args)
+  (log/info "handling time-slicer-upload" args)
   (try
     (let [;; TODO: parse extension
-          trees-object-key         (str user-id "/" id ".trees")
-          trees-file-path          (str tmp-dir "/" trees-object-key)
-          _                        (aws-s3/download-file s3 {:bucket    bucket-name
-                                                             :key       trees-object-key
-                                                             :dest-path trees-file-path})
-          parser                   (doto (new TimeSlicerParser)
+          trees-object-key (str user-id "/" id ".trees")
+          trees-file-path  (str tmp-dir "/" trees-object-key)
+          _                (aws-s3/download-file s3 {:bucket    bucket-name
+                                                     :key       trees-object-key
+                                                     :dest-path trees-file-path})
+          parser           (doto (new TimeSlicerParser)
                                      (.setTreesFilePath trees-file-path))
-          [attributes trees-count] (json/read-str (.parseAttributesAndTreesCount parser))]
-      (log/info "Parsed attributes and hpd-levels" {:id         id
-                                                    :attributes attributes
-                                                    :count      trees-count})
+          attributes       (json/read-str (.parseAttributes parser))]
+      (log/info "Parsed attributes" {:id         id
+                                     :attributes attributes})
       ;; TODO : in a transaction
       (time-slicer-model/insert-attributes! db id attributes)
-      (time-slicer-model/update! db {:id          id
-                                     :trees-count trees-count})
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         :ATTRIBUTES_PARSED}))
     (catch Exception e

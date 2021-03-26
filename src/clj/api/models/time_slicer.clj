@@ -29,8 +29,7 @@
    :contouring-grid-size                    nil
    :timescale-multiplier                    nil
    :most-recent-sampling-date               nil
-   :output-file-url                         nil
-   :trees-count                             nil})
+   :output-file-url                         nil})
 
 (defn upsert! [db time-slicer]
   (let [time-slicer (->> time-slicer
