@@ -21,7 +21,7 @@
                        :html5?      html5?})]
     (bide/start! router {:html5?      html5?
                          :default     default-route
-                         :on-navigate #(dispatch [:general/active-page-changed* %1 %2 %3])})
+                         :on-navigate #(dispatch [:router/active-page-change %1 %2 %3])})
     (dispatch-sync [:router/start opts])
     opts))
 

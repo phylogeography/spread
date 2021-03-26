@@ -12,9 +12,9 @@
            (queries/assoc-html5 html5?)
            (queries/assoc-scroll-top scroll-top?))})
 
-(defn active-page-changed* [{:keys [:db]} [name params query]]
+(defn active-page-change [{:keys [:db]} [name params query]]
   (if (queries/bide-router db) ;; Initial :on-navigate is fired before ::start
-    {:dispatch [:general/active-page-changed name params query]}
+    {:dispatch [:router/active-page-changed name params query]}
     {::async-flow-fx/async-flow {:first-dispatch [:do-nothing]
                                  :rules          [{:when     :seen?
                                                    :events   [::start]

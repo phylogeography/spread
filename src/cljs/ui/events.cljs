@@ -11,7 +11,7 @@
 ;; General events ;;
 ;;;;;;;;;;;;;;;;;;;;
 
-(reg-event-fx :do-nothing events.graphql/response (constantly nil))
+(reg-event-fx :do-nothing #_events.graphql/response (constantly nil))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Graphql events ;;
@@ -69,11 +69,10 @@
 ;;;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :router/start events.router/interceptors events.router/start)
-(reg-event-fx :router/active-page-changed* events.router/interceptors events.router/active-page-changed*)
+(reg-event-fx :router/active-page-change events.router/interceptors events.router/active-page-change)
 (reg-event-fx :router/active-page-changed events.router/interceptors events.router/active-page-changed)
 (reg-event-fx :router/watch-active-page events.router/interceptors events.router/watch-active-page)
 (reg-event-fx :router/unwatch-active-page events.router/interceptors events.router/unwatch-active-page)
 (reg-event-fx :router/navigate events.router/interceptors events.router/navigate)
 #_(reg-event-fx :router/replace events.router/interceptors events.router/replace)
 (reg-event-fx :router/stop events.router/interceptors events.router/stop)
-
