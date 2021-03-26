@@ -46,7 +46,7 @@ public class TimeSlicerParser implements IProgressReporter {
     @Setter
     private int numberOfIntervals;
     @Setter
-    private int burnIn;
+    private double burnIn;
     @Setter
     private String traitName;
     @Setter
@@ -65,7 +65,7 @@ public class TimeSlicerParser implements IProgressReporter {
     }
 
     public TimeSlicerParser(String treesFilePath, // path to the trees file
-                            int burnIn, // ignore first n trees
+                            double burnIn, // ignore first n trees
                             String sliceHeightsFilePath,
                             String traitName, // 2D trait for contouring
                             String rrwRateName, // relaxed random walk rate attribute name
@@ -85,7 +85,7 @@ public class TimeSlicerParser implements IProgressReporter {
     }
 
     public TimeSlicerParser(String treesFilePath,
-                            int burnIn,
+                            double burnIn,
                             int numberOfIntervals,
                             String traitName,
                             String rrwRateName,
@@ -126,11 +126,13 @@ public class TimeSlicerParser implements IProgressReporter {
         HashMap<Double, List<double[]>> slicesMap = new HashMap<Double, List<double[]>>(sliceHeights.length);
         RootedTree currentTree;
         int treesReadCounter = 0;
-        progressStepSize = 0.33 / (double) getTreesCount(this.treesFilePath);
+        int totalTreesCount = getTreesCount(this.treesFilePath);
+        int treesToSkip = (int) (burnIn * totalTreesCount);
+        progressStepSize = 0.33 / totalTreesCount;
 
         while (treesImporter.hasTree()) {
             currentTree = (RootedTree) treesImporter.importNextTree();
-            if (treesReadCounter >= burnIn) {
+            if (treesReadCounter >= treesToSkip) {
                 new TimeSliceTree(slicesMap, //
                                   currentTree, //
                                   sliceHeights, //
@@ -325,7 +327,7 @@ public class TimeSlicerParser implements IProgressReporter {
         return timeSlices;
     }
 
-    public String parseAttributesAndTreesCount() throws IOException, ImportException, SpreadException {
+    public String parseAttributes() throws IOException, ImportException, SpreadException {
 
         if (this.treesFilePath == null) {
             throw new SpreadException("treesFilePath parameter is not set", null);
@@ -337,10 +339,7 @@ public class TimeSlicerParser implements IProgressReporter {
         Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
             .flatMap(node -> node.getAttributeNames().stream()).map(name -> name).collect(Collectors.toSet());
 
-        int treesCount = getTreesCount(this.treesFilePath);
-        Object tuple = new Object[] {uniqueAttributes, treesCount};
-
-        return new GsonBuilder().create().toJson(tuple);
+        return new GsonBuilder().create().toJson(uniqueAttributes);
     }
 
     @Override
