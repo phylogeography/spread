@@ -12,7 +12,7 @@
    [ui.logging :as logging]
    [ui.router.component :refer [router]]
    [ui.router.core :as router]
-   [ui.router.queries :as router-queries]   
+   [ui.router.queries :as router-queries]
    [ui.splash.page]
    [ui.storage]
    [ui.utils]
@@ -21,8 +21,6 @@
    ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
-
-
 
 (defn ^:dev/before-load stop []
   (log/debug "Stopping...")

@@ -4,7 +4,7 @@
 (defn connect [{:keys [db]} [_ socket-id command]]
   (let [data {:status :pending :options command}]
     {:db       (assoc-in db [::sockets socket-id] data)
-     ::connect {:socket-id socket-id :options command}}))
+     :ui.websocket-fx/connect {:socket-id socket-id :options command}}))
 
 (defn disconnect [{:keys [db]} [_ socket-id]]
   {:db          (dissoc-in db [::sockets socket-id])
@@ -23,16 +23,16 @@
      (assoc-in db [::sockets socket-id :status] :reconnecting)
      :dispatch-n
      (vec (for [request-id (keys (get-in db [::sockets socket-id :requests] {}))]
-            [::request-timeout socket-id request-id cause]))
+            [:websocket/request-timeout socket-id request-id cause]))
      :dispatch-later
-     [{:ms 2000 :dispatch [::connect socket-id options]}]}))
+     [{:ms 2000 :dispatch [:websocket/connect socket-id options]}]}))
 
 (defn request [{:keys [db]} [_ socket-id {:keys [message timeout] :as command}]]
   (let [payload (cond-> {:id (random-uuid) :proto :request :data message}
                   (some? timeout) (assoc :timeout timeout))
         path    [::sockets socket-id :requests (get payload :id)]]
     {:db          (assoc-in db path command)
-     ::ws-message {:socket-id socket-id :message payload}}))
+     :ui.websocket-fx/ws-message {:socket-id socket-id :message payload}}))
 
 (defn request-response [{:keys [db]} [_ socket-id request-id & more]]
   (let [path    [::sockets socket-id :requests request-id]

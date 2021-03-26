@@ -16,10 +16,10 @@
 (defn initialize [{:keys [db]} [_ config]]
   {:db             (assoc db :config config)
    :dispatch       [:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
-                                                   :format     :json
-                                                   :on-connect [:graphql/ws-authorize
-                                                                {:on-timeout [:graphql/ws-authorize-failed]}]
-                                                   :protocols  ["graphql-ws"]}]
+                                                  :format     :json
+                                                  :on-connect [:graphql/ws-authorize
+                                                               {:on-timeout [:graphql/ws-authorize-failed]}]
+                                                  :protocols  ["graphql-ws"]}]
    :forward-events {:register    :active-page-changed
-                    :events      #{:router/active-page-changed}
+                    :events      #{:router/active-page-changed*}
                     :dispatch-to [:active-page-changed]}})
