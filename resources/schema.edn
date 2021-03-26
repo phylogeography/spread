@@ -94,12 +94,11 @@
                              :createdOn                          {:type (non-null :BigInt)}
                              :treesFileUrl                       {:type (non-null String)}
                              :sliceHeightsFileUrl                {:type String}
-                             :burnIn                             {:type Int}
+                             :burnIn                             {:type Float}
                              :relaxedRandomWalkRateAttributeName {:type String}
                              :traitAttributeName                 {:type String}
                              :contouringGridSize                 {:type Int}
                              :numberOfIntervals                  {:type Int}
-                             :treesCount                         {:type Int}
                              :hpdLevel                           {:type String}
                              :timescaleMultiplier                {:type Float}
                              :mostRecentSamplingDate             {:type String}
@@ -253,7 +252,7 @@
                      :description "Updates the entity with settings for parsing."
                      :args        {:id                                 {:type (non-null ID)}
                                    :readableName                       {:type String}
-                                   :burnIn                             {:type Int}
+                                   :burnIn                             {:type Float}
                                    :relaxedRandomWalkRateAttributeName {:type (non-null String)}
                                    :traitAttributeName                 {:type (non-null String)}
                                    :contouringGridSize                 {:type Int}

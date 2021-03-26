@@ -38,8 +38,7 @@ contouring_grid_size = IF(:contouring-grid-size IS NOT NULL, :contouring-grid-si
 hpd_level = IF(:hpd-level IS NOT NULL, :hpd-level, hpd_level),
 timescale_multiplier = IF(:timescale-multiplier IS NOT NULL, :timescale-multiplier, timescale_multiplier),
 most_recent_sampling_date = IF(:most-recent-sampling-date IS NOT NULL, :most-recent-sampling-date, most_recent_sampling_date),
-output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url),
-trees_count = IF(:trees-count IS NOT NULL, :trees-count, trees_count)
+output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)
 WHERE id = :id
 
 -- :name get-time-slicer :? :1
@@ -61,7 +60,6 @@ hpd_level,
 timescale_multiplier,
 most_recent_sampling_date,
 output_file_url,
-trees_count,
 status,
 progress
 FROM time_slicer
