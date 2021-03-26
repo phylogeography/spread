@@ -11,7 +11,7 @@
 ;; General events ;;
 ;;;;;;;;;;;;;;;;;;;;
 
-(reg-event-fx :do-nothing #_events.graphql/response (constantly nil))
+(reg-event-fx :do-nothing (constantly nil))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Graphql events ;;
