@@ -23,7 +23,7 @@ import com.spread.contouring.ContourWithSnyder;
 import com.spread.data.Attribute;
 import com.spread.data.Layer;
 import com.spread.data.SpreadData;
-import com.spread.data.TimeLine;
+import com.spread.data.Timeline;
 import com.spread.data.attributable.Area;
 import com.spread.data.primitive.Coordinate;
 import com.spread.data.primitive.Polygon;
@@ -253,19 +253,18 @@ public class TimeSlicerParser implements IProgressReporter {
         LinkedList<Attribute> uniqueAreaAttributes = new LinkedList<Attribute>();
         uniqueAreaAttributes.addAll(areasAttributesMap.values());
 
-        TimeLine timeLine = timeParser.getTimeLine(sliceHeights[sliceHeights.length - 1]);
+        Timeline timeline = timeParser.getTimeline(sliceHeights[sliceHeights.length - 1]);
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
         Layer contoursLayer = new Layer.Builder ().withAreas (areasList).build ();
         layersList.add(contoursLayer);
 
-        SpreadData spreadData = new SpreadData(timeLine, //
-                                               null, // axisAttributes
-                                               null, // lineAttributes
-                                               null, // pointAttributes
-                                               uniqueAreaAttributes , // areaAttributes
-                                               null, // locationsList
-                                               layersList);
+        SpreadData spreadData = new SpreadData.Builder()
+            .withTimeline(timeline)
+            .withAreaAttributes(uniqueAreaAttributes)
+            .withLayers(layersList)
+            .build();
+
         this.updateProgress(1.0);
         return new GsonBuilder().create().toJson(spreadData);
     }
@@ -305,7 +304,7 @@ public class TimeSlicerParser implements IProgressReporter {
     }
 
     private Double[] generateSliceHeights(String treesFilePath, int numberOfIntervals)
-            throws IOException, ImportException {
+        throws IOException, ImportException {
 
         Double[] timeSlices = new Double[numberOfIntervals];
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));

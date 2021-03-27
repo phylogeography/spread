@@ -17,7 +17,7 @@ import com.spread.data.Attribute;
 import com.spread.data.AxisAttributes;
 import com.spread.data.Layer;
 import com.spread.data.SpreadData;
-import com.spread.data.TimeLine;
+import com.spread.data.Timeline;
 import com.spread.data.attributable.Area;
 import com.spread.data.attributable.Line;
 import com.spread.data.attributable.Point;
@@ -82,7 +82,7 @@ public class ContinuousTreeParser implements IProgressReporter {
 
         RootedTree rootedTree = ParsersUtils.importRootedTree(treeFilePath);
         TimeParser timeParser = new TimeParser(this.getMostRecentSamplingDate());
-        TimeLine timeLine = timeParser.getTimeLine(rootedTree.getHeight(rootedTree.getRootNode()));
+        Timeline timeline = timeParser.getTimeline(rootedTree.getHeight(rootedTree.getRootNode()));
 
         boolean externalAnnotations = this.hasExternalAnnotations ();
         String hpd = this.getHpdLevel();
@@ -521,13 +521,14 @@ public class ContinuousTreeParser implements IProgressReporter {
 
         layersList.add(treeLayer);
 
-        SpreadData spreadData = new SpreadData(timeLine, //
-                                               axis, //
-                                               uniqueBranchAttributes, //
-                                               uniqueNodeAttributes, //
-                                               uniqueAreaAttributes, //
-                                               null, // locations
-                                               layersList);
+        SpreadData spreadData = new SpreadData.Builder()
+            .withTimeline(timeline)
+            .withAxisAttributes(axis)
+            .withLineAttributes(uniqueBranchAttributes)
+            .withPointAttributes(uniqueNodeAttributes)
+            .withAreaAttributes(uniqueAreaAttributes)
+            .withLayers(layersList)
+            .build();
 
         this.updateProgress(1.0);
         return new GsonBuilder().create().toJson(spreadData);
@@ -588,7 +589,7 @@ public class ContinuousTreeParser implements IProgressReporter {
 
         return new Point(coordinate, startTime, attributes);
     }
-    
+
     @Override
     public void registerProgressObserver(IProgressObserver observer) {
         this.progressObserver = observer;

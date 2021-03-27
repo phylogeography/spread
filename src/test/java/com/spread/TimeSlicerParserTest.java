@@ -57,8 +57,8 @@ public class TimeSlicerParserTest {
         String json = parser.parse();
         SpreadData data = gson.fromJson(json, SpreadData.class);
 
-        assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeLine().getEndTime());
-        assertEquals("returns correct root date", "2011/04/28", data.getTimeLine().getStartTime());
+        assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeline().getEndTime());
+        assertEquals("returns correct root date", "2011/04/28", data.getTimeline().getStartTime());
 
         Attribute hpdAreaAttribute = data.getAreaAttributes().stream().filter(att -> att.getId().equals(ParsersUtils.HPD.toUpperCase())).findAny().orElse(null);
 
