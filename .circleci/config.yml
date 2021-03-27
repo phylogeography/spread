@@ -67,7 +67,6 @@ orbs:
                 - << parameters.service >>/<< parameters.service >>.tar
       # deploy: TODO
 
-# TODO
 #
 # cljs-service orb
 # - build: builds a ClojureScript service docker image and persists it to workspace
