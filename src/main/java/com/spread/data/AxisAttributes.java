@@ -9,14 +9,14 @@ import lombok.Getter;
 @ToString(includeFieldNames=true)
 public class AxisAttributes {
 
-        @Getter
-        private final String xCoordinate;
-        @Getter
-        private final String yCoordinate;
+    @Getter
+    private final String xCoordinate;
+    @Getter
+    private final String yCoordinate;
 
-        public AxisAttributes(String xCoordinate, String yCoordinate) {
-                this.xCoordinate = xCoordinate;
-                this.yCoordinate = yCoordinate;
-        }
+    public AxisAttributes(String xCoordinate, String yCoordinate) {
+        this.xCoordinate = xCoordinate;
+        this.yCoordinate = yCoordinate;
+    }
 
 }

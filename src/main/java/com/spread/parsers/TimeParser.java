@@ -1,6 +1,6 @@
 package com.spread.parsers;
 
-import com.spread.data.TimeLine;
+import com.spread.data.Timeline;
 import com.spread.exceptions.SpreadException;
 import com.spread.utils.ParsersUtils;
 
@@ -85,12 +85,12 @@ public class TimeParser {
         this.endDate = new LocalDate(year, month, day);
     }
 
-    public TimeLine getTimeLine(double rootNodeHeight) {
+    public Timeline getTimeline(double rootNodeHeight) {
 
         String startDate = this.getNodeDate(rootNodeHeight);
         String endDate = dateFormatter.print(this.endDate);
 
-        TimeLine timeLine = new TimeLine(startDate, endDate);
+        Timeline timeLine = new Timeline(startDate, endDate);
 
         return timeLine;
     }

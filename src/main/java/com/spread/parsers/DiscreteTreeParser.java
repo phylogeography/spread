@@ -16,7 +16,7 @@ import com.spread.data.AxisAttributes;
 import com.spread.data.Layer;
 import com.spread.data.Location;
 import com.spread.data.SpreadData;
-import com.spread.data.TimeLine;
+import com.spread.data.Timeline;
 import com.spread.data.attributable.Line;
 import com.spread.data.attributable.Point;
 import com.spread.data.primitive.Coordinate;
@@ -70,7 +70,7 @@ public class DiscreteTreeParser implements IProgressReporter {
 
         RootedTree rootedTree = ParsersUtils.importRootedTree(this.treeFilePath);
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
-        TimeLine timeLine = timeParser.getTimeLine(rootedTree.getHeight(rootedTree.getRootNode()));
+        Timeline timeline = timeParser.getTimeline(rootedTree.getHeight(rootedTree.getRootNode()));
 
         LinkedList<Location> locationsList = new DiscreteLocationsParser(this.locationsFilePath, false).parseLocations();
 
@@ -388,13 +388,14 @@ public class DiscreteTreeParser implements IProgressReporter {
         AxisAttributes axis = new AxisAttributes(xCoordinate.getId(),
                                                  yCoordinate.getId());
 
-        SpreadData spreadData= new SpreadData(timeLine, //
-                                              axis, //
-                                              uniqueBranchAttributes, //
-                                              uniqueNodeAttributes, //
-                                              null, // areaAttributes
-                                              locationsList, //
-                                              layersList);
+        SpreadData spreadData = new SpreadData.Builder()
+            .withTimeline(timeline)
+            .withAxisAttributes(axis)
+            .withLineAttributes(uniqueBranchAttributes)
+            .withPointAttributes(uniqueNodeAttributes)
+            .withLocations(locationsList)
+            .withLayers(layersList)
+            .build();
 
         this.updateProgress(1.0);
         return new GsonBuilder().create().toJson(spreadData);

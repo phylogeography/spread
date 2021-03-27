@@ -43,8 +43,8 @@ public class ContinuousTreeParserTest {
         Gson gson = new Gson();
         SpreadData data = gson.fromJson(json, SpreadData.class);
 
-        assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeLine().getEndTime());
-        assertEquals("returns correct root date", "2016/10/24", data.getTimeLine().getStartTime());
+        assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeline().getEndTime());
+        assertEquals("returns correct root date", "2016/10/24", data.getTimeline().getStartTime());
 
         assertEquals("returns correct X attribute", xCoordinate, data.getAxisAttributes().getXCoordinate());
         assertEquals("returns correct Y attribute", yCoordinate, data.getAxisAttributes().getYCoordinate());

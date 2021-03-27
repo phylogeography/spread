@@ -46,8 +46,8 @@ public class DiscreteTreeParserTest {
         Gson gson = new Gson();
         SpreadData data = gson.fromJson(json, SpreadData.class);
 
-        assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeLine().getEndTime());
-        assertEquals("returns correct root date", "2007/11/17", data.getTimeLine().getStartTime());
+        assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeline().getEndTime());
+        assertEquals("returns correct root date", "2007/11/17", data.getTimeline().getStartTime());
 
         Attribute xCoordinatePointAttribute =
             data.getPointAttributes().stream().filter(att -> att.getId().equals(ParsersUtils.X_COORDINATE)).findAny().orElse(null);
