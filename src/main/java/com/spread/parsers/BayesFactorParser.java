@@ -335,14 +335,14 @@ public class BayesFactorParser implements IProgressReporter {
 
         layersList.add(bfLayer);
 
-        SpreadData spreadData = new SpreadData(null,
-                                               new AxisAttributes(xCoordinate.getId(),
-                                                                  yCoordinate.getId()),
-                                               uniqueLineAttributes,
-                                               uniquePointAttributes,
-                                               null,
-                                               locationsList,
-                                               layersList);
+        SpreadData spreadData = new SpreadData.Builder()
+            .withAxisAttributes(new AxisAttributes(xCoordinate.getId(),
+                                                   yCoordinate.getId()))
+            .withLineAttributes(uniqueLineAttributes)
+            .withPointAttributes(uniquePointAttributes)
+            .withLocations(locationsList)
+            .withLayers(layersList)
+            .build();
 
         LinkedList<BayesFactor> bayesFactorsData = new LinkedList<BayesFactor>();
         progressStepSize = 0.2 / (double) bayesFactors.size();
