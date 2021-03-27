@@ -50,12 +50,12 @@ services:
       - GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
       - GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
 
-  ui:
-    image: ui-service:latest
-    container_name: dev_ui
-    network_mode: host
-    ports:
-      - 8020:80
-    # depends_on:
-      # - api
-      # - worker
+  # ui:
+  #   image: ui-service:latest
+  #   container_name: dev_ui
+  #   network_mode: host
+  #   ports:
+  #     - 8020:80
+  #   # depends_on:
+  #     # - api
+  #     # - worker
