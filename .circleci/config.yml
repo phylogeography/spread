@@ -110,10 +110,10 @@ orbs:
               key: maven-<< parameters.service >>-{{ checksum "shadow-cljs.edn" }}
               paths:
                 - ~/.m2/repository
-          - persist_to_workspace:
-              root: services
-              paths:
-                - << parameters.service >>/<< parameters.service >>.tar
+          # - persist_to_workspace:
+          #     root: services
+          #     paths:
+          #       - << parameters.service >>/<< parameters.service >>.tar
       # deploy: TODO
 
 executors:
