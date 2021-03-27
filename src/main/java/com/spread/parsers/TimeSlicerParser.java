@@ -253,19 +253,18 @@ public class TimeSlicerParser implements IProgressReporter {
         LinkedList<Attribute> uniqueAreaAttributes = new LinkedList<Attribute>();
         uniqueAreaAttributes.addAll(areasAttributesMap.values());
 
-        Timeline timeLine = timeParser.getTimeline(sliceHeights[sliceHeights.length - 1]);
+        Timeline timeline = timeParser.getTimeline(sliceHeights[sliceHeights.length - 1]);
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
         Layer contoursLayer = new Layer.Builder ().withAreas (areasList).build ();
         layersList.add(contoursLayer);
 
-        SpreadData spreadData = new SpreadData(timeLine, //
-                                               null, // axisAttributes
-                                               null, // lineAttributes
-                                               null, // pointAttributes
-                                               uniqueAreaAttributes , // areaAttributes
-                                               null, // locationsList
-                                               layersList);
+        SpreadData spreadData = new SpreadData.Builder()
+            .withTimeline(timeline)
+            .withAreaAttributes(uniqueAreaAttributes)
+            .withLayers(layersList)
+            .build();
+
         this.updateProgress(1.0);
         return new GsonBuilder().create().toJson(spreadData);
     }
@@ -305,7 +304,7 @@ public class TimeSlicerParser implements IProgressReporter {
     }
 
     private Double[] generateSliceHeights(String treesFilePath, int numberOfIntervals)
-            throws IOException, ImportException {
+        throws IOException, ImportException {
 
         Double[] timeSlices = new Double[numberOfIntervals];
         NexusImporter treesImporter = new NexusImporter(new FileReader(this.treesFilePath));
