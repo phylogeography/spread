@@ -67,6 +67,62 @@ orbs:
                 - << parameters.service >>/<< parameters.service >>.tar
       # deploy: TODO
 
+#
+# cljs-service orb
+# - build: builds a ClojureScript service docker image and persists it to workspace
+# - deploy: gets the docker image from build and an environment parameter and deploys the docker to the environment
+#
+  cljs-service:
+    orbs:
+      node: circleci/node@4.1.0
+    jobs:
+      build:
+        working_directory: ~/ci-spread
+        docker:
+          - image: clashapp/cljs:latest
+        shell: /bin/bash -eo pipefail
+        parameters:
+          service:
+            type: string
+        steps:
+          - setup_remote_docker:
+              version: 19.03.13
+          - checkout
+          - run:
+              name: set ENV variables
+              command: |
+                # this works because this machine uses bash
+                cat env/dev >> $BASH_ENV
+                source $BASH_ENV
+                echo "env: $SPREAD_ENV"
+          - node/install-packages:
+              # app-dir: services/<< parameters.service >>
+              app-dir: .
+              cache-version: << parameters.service >>
+              pkg-manager: yarn
+              include-branch-in-cache-key: false
+          - restore_cache:
+              key: maven-<< parameters.service >>-{{ checksum "shadow-cljs.edn" }}
+          - run:
+              name: Lint namespaces
+              command: |
+                yarn lint
+          - run:
+              name: Build docker image
+              command: |
+                cd services/<< parameters.service >>
+                ./build.sh -b true -p false
+                docker save -o << parameters.service >>.tar << parameters.service >>-service:latest
+          - save_cache:
+              key: maven-<< parameters.service >>-{{ checksum "shadow-cljs.edn" }}
+              paths:
+                - ~/.m2/repository
+          - persist_to_workspace:
+              root: services
+              paths:
+                - << parameters.service >>/<< parameters.service >>.tar
+      # deploy: TODO
+
 executors:
   java-builder:
     docker:
@@ -196,5 +252,8 @@ workflows:
           requires:
             - Build worker service
             - Build api service
+      - cljs-service/build:
+          name: Build UI
+          service: "ui"
       # ~~~ DEPLOY ~~~
       # TODO (QA/PROD)

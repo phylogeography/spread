@@ -1,6 +1,6 @@
 (ns ui.events.router
   (:require [day8.re-frame.async-flow-fx :as async-flow-fx]
-            [re-frame.core :refer [reg-event-fx trim-v]]
+            [re-frame.core :refer [trim-v]]
             [ui.router.effects :as effects]
             [ui.router.queries :as queries]))
 
@@ -32,9 +32,6 @@
 (defn navigate [{:keys [:db]} [name params query]]
   (cond-> {::effects/navigate [(queries/bide-router db) name params query]}
     (queries/scroll-top? db) (assoc :window/scroll-to [0 0])))
-
-;; (defn replace [{:keys [:db]} [name params query]]
-;;   {::effects/replace [(queries/bide-router db) name params query]})
 
 (defn stop [{:keys [:db]}]
   {:db (queries/dissoc-router db)})

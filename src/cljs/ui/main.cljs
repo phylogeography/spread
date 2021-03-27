@@ -7,17 +7,15 @@
    [reagent.dom :as rdom]
    [taoensso.timbre :as log]
    [ui.config :as config]
-   [ui.events.graphql :as graphql]
+   [ui.events]
    [ui.home.page]
    [ui.logging :as logging]
    [ui.router.component :refer [router]]
    [ui.router.core :as router]
-   [ui.router.queries :as router-queries]
    [ui.splash.page]
    [ui.storage]
    [ui.utils]
    [ui.websocket-fx :as websocket]
-   [ui.events]
    ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))

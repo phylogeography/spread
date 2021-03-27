@@ -1,6 +1,5 @@
 (ns ui.events.splash
-  (:require [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]
+  (:require [taoensso.timbre :as log]
             [ui.auth :as auth]))
 
 (defn initialize-page [{:keys [localstorage]}]

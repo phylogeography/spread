@@ -19,7 +19,7 @@
   [refactor-nrepl "2.5.0"]]
 
  :nrepl
- {:port 46000
+ {:port       46000
   :middleware [cider.piggieback/wrap-cljs-repl
                refactor-nrepl.middleware/wrap-refactor]}
 
@@ -28,18 +28,19 @@
   :host "0.0.0.0"}
 
  :builds
- {:ui {:target           :browser
-       :output-dir       "resources/public/js"
-       :asset-path       "/js"
-       :js-options       {:js-package-dirs ["node_modules"]}
+ {:ui {:target     :browser
+       ;; :output-dir       "resources/public/js"
+       ;; :asset-path       "/js"
+       :output-dir "services/ui/js"
+       :asset-path "/js"
+       :js-options {:js-package-dirs ["node_modules"]}
        :modules
-       {:main ;; <- becomes resources/public/js/main.js
+       {:main ;; <- becomes /js/main.js
         {:entries [ui.main]}}
        :devtools
-       {:before-load kepler.core/stop
-        :after-load  kepler.core/start
-        :http-root   "resources/public"
-        :http-port   8020}
+       {;; :http-root   "resources/public"
+        :http-root "services/ui"
+        :http-port 8020}
        :release
        {:compiler-options {:warnings-as-errors true
                            :infer-externs      :auto

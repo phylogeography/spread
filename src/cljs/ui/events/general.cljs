@@ -1,7 +1,6 @@
 (ns ui.events.general
-  (:require [re-frame.core :as re-frame]
-            [ui.router.queries :as router-queries]
-            [taoensso.timbre :as log]))
+  (:require [taoensso.timbre :as log]
+            [ui.router.queries :as router-queries]))
 
 (def socket-id :default)
 

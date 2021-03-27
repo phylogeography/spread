@@ -6,8 +6,7 @@
             [re-frame.core :as re-frame]
             [shared.macros :refer [promise->]]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt]]
-            [ui.websocket-fx :as websocket]))
+            [ui.utils :refer [>evt]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
