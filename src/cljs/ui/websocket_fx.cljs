@@ -75,9 +75,6 @@
                         response-chan (async/tap mult (async/chan 1 xform))]
                     (async/go-loop []
                       (when-some [{:keys [close] :as response} (async/<! response-chan)]
-
-                        (prn "@go-loop" response)
-
                         (if (true? close)
                           (do (async/close! response-chan)
                               (re-frame/dispatch [:websocket/subscription-closed socket-id id]))
