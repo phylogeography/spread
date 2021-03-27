@@ -89,7 +89,8 @@ orbs:
               version: 19.03.13
           - checkout
           - node/install-packages:
-              app-dir: services/<< parameters.service >>
+              # app-dir: services/<< parameters.service >>
+              app-dir: .
               cache-version: << parameters.service >>
               pkg-manager: yarn
               include-branch-in-cache-key: false
