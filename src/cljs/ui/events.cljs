@@ -1,11 +1,11 @@
 (ns ui.events
-  (:require [ui.events.graphql :as events.graphql]
+  (:require [re-frame.core :as re-frame :refer [reg-event-fx]]
             [ui.events.general :as events.general]
+            [ui.events.graphql :as events.graphql]
             [ui.events.home :as events.home]
-            [ui.events.websocket :as events.websocket]
-            [ui.events.splash :as events.splash]
             [ui.events.router :as events.router]
-            [re-frame.core :as re-frame :refer [reg-event-fx reg-event-db]]))
+            [ui.events.splash :as events.splash]
+            [ui.events.websocket :as events.websocket]))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; General events ;;
