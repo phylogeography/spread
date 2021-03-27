@@ -1,6 +1,7 @@
-(ns ui.events.home 
+(ns ui.events.home
   (:require [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log]
+            [ui.home.page :refer [analysis-id]]))
 
 (defn initialize-page [_]
   {:forward-events {:register    :websocket-authorized?
@@ -23,7 +24,7 @@
                                                            status
                                                         }
                                                       }"
-                                        :variables {"id" "60b08880-03e6-4a3f-a170-29f3c75cb43f"}}]]})
+                                        :variables {"id" analysis-id}}]]})
 
 (comment
   (re-frame/reg-event-fx

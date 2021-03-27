@@ -57,7 +57,7 @@
       (doseq [{:keys [:id]} watchers]
         (re/remove-post-event-callback id)))))
 
-#_(reg-fx
+(reg-fx
   :window/scroll-to
   (fn [[x y]]
     (.scrollTo js/window x y)))

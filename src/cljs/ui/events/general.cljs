@@ -21,5 +21,5 @@
                                                                {:on-timeout [:graphql/ws-authorize-failed]}]
                                                   :protocols  ["graphql-ws"]}]
    :forward-events {:register    :active-page-changed
-                    :events      #{:router/active-page-changed*}
-                    :dispatch-to [:active-page-changed]}})
+                    :events      #{:router/active-page-changed}
+                    :dispatch-to [:general/active-page-changed]}})

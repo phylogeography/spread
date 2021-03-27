@@ -3,19 +3,19 @@
 
 (defn connect [{:keys [db]} [_ socket-id command]]
   (let [data {:status :pending :options command}]
-    {:db       (assoc-in db [::sockets socket-id] data)
+    {:db                      (assoc-in db [::sockets socket-id] data)
      :ui.websocket-fx/connect {:socket-id socket-id :options command}}))
 
 (defn disconnect [{:keys [db]} [_ socket-id]]
-  {:db          (dissoc-in db [::sockets socket-id])
-   ::disconnect {:socket-id socket-id}})
+  {:db                         (dissoc-in db [::sockets socket-id])
+   :ui.websocket-fx/disconnect {:socket-id socket-id}})
 
 (defn connected [{:keys [db]} [_ socket-id]]
   {:db
    (assoc-in db [::sockets socket-id :status] :connected)
    :dispatch-n
    (vec (for [sub (vals (get-in db [::sockets socket-id :subscriptions] {}))]
-          [::subscribe socket-id (get sub :id) sub]))})
+          [:websocket/subscribe socket-id (get sub :id) sub]))})
 
 (defn disconnected [{:keys [db]} [_ socket-id cause]]
   (let [options (get-in db [::sockets socket-id :options])]
@@ -31,7 +31,7 @@
   (let [payload (cond-> {:id (random-uuid) :proto :request :data message}
                   (some? timeout) (assoc :timeout timeout))
         path    [::sockets socket-id :requests (get payload :id)]]
-    {:db          (assoc-in db path command)
+    {:db                         (assoc-in db path command)
      :ui.websocket-fx/ws-message {:socket-id socket-id :message payload}}))
 
 (defn request-response [{:keys [db]} [_ socket-id request-id & more]]
@@ -51,8 +51,8 @@
 (defn subscribe [{:keys [db]} [_ socket-id topic {:keys [message] :as command}]]
   (let [path    [::sockets socket-id :subscriptions topic]
         payload {:id topic :proto :subscription :data message}]
-    {:db          (assoc-in db path command)
-     ::ws-message {:socket-id socket-id :message payload}}))
+    {:db                         (assoc-in db path command)
+     :ui.websocket-fx/ws-message {:socket-id socket-id :message payload}}))
 
 (defn subscription-message [{:keys [db]} [_ socket-id subscription-id & more]]
   (let [path         [::sockets socket-id :subscriptions subscription-id]
@@ -67,7 +67,7 @@
         subscription (get-in db path)]
     (cond-> {:db (dissoc-in db path)}
       (some? subscription)
-      (assoc ::ws-message {:socket-id socket-id :message payload})
+      (assoc :ws-message {:socket-id socket-id :message payload})
       (contains? subscription :on-close)
       (assoc :dispatch (concatv (:on-close subscription) more)))))
 
@@ -80,4 +80,4 @@
 
 (defn push [_ [_ socket-id command]]
   (let [payload {:id (random-uuid) :proto :push :data command}]
-    {::ws-message {:socket-id socket-id :message payload}}))
+    {:ui.websocket-fx/ws-message {:socket-id socket-id :message payload}}))
