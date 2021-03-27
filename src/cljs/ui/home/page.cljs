@@ -4,7 +4,7 @@
             [ui.subscriptions :as subs]))
 
 ;; TODO : just for graphql subs POC
-(def id "60b08880-03e6-4a3f-a170-29f3c75cb43f")
+(def id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
 
 (defmethod page :route/home []
   (let [authed-user (re-frame/subscribe [::subs/authorized-user])
