@@ -83,8 +83,8 @@
                                                (when access-token
                                                  {"Authorization" (str "Bearer " access-token)}))
                                :data    (js/JSON.stringify
-                                         (clj->js {:query     query
-                                                   :variables variables}))})
+                                          (clj->js {:query     query
+                                                    :variables variables}))})
         callback     (fn [^js response]
                        (if (= 200 (.-status response))
                          ;; TODO we can still have errors even with a 200
@@ -92,7 +92,6 @@
                          (>evt [:graphql/response (gql->clj (.-data (.-data response)))])
                          (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
     {::query [params callback]}))
-
 
 (defn ws-authorize [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
   (let [access-token (:access-token localstorage)]

@@ -4,16 +4,16 @@
             [ui.subscriptions :as subs]))
 
 ;; TODO : just for graphql subs POC
-(def id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
+(def analysis-id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
 
 (defmethod page :route/home []
   (let [authed-user (re-frame/subscribe [::subs/authorized-user])
-        parser-status (re-frame/subscribe [::subs/discrete-tree-parser id])]
+        parser-status (re-frame/subscribe [::subs/discrete-tree-parser analysis-id])]
       (fn []
         (let [{:keys [email]} @authed-user
               {:keys [status]} @parser-status]
             [:div
              [:p "HOME"]
              [:pre (str "current-user:" email)]
-             [:pre (str id " status:" status)]
+             [:pre (str analysis-id " status:" status)]
              ]))))

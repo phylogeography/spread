@@ -2,7 +2,7 @@
   (:require [cljs.core.async :as async]
             [clojure.string :as strings]
             [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]            
+            [taoensso.timbre :as log]
             [ui.ws-client :as ws-client]))
 
 ;; NOTE: adapted from https://github.com/RutledgePaulV/websocket-fx/blob/develop/src/websocket_fx/core.cljs
@@ -31,61 +31,65 @@
 ;; FX HANDLERS
 
 (re-frame/reg-fx
- ::connect
- (fn [{socket-id
-       :socket-id
-       {:keys [url protocols on-connect on-disconnect]
-        :or   {url (websocket-url)}}
-       :options}]
-   (let [sink-proxy (async/chan 100)]
-     (swap! CONNECTIONS assoc socket-id {:sink sink-proxy})
-     (async/go
-       (let [{:keys [socket source sink close-status]}
-             (async/<! (ws-client/connect url {:protocols protocols}))
-             mult (async/mult source)]
-         (swap! CONNECTIONS assoc socket-id {:sink sink-proxy :source source :socket socket})
-         (async/go
-           (when-some [closed (async/<! close-status)]
-             (re-frame/dispatch [:websocket/disconnected socket-id closed])
-             (when (some? on-disconnect) (re-frame/dispatch on-disconnect))))
-         (when-not (async/poll! close-status)
-           (async/go-loop []
-             (when-some [{:keys [id proto data close timeout]
-                          :or   {timeout 10000}} (async/<! sink-proxy)]
-               (cond
-                 (#{:request} proto)
-                 (let [xform         (filter (fn [msg]
-                                               (or
-                                                ;; NOTE : lacinia does not return id with the connection_init so we must assume that this is the response to the last sent ws request
-                                                (= (:type msg) "connection_ack")
-                                                (= (:id msg) id))))
-                       response-chan (async/tap mult (async/chan 1 xform))
-                       timeout-chan  (async/timeout timeout)]
-                   (async/go
-                     (let [[value _] (async/alts! [timeout-chan response-chan])]
-                       (if (some? value)
-                         (re-frame/dispatch [:websocket/request-response socket-id id value])
-                         (re-frame/dispatch [:websocket/request-timeout socket-id id :timeout])))))
+  ::connect
+  (fn [{socket-id
+        :socket-id
+        {:keys [url protocols on-connect on-disconnect]
+         :or   {url (websocket-url)}}
+        :options}]
+    (let [sink-proxy (async/chan 100)]
+      (swap! CONNECTIONS assoc socket-id {:sink sink-proxy})
+      (async/go
+        (let [{:keys [socket source sink close-status]}
+              (async/<! (ws-client/connect url {:protocols protocols}))
+              mult (async/mult source)]
+          (swap! CONNECTIONS assoc socket-id {:sink sink-proxy :source source :socket socket})
+          (async/go
+            (when-some [closed (async/<! close-status)]
+              (re-frame/dispatch [:websocket/disconnected socket-id closed])
+              (when (some? on-disconnect) (re-frame/dispatch on-disconnect))))
+          (when-not (async/poll! close-status)
+            (async/go-loop []
+              (when-some [{:keys [id proto data close timeout]
+                           :or   {timeout 10000}} (async/<! sink-proxy)]
 
-                 (#{:subscription} proto)
-                 (let [xform         (filter (fn [msg]
-                                               (or
-                                                (= (:id msg) id))))
-                       response-chan (async/tap mult (async/chan 1 xform))]
-                   (async/go-loop []
-                     (when-some [{:keys [close] :as response} (async/<! response-chan)]
-                       (if (true? close)
-                         (do (async/close! response-chan)
-                             (re-frame/dispatch [:websocket/subscription-closed socket-id id]))
-                         (do (re-frame/dispatch [:websocket/subscription-message socket-id id response])
-                             (recur)))))))
+                (cond
+                  (#{:request} proto)
+                  (let [xform         (filter (fn [msg]
+                                                (or
+                                                  ;; NOTE : lacinia does not return id with the connection_init so we must assume that this is the response to the last sent ws request
+                                                  (= (:type msg) "connection_ack")
+                                                  (= (:id msg) id))))
+                        response-chan (async/tap mult (async/chan 1 xform))
+                        timeout-chan  (async/timeout timeout)]
+                    (async/go
+                      (let [[value _] (async/alts! [timeout-chan response-chan])]
+                        (if (some? value)
+                          (re-frame/dispatch [:websocket/request-response socket-id id value])
+                          (re-frame/dispatch [:websocket/request-timeout socket-id id :timeout])))))
 
-               (when (if (some? close)
-                       (async/>! sink {:id id :proto proto :close close})
-                       (async/>! sink (merge data {:id id :proto proto})))
-                 (recur))))
-           (re-frame/dispatch [:websocket/connected socket-id])
-           (when (some? on-connect) (re-frame/dispatch on-connect))))))))
+                  (#{:subscription} proto)
+                  (let [xform         (filter (fn [msg]
+                                                (or
+                                                  (= (:id msg) id))))
+                        response-chan (async/tap mult (async/chan 1 xform))]
+                    (async/go-loop []
+                      (when-some [{:keys [close] :as response} (async/<! response-chan)]
+
+                        (prn "@go-loop" response)
+
+                        (if (true? close)
+                          (do (async/close! response-chan)
+                              (re-frame/dispatch [:websocket/subscription-closed socket-id id]))
+                          (do (re-frame/dispatch [:websocket/subscription-message socket-id id response])
+                              (recur)))))))
+
+                (when (if (some? close)
+                        (async/>! sink {:id id :proto proto :close close})
+                        (async/>! sink (merge data {:id id :proto proto})))
+                  (recur))))
+            (re-frame/dispatch [:websocket/connected socket-id])
+            (when (some? on-connect) (re-frame/dispatch on-connect))))))))
 
 (re-frame/reg-fx
   ::disconnect
