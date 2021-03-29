@@ -33,7 +33,7 @@ orbs:
       build:
         working_directory: ~/ci-spread
         docker:
-          - image: clashapp/clj:latest
+          - image: nodrama/clj:latest
         shell: /bin/bash -eo pipefail
         parameters:
           service:
@@ -79,7 +79,7 @@ orbs:
       build:
         working_directory: ~/ci-spread
         docker:
-          - image: clashapp/cljs:latest
+          - image: nodrama/cljs:latest
         shell: /bin/bash -eo pipefail
         parameters:
           service:
