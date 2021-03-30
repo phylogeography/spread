@@ -55,7 +55,7 @@ body {
   opacity: 1;
 }
 
-.app-header > .header > .user-login {  
+.app-header > .header > .user-login {
   text-align: right;
   font: normal normal medium 16px/19px Roboto;
   letter-spacing: 0px;
@@ -85,9 +85,13 @@ body {
   text-align: left;
   font: normal normal medium 16px/19px Roboto;
   letter-spacing: 0px;
-  opacity: 1;  
+  opacity: 1;
 }
 
-hr.solid {
-  border-top: 3px solid #bbb;
+.main-menu > ul > li:nth-child(2) > div > a {
+  display: flex;
+}
+
+.main-menu > ul > li > div > ul > li > div > div  {
+  display: flex;
 }

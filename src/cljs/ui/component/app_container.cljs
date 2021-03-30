@@ -6,7 +6,6 @@
             [ui.component.icon :refer [icons icon-with-label]]
             [taoensso.timbre :as log]))
 
-; TODO : open/close menu
 (defn user-login []
   (let [open? (reagent/atom false)]
     (fn [{:keys [email]}]
@@ -47,15 +46,56 @@
                                                       [:span [:b (str main-label ":")] sub-label]]])
                        items))]])))
 
+;; TODO : gql search query : completed by readable-name
+(defn completed [{:keys [open?]}]
+  (let [search-text  (reagent/atom "")
+        open?        (reagent/atom open?)
+        total-unseen 1
+        data         [{:id            "1"
+                       :readable-name "Relaxed_dollo_AllSingleton_v2"
+                       :seen?         false
+                       :of-type       "Continuous: MCC Tree"}
+                      {:id            "2"
+                       :readable-name "Relaxed_dollo_AllSingleton_v2"
+                       :seen?         true
+                       :of-type       "Continuous: Time slices"}
+                      {:id            "3"
+                       :readable-name "Relaxed_dollo_AllSingleton_v2"
+                       :seen?         true
+                       :of-type       "Discrete: Rates"}]]
+    (fn []
+      [:div.completed {:on-click #(swap! open? not)
+                       :class    (when @open? "open")}
+       [:a [:img {:src (:completed icons)}] "Completed data analysis" [:img {:src (:dropdown icons)}] [:div.notification (str total-unseen " New")]]
+       [:input.search-input {:value       @search-text
+                             :on-change   #(reset! search-text (-> % .-target .-value))
+                             :type        "text"
+                             :placeholder "Search..."}]
+       [:ul.menu-items
+        (doall
+          (map (fn [{:keys [id readable-name of-type seen?] :as item}]
+                 [:li.menu-item {:key id}
+                  [:div {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab        (case of-type
+                                                                                                                "Continuous: MCC Tree"    "continuous-mcc-tree"
+                                                                                                                "Continuous: Time slices" "continuous-time-slices"
+                                                                                                                "Discrete: MCC Tree"      "discrete-mcc-tree"
+                                                                                                                "Discrete: Rates"         "discrete-rates"
+                                                                                                                nil) :id id}])}
+                   [:div readable-name (when-not seen? [:div "New"]) [:img {:src (:more icons)}]]
+                   [:div of-type]]])
+               data))]])))
+
 ;; TODO : all menus
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/bfa17d6e-7b48-4547-8af8-b975b452dd35/
+;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/44bb1ba7-e9f8-4752-95da-942f04ea32d2/specs/
 (defn main-menu []
   (fn []
     [:div.main-menu
      [:ul.main-menu-navigation
       [:li.nav-item
        [run-new {:open? true}]]
-
+      [:li.nav-item
+       [completed {:open? false}]]
 
 
       ]]))
