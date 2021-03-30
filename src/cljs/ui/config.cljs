@@ -15,7 +15,9 @@
 
    :router
    {:routes        [["/" :route/splash]
-                    ["/home" :route/home]]
+                    ["/home" :route/home]
+                    ["/new-analysis" :route/new-analysis]
+                    ]
     :default-route :route/splash
     :scroll-top?   true
     :html5?        true}

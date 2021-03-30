@@ -9,6 +9,7 @@
    [ui.config :as config]
    [ui.events]
    [ui.home.page]
+   [ui.new-analysis.page]
    [ui.logging :as logging]
    [ui.router.component :refer [router]]
    [ui.router.core :as router]

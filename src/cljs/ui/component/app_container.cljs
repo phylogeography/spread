@@ -3,7 +3,6 @@
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
             [reagent.core :as reagent]
-
             [ui.component.icon :refer [icons icon-with-label]]
             [taoensso.timbre :as log]))
 
@@ -27,26 +26,45 @@
          [icon-with-label {:icon (:spread icons) :label "spread"}]
          [user-login {:email email}]]))))
 
-;; TODO : left pane component
+(defn run-new [{:keys [open?]}]
+  (let [open? (reagent/atom open?)
+        items [{:main-label "Discrete"          :sub-label "MCC tree"
+                :target     :route/new-analysis :query     {:tab "discrete-mcc-tree"}}
+               {:main-label "Discrete"          :sub-label "Rates"
+                :target     :route/new-analysis :query     {:tab "discrete-rates"}}
+               {:main-label "Continuous"        :sub-label "MCC tree"
+                :target     :route/new-analysis :query     {:tab "continuous-mcc-tree"}}
+               {:main-label "Continuous"        :sub-label "Time slices"
+                :target     :route/new-analysis :query     {:tab "continuous-time-slices"}}]]
+    (fn []
+      [:div.run-new {:on-click #(swap! open? not)
+                     :class    (when @open? "open")}
+       [:a [:img {:src (:run-analysis icons)}] "Run new analysis" [:img {:src (:dropdown icons)}]]
+       [:ul
+        (doall
+          (map-indexed (fn [index {:keys [main-label sub-label target query] :as item}]
+                         [:li.menu-item {:key index} [:a.run-new-analysis-menu-item {:on-click #(re-frame/dispatch [:router/navigate target nil query])}
+                                                      [:span [:b (str main-label ":")] sub-label]]])
+                       items))]])))
+
+;; TODO : all menus
+;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/bfa17d6e-7b48-4547-8af8-b975b452dd35/
+(defn main-menu []
+  (fn []
+    [:div.main-menu
+     [:ul.main-menu-navigation
+      [:li.nav-item
+       [run-new {:open? true}]]
+
+
+
+      ]]))
+
 (defn app-container []
-  (let [active-page (re-frame/subscribe [::router.subs/active-page])]
-    (fn [child-page]
-      ;; (log/debug "app-layout/active-page" active-page)
-      [:div.grid-container
-       [:div.app-header
-        [header]]
-       [:div.app-left-pane
-
-        [:ui
-         [:li "@1"]
-         [:li "@2"]
-         [:li "@3"]
-         [:li "@4"]
-         [:li "@5"]
-         [:li "@6"]
-         [:li "@7"]
-         ]
-
-        ]
-       [:div.main
-        child-page]])))
+  (fn [child-page]
+    [:div.grid-container
+     [:div.app-header
+      [header]]
+     [main-menu]
+     [:div.main
+      child-page]]))

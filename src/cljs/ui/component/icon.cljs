@@ -1,6 +1,10 @@
 (ns ui.component.icon)
 
-(def icons {:spread "icons/spread.png"})
+(def icons {:spread "icons/spread.png"
+            :dropdown "icons/icn_dropdown.svg"
+            :run-analysis "icons/icn_run_analysis.svg"
+
+            })
 
 (defn icon-with-label
   []
