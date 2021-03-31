@@ -4,6 +4,7 @@
             [ui.subscriptions :as subs]
             [reagent.core :as reagent]
             [ui.format :refer [format-percentage]]
+            [ui.component.button :refer [button-with-icon-and-label]]
             [ui.component.icon :refer [icons icon-with-label]]
             [taoensso.timbre :as log]))
 
@@ -23,7 +24,7 @@
   (let [authed-user (re-frame/subscribe [::subs/authorized-user])]
     (fn []
       (let [{:keys [email]} @authed-user]
-        [:div.header
+        [:div.header {:on-click #(re-frame/dispatch [:router/navigate :route/home])}
          [icon-with-label {:icon (:spread icons) :label "spread"}]
          [user-login {:email email}]]))))
 
@@ -47,8 +48,9 @@
        [:ul
         (doall
           (map-indexed (fn [index {:keys [main-label sub-label target query] :as item}]
-                         [:li.menu-item {:key index} [:a.run-new-analysis-menu-item {:on-click #(re-frame/dispatch [:router/navigate target nil query])}
-                                                      [:span [:b (str main-label ":")] sub-label]]])
+                         [:li.run-new-analysis-menu-item {:key index}
+                          [:div {:on-click #(re-frame/dispatch [:router/navigate target nil query])}
+                           [:a [:span [:b (str main-label ":")] sub-label]]]])
                        items))]])))
 
 (defn completed-menu-item []
@@ -120,18 +122,17 @@
                   [completed-menu-item item]])
                data))]])))
 
-;; TODO
 (defn queue-menu-item []
   (let [menu-opened? (reagent/atom false)]
     (fn [{:keys [id readable-name of-type progress]}]
-
-      [:div.queue-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab (case of-type
-                                                                                                                 "Continuous: MCC Tree"    "continuous-mcc-tree"
-                                                                                                                 "Continuous: Time slices" "continuous-time-slices"
-                                                                                                                 "Discrete: MCC Tree"      "discrete-mcc-tree"
-                                                                                                                 "Discrete: Rates"         "discrete-rates"
-                                                                                                                 nil)
-                                                                                                          :id  id}])}
+      [:div.queue-menu-item
+       {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab (case of-type
+                                                                                        "Continuous: MCC Tree"    "continuous-mcc-tree"
+                                                                                        "Continuous: Time slices" "continuous-time-slices"
+                                                                                        "Discrete: MCC Tree"      "discrete-mcc-tree"
+                                                                                        "Discrete: Rates"         "discrete-rates"
+                                                                                        nil)
+                                                                                 :id  id}])}
        [:div
         [:span readable-name]
         [:div.click-dropdown
@@ -153,7 +154,6 @@
                            (prn "TODO: Show delete modal")
                            (.stopPropagation event))} "Delete"]]]
         [:div of-type]]
-
        [:div
         [:div
          [:progress {:max 1 :value progress}]
@@ -161,12 +161,9 @@
                                (prn "TODO: delete ongoing analysis")
                                (.stopPropagation event))}
           [:img {:src (:delete icons)}]]]
-        [:span (str (format-percentage progress 1.0) " finished")]]
+        [:span (str (format-percentage progress 1.0) " finished")]]])))
 
-       ])))
-
-;; TODO : gql search query : status = RUNNING
-;; TODO : subscribe to status updates for all results
+;; TODO : subscribe to status updates for all ongoing
 (defn queue [{:keys [open?]}]
   (let [open?         (reagent/atom open?)
         total-ongoing 2
@@ -193,7 +190,7 @@
                   [queue-menu-item item]])
                data))]])))
 
-;; TODO : all menus
+;; TODO : CSS for open / close
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/bfa17d6e-7b48-4547-8af8-b975b452dd35/
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/44bb1ba7-e9f8-4752-95da-942f04ea32d2/specs/
 (defn main-menu []
@@ -205,7 +202,10 @@
       [:li.nav-item
        [completed {:open? false}]]
       [:li.nav-item
-       [queue {:open? false}]]]]))
+       [queue {:open? false}]]]
+     [button-with-icon-and-label {:icon (:run-analysis icons)
+                                  :label "Run new analysis"
+                                  :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis])}]]))
 
 (defn app-container []
   (fn [child-page]
@@ -215,3 +215,6 @@
      [main-menu]
      [:div.main
       child-page]]))
+
+(comment
+)

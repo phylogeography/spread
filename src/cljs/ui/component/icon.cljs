@@ -10,8 +10,7 @@
             :queue        "icons/icn_queue.svg"
             })
 
-(defn icon-with-label
-  []
+(defn icon-with-label []
   (fn [{:keys [icon label]}]
     [:div.icon-label
      [:div.icon
