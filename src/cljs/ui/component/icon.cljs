@@ -1,10 +1,12 @@
 (ns ui.component.icon)
 
-(def icons {:spread "icons/spread.png"
-            :dropdown "icons/icn_dropdown.svg"
+(def icons {:spread       "icons/spread.png"
+            :dropdown     "icons/icn_dropdown.svg"
             :run-analysis "icons/icn_run_analysis.svg"
-            :completed "icons/icn_previous_analysis.svg"
-            :more "icons/icn_kebab menu.svg"
+            :completed    "icons/icn_previous_analysis.svg"
+            :kebab-menu   "icons/icn_kebab menu.svg"
+            :delete       "icons/icn_delete.svg"
+            :user        "icons/icn_user.svg"
             })
 
 (defn icon-with-label

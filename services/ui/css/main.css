@@ -24,8 +24,8 @@ body {
 
 .main-menu {
   grid-area: left-pane;
-  background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
-  border: 1px solid var(--unnamed-color-e2e2ea);
+  /* background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box; */
+  /* border: 1px solid var(--unnamed-color-e2e2ea); */
   background: #FFFFFF 0% 0% no-repeat padding-box;
   border: 1px solid #E2E2EA;
   border-radius: 20px;
@@ -34,7 +34,7 @@ body {
 
 .main {
   grid-area: main;
-  background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+  /* background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box; */
   background: #FFFFFF 0% 0% no-repeat padding-box;
   box-shadow: 0px 30px 60px #313B5833;
   border-radius: 20px;
@@ -95,3 +95,53 @@ body {
 .main-menu > ul > li > div > ul > li > div > div  {
   display: flex;
 }
+
+.completed-menu-item {  
+  border: 1px solid #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+
+.completed-menu-item:hover {
+  /* background: #FBFCFE 0% 0% no-repeat padding-box; */
+  border: 1px solid #EEBE53;
+  border-radius: 8 px;
+  /* opacity: 1; */
+}
+
+.click-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.hover-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #ddd}
+
+/* Show the dropdown menu */
+.dropdown-menu-opened {display:block;}
+
+/* Show the dropdown menu on hover */
+.hover-dropdown:hover .dropdown-content {display: block;}

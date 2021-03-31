@@ -7,15 +7,14 @@
             [taoensso.timbre :as log]))
 
 (defn user-login []
-  (let [open? (reagent/atom false)]
-    (fn [{:keys [email]}]
-      [:div.user-login
-       [:button email]
-       [:div.dropdown-content {:on-mouse-over #(swap! open? not)
-                               :class (when @open? "open")}
-        [:a {:on-click #(prn "TODO: logout")} "Log out"]
-        [:a {:on-click #(prn "TODO: clear-data")} "Clear data"]
-        [:a {:on-click #(prn "TODO: delete-account")} "Delete account"]]])))
+  ;;let [opened? (reagent/atom false)]
+  (fn [{:keys [email]}]
+    [:div.hover-dropdown
+     [:div [:span email] [:img {:src (:user icons)}] [:img {:src (:dropdown icons)}]]
+     [:div.dropdown-content
+      [:a {:on-click #(prn "TODO: logout")} "Log out"]
+      [:a {:on-click #(prn "TODO: clear-data")} "Clear data"]
+      [:a {:on-click #(prn "TODO: delete-account")} "Delete account"]]]))
 
 (defn header []
   (let [authed-user (re-frame/subscribe [::subs/authorized-user])]
@@ -46,6 +45,38 @@
                                                       [:span [:b (str main-label ":")] sub-label]]])
                        items))]])))
 
+(defn completed-menu-item []
+  (let [opened? (reagent/atom false)]
+    (fn [{:keys [id readable-name of-type seen?]}]
+      [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab (case of-type
+                                                                                                                 "Continuous: MCC Tree"    "continuous-mcc-tree"
+                                                                                                                 "Continuous: Time slices" "continuous-time-slices"
+                                                                                                                 "Discrete: MCC Tree"      "discrete-mcc-tree"
+                                                                                                                 "Discrete: Rates"         "discrete-rates"
+                                                                                                                 nil)
+                                                                                                          :id  id}])}
+       [:div readable-name
+        (when-not seen? [:div "New"])
+        [:div.click-dropdown
+         [:button {:on-click (fn [event]
+                               (swap! opened? not)
+                               (.stopPropagation event))}
+          [:img {:src (:kebab-menu icons)}]]
+         [:div.dropdown-content {:class (when @opened? "dropdown-menu-opened")}
+          [:a {:on-click (fn [event]
+                           (prn "TODO: Edit")
+                           (.stopPropagation event))} "Edit"]
+          [:a {:on-click (fn [event]
+                           (prn "TODO: Load")
+                           (.stopPropagation event))} "Load different file"]
+          [:a {:on-click (fn [event]
+                           (prn "TODO: Copy")
+                           (.stopPropagation event))} "Copy settings"]
+          [:a {:on-click (fn [event]
+                           (prn "TODO: Show delete modal")
+                           (.stopPropagation event))} "Delete"]]]]
+       [:div of-type]])))
+
 ;; TODO : gql search query : completed by readable-name
 (defn completed [{:keys [open?]}]
   (let [search-text  (reagent/atom "")
@@ -75,15 +106,37 @@
         (doall
           (map (fn [{:keys [id readable-name of-type seen?] :as item}]
                  [:li.menu-item {:key id}
-                  [:div {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab        (case of-type
-                                                                                                                "Continuous: MCC Tree"    "continuous-mcc-tree"
-                                                                                                                "Continuous: Time slices" "continuous-time-slices"
-                                                                                                                "Discrete: MCC Tree"      "discrete-mcc-tree"
-                                                                                                                "Discrete: Rates"         "discrete-rates"
-                                                                                                                nil) :id id}])}
-                   [:div readable-name (when-not seen? [:div "New"]) [:img {:src (:more icons)}]]
-                   [:div of-type]]])
+                  [completed-menu-item item]])
                data))]])))
+
+;; TODO : gql search query : completed by readable-name
+(defn queue [{:keys [open?]}]
+  (let [search-text   (reagent/atom "")
+        open?         (reagent/atom open?)
+        total-ongoing 2
+        data          []
+        ]
+    (fn []
+      #_[:div.completed {:on-click #(swap! open? not)
+                         :class    (when @open? "open")}
+         #_[:a [:img {:src (:completed icons)}] "Completed data analysis" [:img {:src (:dropdown icons)}] [:div.notification (str total-unseen " New")]]
+         #_[:input.search-input {:value       @search-text
+                                 :on-change   #(reset! search-text (-> % .-target .-value))
+                                 :type        "text"
+                                 :placeholder "Search..."}]
+         #_[:ul.menu-items
+            (doall
+              (map (fn [{:keys [id readable-name of-type seen?] :as item}]
+                     [:li.menu-item {:key id}
+                      [:div {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab                      (case of-type
+                                                                                                                                  "Continuous: MCC Tree"    "continuous-mcc-tree"
+                                                                                                                                  "Continuous: Time slices" "continuous-time-slices"
+                                                                                                                                  "Discrete: MCC Tree"      "discrete-mcc-tree"
+                                                                                                                                  "Discrete: Rates"         "discrete-rates"
+                                                                                                                                  nil) :id id}])}
+                       [:div readable-name (when-not seen? [:div "New"]) [:img {:src (:more icons)}]]
+                       [:div of-type]]])
+                   data))]])))
 
 ;; TODO : all menus
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/bfa17d6e-7b48-4547-8af8-b975b452dd35/
@@ -96,9 +149,8 @@
        [run-new {:open? true}]]
       [:li.nav-item
        [completed {:open? false}]]
-
-
-      ]]))
+      [:li.nav-item
+       [queue {:open? false}]]]]))
 
 (defn app-container []
   (fn [child-page]
