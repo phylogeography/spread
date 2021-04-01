@@ -54,13 +54,7 @@
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
     (fn [{:keys [id readable-name of-type seen?]}]
-      [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab (case of-type
-                                                                                                                 "Continuous: MCC Tree"    "continuous-mcc-tree"
-                                                                                                                 "Continuous: Time slices" "continuous-time-slices"
-                                                                                                                 "Discrete: MCC Tree"      "discrete-mcc-tree"
-                                                                                                                 "Discrete: Rates"         "discrete-rates"
-                                                                                                                 nil)
-                                                                                                          :id  id}])}
+      [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
         [:span readable-name]
         (when-not seen? [:span "New"])
@@ -124,13 +118,7 @@
   (let [menu-opened? (reagent/atom false)]
     (fn [{:keys [id readable-name of-type progress]}]
       [:div.queue-menu-item
-       {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab (case of-type
-                                                                                        "Continuous: MCC Tree"    "continuous-mcc-tree"
-                                                                                        "Continuous: Time slices" "continuous-time-slices"
-                                                                                        "Discrete: MCC Tree"      "discrete-mcc-tree"
-                                                                                        "Discrete: Rates"         "discrete-rates"
-                                                                                        nil)
-                                                                                 :id  id}])}
+       {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
         [:span readable-name]
         [:div.click-dropdown
@@ -165,11 +153,11 @@
 (defn queue [{:keys [open?]}]
   (let [open?         (reagent/atom open?)
         total-ongoing 2
-        data          [{:id            "1"
+        data          [{:id            "4"
                         :readable-name "Relaxed_dollo_AllSingleton_v1"
                         :progress      0.8
                         :of-type       "Continuous: MCC Tree"}
-                       {:id            "2"
+                       {:id            "5"
                         :readable-name "Relaxed_dollo_AllSingleton_v3"
                         :progress      0.3
                         :of-type       "Continuous: Time slices"}]]

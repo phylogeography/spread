@@ -17,6 +17,7 @@
    {:routes        [["/" :route/splash]
                     ["/home" :route/home]
                     ["/new-analysis" :route/new-analysis]
+                    ["/analysis-results" :route/analysis-results]
                     ["/documentation" :route/documentation]
                     ]
     :default-route :route/splash
@@ -33,9 +34,7 @@
    {:client-id    google-client-id
     :redirect-uri "http://localhost:8020/?auth=google"}
 
-   :public-key public-key
-
-   })
+   :public-key public-key})
 
 (def dev-config
   (-> default-config

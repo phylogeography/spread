@@ -6,6 +6,7 @@
    [reagent.core :as r]
    [reagent.dom :as rdom]
    [taoensso.timbre :as log]
+   [ui.analysis-results.page]
    [ui.config :as config]
    [ui.documentation.page]
    [ui.events]
