@@ -24,8 +24,8 @@ body {
 .main-menu {
   align-items: center;
   background: #FFFFFF 0% 0% no-repeat padding-box;
-  border-radius: 20px;
   border: 1px solid #E2E2EA;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   grid-area: left-pane;
@@ -102,7 +102,7 @@ body {
 
 .menu-item:hover {
   border: 1px solid #EEBE53;
-  border-radius: 8 px;
+  border-radius: 8px;
 }
 
 .run-new-analysis-menu-item:hover {
@@ -185,3 +185,47 @@ body {
   height: 10px;
   width: 324px;
 }
+
+.new-analysis {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.new-analysis > span {
+  border-bottom: 1px solid #D3D3D3;
+  color: #3A3668;
+  font: normal normal 900 24px/28px Roboto;
+  letter-spacing: 0px;
+  opacity: 1;
+  text-align: center;
+  width: 100%;
+}
+
+.tabbed-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Style the tabs */
+.tab {
+  background-color: inherit;
+  border: none;
+  cursor: pointer;
+  float: left;
+  outline: none;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+.tab:hover {
+  color: #EEBE53;  
+}
+
+.tab.active {
+  color: #EEBE53;
+  border: 1px solid #EEBE53;  
+  border-radius: 8px;
+  opacity: 1;
+}
+
