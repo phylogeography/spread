@@ -61,7 +61,7 @@ body {
   justify-content: space-between;
 }
 
-.icon-label > .icon > #spread {
+.icon-label > #spread {
   height: 45px;
   width: 45px;
 }

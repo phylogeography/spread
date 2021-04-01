@@ -11,8 +11,7 @@
             })
 
 (defn icon-with-label []
-  (fn [{:keys [icon label]}]
-    [:div.icon-label
-     [:div.icon
-      [:img {:src icon :id label}]]
+  (fn [{:keys [icon label on-click]}]
+    [:div.icon-label {:on-click on-click}
+     [:img {:src icon :id label}]
      [:span.label label]]))

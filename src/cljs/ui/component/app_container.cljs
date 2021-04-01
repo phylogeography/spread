@@ -1,12 +1,10 @@
 (ns ui.component.app-container
   (:require [re-frame.core :as re-frame]
-            [ui.router.subs :as router.subs]
-            [ui.subscriptions :as subs]
             [reagent.core :as reagent]
-            [ui.format :refer [format-percentage]]
             [ui.component.button :refer [button-with-icon-and-label]]
-            [ui.component.icon :refer [icons icon-with-label]]
-            [taoensso.timbre :as log]))
+            [ui.component.icon :refer [icon-with-label icons]]
+            [ui.format :refer [format-percentage]]
+            [ui.subscriptions :as subs]))
 
 (defn user-login []
   (fn [{:keys [email]}]
@@ -24,8 +22,8 @@
   (let [authed-user (re-frame/subscribe [::subs/authorized-user])]
     (fn []
       (let [{:keys [email]} @authed-user]
-        [:div.header {:on-click #(re-frame/dispatch [:router/navigate :route/home])}
-         [icon-with-label {:icon (:spread icons) :label "spread"}]
+        [:div.header
+         [icon-with-label {:icon (:spread icons) :label "spread" :on-click #(re-frame/dispatch [:router/navigate :route/home])}]
          [user-login {:email email}]]))))
 
 (defn run-new [{:keys [open?]}]
@@ -47,7 +45,7 @@
         [:img {:src (:dropdown icons)}]]
        [:ul
         (doall
-          (map-indexed (fn [index {:keys [main-label sub-label target query] :as item}]
+          (map-indexed (fn [index {:keys [main-label sub-label target query]}]
                          [:li.run-new-analysis-menu-item {:key index}
                           [:div {:on-click #(re-frame/dispatch [:router/navigate target nil query])}
                            [:a [:span [:b (str main-label ":")] sub-label]]]])
@@ -117,7 +115,7 @@
                              :placeholder "Search..."}]
        [:ul.menu-items
         (doall
-          (map (fn [{:keys [id readable-name of-type seen?] :as item}]
+          (map (fn [{:keys [id] :as item}]
                  [:li.menu-item {:key id}
                   [completed-menu-item item]])
                data))]])))
@@ -185,7 +183,7 @@
         [:img {:src (:dropdown icons)}]]
        [:ul.menu-items
         (doall
-          (map (fn [{:keys [id readable-name of-type progress] :as item}]
+          (map (fn [{:keys [id] :as item}]
                  [:li.menu-item {:key id}
                   [queue-menu-item item]])
                data))]])))
@@ -203,7 +201,7 @@
        [completed {:open? false}]]
       [:li.nav-item
        [queue {:open? false}]]]
-     [button-with-icon-and-label {:class "analysis-button"
+     [button-with-icon-and-label {:class    "analysis-button"
                                   :icon     (:run-analysis icons)
                                   :label    "Run new analysis"
                                   :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis])}]]))

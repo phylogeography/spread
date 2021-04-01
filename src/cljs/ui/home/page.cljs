@@ -1,10 +1,12 @@
 (ns ui.home.page
   (:require [re-frame.core :as re-frame]
+            [ui.component.app-container :refer [app-container]]
+            [ui.component.button
+             :refer
+             [button-with-icon-and-label button-with-label]]
+            [ui.component.icon :refer [icon-with-label icons]]
             [ui.router.component :refer [page]]
-            [ui.subscriptions :as subs]
-            [ui.component.button :refer [button-with-icon-and-label button-with-label]]
-            [ui.component.icon :refer [icons icon-with-label]]
-            [ui.component.app-container :refer [app-container]]))
+            [ui.subscriptions :as subs]))
 
 (def analysis-id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
 

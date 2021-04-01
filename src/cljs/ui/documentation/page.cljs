@@ -1,6 +1,6 @@
 (ns ui.documentation.page
-  (:require [ui.router.component :refer [page]]
-            [ui.component.app-container :refer [app-container]]))
+  (:require [ui.component.app-container :refer [app-container]]
+            [ui.router.component :refer [page]]))
 
 (defmethod page :route/documentation []
   (fn []
