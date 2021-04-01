@@ -3,28 +3,24 @@
             [taoensso.timbre :as log]
             [ui.home.page :refer [analysis-id]]))
 
+;; TODO : move to general
+
 (defn initialize-page [_]
   {:forward-events {:register    :websocket-authorized?
                     :events      #{:graphql/ws-authorized}
                     :dispatch-to [:home/initial-query]}})
 
+;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
 (defn initialize-query [_]
-  {:dispatch-n [[:graphql/query {:query
-                                 "query {
-                                       getAuthorizedUser {
-                                         id
-                                         email
-                                       }
-                                     }"}]
-                ;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
-                [:graphql/subscription {:id        :home-page
-                                        :query     "subscription SubscriptionRoot($id: ID!) {
+  {:dispatch
+   [:graphql/subscription {:id        :home-page
+                           :query     "subscription SubscriptionRoot($id: ID!) {
                                                          discreteTreeParserStatus(id: $id) {
                                                            id
                                                            status
                                                         }
                                                       }"
-                                        :variables {"id" analysis-id}}]]})
+                           :variables {"id" analysis-id}}]})
 
 (comment
   (re-frame/reg-event-fx

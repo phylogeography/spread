@@ -15,14 +15,17 @@
 
    :router
    {:routes        [["/" :route/splash]
-                    ["/home" :route/home]]
+                    ["/home" :route/home]
+                    ["/new-analysis" :route/new-analysis]
+                    ["/documentation" :route/documentation]
+                    ]
     :default-route :route/splash
     :scroll-top?   true
     :html5?        true}
 
    :graphql
    {:ws-url "ws://127.0.0.1:3001/ws"
-    :url "http://127.0.0.1:3001/api"}
+    :url    "http://127.0.0.1:3001/api"}
 
    :root-url "http://localhost:8020"
 
