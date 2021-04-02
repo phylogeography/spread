@@ -1,7 +1,9 @@
 (ns ui.component.app-container
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [ui.component.button :refer [button-with-icon-and-label]]
+            [ui.component.button
+             :refer
+             [button-with-icon button-with-icon-and-label]]
             [ui.component.icon :refer [icon-with-label icons]]
             [ui.format :refer [format-percentage]]
             [ui.subscriptions :as subs]))
@@ -59,10 +61,8 @@
         [:span readable-name]
         (when-not seen? [:span "New"])
         [:div.click-dropdown
-         [:button {:on-click (fn [event]
-                               (swap! menu-opened? not)
-                               (.stopPropagation event))}
-          [:img {:src (:kebab-menu icons)}]]
+         [button-with-icon {:on-click #(swap! menu-opened? not)
+                            :icon     (:kebab-menu icons)}]
          [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
           [:a {:on-click (fn [event]
                            (prn "TODO: Edit")
@@ -122,10 +122,8 @@
        [:div
         [:span readable-name]
         [:div.click-dropdown
-         [:button {:on-click (fn [event]
-                               (swap! menu-opened? not)
-                               (.stopPropagation event))}
-          [:img {:src (:kebab-menu icons)}]]
+         [button-with-icon {:on-click #(swap! menu-opened? not)
+                            :icon     (:kebab-menu icons)}]
          [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
           [:a {:on-click (fn [event]
                            (prn "TODO: Edit")
@@ -143,10 +141,8 @@
        [:div
         [:div
          [:progress {:max 1 :value progress}]
-         [:button {:on-click (fn [event]
-                               (prn "TODO: delete ongoing analysis")
-                               (.stopPropagation event))}
-          [:img {:src (:delete icons)}]]]
+         [button-with-icon {:on-click #(prn "TODO: delete ongoing analysis")
+                            :icon     (:delete icons)}]]
         [:span (str (format-percentage progress 1.0) " finished")]]])))
 
 ;; TODO : subscribe to status updates for all ongoing

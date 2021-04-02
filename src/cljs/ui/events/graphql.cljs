@@ -72,7 +72,14 @@
     (promise-> (axios params)
                callback)))
 
-(defn query [{:keys [db localstorage]} [_ {:keys [query variables]}]]
+(defn query
+  [{:keys [db localstorage]} [_ {:keys [query variables callback]
+                                 :or   {callback (fn [^js response]
+                                                   (if (= 200 (.-status response))
+                                                     ;; TODO we can still have errors even with a 200
+                                                     ;; so we should log them or handle in some other way
+                                                     (>evt [:graphql/response (gql->clj (.-data (.-data response)))])
+                                                     (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}}]]
   (let [url          (get-in db [:config :graphql :url])
         access-token (:access-token localstorage)
         params       (clj->js {:url     url
@@ -83,13 +90,7 @@
                                                  {"Authorization" (str "Bearer " access-token)}))
                                :data    (js/JSON.stringify
                                           (clj->js {:query     query
-                                                    :variables variables}))})
-        callback     (fn [^js response]
-                       (if (= 200 (.-status response))
-                         ;; TODO we can still have errors even with a 200
-                         ;; so we should log them or handle in some other way
-                         (>evt [:graphql/response (gql->clj (.-data (.-data response)))])
-                         (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
+                                                    :variables variables}))})]
     {::query [params callback]}))
 
 (defn ws-authorize [{:keys [localstorage]} [_ {:keys [on-timeout]}]]

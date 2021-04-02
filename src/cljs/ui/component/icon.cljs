@@ -8,6 +8,7 @@
             :delete       "icons/icn_delete.svg"
             :user         "icons/icn_user.svg"
             :queue        "icons/icn_queue.svg"
+            :upload       "icons/icn_upload.svg"
             })
 
 (defn icon-with-label []
