@@ -1,12 +1,17 @@
 (ns ui.component.button
   (:require [ui.component.icon :refer [icons]]))
 
+(defn- arg->icon [icon]
+  (if (string? icon)
+    icon
+    (icons icon)))
+
 (defn button-with-icon [{:keys [icon on-click class]}]
   [:button {:class    class
             :on-click (fn [event]
                         (on-click event)
                         (.stopPropagation event))}
-   [:img {:src icon}]])
+   [:img {:src (arg->icon icon)}]])
 
 (defn button-with-label [{:keys [label on-click class]}]
   [:button {:class    class
@@ -15,7 +20,7 @@
 (defn button-with-icon-and-label [{:keys [icon label on-click class]}]
   [:button {:class    class
             :on-click on-click}
-   [:img {:src icon}] label])
+   [:img {:src (arg->icon icon)}] label])
 
 (defn- file-select-handler [{:keys [file-with-meta file-accept-predicate on-file-accepted on-file-rejected]} ]
   (if (file-accept-predicate file-with-meta)
@@ -48,6 +53,4 @@
                                                  :file-accept-predicate file-accept-predicate
                                                  :on-file-accepted      on-file-accepted
                                                  :on-file-rejected      on-file-rejected})))}]
-   [:label {:for "file-upload-button"} [:img {:src (if (string? icon)
-                                                     icon
-                                                     (icons icon))}] label]])
+   [:label {:for "file-upload-button"} [:img {:src (arg->icon icon)}] label]])

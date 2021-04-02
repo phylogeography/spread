@@ -133,6 +133,14 @@
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
+;; TODO
+(defmethod handler :upload-continuous-tree
+  [{:keys [db]} _ {:keys [id status]}]
+
+  (prn "@ upload-continuous-tree" id status)
+
+  {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
   {:db (-> db

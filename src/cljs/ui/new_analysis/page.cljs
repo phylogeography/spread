@@ -7,10 +7,10 @@
             [ui.component.app-container :refer [app-container]]
             [ui.component.icon :refer [icons]]
             [ui.router.component :refer [page]]
-            [ui.component.button :refer [button-file-upload button-with-icon-and-label]]
+            [ui.component.button :refer [button-file-upload button-with-icon button-with-icon-and-label]]
             [ui.router.subs :as router.subs]
             [ui.events.graphql :refer [gql->clj]]
-            [ui.utils :refer [debounce >evt]]
+            [ui.utils :refer [debounce >evt dissoc-in]]
             [shared.macros :refer [promise->]]
             [clojure.string :as string]))
 
@@ -40,8 +40,16 @@
 
       (prn "@ SUCCESS" url filename)
 
-
-      {:db db})))
+      {:dispatch [:graphql/query {:query "mutation UploadContinuousTree($treeFileUrl: String!) {
+                                            uploadContinuousTree(treeFileUrl: $treeFileUrl) {
+                                              id
+                                              status
+                                            }
+                                          }"
+                                  :variables {:treeFileUrl url}}]
+       :db (-> db
+               (dissoc-in [:new-analysis :discrete-mcc-tree :tree-file-upload-progress])
+               (assoc-in [:new-analysis :discrete-mcc-tree :tree-file] filename))})))
 
 (re-frame/reg-sub
   :discrete-mcc-tree/tree-file
@@ -49,11 +57,16 @@
     (get-in db [:new-analysis :discrete-mcc-tree :tree-file])))
 
 (re-frame/reg-event-fx
+  :discrete-mcc-tree/delete-tree-file
+  (fn [{:keys [db]}]
+    ;; TODO : delete from S3
+    {:db (dissoc-in db [:new-analysis :discrete-mcc-tree :tree-file])}))
+
+(re-frame/reg-event-fx
   :new-analysis/on-tree-file-selected
   (fn [{:keys [db]} [_ file-with-meta]]
     (let [{:keys [data filename]} file-with-meta
           [fname extension]       (string/split filename ".")]
-
       {:dispatch [:graphql/query {:query
                                   "mutation GetUploadUrls($filename: String!, $extension: String!) {
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
@@ -65,45 +78,56 @@
                                                        url                       (first get-upload-urls)]
                                                    (s3/upload {:url             url
                                                                :data            data
-                                                               ;; TODO
-                                                               :on-success      #(>evt [:discrete-mcc-tree/tree-file-upload-success {:url url
+                                                               :on-success      #(>evt [:discrete-mcc-tree/tree-file-upload-success {:url      url
                                                                                                                                      :filename filename}])
                                                                ;; TODO : handle error
                                                                :on-error        #(prn "ERROR" %)
                                                                :handle-progress (fn [sent total]
-                                                                                  (>evt [:discrete-mcc-tree/tree-file-upload-progress (/ sent total)]))})
-
-
-                                                   )
+                                                                                  (>evt [:discrete-mcc-tree/tree-file-upload-progress (/ sent total)]))}))
                                                  (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}]})))
 
-
-(defn discrete-mcc-tree []
-  (let [tree-file-upload-progress (re-frame/subscribe [:discrete-mcc-tree/tree-file-upload-progress])
-        tree-file (re-frame/subscribe [:discrete-mcc-tree/tree-file])]
+(defn continuous-mcc-tree []
+  (let [upload-progress (re-frame/subscribe [:discrete-mcc-tree/tree-file-upload-progress])
+        tree-file       (re-frame/subscribe [:discrete-mcc-tree/tree-file])]
     (fn []
       [:div.discrete-mcc-tree
        [:div.upload
         [:span "Load tree file"]
         [:div
          [:div
-          [button-file-upload {:icon             :upload
-                               :class            "upload-button"
-                               :label            "Choose a file"
-                               :on-file-accepted #(>evt [:new-analysis/on-tree-file-selected %])}]
+          (cond
 
-          [progress-bar {:class "tree-upload-progress-bar" :progress @tree-file-upload-progress :label "Uploading. Please wait"}]
-          [:span.tree-filename @tree-file]]
+            (and (nil? @upload-progress) (nil? @tree-file))
+            [button-file-upload {:icon             :upload
+                                 :class            "upload-button"
+                                 :label            "Choose a file"
+                                 :on-file-accepted #(>evt [:new-analysis/on-tree-file-selected %])}]
 
-         [:p
-          [:span "When upload is complete all unique attributes will be automatically filled."]
-          [:span "You can then select geographical coordinates and change other settings."]]]]])))
+            (nil? @tree-file)
+            [progress-bar {:class "tree-upload-progress-bar" :progress @upload-progress :label "Uploading. Please wait"}]
+
+            :else [:span.tree-filename @tree-file])]
+
+         (if (nil? @tree-file)
+           [:p
+            [:span "When upload is complete all unique attributes will be automatically filled."]
+            [:span "You can then select geographical coordinates and change other settings."]]
+           [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-tree-file])
+                              :icon     :delete}]
+
+           )]]
+
+
+
+
+
+       ])))
+
+(defn discrete-mcc-tree []
+  [:pre "discrete mcc tree"])
 
 (defn discrete-rates []
   [:pre "discrete-rates"])
-
-(defn continuous-mcc-tree []
-  [:pre "continuous-mcc-tree"])
 
 (defn continuous-time-slices []
   [:pre "continuous-time-slices"])
@@ -151,4 +175,4 @@
               "discrete-rates"         [discrete-rates]
               "continuous-mcc-tree"    [continuous-mcc-tree]
               "continuous-time-slices" [continuous-time-slices]
-              [discrete-mcc-tree])]]]]))))
+              [continuous-mcc-tree])]]]]))))
