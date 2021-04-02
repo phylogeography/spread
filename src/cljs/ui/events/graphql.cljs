@@ -133,15 +133,20 @@
   (reduce-handlers cofx values))
 
 (defmethod handler :discrete-tree-parser-status
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
+  [{:keys [db]} _ {:keys [id status progress]}]
+  {:db (-> db
+           (assoc-in [:discrete-tree-parsers id :status] status)
+           (assoc-in [:discrete-tree-parsers id :progress] progress))})
 
+;; TODO : when ATTS_PARSED query the attributes
 (defmethod handler :continuous-tree-parser-status
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [id status progress]}]
 
-  (prn "continuous-tree-parser-status" id status)
+  (prn "@ continuous-tree-parser-status" id status progress)
 
-  {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+  {:db (-> db
+           (assoc-in [:continuous-tree-parsers id :status] status)
+           (assoc-in [:continuous-tree-parsers id :progress] progress))})
 
 ;; TODO
 (defmethod handler :upload-continuous-tree
@@ -150,10 +155,11 @@
   (prn "@ upload-continuous-tree" id status)
 
   (re-frame/dispatch [:graphql/subscription {:id        :continuous-tree-parser-status
-                                             :query     "subscription SubscriptionRoot($id: ID!) {
+                                             :query     "subscription ContinuousTreeParserStatus($id: ID!) {
                                                            continuousTreeParserStatus(id: $id) {
                                                              id
                                                              status
+                                                             progress
                                                            }
                                                          }"
                                              :variables {"id" id}}])
