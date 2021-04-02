@@ -28,3 +28,10 @@
 
 (defn concatv [& more]
   (vec (apply concat more)))
+
+(defn split-first [s re]
+  (string/split s re 2))
+
+(defn split-last [s re]
+  (let [pattern (re-pattern (str re "(?!.*" re ")"))]
+    (split-first s pattern)))

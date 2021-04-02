@@ -10,10 +10,9 @@
             [ui.component.button :refer [button-file-upload button-with-icon button-with-icon-and-label]]
             [ui.router.subs :as router.subs]
             [ui.events.graphql :refer [gql->clj]]
-            [ui.utils :refer [debounce >evt dissoc-in]]
+            [ui.utils :as ui-utils :refer [debounce >evt dissoc-in split-last]]
             [shared.macros :refer [promise->]]
             [clojure.string :as string]))
-
 
 ;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/ebcee862-1168-4110-a96f-0537c8d420b1/
 ;; TODO : https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
@@ -32,7 +31,7 @@
   (fn [db _]
     (get-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress])))
 
-;; TODO
+;; TODO: subscribe to status until ATTRIBUTES_PARSED
 (re-frame/reg-event-fx
   :discrete-mcc-tree/tree-file-upload-success
   (fn [{:keys [db]} [_ {:keys [url filename]}]]
@@ -66,12 +65,14 @@
   :new-analysis/on-tree-file-selected
   (fn [{:keys [db]} [_ file-with-meta]]
     (let [{:keys [data filename]} file-with-meta
-          [fname extension]       (string/split filename ".")]
+          splitted       (string/split filename ".")
+          fname (first splitted)
+          extension (last splitted)]
       {:dispatch [:graphql/query {:query
                                   "mutation GetUploadUrls($filename: String!, $extension: String!) {
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
                                    }"
-                                  :variables {:filename fname :extension (or extension "txt")}
+                                  :variables {:filename fname :extension (or extension "tree")}
                                   :callback  (fn [^js response]
                                                (if (= 200 (.-status response))
                                                  (let [{:keys [get-upload-urls]} (gql->clj (.-data (.-data response)))

@@ -112,6 +112,9 @@
   (reduce-handlers cofx (gql->clj (get-in response [:payload :data]))))
 
 (defn subscription [_ [_ {:keys [id query variables]}]]
+
+  (prn "@ws/sub" id)
+
   {:dispatch [:websocket/subscribe :default
               (name id)
               {:message
@@ -133,12 +136,27 @@
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
+(defmethod handler :continuous-tree-parser-status
+  [{:keys [db]} _ {:keys [id status]}]
+
+  (prn "continuous-tree-parser-status" id status)
+
+  {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+
 ;; TODO
 (defmethod handler :upload-continuous-tree
   [{:keys [db]} _ {:keys [id status]}]
 
   (prn "@ upload-continuous-tree" id status)
 
+  (re-frame/dispatch [:graphql/subscription {:id        :continuous-tree-parser-status
+                                             :query     "subscription SubscriptionRoot($id: ID!) {
+                                                           continuousTreeParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                           }
+                                                         }"
+                                             :variables {"id" id}}])
   {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
 
 (defmethod handler :get-authorized-user
