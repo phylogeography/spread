@@ -3,14 +3,19 @@
             [ui.s3 :as s3]
             ;; [ui.component.input :refer [file-drag-input]]
             [taoensso.timbre :as log]
+            [ui.component.progress :refer [progress-bar]]
             [ui.component.app-container :refer [app-container]]
             [ui.component.icon :refer [icons]]
             [ui.router.component :refer [page]]
-            [ui.component.button :refer [button-file-input button-with-icon-and-label]]
+            [ui.component.button :refer [button-file-upload button-with-icon-and-label]]
             [ui.router.subs :as router.subs]
             [ui.events.graphql :refer [gql->clj]]
+            [ui.utils :refer [debounce >evt]]
+            [shared.macros :refer [promise->]]
             [clojure.string :as string]))
 
+
+;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/ebcee862-1168-4110-a96f-0537c8d420b1/
 ;; TODO : https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
 
 (defn error-reported []
@@ -18,45 +23,81 @@
   )
 
 (re-frame/reg-event-fx
+  :discrete-mcc-tree/tree-file-upload-progress
+  (fn [{:keys [db]} [_ progress]]
+    {:db (assoc-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress] progress)}))
+
+(re-frame/reg-sub
+  :discrete-mcc-tree/tree-file-upload-progress
+  (fn [db _]
+    (get-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress])))
+
+;; TODO
+(re-frame/reg-event-fx
+  :discrete-mcc-tree/tree-file-upload-success
+  (fn [{:keys [db]} [_ {:keys [url filename]}]]
+    (let [[url _] (string/split url "?")]
+
+      (prn "@ SUCCESS" url filename)
+
+
+      {:db db})))
+
+(re-frame/reg-sub
+  :discrete-mcc-tree/tree-file
+  (fn [db _]
+    (get-in db [:new-analysis :discrete-mcc-tree :tree-file])))
+
+(re-frame/reg-event-fx
   :new-analysis/on-tree-file-selected
   (fn [{:keys [db]} [_ file-with-meta]]
     (let [{:keys [data filename]} file-with-meta
           [fname extension]       (string/split filename ".")]
-      (prn "@new-analysis/on-tree-file-selected")
+
       {:dispatch [:graphql/query {:query
                                   "mutation GetUploadUrls($filename: String!, $extension: String!) {
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
                                    }"
-                                  :variables {:filename fname :extension (or extension ".txt")}
+                                  :variables {:filename fname :extension (or extension "txt")}
                                   :callback  (fn [^js response]
                                                (if (= 200 (.-status response))
                                                  (let [{:keys [get-upload-urls]} (gql->clj (.-data (.-data response)))
                                                        url                       (first get-upload-urls)]
                                                    (s3/upload {:url             url
                                                                :data            data
-                                                               :on-success      #(prn "SUCCESS" %)
+                                                               ;; TODO
+                                                               :on-success      #(>evt [:discrete-mcc-tree/tree-file-upload-success {:url url
+                                                                                                                                     :filename filename}])
+                                                               ;; TODO : handle error
                                                                :on-error        #(prn "ERROR" %)
-                                                               :handle-progress (fn [sent total] (prn "PROGRESS" (/ sent total)))}))
+                                                               :handle-progress (fn [sent total]
+                                                                                  (>evt [:discrete-mcc-tree/tree-file-upload-progress (/ sent total)]))})
+
+
+                                                   )
                                                  (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}]})))
 
+
 (defn discrete-mcc-tree []
-  (fn []
+  (let [tree-file-upload-progress (re-frame/subscribe [:discrete-mcc-tree/tree-file-upload-progress])
+        tree-file (re-frame/subscribe [:discrete-mcc-tree/tree-file])]
+    (fn []
+      [:div.discrete-mcc-tree
+       [:div.upload
+        [:span "Load tree file"]
+        [:div
+         [:div
+          [button-file-upload {:icon             :upload
+                               :class            "upload-button"
+                               :label            "Choose a file"
+                               :on-file-accepted #(>evt [:new-analysis/on-tree-file-selected %])}]
 
-    [:div.discrete-mcc-tree
-     [:div.upload
-      [:span "Load tree file"]
-      [:div
-       [button-file-input {:icon             :upload
-                           :class            "upload-button"
-                           :label            "Choose a file"
-                           :on-file-accepted #(re-frame/dispatch [:new-analysis/on-tree-file-selected %])}]
-       [:p
-        [:span "When upload is complete all unique attributes will be automatically filled."]
-        [:span "You can then select geographical coordinates and change other settings."]]]]
+          [progress-bar {:class "tree-upload-progress-bar" :progress @tree-file-upload-progress :label "Uploading. Please wait"}]
+          [:span.tree-filename @tree-file]]
 
-     ]
-
-    ))
+         [:p
+          [:span "When upload is complete all unique attributes will be automatically filled."]
+          [:span "You can then select geographical coordinates and change other settings."]]]]])))
 
 (defn discrete-rates []
   [:pre "discrete-rates"])
@@ -81,7 +122,7 @@
             (map (fn [tab]
                    [:button.tab {:class    (when (= active-tab tab) "active")
                                  :key      tab
-                                 :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab tab}])}
+                                 :on-click #(>evt [:router/navigate :route/new-analysis nil {:tab tab}])}
                     (case tab
                       "discrete-mcc-tree"
                       [:div

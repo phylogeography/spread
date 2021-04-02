@@ -255,6 +255,37 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  align-content: center;  
+  align-content: center;
 }
 
+progress {
+  text-align: center;
+  -webkit-appearance: none;
+  border: none;
+  position: relative;
+  border-radius: 8px;
+}
+progress:before {
+  content: attr(label);
+  /* Position text over the progress bar */
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+progress::-webkit-progress-bar {
+  background-color: #757295;
+  border-radius: 8px
+}
+progress::-webkit-progress-value {
+  background-color: #EEBE53;
+  border-radius: 8px 0px 0px 8px
+}
+progress::-moz-progress-bar {
+  background-color: #EEBE53;
+  border-radius: 8px
+}
+
+.tree-upload-progress-bar {
+  height: 48px;
+  width: 324px;
+}

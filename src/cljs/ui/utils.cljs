@@ -1,9 +1,14 @@
 (ns ui.utils
   (:require [clojure.string :as string]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame])
+  (:import [goog.async Debouncer]))
 
 (def <sub (comp deref re-frame/subscribe))
 (def >evt re-frame/dispatch)
+
+(defn debounce [f interval]
+  (let [dbnc (Debouncer. f interval)]
+    (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
 
 (defn url-encode
   [s]
