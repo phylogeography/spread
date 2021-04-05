@@ -40,9 +40,9 @@
    (get continuous-tree-parsers id)))
 
 (re-frame/reg-sub
- ::new-continuous-tree-parser
+ ::active-continuous-tree-parser
  (fn [db _]
-   (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser])]
+   (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
      (get (get db :continuous-tree-parsers) id))))
 
 (comment

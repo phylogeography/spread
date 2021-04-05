@@ -137,12 +137,8 @@
            (assoc-in [:discrete-tree-parsers id :status] status)
            (assoc-in [:discrete-tree-parsers id :progress] progress))})
 
-;; TODO
 (defmethod handler :get-continuous-tree
   [{:keys [db]} _ {:keys [id] :as continuous-tree-parser}]
-
-  (prn "@ get-continuous-tree-parser / handler" id continuous-tree-parser)
-
   {:db (update-in db [:continuous-tree-parsers id]
                   merge
                   continuous-tree-parser)})
@@ -177,7 +173,7 @@
                                                          }"
                                              :variables {"id" id}}])
   {:db (-> db
-           (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser] id)
+           (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id] id)
            (assoc-in [:continuous-tree-parsers id :status] status))})
 
 (defmethod handler :get-authorized-user

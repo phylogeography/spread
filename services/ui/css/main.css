@@ -289,3 +289,37 @@ progress::-moz-progress-bar {
   height: 48px;
   width: 324px;
 }
+
+.settings > fieldset > input[type=text] {
+  border-radius: 10px;
+  border: 1px solid #D3D3D3;
+  color: #3A3668;
+  font: normal normal medium 14px/16px Roboto;
+  height: 47px;
+  letter-spacing: 0px;
+  opacity: 1;
+  text-align: left;
+  width: 672px;
+}
+
+.settings > fieldset > legend {
+  color: #757295;
+  font: normal normal medium 10px/11px Roboto;
+  letter-spacing: 0px;
+  opacity: 1;
+  text-align: left;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}

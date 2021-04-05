@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [ui.s3 :as s3]
             [taoensso.timbre :as log]
-            [ui.component.input :refer [text-input]]
+            [ui.component.input :refer [text-input select-input]]
             [ui.component.progress :refer [progress-bar]]
             [ui.component.app-container :refer [app-container]]
             [ui.component.icon :refer [icons]]
@@ -16,28 +16,14 @@
             [clojure.string :as string]))
 
 ;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/ebcee862-1168-4110-a96f-0537c8d420b1/
-;; TODO : https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
-
-(defn error-reported []
-
-  )
+;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
 
 ;; -- SUBS --;;
 
 (re-frame/reg-sub
- :continuous-mcc-tree/tree-file-upload-progress
+ :continuous-mcc-tree
  (fn [db]
-   (get-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress])))
-
-(re-frame/reg-sub
- :continuous-mcc-tree/tree-file
- (fn [db]
-   (get-in db [:new-analysis :continuous-mcc-tree :tree-file])))
-
-(re-frame/reg-sub
- :continuous-mcc-tree/readable-name
- (fn [db]
-   (get-in db [:new-analysis :continuous-mcc-tree :readable-name])))
+   (get-in db [:new-analysis :continuous-mcc-tree])))
 
 ;; -- EVENTS --;;
 
@@ -49,7 +35,8 @@
 (re-frame/reg-event-fx
  :continuous-mcc-tree/tree-file-upload-success
  (fn [{:keys [db]} [_ {:keys [url filename]}]]
-   (let [[url _] (string/split url "?")]
+   (let [[url _] (string/split url "?")
+         readable-name (first (string/split filename "."))]
      {:dispatch [:graphql/query {:query "mutation UploadContinuousTree($treeFileUrl: String!) {
                                             uploadContinuousTree(treeFileUrl: $treeFileUrl) {
                                               id
@@ -59,13 +46,15 @@
                                  :variables {:treeFileUrl url}}]
       :db (-> db
               (dissoc-in [:new-analysis :continuous-mcc-tree :tree-file-upload-progress])
-              (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename))})))
+              (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
+              ;; default name: file name root
+              (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))})))
 
 (re-frame/reg-event-fx
  :continuous-mcc-tree/delete-tree-file
  (fn [{:keys [db]}]
-   ;; TODO : delete from db & S3, dissoc parser by id
-   {:db (dissoc-in db [:new-analysis :continuous-mcc-tree :tree-file])}))
+   ;; TODO : dispatch graphql muttaion to delete from db & S3
+   {:db (dissoc-in db [:new-analysis :continuous-mcc-tree])}))
 
 (re-frame/reg-event-fx
  :continuous-mcc-tree/on-tree-file-selected
@@ -97,19 +86,31 @@
  (fn [{:keys [db]} [_ readable-name]]
    {:db (assoc-in db [:new-analysis :continuous-mcc-tree :readable-name] readable-name)}))
 
+(re-frame/reg-event-fx
+ :continuous-mcc-tree/set-y-coordinate
+ (fn [{:keys [db]} [_ attribute-name]]
+   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :y-coordinate] attribute-name)}))
+
+(re-frame/reg-event-fx
+ :continuous-mcc-tree/set-x-coordinate
+ (fn [{:keys [db]} [_ attribute-name]]
+   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :x-coordinate] attribute-name)}))
+
+;; --- PAGE --- ;;
 
 (defn continuous-mcc-tree []
-  (let [upload-progress (re-frame/subscribe [:continuous-mcc-tree/tree-file-upload-progress])
-        tree-file       (re-frame/subscribe [:continuous-mcc-tree/tree-file])
-        readable-name (re-frame/subscribe [:continuous-mcc-tree/readable-name])
-        continuous-tree-parser (re-frame/subscribe [::subs/new-continuous-tree-parser])
+  (let [continuous-mcc-tree (re-frame/subscribe [:continuous-mcc-tree])
+        continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])]
 
-
-        ]
     (fn []
-      (let [{:keys [id attribute-names]} @continuous-tree-parser]
+      (let [{:keys [id attribute-names]} @continuous-tree-parser
+            {:keys [tree-file upload-progress readable-name
+                    y-coordinate x-coordinate]
+             :or {y-coordinate (first attribute-names)
+                  x-coordinate (first attribute-names)}
+             :as settings} @continuous-mcc-tree]
 
-        (prn "@continuous-mcc-tree / page" continuous-tree-parser)
+        (prn "@continuous-mcc-tree / page" settings)
 
         [:div.continuous-mcc-tree
          [:div.upload
@@ -117,37 +118,50 @@
           [:div
            [:div
             (cond
-
-              (and (nil? @upload-progress) (nil? @tree-file))
+              (and (nil? upload-progress) (nil? tree-file))
               [button-file-upload {:icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
 
-              (nil? @tree-file)
-              [progress-bar {:class "tree-upload-progress-bar" :progress @upload-progress :label "Uploading. Please wait"}]
+              (nil? tree-file)
+              [progress-bar {:class "tree-upload-progress-bar" :progress upload-progress :label "Uploading. Please wait"}]
 
-              :else [:span.tree-filename @tree-file])]
+              :else [:span.tree-filename tree-file])]
 
-           (if (nil? @tree-file)
+           (if (nil? tree-file)
              [:p
               [:span "When upload is complete all unique attributes will be automatically filled."]
               [:span "You can then select geographical coordinates and change other settings."]]
              [button-with-icon {:on-click #(>evt [:continuous-mcc-tree/delete-tree-file])
-                                :icon     :delete}]
+                                :icon     :delete}])]]
 
-             )]]
-
-         ;; TODO
          (when attribute-names
            [:div.settings
 
-            [text-input {:value @readable-name
-                         :on-change (fn [value]
-                                      (prn value)
-                                      (>evt [:continuous-mcc-tree/set-readable-name value]))}]
+            [:fieldset
+             [:legend "name"]
+             [text-input {:value readable-name
+                          :on-change #(>evt [:continuous-mcc-tree/set-readable-name %])}]]
 
-            [:pre (first attribute-names)]
+            [:div.row
+             [:div.column
+              [:span "Select y coordinate"]
+              [:fieldset
+               [:legend "Latitude"]
+               [select-input {:value y-coordinate #_(first attribute-names)
+                              :options attribute-names
+                              :on-change #(>evt [:continuous-mcc-tree/set-y-coordinate %])}]]]
+
+             [:div.column
+              [:span "Select x coordinate"]
+              [:fieldset
+               [:legend "Longitude"]
+               [select-input {:value x-coordinate #_(first attribute-names)
+                              :options attribute-names
+                              :on-change #(>evt [:continuous-mcc-tree/set-x-coordinate %])}]]]]
+
+
 
 
             ])
@@ -171,7 +185,6 @@
     (fn []
       (let [{:keys [query]}   @active-page
             {active-tab :tab} query]
-
         [app-container
          [:div.new-analysis
           [:span "Run new analysis"]
