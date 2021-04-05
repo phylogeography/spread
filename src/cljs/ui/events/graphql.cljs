@@ -153,6 +153,7 @@
                                                         getContinuousTree(id: $id) {
                                                           id
                                                           attributeNames
+                                                          hpdLevels
                                                         }
                                                       }"
                                   :variables {:id id}}]]))

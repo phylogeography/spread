@@ -3,7 +3,7 @@
             [taoensso.timbre :as log]))
 
 (defn upload
-  "upload-progress is as optional function taking three arguments: total, sent and percentage"
+  "handle-progress is as optional function taking two arguments: sent and total"
   [{:keys [url data on-success on-error handle-progress]}]
   (let [^js xhr (new js/XMLHttpRequest)]
     (js/Promise.

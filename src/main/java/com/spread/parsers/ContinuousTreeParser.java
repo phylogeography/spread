@@ -37,20 +37,20 @@ import lombok.experimental.Accessors;
 
 public class ContinuousTreeParser implements IProgressReporter {
 
-    @Getter @Setter
+    @Setter
     private String treeFilePath;
-    @Getter @Setter
+    @Setter
     private String xCoordinateAttributeName;
-    @Getter @Setter
+    @Setter
     private String yCoordinateAttributeName;
-    @Getter @Setter
+    @Setter
     private String hpdLevel;
     @Accessors(fluent = true)
-    @Getter @Setter
+    @Setter
     private boolean hasExternalAnnotations;
-    @Getter @Setter
+    @Setter
     private double timescaleMultiplier;
-    @Getter @Setter
+    @Setter
     private String mostRecentSamplingDate;
     private IProgressObserver progressObserver;
 
@@ -81,11 +81,11 @@ public class ContinuousTreeParser implements IProgressReporter {
         this.updateProgress(progress);
 
         RootedTree rootedTree = ParsersUtils.importRootedTree(treeFilePath);
-        TimeParser timeParser = new TimeParser(this.getMostRecentSamplingDate());
+        TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         Timeline timeline = timeParser.getTimeline(rootedTree.getHeight(rootedTree.getRootNode()));
 
-        boolean externalAnnotations = this.hasExternalAnnotations ();
-        String hpd = this.getHpdLevel();
+        boolean externalAnnotations = this.hasExternalAnnotations;
+        String hpd = this.hpdLevel;
 
         LinkedList<Line> linesList = new LinkedList<Line>();
         LinkedList<Point> pointsList = new LinkedList<Point>();

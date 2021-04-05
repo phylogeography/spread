@@ -45,7 +45,6 @@
                                           }"
                                  :variables {:treeFileUrl url}}]
       :db (-> db
-              (dissoc-in [:new-analysis :continuous-mcc-tree :tree-file-upload-progress])
               (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
               ;; default name: file name root
               (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))})))
@@ -53,7 +52,7 @@
 (re-frame/reg-event-fx
  :continuous-mcc-tree/delete-tree-file
  (fn [{:keys [db]}]
-   ;; TODO : dispatch graphql muttaion to delete from db & S3
+   ;; TODO : dispatch graphql mutation to delete from db & S3
    {:db (dissoc-in db [:new-analysis :continuous-mcc-tree])}))
 
 (re-frame/reg-event-fx
@@ -101,16 +100,18 @@
 (defn continuous-mcc-tree []
   (let [continuous-mcc-tree (re-frame/subscribe [:continuous-mcc-tree])
         continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])]
-
     (fn []
-      (let [{:keys [id attribute-names]} @continuous-tree-parser
-            {:keys [tree-file upload-progress readable-name
-                    y-coordinate x-coordinate]
+      (let [{:keys [id attribute-names hpd-levels] :as server-settings} @continuous-tree-parser
+            {:keys [tree-file tree-file-upload-progress readable-name
+                    y-coordinate x-coordinate
+                    hpd-level]
              :or {y-coordinate (first attribute-names)
-                  x-coordinate (first attribute-names)}
+                  x-coordinate (first attribute-names)
+                  hpd-level (first hpd-levels)}
              :as settings} @continuous-mcc-tree]
 
-        (prn "@continuous-mcc-tree / page" settings)
+        (prn "@1 continuous-mcc-tree / page" settings)
+        (prn "@2 continuous-mcc-tree / page" server-settings)
 
         [:div.continuous-mcc-tree
          [:div.upload
@@ -118,14 +119,14 @@
           [:div
            [:div
             (cond
-              (and (nil? upload-progress) (nil? tree-file))
+              (and (nil? tree-file-upload-progress) (nil? tree-file))
               [button-file-upload {:icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
 
-              (nil? tree-file)
-              [progress-bar {:class "tree-upload-progress-bar" :progress upload-progress :label "Uploading. Please wait"}]
+              (not= 1 tree-file-upload-progress)
+              [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
 
               :else [:span.tree-filename tree-file])]
 
@@ -149,7 +150,7 @@
               [:span "Select y coordinate"]
               [:fieldset
                [:legend "Latitude"]
-               [select-input {:value y-coordinate #_(first attribute-names)
+               [select-input {:value y-coordinate
                               :options attribute-names
                               :on-change #(>evt [:continuous-mcc-tree/set-y-coordinate %])}]]]
 
@@ -157,10 +158,19 @@
               [:span "Select x coordinate"]
               [:fieldset
                [:legend "Longitude"]
-               [select-input {:value x-coordinate #_(first attribute-names)
+               [select-input {:value x-coordinate
                               :options attribute-names
                               :on-change #(>evt [:continuous-mcc-tree/set-x-coordinate %])}]]]]
 
+
+            [:div.row
+             [:div.column
+              [:span "Select HPD level"]
+              [:fieldset
+               [:legend "Level"]
+               [select-input {:value hpd-level
+                              :options hpd-levels
+                              :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]]
 
 
 
