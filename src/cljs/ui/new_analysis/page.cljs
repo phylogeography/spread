@@ -1,7 +1,9 @@
 (ns ui.new-analysis.page
   (:require [re-frame.core :as re-frame]
             [ui.s3 :as s3]
+            [ui.time :as time]
             [taoensso.timbre :as log]
+            [ui.component.date-picker :refer [date-picker]]
             [ui.component.input :refer [text-input select-input]]
             [ui.component.progress :refer [progress-bar]]
             [ui.component.app-container :refer [app-container]]
@@ -17,6 +19,8 @@
 
 ;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/ebcee862-1168-4110-a96f-0537c8d420b1/
 ;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
+
+;; TODO : error-reported
 
 ;; -- SUBS --;;
 
@@ -95,6 +99,11 @@
  (fn [{:keys [db]} [_ attribute-name]]
    {:db (assoc-in db [:new-analysis :continuous-mcc-tree :x-coordinate] attribute-name)}))
 
+(re-frame/reg-event-fx
+ :continuous-mcc-tree/set-most-recent-sampling-date
+ (fn [{:keys [db]} [_ date]]
+   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :most-recent-sampling-date] date)}))
+
 ;; --- PAGE --- ;;
 
 (defn continuous-mcc-tree []
@@ -104,14 +113,15 @@
       (let [{:keys [id attribute-names hpd-levels] :as server-settings} @continuous-tree-parser
             {:keys [tree-file tree-file-upload-progress readable-name
                     y-coordinate x-coordinate
-                    hpd-level]
+                    hpd-level most-recent-sampling-date]
              :or {y-coordinate (first attribute-names)
                   x-coordinate (first attribute-names)
-                  hpd-level (first hpd-levels)}
+                  hpd-level (first hpd-levels)
+                  most-recent-sampling-date (time/now)}
              :as settings} @continuous-mcc-tree]
 
         (prn "@1 continuous-mcc-tree / page" settings)
-        (prn "@2 continuous-mcc-tree / page" server-settings)
+        ;; (prn "@2 continuous-mcc-tree / page" server-settings)
 
         [:div.continuous-mcc-tree
          [:div.upload
@@ -170,7 +180,20 @@
                [:legend "Level"]
                [select-input {:value hpd-level
                               :options hpd-levels
-                              :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]]
+                              :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]
+
+             [:div.column
+              [:span "Most recent sampling date"]
+
+              [date-picker {:date-format time/date-format
+                            :on-change  #(>evt [:continuous-mcc-tree/set-most-recent-sampling-date %])
+                            :selected    most-recent-sampling-date
+                            }]
+
+              ]
+
+
+             ]
 
 
 

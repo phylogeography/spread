@@ -8,13 +8,15 @@
   },
   "devDependencies": {
     "clj-kondo": "2020.11.7",
-    "shadow-cljs": "^2.11.15"
+    "shadow-cljs": "2.12.1"
   },
   "dependencies": {
-    "@sentry/browser": "^6.1.0",
-    "axios": "^0.21.1",
-    "jsonwebtoken": "^8.5.1",
+    "@sentry/browser": "6.1.0",
+    "axios": "0.21.1",
+    "js-joda": "1.11.0",
+    "jsonwebtoken": "8.5.1",
     "react": "17.0.1",
+    "react-datepicker": "3.7.0",
     "react-dom": "17.0.1"
   }
 }
