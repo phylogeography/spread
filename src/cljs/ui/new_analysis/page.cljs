@@ -1,8 +1,8 @@
 (ns ui.new-analysis.page
   (:require [re-frame.core :as re-frame]
             [ui.s3 :as s3]
-            ;; [ui.component.input :refer [file-drag-input]]
             [taoensso.timbre :as log]
+            [ui.component.input :refer [text-input]]
             [ui.component.progress :refer [progress-bar]]
             [ui.component.app-container :refer [app-container]]
             [ui.component.icon :refer [icons]]
@@ -26,13 +26,18 @@
 
 (re-frame/reg-sub
  :continuous-mcc-tree/tree-file-upload-progress
- (fn [db _]
+ (fn [db]
    (get-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress])))
 
 (re-frame/reg-sub
  :continuous-mcc-tree/tree-file
- (fn [db _]
+ (fn [db]
    (get-in db [:new-analysis :continuous-mcc-tree :tree-file])))
+
+(re-frame/reg-sub
+ :continuous-mcc-tree/readable-name
+ (fn [db]
+   (get-in db [:new-analysis :continuous-mcc-tree :readable-name])))
 
 ;; -- EVENTS --;;
 
@@ -59,7 +64,7 @@
 (re-frame/reg-event-fx
  :continuous-mcc-tree/delete-tree-file
  (fn [{:keys [db]}]
-   ;; TODO : delete from S3
+   ;; TODO : delete from db & S3, dissoc parser by id
    {:db (dissoc-in db [:new-analysis :continuous-mcc-tree :tree-file])}))
 
 (re-frame/reg-event-fx
@@ -87,15 +92,24 @@
                                                                                  (>evt [:continuous-mcc-tree/tree-file-upload-progress (/ sent total)]))}))
                                                 (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}]})))
 
+(re-frame/reg-event-fx
+ :continuous-mcc-tree/set-readable-name
+ (fn [{:keys [db]} [_ readable-name]]
+   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :readable-name] readable-name)}))
+
+
 (defn continuous-mcc-tree []
   (let [upload-progress (re-frame/subscribe [:continuous-mcc-tree/tree-file-upload-progress])
         tree-file       (re-frame/subscribe [:continuous-mcc-tree/tree-file])
+        readable-name (re-frame/subscribe [:continuous-mcc-tree/readable-name])
         continuous-tree-parser (re-frame/subscribe [::subs/new-continuous-tree-parser])
+
+
         ]
     (fn []
       (let [{:keys [id attribute-names]} @continuous-tree-parser]
 
-        (prn "@continuous-mcc-tree / page" attribute-names)
+        (prn "@continuous-mcc-tree / page" continuous-tree-parser)
 
         [:div.continuous-mcc-tree
          [:div.upload
@@ -124,6 +138,19 @@
 
              )]]
 
+         ;; TODO
+         (when attribute-names
+           [:div.settings
+
+            [text-input {:value @readable-name
+                         :on-change (fn [value]
+                                      (prn value)
+                                      (>evt [:continuous-mcc-tree/set-readable-name value]))}]
+
+            [:pre (first attribute-names)]
+
+
+            ])
 
 
 
