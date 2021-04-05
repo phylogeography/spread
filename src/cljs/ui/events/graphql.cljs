@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [shared.macros :refer [promise->]]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt]]))
+            [ui.utils :refer [>evt dispatch-n merge-in]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -67,10 +67,10 @@
   (reduce-handlers cofx response))
 
 (re-frame/reg-fx
-  ::query
-  (fn [[params callback]]
-    (promise-> (axios params)
-               callback)))
+ ::query
+ (fn [[params callback]]
+   (promise-> (axios params)
+              callback)))
 
 (defn query
   [{:keys [db localstorage]} [_ {:keys [query variables callback]
@@ -89,8 +89,8 @@
                                                (when access-token
                                                  {"Authorization" (str "Bearer " access-token)}))
                                :data    (js/JSON.stringify
-                                          (clj->js {:query     query
-                                                    :variables variables}))})]
+                                         (clj->js {:query     query
+                                                   :variables variables}))})]
     {::query [params callback]}))
 
 (defn ws-authorize [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
@@ -112,11 +112,7 @@
   (reduce-handlers cofx (gql->clj (get-in response [:payload :data]))))
 
 (defn subscription [_ [_ {:keys [id query variables]}]]
-
-  (prn "@ws/sub" id)
-
-  {:dispatch [:websocket/subscribe :default
-              (name id)
+  {:dispatch [:websocket/subscribe :default (name id)
               {:message
                {:type    "start"
                 :payload {:variables     variables
@@ -124,6 +120,9 @@
                           :operationName nil
                           :query         query}}
                :on-message [:graphql/subscription-response]}]})
+
+(defn unsubscribe [_ [_ {:keys [id]}]]
+  {:dispatch [:websocket/unsubscribe :default (name id)]})
 
 (defmethod handler :default
   [cofx k values]
@@ -138,23 +137,37 @@
            (assoc-in [:discrete-tree-parsers id :status] status)
            (assoc-in [:discrete-tree-parsers id :progress] progress))})
 
-;; TODO : when ATTS_PARSED query the attributes
+;; TODO
+(defmethod handler :get-continuous-tree
+  [{:keys [db]} _ {:keys [id] :as continuous-tree-parser}]
+
+  (prn "@ get-continuous-tree-parser / handler" id continuous-tree-parser)
+
+  {:db (update-in db [:continuous-tree-parsers id]
+                  merge
+                  continuous-tree-parser)})
+
 (defmethod handler :continuous-tree-parser-status
   [{:keys [db]} _ {:keys [id status progress]}]
-
-  (prn "@ continuous-tree-parser-status" id status progress)
-
+  ;; when worker has parsed the attributes
+  ;; stop the ongoing subscription and query the attributes
+  (when (= status "ATTRIBUTES_PARSED")
+    (dispatch-n [[:graphql/unsubscribe {:id id}]
+                 [:graphql/query {:query "query GetContinuousTree($id: ID!) {
+                                                        getContinuousTree(id: $id) {
+                                                          id
+                                                          attributeNames
+                                                        }
+                                                      }"
+                                  :variables {:id id}}]]))
   {:db (-> db
            (assoc-in [:continuous-tree-parsers id :status] status)
            (assoc-in [:continuous-tree-parsers id :progress] progress))})
 
-;; TODO
 (defmethod handler :upload-continuous-tree
   [{:keys [db]} _ {:keys [id status]}]
-
-  (prn "@ upload-continuous-tree" id status)
-
-  (re-frame/dispatch [:graphql/subscription {:id        :continuous-tree-parser-status
+  ;; start the status subscription for an ongoing analysis
+  (re-frame/dispatch [:graphql/subscription {:id        id
                                              :query     "subscription ContinuousTreeParserStatus($id: ID!) {
                                                            continuousTreeParserStatus(id: $id) {
                                                              id
@@ -163,7 +176,9 @@
                                                            }
                                                          }"
                                              :variables {"id" id}}])
-  {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+  {:db (-> db
+           (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser] id)
+           (assoc-in [:continuous-tree-parsers id :status] status))})
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]

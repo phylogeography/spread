@@ -17,6 +17,7 @@
    (vec (for [sub (vals (get-in db [::sockets socket-id :subscriptions] {}))]
           [:websocket/subscribe socket-id (get sub :id) sub]))})
 
+;; TODO : exponential backoff
 (defn disconnected [{:keys [db]} [_ socket-id cause]]
   (let [options (get-in db [::sockets socket-id :options])]
     {:db
@@ -67,7 +68,7 @@
         subscription (get-in db path)]
     (cond-> {:db (dissoc-in db path)}
       (some? subscription)
-      (assoc :ws-message {:socket-id socket-id :message payload})
+      (assoc :ui.websocket-fx/ws-message {:socket-id socket-id :message payload})
       (contains? subscription :on-close)
       (assoc :dispatch (concatv (:on-close subscription) more)))))
 

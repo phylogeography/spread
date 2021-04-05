@@ -35,3 +35,17 @@
 (defn split-last [s re]
   (let [pattern (re-pattern (str re "(?!.*" re ")"))]
     (split-first s pattern)))
+
+(letfn [(merge-in* [a b]
+          (if (map? a)
+            (merge-with merge-in* a b)
+            b))]
+  (defn merge-in
+    "Merge multiple nested maps."
+    [& args]
+    (reduce merge-in* nil args)))
+
+(defn dispatch-n [events]
+  (when (sequential? events)
+    (doseq [event (remove nil? events)]
+      (re-frame/dispatch event))))
