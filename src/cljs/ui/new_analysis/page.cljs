@@ -18,10 +18,8 @@
             [shared.macros :refer [promise->]]
             [clojure.string :as string]))
 
-;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/ebcee862-1168-4110-a96f-0537c8d420b1/
-;;        https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
-
-;; TODO : error-reported
+;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/ebcee862-1168-4110-a96f-0537c8d420b1/
+;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
 
 ;; -- SUBS --;;
 
@@ -90,37 +88,32 @@
                                                                                   (>evt [:continuous-mcc-tree/tree-file-upload-progress (/ sent total)]))}))
                                                  (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}]})))
 
-
-;; TODO
+;; TODO: clean analysis fields (dissoc)
 (re-frame/reg-event-fx
   :continuous-mcc-tree/start-analysis
-  (fn [{:keys [db]} [_ settings]]
-    (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])
-          settings (update settings :most-recent-sampling-date time/format)
-          ]
-
-      (prn settings)
-
-      #_{:dispatch [:graphql/query {:query
-                                    "mutation UpdateTree($id: ID!,
-                                                                  $x: String!,
-                                                                  $y: String!,
-                                                                  $hpd: String!,
-                                                                  $mrsd: String!) {
+  (fn [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
+                               hpd-level most-recent-sampling-date time-scale-multiplier]}]]
+    (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
+      {:dispatch [:graphql/query {:query
+                                  "mutation UpdateTree($id: ID!,
+                                                        $x: String!,
+                                                        $y: String!,
+                                                        $hpd: String!,
+                                                        $mrsd: String!) {
                                                    updateContinuousTree(id: $id,
                                                                         xCoordinateAttributeName: $x,
                                                                         yCoordinateAttributeName: $y,
                                                                         hpdLevel: $hpd,
                                                                         mostRecentSamplingDate: $mrsd) {
+                                                     id
                                                      status
                                                    }
                                               }"
-                                    :variables settings
-                                    #_         {:id   id
-                                                :x    "trait2"
-                                                :y    "trait1"
-                                                :hpd  "80"
-                                                :mrsd "2019/02/12"}}]})))
+                                  :variables {:id   id
+                                              :x    x-coordinate
+                                              :y    y-coordinate
+                                              :hpd  hpd-level
+                                              :mrsd (time/format most-recent-sampling-date)}}]})))
 
 (re-frame/reg-event-fx
   :continuous-mcc-tree/set-readable-name
@@ -142,7 +135,6 @@
   (fn [{:keys [db]} [_ date]]
     {:db (assoc-in db [:new-analysis :continuous-mcc-tree :most-recent-sampling-date] date)}))
 
-;; TODO : assoc error if nil
 (re-frame/reg-event-fx
   :continuous-mcc-tree/set-time-scale-multiplier
   (fn [{:keys [db]} [_ value]]
@@ -175,10 +167,6 @@
                     time-scale-multiplier     1}
              :as   settings}
             @continuous-mcc-tree]
-
-        (prn "@1 continuous-mcc-tree / settings" settings)
-        (prn "@2 continuous-mcc-tree / errors" @field-errors)
-
         [:div.continuous-mcc-tree
          [:div.upload
           [:span "Load tree file"]

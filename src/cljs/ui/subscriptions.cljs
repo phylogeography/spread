@@ -39,6 +39,10 @@
  (fn [continuous-tree-parsers [_ id]]
    (get continuous-tree-parsers id)))
 
+;; TODO : queued parsers
+
+;; TODO : completed parsers
+
 (re-frame/reg-sub
  ::active-continuous-tree-parser
  (fn [db _]
