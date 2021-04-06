@@ -11,8 +11,12 @@
             :upload       "icons/icn_upload.svg"
             })
 
-(defn icon-with-label []
-  (fn [{:keys [icon label on-click]}]
-    [:div.icon-label {:on-click on-click}
-     [:img {:src icon :id label}]
-     [:span.label label]]))
+(defn arg->icon [icon]
+  (if (string? icon)
+    icon
+    (icons icon)))
+
+(defn icon-with-label [{:keys [icon label on-click]}]
+  [:div.icon-label {:on-click on-click}
+   [:img {:src (arg->icon icon) :id label}]
+   [:span.label label]])

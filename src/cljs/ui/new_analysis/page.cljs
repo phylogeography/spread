@@ -3,13 +3,14 @@
             [ui.s3 :as s3]
             [ui.time :as time]
             [taoensso.timbre :as log]
+            [ui.component.indicator :refer [busy]]
             [ui.component.date-picker :refer [date-picker]]
-            [ui.component.input :refer [text-input select-input]]
+            [ui.component.input :refer [text-input select-input amount-input]]
             [ui.component.progress :refer [progress-bar]]
             [ui.component.app-container :refer [app-container]]
             [ui.component.icon :refer [icons]]
             [ui.router.component :refer [page]]
-            [ui.component.button :refer [button-file-upload button-with-icon button-with-icon-and-label]]
+            [ui.component.button :refer [button-file-upload button-with-icon button-with-label button-with-icon-and-label]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
             [ui.events.graphql :refer [gql->clj]]
@@ -25,103 +26,147 @@
 ;; -- SUBS --;;
 
 (re-frame/reg-sub
- :continuous-mcc-tree
- (fn [db]
-   (get-in db [:new-analysis :continuous-mcc-tree])))
+  :continuous-mcc-tree
+  (fn [db]
+    (get-in db [:new-analysis :continuous-mcc-tree])))
+
+(re-frame/reg-sub
+  :continuous-mcc-tree-field-errors
+  (fn [db]
+    (get-in db [:new-analysis :continuous-mcc-tree :errors])))
 
 ;; -- EVENTS --;;
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/tree-file-upload-progress
- (fn [{:keys [db]} [_ progress]]
-   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress] progress)}))
+  :continuous-mcc-tree/tree-file-upload-progress
+  (fn [{:keys [db]} [_ progress]]
+    {:db (assoc-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress] progress)}))
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/tree-file-upload-success
- (fn [{:keys [db]} [_ {:keys [url filename]}]]
-   (let [[url _] (string/split url "?")
-         readable-name (first (string/split filename "."))]
-     {:dispatch [:graphql/query {:query "mutation UploadContinuousTree($treeFileUrl: String!) {
-                                            uploadContinuousTree(treeFileUrl: $treeFileUrl) {
-                                              id
-                                              status
-                                            }
-                                          }"
-                                 :variables {:treeFileUrl url}}]
-      :db (-> db
-              (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
-              ;; default name: file name root
-              (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))})))
+  :continuous-mcc-tree/tree-file-upload-success
+  (fn [{:keys [db]} [_ {:keys [url filename]}]]
+    (let [[url _]       (string/split url "?")
+          readable-name (first (string/split filename "."))]
+      {:dispatch [:graphql/query {:query     "mutation UploadContinuousTree($treeFileUrl: String!) {
+                                                uploadContinuousTree(treeFileUrl: $treeFileUrl) {
+                                                  id
+                                                   status
+                                                }
+                                              }"
+                                  :variables {:treeFileUrl url}}]
+       :db       (-> db
+                     (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
+                     ;; default name: file name root
+                     (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))})))
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/delete-tree-file
- (fn [{:keys [db]}]
-   ;; TODO : dispatch graphql mutation to delete from db & S3
-   {:db (dissoc-in db [:new-analysis :continuous-mcc-tree])}))
+  :continuous-mcc-tree/delete-tree-file
+  (fn [{:keys [db]}]
+    ;; TODO : dispatch graphql mutation to delete from db & S3
+    {:db (dissoc-in db [:new-analysis :continuous-mcc-tree])}))
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/on-tree-file-selected
- (fn [{:keys [db]} [_ file-with-meta]]
-   (let [{:keys [data filename]} file-with-meta
-         splitted       (string/split filename ".")
-         fname (first splitted)]
-     {:dispatch [:graphql/query {:query
-                                 "mutation GetUploadUrls($filename: String!, $extension: String!) {
+  :continuous-mcc-tree/on-tree-file-selected
+  (fn [{:keys [db]} [_ file-with-meta]]
+    (let [{:keys [data filename]} file-with-meta
+          splitted                (string/split filename ".")
+          fname                   (first splitted)]
+      {:dispatch [:graphql/query {:query
+                                  "mutation GetUploadUrls($filename: String!, $extension: String!) {
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
                                    }"
-                                 :variables {:filename fname :extension "tree"}
-                                 :callback  (fn [^js response]
-                                              (if (= 200 (.-status response))
-                                                (let [{:keys [get-upload-urls]} (gql->clj (.-data (.-data response)))
-                                                      url                       (first get-upload-urls)]
-                                                  (s3/upload {:url             url
-                                                              :data            data
-                                                              :on-success      #(>evt [:continuous-mcc-tree/tree-file-upload-success {:url      url
-                                                                                                                                      :filename filename}])
-                                                              ;; TODO : handle error
-                                                              :on-error        #(prn "ERROR" %)
-                                                              :handle-progress (fn [sent total]
-                                                                                 (>evt [:continuous-mcc-tree/tree-file-upload-progress (/ sent total)]))}))
-                                                (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}]})))
+                                  :variables {:filename fname :extension "tree"}
+                                  :callback  (fn [^js response]
+                                               (if (= 200 (.-status response))
+                                                 (let [{:keys [get-upload-urls]} (gql->clj (.-data (.-data response)))
+                                                       url                       (first get-upload-urls)]
+                                                   (s3/upload {:url             url
+                                                               :data            data
+                                                               :on-success      #(>evt [:continuous-mcc-tree/tree-file-upload-success {:url      url
+                                                                                                                                       :filename filename}])
+                                                               ;; TODO : handle error
+                                                               :on-error        #(prn "ERROR" %)
+                                                               :handle-progress (fn [sent total]
+                                                                                  (>evt [:continuous-mcc-tree/tree-file-upload-progress (/ sent total)]))}))
+                                                 (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}]})))
+
+
+;; TODO
+(re-frame/reg-event-fx
+  :continuous-mcc-tree/start-analysis
+  (fn [{:keys [db]} ]
+    (let []
+
+      {}
+
+      #_{:dispatch [:graphql/query {:query     "mutation UploadContinuousTree($treeFileUrl: String!) {
+                                                uploadContinuousTree(treeFileUrl: $treeFileUrl) {
+                                                  id
+                                                   status
+                                                }
+                                              }"
+                                    :variables {:treeFileUrl url}}]
+         :db       (-> db
+                       (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
+                       ;; default name: file name root
+                       (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))})))
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/set-readable-name
- (fn [{:keys [db]} [_ readable-name]]
-   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :readable-name] readable-name)}))
+  :continuous-mcc-tree/set-readable-name
+  (fn [{:keys [db]} [_ readable-name]]
+    {:db (assoc-in db [:new-analysis :continuous-mcc-tree :readable-name] readable-name)}))
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/set-y-coordinate
- (fn [{:keys [db]} [_ attribute-name]]
-   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :y-coordinate] attribute-name)}))
+  :continuous-mcc-tree/set-y-coordinate
+  (fn [{:keys [db]} [_ attribute-name]]
+    {:db (assoc-in db [:new-analysis :continuous-mcc-tree :y-coordinate] attribute-name)}))
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/set-x-coordinate
- (fn [{:keys [db]} [_ attribute-name]]
-   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :x-coordinate] attribute-name)}))
+  :continuous-mcc-tree/set-x-coordinate
+  (fn [{:keys [db]} [_ attribute-name]]
+    {:db (assoc-in db [:new-analysis :continuous-mcc-tree :x-coordinate] attribute-name)}))
 
 (re-frame/reg-event-fx
- :continuous-mcc-tree/set-most-recent-sampling-date
- (fn [{:keys [db]} [_ date]]
-   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :most-recent-sampling-date] date)}))
+  :continuous-mcc-tree/set-most-recent-sampling-date
+  (fn [{:keys [db]} [_ date]]
+    {:db (assoc-in db [:new-analysis :continuous-mcc-tree :most-recent-sampling-date] date)}))
+
+;; TODO : assoc error if nil
+(re-frame/reg-event-fx
+  :continuous-mcc-tree/set-time-scale-multiplier
+  (fn [{:keys [db]} [_ value]]
+    {:db (cond-> db
+           true                           (assoc-in [:new-analysis :continuous-mcc-tree :time-scale-multiplier] value)
+           (> value 0)                    (dissoc-in [:new-analysis :continuous-mcc-tree :errors :time-scale-multiplier])
+           (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :continuous-mcc-tree :errors :time-scale-multiplier] "Set positive value"))}))
 
 ;; --- PAGE --- ;;
 
+(defn error-reported [message]
+  (when message
+    [:div.error-reported
+     [:span message]]))
+
 (defn continuous-mcc-tree []
-  (let [continuous-mcc-tree (re-frame/subscribe [:continuous-mcc-tree])
-        continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])]
+  (let [continuous-mcc-tree    (re-frame/subscribe [:continuous-mcc-tree])
+        continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])
+        field-errors           (re-frame/subscribe [:continuous-mcc-tree-field-errors])]
     (fn []
       (let [{:keys [id attribute-names hpd-levels] :as server-settings} @continuous-tree-parser
             {:keys [tree-file tree-file-upload-progress readable-name
                     y-coordinate x-coordinate
-                    hpd-level most-recent-sampling-date]
-             :or {y-coordinate (first attribute-names)
-                  x-coordinate (first attribute-names)
-                  hpd-level (first hpd-levels)
-                  most-recent-sampling-date (time/now)}
-             :as settings} @continuous-mcc-tree]
+                    hpd-level most-recent-sampling-date
+                    time-scale-multiplier]
+             :or   {y-coordinate              (first attribute-names)
+                    x-coordinate              (first attribute-names)
+                    hpd-level                 (first hpd-levels)
+                    most-recent-sampling-date (time/now)
+                    time-scale-multiplier     1}
+             :as   settings}
+            @continuous-mcc-tree]
 
-        (prn "@1 continuous-mcc-tree / page" settings)
-        ;; (prn "@2 continuous-mcc-tree / page" server-settings)
+        (prn "@1 continuous-mcc-tree / settings" settings)
+        (prn "@2 continuous-mcc-tree / errors" @field-errors)
 
         [:div.continuous-mcc-tree
          [:div.upload
@@ -147,62 +192,69 @@
              [button-with-icon {:on-click #(>evt [:continuous-mcc-tree/delete-tree-file])
                                 :icon     :delete}])]]
 
-         (when attribute-names
-           [:div.settings
+         [:div.settings
+          ;; show indicator before worker parses the attributes
+          (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
+            [busy])
 
-            [:fieldset
-             [:legend "name"]
-             [text-input {:value readable-name
-                          :on-change #(>evt [:continuous-mcc-tree/set-readable-name %])}]]
+          (when attribute-names
+            [:<>
+             [:fieldset
+              [:legend "name"]
+              [text-input {:value     readable-name
+                           :on-change #(>evt [:continuous-mcc-tree/set-readable-name %])}]]
 
-            [:div.row
-             [:div.column
-              [:span "Select y coordinate"]
-              [:fieldset
-               [:legend "Latitude"]
-               [select-input {:value y-coordinate
-                              :options attribute-names
-                              :on-change #(>evt [:continuous-mcc-tree/set-y-coordinate %])}]]]
+             [:div.row
+              [:div.column
+               [:span "Select y coordinate"]
+               [:fieldset
+                [:legend "Latitude"]
+                [select-input {:value     y-coordinate
+                               :options   attribute-names
+                               :on-change #(>evt [:continuous-mcc-tree/set-y-coordinate %])}]]]
+              [:div.column
+               [:span "Select x coordinate"]
+               [:fieldset
+                [:legend "Longitude"]
+                [select-input {:value     x-coordinate
+                               :options   attribute-names
+                               :on-change #(>evt [:continuous-mcc-tree/set-x-coordinate %])}]]]]
 
-             [:div.column
-              [:span "Select x coordinate"]
-              [:fieldset
-               [:legend "Longitude"]
-               [select-input {:value x-coordinate
-                              :options attribute-names
-                              :on-change #(>evt [:continuous-mcc-tree/set-x-coordinate %])}]]]]
+             [:div.row
+              [:div.column
+               [:span "Select HPD level"]
+               [:fieldset
+                [:legend "Level"]
+                [select-input {:value     hpd-level
+                               :options   hpd-levels
+                               :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]
+              [:div.column
+               [:span "Most recent sampling date"]
+               [date-picker {:date-format time/date-format
+                             :on-change   #(>evt [:continuous-mcc-tree/set-most-recent-sampling-date %])
+                             :selected    most-recent-sampling-date}]]]
 
+             [:div.row
+              [:div.column
+               [:span "Time scale"]
+               [:fieldset
+                [:legend "Multiplier"]
+                [amount-input {:class     :multiplier-field
+                               :value     time-scale-multiplier
+                               :on-change #(>evt [:continuous-mcc-tree/set-time-scale-multiplier %])}]]
+               [error-reported (:time-scale-multiplier @field-errors)]]]])]
 
-            [:div.row
-             [:div.column
-              [:span "Select HPD level"]
-              [:fieldset
-               [:legend "Level"]
-               [select-input {:value hpd-level
-                              :options hpd-levels
-                              :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]
-
-             [:div.column
-              [:span "Most recent sampling date"]
-
-              [date-picker {:date-format time/date-format
-                            :on-change  #(>evt [:continuous-mcc-tree/set-most-recent-sampling-date %])
-                            :selected    most-recent-sampling-date
-                            }]
-
-              ]
-
-
-             ]
-
-
-
-            ])
-
-
-
-
-         ]))))
+         [:div.start-analysis-section
+          [button-with-label {:label    "Start analysis"
+                              :class    :button-start-analysis
+                              :disabled? (not (empty? @field-errors))
+                              :on-click #(>evt [:continuous-mcc-tree/start-analysis])}]
+          [button-with-label {:label    "Paste settings"
+                              :class    :button-paste-settings
+                              :on-click #(prn "TODO : paste settings")}]
+          [button-with-label {:label    "Reset"
+                              :class    :button-reset
+                              :on-click #(prn "TODO : reset")}]]]))))
 
 (defn discrete-mcc-tree []
   [:pre "discrete mcc tree"])
