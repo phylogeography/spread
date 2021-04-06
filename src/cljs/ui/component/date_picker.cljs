@@ -1,8 +1,7 @@
 (ns ui.component.date-picker
-  (:require ["react-datepicker" :default DatePicker]
-            [reagent.core :as reagent]))
+  (:require ["react-datepicker" :default DatePicker]))
 
 (defn date-picker
   "https://reactdatepicker.com"
-  [{:keys [:selected :on-change] :as props}]
+  [props]
   [:> DatePicker props])

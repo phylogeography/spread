@@ -1,22 +1,22 @@
 (ns ui.new-analysis.page
-  (:require [re-frame.core :as re-frame]
-            [ui.s3 :as s3]
-            [ui.time :as time]
+  (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
-            [ui.component.indicator :refer [busy]]
-            [ui.component.date-picker :refer [date-picker]]
-            [ui.component.input :refer [text-input select-input amount-input]]
-            [ui.component.progress :refer [progress-bar]]
             [ui.component.app-container :refer [app-container]]
-            [ui.component.icon :refer [icons]]
-            [ui.router.component :refer [page]]
-            [ui.component.button :refer [button-file-upload button-with-icon button-with-label button-with-icon-and-label]]
-            [ui.router.subs :as router.subs]
-            [ui.subscriptions :as subs]
+            [ui.component.button
+             :refer
+             [button-file-upload button-with-icon button-with-label]]
+            [ui.component.date-picker :refer [date-picker]]
+            [ui.component.indicator :refer [busy]]
+            [ui.component.input :refer [amount-input select-input text-input]]
+            [ui.component.progress :refer [progress-bar]]
             [ui.events.graphql :refer [gql->clj]]
-            [ui.utils :as ui-utils :refer [debounce >evt dissoc-in split-last]]
-            [shared.macros :refer [promise->]]
-            [clojure.string :as string]))
+            [ui.router.component :refer [page]]
+            [ui.router.subs :as router.subs]
+            [ui.s3 :as s3]
+            [ui.subscriptions :as subs]
+            [ui.time :as time]
+            [ui.utils :as ui-utils :refer [>evt dissoc-in]]))
 
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/ebcee862-1168-4110-a96f-0537c8d420b1/
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/9c18388a-e890-4be4-9c5a-8d5358d86567/
@@ -65,7 +65,7 @@
 
 (re-frame/reg-event-fx
   :continuous-mcc-tree/on-tree-file-selected
-  (fn [{:keys [db]} [_ file-with-meta]]
+  (fn [_ [_ file-with-meta]]
     (let [{:keys [data filename]} file-with-meta
           splitted                (string/split filename ".")
           fname                   (first splitted)]
@@ -94,13 +94,18 @@
   (fn [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
                                hpd-level most-recent-sampling-date time-scale-multiplier]}]]
     (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
-      {:dispatch [:graphql/query {:query
+      {:db       (assoc-in db [:continuous-tree-parsers id :readable-name] readable-name)
+       :dispatch [:graphql/query {:query
                                   "mutation UpdateTree($id: ID!,
                                                         $x: String!,
                                                         $y: String!,
                                                         $hpd: String!,
-                                                        $mrsd: String!) {
+                                                        $mrsd: String!,
+                                                        $name: String!,
+                                                        $multiplier: Float!) {
                                                    updateContinuousTree(id: $id,
+                                                                        readableName: $name,
+                                                                        timescaleMultiplier: $multiplier,
                                                                         xCoordinateAttributeName: $x,
                                                                         yCoordinateAttributeName: $y,
                                                                         hpdLevel: $hpd,
@@ -109,11 +114,13 @@
                                                      status
                                                    }
                                               }"
-                                  :variables {:id   id
-                                              :x    x-coordinate
-                                              :y    y-coordinate
-                                              :hpd  hpd-level
-                                              :mrsd (time/format most-recent-sampling-date)}}]})))
+                                  :variables {:id         id
+                                              :x          x-coordinate
+                                              :y          y-coordinate
+                                              :multiplier time-scale-multiplier
+                                              :hpd        hpd-level
+                                              :name       readable-name
+                                              :mrsd       (time/format most-recent-sampling-date)}}]})))
 
 (re-frame/reg-event-fx
   :continuous-mcc-tree/set-readable-name
@@ -155,7 +162,7 @@
         continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])
         field-errors           (re-frame/subscribe [:continuous-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [id attribute-names hpd-levels] :as server-settings} @continuous-tree-parser
+      (let [{:keys [attribute-names hpd-levels]} @continuous-tree-parser
             {:keys [tree-file tree-file-upload-progress readable-name
                     y-coordinate x-coordinate
                     hpd-level most-recent-sampling-date
@@ -164,8 +171,7 @@
                     x-coordinate              (first attribute-names)
                     hpd-level                 (first hpd-levels)
                     most-recent-sampling-date (time/now)
-                    time-scale-multiplier     1}
-             :as   settings}
+                    time-scale-multiplier     1}}
             @continuous-mcc-tree]
         [:div.continuous-mcc-tree
          [:div.upload
@@ -246,7 +252,7 @@
              [:div.start-analysis-section
               [button-with-label {:label     "Start analysis"
                                   :class     :button-start-analysis
-                                  :disabled? (not (empty? @field-errors))
+                                  :disabled? (seq @field-errors)
                                   :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name             readable-name
                                                                                           :y-coordinate              y-coordinate
                                                                                           :x-coordinate              x-coordinate

@@ -1,5 +1,5 @@
 (ns ui.component.button
-  (:require [ui.component.icon :refer [icons arg->icon]]))
+  (:require [ui.component.icon :refer [arg->icon]]))
 
 (defn button-with-icon [{:keys [icon on-click class disabled?]}]
   [:button {:class    class

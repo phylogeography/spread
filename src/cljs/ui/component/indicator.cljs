@@ -1,5 +1,4 @@
-(ns ui.component.indicator
-  (:require [ui.component.icon :refer [icons]]))
+(ns ui.component.indicator)
 
 (defn busy []
   [:div.busy])

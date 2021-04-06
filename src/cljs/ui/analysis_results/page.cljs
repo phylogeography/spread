@@ -1,6 +1,5 @@
 (ns ui.analysis-results.page
   (:require [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]
             [ui.component.app-container :refer [app-container]]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]))

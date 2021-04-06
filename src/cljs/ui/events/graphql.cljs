@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [shared.macros :refer [promise->]]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt dispatch-n merge-in]]))
+            [ui.utils :refer [>evt dispatch-n]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -143,7 +143,6 @@
                   merge
                   continuous-tree-parser)})
 
-
 ;; TODO: match on status:
 ;; QUEUED | RUNNING -> :queued {:status :progress} -> for left pane status
 (defmethod handler :continuous-tree-parser-status
@@ -165,6 +164,10 @@
                                                         }
                                                       }"
                                   :variables {:id id}}]]))
+
+  (when (= status "SUCCEEDED")
+    (>evt [:graphql/unsubscribe {:id id}]))
+
   {:db (-> db
            (assoc-in [:continuous-tree-parsers id :status] status)
            (assoc-in [:continuous-tree-parsers id :progress] progress))})
@@ -185,11 +188,16 @@
            (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id] id)
            (assoc-in [:continuous-tree-parsers id :status] status))})
 
+(defmethod handler :start-continuous-tree-parser
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+
 (defmethod handler :update-continuous-tree
   [{:keys [db]} _ {:keys [id status]}]
   (when (= "ARGUMENTS_SET" status)
     (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
                                                   startContinuousTreeParser(id: $id) {
+                                                    id
                                                     status
                                                 }
                                               }"

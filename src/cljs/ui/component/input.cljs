@@ -1,5 +1,4 @@
-(ns ui.component.input
-  (:require [clojure.set :refer [rename-keys]]))
+(ns ui.component.input)
 
 (defn text-input
   [{:keys [on-change value class]}]
