@@ -50,7 +50,7 @@
       {:dispatch [:graphql/query {:query     "mutation UploadContinuousTree($treeFileUrl: String!) {
                                                 uploadContinuousTree(treeFileUrl: $treeFileUrl) {
                                                   id
-                                                   status
+                                                  status
                                                 }
                                               }"
                                   :variables {:treeFileUrl url}}]
@@ -94,22 +94,33 @@
 ;; TODO
 (re-frame/reg-event-fx
   :continuous-mcc-tree/start-analysis
-  (fn [{:keys [db]} ]
-    (let []
+  (fn [{:keys [db]} [_ settings]]
+    (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])
+          settings (update settings :most-recent-sampling-date time/format)
+          ]
 
-      {}
+      (prn settings)
 
-      #_{:dispatch [:graphql/query {:query     "mutation UploadContinuousTree($treeFileUrl: String!) {
-                                                uploadContinuousTree(treeFileUrl: $treeFileUrl) {
-                                                  id
-                                                   status
-                                                }
+      #_{:dispatch [:graphql/query {:query
+                                    "mutation UpdateTree($id: ID!,
+                                                                  $x: String!,
+                                                                  $y: String!,
+                                                                  $hpd: String!,
+                                                                  $mrsd: String!) {
+                                                   updateContinuousTree(id: $id,
+                                                                        xCoordinateAttributeName: $x,
+                                                                        yCoordinateAttributeName: $y,
+                                                                        hpdLevel: $hpd,
+                                                                        mostRecentSamplingDate: $mrsd) {
+                                                     status
+                                                   }
                                               }"
-                                    :variables {:treeFileUrl url}}]
-         :db       (-> db
-                       (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
-                       ;; default name: file name root
-                       (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))})))
+                                    :variables settings
+                                    #_         {:id   id
+                                                :x    "trait2"
+                                                :y    "trait1"
+                                                :hpd  "80"
+                                                :mrsd "2019/02/12"}}]})))
 
 (re-frame/reg-event-fx
   :continuous-mcc-tree/set-readable-name
@@ -242,19 +253,24 @@
                 [amount-input {:class     :multiplier-field
                                :value     time-scale-multiplier
                                :on-change #(>evt [:continuous-mcc-tree/set-time-scale-multiplier %])}]]
-               [error-reported (:time-scale-multiplier @field-errors)]]]])]
+               [error-reported (:time-scale-multiplier @field-errors)]]]
 
-         [:div.start-analysis-section
-          [button-with-label {:label    "Start analysis"
-                              :class    :button-start-analysis
-                              :disabled? (not (empty? @field-errors))
-                              :on-click #(>evt [:continuous-mcc-tree/start-analysis])}]
-          [button-with-label {:label    "Paste settings"
-                              :class    :button-paste-settings
-                              :on-click #(prn "TODO : paste settings")}]
-          [button-with-label {:label    "Reset"
-                              :class    :button-reset
-                              :on-click #(prn "TODO : reset")}]]]))))
+             [:div.start-analysis-section
+              [button-with-label {:label     "Start analysis"
+                                  :class     :button-start-analysis
+                                  :disabled? (not (empty? @field-errors))
+                                  :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                          :y-coordinate              y-coordinate
+                                                                                          :x-coordinate              x-coordinate
+                                                                                          :hpd-level                 hpd-level
+                                                                                          :most-recent-sampling-date most-recent-sampling-date
+                                                                                          :time-scale-multiplier     time-scale-multiplier}])}]
+              [button-with-label {:label    "Paste settings"
+                                  :class    :button-paste-settings
+                                  :on-click #(prn "TODO : paste settings")}]
+              [button-with-label {:label    "Reset"
+                                  :class    :button-reset
+                                  :on-click #(prn "TODO : reset")}]]])]]))))
 
 (defn discrete-mcc-tree []
   [:pre "discrete mcc tree"])

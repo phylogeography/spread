@@ -8,7 +8,6 @@
   [cider/cider-nrepl "0.25.5"]
   [cider/piggieback "0.5.2"]
   [tick/tick "0.4.9-alpha"]
-  ;; [com.andrewmcveigh/cljs-time "0.5.2"]
   [com.taoensso/timbre "5.1.2"]
   [day8.re-frame/async-flow-fx "0.1.0"]
   [day8.re-frame/forward-events-fx "0.0.6"]
