@@ -24,6 +24,7 @@
 (reg-event-fx :graphql/ws-authorize-failed events.graphql/ws-authorize-failed)
 (reg-event-fx :graphql/subscription-response events.graphql/subscription-response)
 (reg-event-fx :graphql/subscription events.graphql/subscription)
+(reg-event-fx :graphql/unsubscribe events.graphql/unsubscribe)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; General UI events ;;
@@ -46,6 +47,12 @@
 (reg-event-fx :splash/initialize-page [(re-frame/inject-cofx :localstorage)] events.splash/initialize-page)
 (reg-event-fx :splash/send-google-verification-code events.splash/send-google-verification-code)
 (reg-event-fx :splash/login-success [(re-frame/inject-cofx :localstorage)] events.splash/login-success)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; New analysis events ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (reg-event-fx :continuous-tree-uploaded (constantly nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Websockets events ;;

@@ -1,6 +1,5 @@
 (ns shared.time
-  (:require
-   [tick.alpha.api :as t]))
+  (:require [tick.alpha.api :as t]))
 
 (defn now
   "returns the current instant"

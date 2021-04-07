@@ -6,7 +6,7 @@
             [re-frame.core :as re-frame]
             [shared.macros :refer [promise->]]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt]]))
+            [ui.utils :refer [>evt dispatch-n]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -72,7 +72,14 @@
     (promise-> (axios params)
                callback)))
 
-(defn query [{:keys [db localstorage]} [_ {:keys [query variables]}]]
+(defn query
+  [{:keys [db localstorage]} [_ {:keys [query variables callback]
+                                 :or   {callback (fn [^js response]
+                                                   (if (= 200 (.-status response))
+                                                     ;; TODO we can still have errors even with a 200
+                                                     ;; so we should log them or handle in some other way
+                                                     (>evt [:graphql/response (gql->clj (.-data (.-data response)))])
+                                                     (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}}]]
   (let [url          (get-in db [:config :graphql :url])
         access-token (:access-token localstorage)
         params       (clj->js {:url     url
@@ -83,13 +90,7 @@
                                                  {"Authorization" (str "Bearer " access-token)}))
                                :data    (js/JSON.stringify
                                           (clj->js {:query     query
-                                                    :variables variables}))})
-        callback     (fn [^js response]
-                       (if (= 200 (.-status response))
-                         ;; TODO we can still have errors even with a 200
-                         ;; so we should log them or handle in some other way
-                         (>evt [:graphql/response (gql->clj (.-data (.-data response)))])
-                         (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))]
+                                                    :variables variables}))})]
     {::query [params callback]}))
 
 (defn ws-authorize [{:keys [localstorage]} [_ {:keys [on-timeout]}]]
@@ -111,8 +112,7 @@
   (reduce-handlers cofx (gql->clj (get-in response [:payload :data]))))
 
 (defn subscription [_ [_ {:keys [id query variables]}]]
-  {:dispatch [:websocket/subscribe :default
-              (name id)
+  {:dispatch [:websocket/subscribe :default (name id)
               {:message
                {:type    "start"
                 :payload {:variables     variables
@@ -120,6 +120,9 @@
                           :operationName nil
                           :query         query}}
                :on-message [:graphql/subscription-response]}]})
+
+(defn unsubscribe [_ [_ {:keys [id]}]]
+  {:dispatch [:websocket/unsubscribe :default (name id)]})
 
 (defmethod handler :default
   [cofx k values]
@@ -129,8 +132,86 @@
   (reduce-handlers cofx values))
 
 (defmethod handler :discrete-tree-parser-status
+  [{:keys [db]} _ {:keys [id status progress]}]
+  {:db (-> db
+           (assoc-in [:discrete-tree-parsers id :status] status)
+           (assoc-in [:discrete-tree-parsers id :progress] progress))})
+
+(defmethod handler :get-continuous-tree
+  [{:keys [db]} _ {:keys [id] :as continuous-tree-parser}]
+  {:db (update-in db [:continuous-tree-parsers id]
+                  merge
+                  continuous-tree-parser)})
+
+;; TODO: match on status:
+;; QUEUED | RUNNING -> :queued {:status :progress} -> for left pane status
+(defmethod handler :continuous-tree-parser-status
+  [{:keys [db]} _ {:keys [id status progress]}]
+
+  (prn id status progress)
+
+  ;; (prn (:continuous-tree-parsers db))
+
+  ;; when worker has parsed the attributes
+  ;; stop the ongoing subscription and query the attributes
+  (when (= status "ATTRIBUTES_PARSED")
+    (dispatch-n [[:graphql/unsubscribe {:id id}]
+                 [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
+                                                        getContinuousTree(id: $id) {
+                                                          id
+                                                          attributeNames
+                                                          hpdLevels
+                                                        }
+                                                      }"
+                                  :variables {:id id}}]]))
+
+  (when (= status "SUCCEEDED")
+    (>evt [:graphql/unsubscribe {:id id}]))
+
+  {:db (-> db
+           (assoc-in [:continuous-tree-parsers id :status] status)
+           (assoc-in [:continuous-tree-parsers id :progress] progress))})
+
+(defmethod handler :upload-continuous-tree
   [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
+  ;; start the status subscription for an ongoing analysis
+  (>evt [:graphql/subscription {:id        id
+                                :query     "subscription ContinuousTreeParserStatus($id: ID!) {
+                                                           continuousTreeParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                :variables {:id id}}])
+  {:db (-> db
+           (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id] id)
+           (assoc-in [:continuous-tree-parsers id :status] status))})
+
+(defmethod handler :start-continuous-tree-parser
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+
+(defmethod handler :update-continuous-tree
+  [{:keys [db]} _ {:keys [id status]}]
+  (when (= "ARGUMENTS_SET" status)
+    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+                                                  startContinuousTreeParser(id: $id) {
+                                                    id
+                                                    status
+                                                }
+                                              }"
+                                  :variables {:id id}}]
+                 [:graphql/subscription {:id        id
+                                         :query     "subscription ContinuousTreeParserStatus($id: ID!) {
+                                                           continuousTreeParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                         :variables {:id id}}]]))
+  {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
@@ -142,7 +223,7 @@
   [_ _ {:keys [access-token]}]
   (re-frame/dispatch [:splash/login-success access-token]))
 
-(defmethod handler :api/error
+#_(defmethod handler :api/error
   [_ _ _]
   ;; NOTE: this handler is here only to catch errors
   )

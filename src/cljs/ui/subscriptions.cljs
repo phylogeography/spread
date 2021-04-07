@@ -28,6 +28,27 @@
   (fn [discrete-tree-parsers [_ id]]
     (get discrete-tree-parsers id)))
 
+(re-frame/reg-sub
+ ::continuous-tree-parsers
+ (fn [db _]
+   (get db :continuous-tree-parsers)))
+
+(re-frame/reg-sub
+ ::continuous-tree-parser
+ :<- [::continuous-tree-parsers]
+ (fn [continuous-tree-parsers [_ id]]
+   (get continuous-tree-parsers id)))
+
+;; TODO : queued parsers
+
+;; TODO : completed parsers
+
+(re-frame/reg-sub
+ ::active-continuous-tree-parser
+ (fn [db _]
+   (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
+     (get (get db :continuous-tree-parsers) id))))
+
 (comment
   @(re-frame/subscribe [::authorized-user])
   @(re-frame/subscribe [::discrete-tree-parsers])

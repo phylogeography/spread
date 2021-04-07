@@ -30,9 +30,6 @@
   {::effects/unwatch-active-page watchers})
 
 (defn navigate [{:keys [:db]} [name params query]]
-
-  (prn "@navigate" {:name name :params params :query query})
-
   (cond-> {::effects/navigate [(queries/bide-router db) name params query]}
     (queries/scroll-top? db) (assoc :window/scroll-to [0 0])))
 

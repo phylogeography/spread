@@ -1,7 +1,9 @@
 (ns ui.component.app-container
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [ui.component.button :refer [button-with-icon-and-label]]
+            [ui.component.button
+             :refer
+             [button-with-icon button-with-icon-and-label]]
             [ui.component.icon :refer [icon-with-label icons]]
             [ui.format :refer [format-percentage]]
             [ui.subscriptions :as subs]))
@@ -54,21 +56,13 @@
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
     (fn [{:keys [id readable-name of-type seen?]}]
-      [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab (case of-type
-                                                                                                                 "Continuous: MCC Tree"    "continuous-mcc-tree"
-                                                                                                                 "Continuous: Time slices" "continuous-time-slices"
-                                                                                                                 "Discrete: MCC Tree"      "discrete-mcc-tree"
-                                                                                                                 "Discrete: Rates"         "discrete-rates"
-                                                                                                                 nil)
-                                                                                                          :id  id}])}
+      [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
         [:span readable-name]
         (when-not seen? [:span "New"])
         [:div.click-dropdown
-         [:button {:on-click (fn [event]
-                               (swap! menu-opened? not)
-                               (.stopPropagation event))}
-          [:img {:src (:kebab-menu icons)}]]
+         [button-with-icon {:on-click #(swap! menu-opened? not)
+                            :icon     (:kebab-menu icons)}]
          [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
           [:a {:on-click (fn [event]
                            (prn "TODO: Edit")
@@ -124,20 +118,12 @@
   (let [menu-opened? (reagent/atom false)]
     (fn [{:keys [id readable-name of-type progress]}]
       [:div.queue-menu-item
-       {:on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab (case of-type
-                                                                                        "Continuous: MCC Tree"    "continuous-mcc-tree"
-                                                                                        "Continuous: Time slices" "continuous-time-slices"
-                                                                                        "Discrete: MCC Tree"      "discrete-mcc-tree"
-                                                                                        "Discrete: Rates"         "discrete-rates"
-                                                                                        nil)
-                                                                                 :id  id}])}
+       {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
         [:span readable-name]
         [:div.click-dropdown
-         [:button {:on-click (fn [event]
-                               (swap! menu-opened? not)
-                               (.stopPropagation event))}
-          [:img {:src (:kebab-menu icons)}]]
+         [button-with-icon {:on-click #(swap! menu-opened? not)
+                            :icon     (:kebab-menu icons)}]
          [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
           [:a {:on-click (fn [event]
                            (prn "TODO: Edit")
@@ -155,21 +141,19 @@
        [:div
         [:div
          [:progress {:max 1 :value progress}]
-         [:button {:on-click (fn [event]
-                               (prn "TODO: delete ongoing analysis")
-                               (.stopPropagation event))}
-          [:img {:src (:delete icons)}]]]
+         [button-with-icon {:on-click #(prn "TODO: delete ongoing analysis")
+                            :icon     (:delete icons)}]]
         [:span (str (format-percentage progress 1.0) " finished")]]])))
 
 ;; TODO : subscribe to status updates for all ongoing
 (defn queue [{:keys [open?]}]
   (let [open?         (reagent/atom open?)
         total-ongoing 2
-        data          [{:id            "1"
+        data          [{:id            "4"
                         :readable-name "Relaxed_dollo_AllSingleton_v1"
                         :progress      0.8
                         :of-type       "Continuous: MCC Tree"}
-                       {:id            "2"
+                       {:id            "5"
                         :readable-name "Relaxed_dollo_AllSingleton_v3"
                         :progress      0.3
                         :of-type       "Continuous: Time slices"}]]

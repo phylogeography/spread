@@ -93,7 +93,7 @@
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
                                                 startContinuousTreeParser(id: $id) {
-                                                 status
+                                                  status
                                                 }
                                               }"
                                              :variables {:id id}})
