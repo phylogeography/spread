@@ -70,13 +70,8 @@
 (defn query
   [{:keys [db localstorage]} [_ {:keys [query variables on-success]
                                  :or   {on-success [:graphql/response]}}]]
-
-  (prn "@1 query" query variables on-success)
-
   (let [url          (get-in db [:config :graphql :url])
         access-token (:access-token localstorage)]
-
-    (prn "@url" url)
 
     {:http-xhrio {:method          :post
                   :uri             url
@@ -136,6 +131,16 @@
            (assoc-in [:discrete-tree-parsers id :status] status)
            (assoc-in [:discrete-tree-parsers id :progress] progress))})
 
+;; TODO: handler dispatch clash
+;; NOTE: is this one needed? map component wasn't supposed to be calling the API
+#_(defmethod handler :get-continuous-tree
+  [_ _ {:keys [maps output-file-url]}]
+  (re-frame/dispatch [:map/initialize
+                      maps
+                      :continuous-tree
+                      ;; TODO: fix this, why is it coming without protocol?
+                      (str "http://" output-file-url)]))
+
 (defmethod handler :get-continuous-tree
   [{:keys [db]} _ {:keys [id] :as continuous-tree-parser}]
   {:db (update-in db [:continuous-tree-parsers id]
@@ -146,11 +151,6 @@
 ;; QUEUED | RUNNING -> :queued {:status :progress} -> for left pane status
 (defmethod handler :continuous-tree-parser-status
   [{:keys [db]} _ {:keys [id status progress]}]
-
-  (prn id status progress)
-
-  ;; (prn (:continuous-tree-parsers db))
-
   ;; when worker has parsed the attributes
   ;; stop the ongoing subscription and query the attributes
   (when (= status "ATTRIBUTES_PARSED")
@@ -222,15 +222,17 @@
   [_ _ {:keys [access-token]}]
   (re-frame/dispatch [:splash/login-success access-token]))
 
-(defmethod handler :get-continuous-tree
-  [_ _ {:keys [maps output-file-url]}]
-  (re-frame/dispatch [:map/initialize
-                      maps
-                      :continuous-tree
-                      ;; TODO: fix this, why is it coming without protocol?
-                      (str "http://" output-file-url)]))
-
 (defmethod handler :api/error
   [_ _ _]
   ;; NOTE: this handler is here only to catch errors
   )
+
+(comment
+  (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
+                                                        getContinuousTree(id: $id) {
+                                                          id
+                                                          attributeNames
+                                                          hpdLevels
+                                                        }
+                                                      }"
+                         :variables {:id "19512998-11cb-468a-9c13-f497a0920737"}}]))
