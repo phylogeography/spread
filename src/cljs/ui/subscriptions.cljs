@@ -51,21 +51,31 @@
    (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
      (get (get db :continuous-tree-parsers) id))))
 
+(re-frame/reg-sub
+  ::continuous-mcc-tree
+  (fn [db]
+    (get-in db [:new-analysis :continuous-mcc-tree])))
+
+(re-frame/reg-sub
+  ::continuous-mcc-tree-field-errors
+  (fn [db]
+    (get-in db [:new-analysis :continuous-mcc-tree :errors])))
+
 ;;;;;;;;;;
 ;; Maps ;;
 ;;;;;;;;;;
 
 (defn geo-json-data-map [db-maps]
   (let [maps {:type "FeatureCollection"
-              :features (->> db-maps                              
+              :features (->> db-maps
                              (sort-by :map/z-index <)
-                             (map :map/geo-json))}]     
+                             (map :map/geo-json))}]
     (assoc maps :map-box (svg-renderer/geo-json-bounding-box maps))))
 
 (re-frame/reg-sub
  ::map-data
  (fn [db _]
-   (let [hide-world? (false? (-> db :map-state :show-world?))]     
+   (let [hide-world? (false? (-> db :map-state :show-world?))]
      (geo-json-data-map (cond->> (:maps db)
                           hide-world? (remove #(zero? (:map/z-index %))))))))
 
@@ -76,12 +86,12 @@
 
 (re-frame/reg-sub
  ::analysis-data
- (fn [db _] 
+ (fn [db _]
    (:analysis-data db)))
 
 (re-frame/reg-sub
  ::map-state
- (fn [db _] 
+ (fn [db _]
    (:map-state db)))
 
 (comment

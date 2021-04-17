@@ -72,7 +72,6 @@
                                  :or   {on-success [:graphql/response]}}]]
   (let [url          (get-in db [:config :graphql :url])
         access-token (:access-token localstorage)]
-
     {:http-xhrio {:method          :post
                   :uri             url
                   :headers         (merge {"Content-Type" "application/json"
