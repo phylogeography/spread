@@ -1,5 +1,6 @@
 (ns ui.s3
   (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]
             [taoensso.timbre :as log]))
 
 (defn upload
@@ -32,3 +33,8 @@
                                                                sent  (aget response "loaded")]
                                                            (handle-progress sent total)))))
         (.send xhr (clj->js data))))))
+
+(re-frame/reg-fx
+ ::upload
+ (fn [params]
+   (upload params)))

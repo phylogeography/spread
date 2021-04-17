@@ -1,5 +1,6 @@
 (ns ui.events.graphql
-  (:require [ajax.core :as ajax]
+  (:require ;;["axios" :as axios]
+            [ajax.core :as ajax]
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
             [clojure.string :as string]
@@ -67,22 +68,28 @@
   (reduce-handlers cofx (gql->clj (:data response))))
 
 (defn query
-  [{:keys [db localstorage]} [_ {:keys [query variables]}]]
+  [{:keys [db localstorage]} [_ {:keys [query variables on-success]
+                                 :or   {on-success [:graphql/response]}}]]
+
+  (prn "@1 query" query variables on-success)
+
   (let [url          (get-in db [:config :graphql :url])
         access-token (:access-token localstorage)]
+
+    (prn "@url" url)
+
     {:http-xhrio {:method          :post
                   :uri             url
-                  :headers (merge {"Content-Type" "application/json"
-                                   "Accept"       "application/json"}
-                                  (when access-token
-                                    {"Authorization" (str "Bearer " access-token)}))
-                  :body (js/JSON.stringify
-                         (clj->js {:query     query
-                                   :variables variables}))
+                  :headers         (merge {"Content-Type" "application/json"
+                                           "Accept"       "application/json"}
+                                          (when access-token
+                                            {"Authorization" (str "Bearer " access-token)}))
+                  :body            (js/JSON.stringify
+                                     (clj->js {:query     query
+                                               :variables variables}))
                   :timeout         8000
-                  
                   :response-format (ajax/json-response-format {:keywords? true})
-                  :on-success      [:graphql/response]
+                  :on-success      on-success
                   :on-failure      [:log-error]}}))
 
 (defn ws-authorize [{:keys [localstorage]} [_ {:keys [on-timeout]}]]

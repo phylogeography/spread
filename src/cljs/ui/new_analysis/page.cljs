@@ -64,6 +64,19 @@
     {:db (dissoc-in db [:new-analysis :continuous-mcc-tree])}))
 
 (re-frame/reg-event-fx
+  :continuous-mcc-tree/s3-upload
+  (fn [{:keys [db]} [_ {:keys [data filename]} response]]
+    (let [url (-> response :data :getUploadUrls first)]
+      {::s3/upload {:url             url
+                    :data            data
+                    :on-success      #(>evt [:continuous-mcc-tree/tree-file-upload-success {:url      url
+                                                                                            :filename filename}])
+                    ;; TODO : handle error
+                    :on-error        #(prn "ERROR" %)
+                    :handle-progress (fn [sent total]
+                                       (>evt [:continuous-mcc-tree/tree-file-upload-progress (/ sent total)]))}})))
+
+(re-frame/reg-event-fx
   :continuous-mcc-tree/on-tree-file-selected
   (fn [_ [_ file-with-meta]]
     (let [{:keys [data filename]} file-with-meta
@@ -74,19 +87,7 @@
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
                                    }"
                                   :variables {:filename fname :extension "tree"}
-                                  :callback  (fn [^js response]
-                                               (if (= 200 (.-status response))
-                                                 (let [{:keys [get-upload-urls]} (gql->clj (.-data (.-data response)))
-                                                       url                       (first get-upload-urls)]
-                                                   (s3/upload {:url             url
-                                                               :data            data
-                                                               :on-success      #(>evt [:continuous-mcc-tree/tree-file-upload-success {:url      url
-                                                                                                                                       :filename filename}])
-                                                               ;; TODO : handle error
-                                                               :on-error        #(prn "ERROR" %)
-                                                               :handle-progress (fn [sent total]
-                                                                                  (>evt [:continuous-mcc-tree/tree-file-upload-progress (/ sent total)]))}))
-                                                 (log/error "Error during query" {:error (js->clj (.-data response) :keywordize-keys true)})))}]})))
+                                  :on-success [:continuous-mcc-tree/s3-upload file-with-meta]}]})))
 
 ;; TODO: clean analysis fields (dissoc)
 (re-frame/reg-event-fx
