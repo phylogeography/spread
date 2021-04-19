@@ -215,7 +215,7 @@
                                        :yCoordinateAttributeName {:type (non-null String)}
                                        :hpdLevel                 {:type (non-null String)}
                                        :hasExternalAnnotations   {:type String}
-                                       :timescaleMultiplier      {:type String}
+                                       :timescaleMultiplier      {:type Float}
                                        :mostRecentSamplingDate   {:type (non-null String)}}
                          :resolve     :mutation/updateContinuousTree}
 
@@ -236,7 +236,7 @@
                        :args        {:id                     {:type (non-null ID)}
                                      :readableName           {:type String}
                                      :locationAttributeName  {:type (non-null String)}
-                                     :timescaleMultiplier    {:type String}
+                                     :timescaleMultiplier    {:type Float}
                                      :mostRecentSamplingDate {:type (non-null String)}}
                        :resolve     :mutation/updateDiscreteTree}
 
