@@ -1,4 +1,4 @@
-(ns ui.svg-renderer
+(ns analysis-viewer.svg-renderer
   "
   Render svg hiccup structure from geo-json maps.
   Api :

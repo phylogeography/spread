@@ -1,9 +1,9 @@
-(ns ui.fxs
+(ns analysis-viewer.fxs
   (:require-macros [hiccups.core :as hiccups :refer [html]])
-  (:require [hiccups.runtime :as hiccupsrt]
-            [re-frame.core :as re-frame]
-            [ui.component.maps :as maps]
-            [ui.svg-renderer :as svg-renderer]))
+  (:require [analysis-viewer.svg-renderer :as svg-renderer]
+            [analysis-viewer.views :as views]
+            [hiccups.runtime :as hiccupsrt]
+            [re-frame.core :as re-frame]))
 
 (defn data-map [geo-json-map analysis-data time]
   [:svg {:xmlns "http://www.w3.org/2000/svg"
@@ -21,14 +21,14 @@
      [:stop {:offset "100%" :stop-color :yellow}]]]
 
    ;; map background
-   [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color maps/theme)}]
+   [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color views/theme)}]
    
    ;; map and data svg
    [:g {}
     [:svg {:view-box "0 0 360 180"}
      ;; map group
      [:g {}
-      (binding [svg-renderer/*theme* maps/theme]
+      (binding [svg-renderer/*theme* views/theme]
         (svg-renderer/geojson->svg geo-json-map))]
 
      ;; data group
@@ -37,7 +37,7 @@
         [:g {}
          (for [primitive-object analysis-data]
            ^{:key (str (:id primitive-object))}
-           (maps/map-primitive-object primitive-object 1 time))])]]]])
+           (views/map-primitive-object primitive-object 1 time))])]]]])
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg

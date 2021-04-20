@@ -1,14 +1,14 @@
-(ns ui.component.maps
+(ns analysis-viewer.views
   "Render maps and analysis data as hiccup svg vectors.
   Also handles animations."
-  (:require [clojure.string :as str]
+  (:require [analysis-viewer.events.maps :as events.maps]
+            [analysis-viewer.subs :as subs]
+            [analysis-viewer.svg-renderer :as svg-renderer]
+            [clojure.string :as str]
             [goog.string :as gstr]
             [re-frame.core :as re-frame :refer [dispatch]]
             [reagent.core :as reagent]
-            [shared.math-utils :as math-utils]
-            [ui.events.maps :as events.maps]
-            [ui.subscriptions :as subs]
-            [ui.svg-renderer :as svg-renderer]))
+            [shared.math-utils :as math-utils]))
 
 (def data-box-padding
   "The padding around the databox in the final render."
@@ -210,4 +210,5 @@
               [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke (:data-point-color theme) :fill :transparent}]))]])
       
       )))
+
 

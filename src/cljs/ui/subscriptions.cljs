@@ -1,7 +1,5 @@
 (ns ui.subscriptions
-  (:require [re-frame.core :as re-frame]
-            [shared.math-utils :as math-utils]
-            [ui.svg-renderer :as svg-renderer]))
+  (:require [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
   ::config
@@ -60,39 +58,6 @@
   ::continuous-mcc-tree-field-errors
   (fn [db]
     (get-in db [:new-analysis :continuous-mcc-tree :errors])))
-
-;;;;;;;;;;
-;; Maps ;;
-;;;;;;;;;;
-
-(defn geo-json-data-map [db-maps]
-  (let [maps {:type "FeatureCollection"
-              :features (->> db-maps
-                             (sort-by :map/z-index <)
-                             (map :map/geo-json))}]
-    (assoc maps :map-box (svg-renderer/geo-json-bounding-box maps))))
-
-(re-frame/reg-sub
- ::map-data
- (fn [db _]
-   (let [hide-world? (false? (-> db :map-state :show-world?))]
-     (geo-json-data-map (cond->> (:maps db)
-                          hide-world? (remove #(zero? (:map/z-index %))))))))
-
-(re-frame/reg-sub
- ::map-view-box
- (fn [{:keys [map-view-box-center map-view-box-radius]} _]
-   (math-utils/outscribing-rectangle map-view-box-center map-view-box-radius)))
-
-(re-frame/reg-sub
- ::analysis-data
- (fn [db _]
-   (:analysis-data db)))
-
-(re-frame/reg-sub
- ::map-state
- (fn [db _]
-   (:map-state db)))
 
 (comment
   @(re-frame/subscribe [::authorized-user])

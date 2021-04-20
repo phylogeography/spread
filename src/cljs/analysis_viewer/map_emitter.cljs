@@ -1,4 +1,4 @@
-(ns ui.map.map-emitter
+(ns analysis-viewer.map-emitter
   "
   This namespace contains functionality to parse
   analysis output formats for (continuouse-tree, discrete-tree, bayes and timeslicer)

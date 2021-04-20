@@ -1,10 +1,10 @@
-(ns ui.events.maps
+(ns analysis-viewer.events.maps
   "Handle events registered in events.cljs under :map/*"
   (:require [ajax.core :as ajax]
+            [analysis-viewer.map-emitter :as map-emitter]
+            [analysis-viewer.subs :as subs]
             [clojure.string :as string]
-            [shared.math-utils :as math-utils]
-            [ui.map.map-emitter :as map-emitter]
-            [ui.subscriptions :as subs]))
+            [shared.math-utils :as math-utils]))
 
 ;; screen-coord: [x,y]      coordinates in screen pixels, 0 <= x <= map-width, 0 <= y <= map-height
 ;; proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
