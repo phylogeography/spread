@@ -104,6 +104,22 @@
    [:button {:on-click #(dispatch [:map/download-current-as-svg @time])}
     "Download"]])
 
+(defn map-group []
+  (let [geo-json-map @(re-frame/subscribe [::subs/map-data])]
+    (when geo-json-map
+      [:g {}
+       (binding [svg-renderer/*theme* theme]
+         (svg-renderer/geojson->svg geo-json-map))])))
+
+(defn data-group [time]
+  (let [analysis-data  @(re-frame/subscribe [::subs/analysis-data])
+        {:keys [scale]} @(re-frame/subscribe [::subs/map-state])]
+    (when analysis-data
+      [:g {}
+       (for [primitive-object analysis-data]
+         ^{:key (str (:id primitive-object))}
+         [map-primitive-object primitive-object scale time])])))
+
 ;; TODO: refactor this component and its subscriptions for performance
 (defn animated-data-map []
   (let [time (reagent/atom 0)
@@ -114,9 +130,7 @@
                       (swap! time #(- % animation-increment))
                       (reset! time 0)))]
     (fn []      
-      (let [t            @time
-            geo-json-map @(re-frame/subscribe [::subs/map-data])
-            analysis-data  @(re-frame/subscribe [::subs/analysis-data])
+      (let [t            @time                        
             {:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])
             scale (or scale 1)
             [translate-x translate-y] translate]
@@ -191,18 +205,8 @@
                                        (or translate-y 0)
                                        scale scale)}
            [:svg {:view-box "0 0 360 180"}
-            ;; map group
-            (when geo-json-map
-              [:g {}
-               (binding [svg-renderer/*theme* theme]
-                 (svg-renderer/geojson->svg geo-json-map))])
-
-            ;; data group
-            (when analysis-data
-              [:g {}
-               (for [primitive-object analysis-data]
-                 ^{:key (str (:id primitive-object))}
-                 [map-primitive-object primitive-object scale t])])]]
+            [map-group]
+            [data-group t]]]
 
           (when zoom-rectangle
             (let [[x1 y1] (:origin zoom-rectangle)
