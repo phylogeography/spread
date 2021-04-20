@@ -17,8 +17,7 @@
             [com.walmartlabs.lacinia.util :as lacinia-util]
             [io.pedestal.http :as http]
             [io.pedestal.interceptor :refer [interceptor]]
-            [mount.core :as mount :refer [defstate]]
-            [shared.utils :as shared-utils]
+            [mount.core :as mount :refer [defstate]]           
             [taoensso.timbre :as log]))
 
 (declare server)

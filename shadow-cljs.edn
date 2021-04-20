@@ -59,5 +59,4 @@
                     :release
                     {:compiler-options {:warnings-as-errors true
                                         :infer-externs      :auto
-                                        :optimizations      :advanced}}}
-  }}
+                                        :optimizations      :advanced}}}}}

@@ -1,6 +1,6 @@
 (ns analysis-viewer.scripts
-  (:require [aws.s3 :as aws-s3]
-            [api.config :as config]
+  (:require [api.config :as config]
+            [aws.s3 :as aws-s3]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [shared.utils :as shared-utils]))

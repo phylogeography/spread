@@ -19,14 +19,16 @@
 (def proj-scale (/ map-screen-width map-proj-width))
 
 (def max-scale 22)
-(def min-scale 1)
+(def min-scale 0.1)
 
+;; TODO: grab this from config
+(def s3-bucket-url "http://127.0.0.1:9000/spread-dev-uploads/")
 
-(defn initialize [{:keys [db]} [_ maps-urls analysis-type analysis-data-url]]
-  (let [load-maps-events (->> maps-urls
-                              (mapv (fn [map-url]
-                                      (let [world-map? (string/ends-with? map-url "worldLow.json")]
-                                        [:map/load-map (cond-> {:map/url map-url}
+(defn initialize [{:keys [db]} [_ maps analysis-type analysis-data-url]]
+  (let [load-maps-events (->> maps
+                              (mapv (fn [map-code]
+                                      (let [world-map? (string/ends-with? map-code "WORLD")]
+                                        [:map/load-map (cond-> {:map/url (str s3-bucket-url "maps/country-code-maps/" map-code ".json")}
                                                          world-map? (assoc :map/z-index 0))]))))
         load-data-event [:map/load-data analysis-type analysis-data-url]]
     {:db (merge db {:current-animation-perc 0
