@@ -129,8 +129,7 @@
                       (swap! time #(- % animation-increment))
                       (reset! time 0)))]
     (fn []      
-      (let [t            @time                        
-            {:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])
+      (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])
             scale (or scale 1)
             [translate-x translate-y] translate]
         [:div {:style {:height (str events.maps/map-screen-height "px")
@@ -205,7 +204,7 @@
                                        scale scale)}
            [:svg {:view-box "0 0 360 180"}
             [map-group]
-            [data-group t]]]
+            [data-group @time]]]
 
           (when zoom-rectangle
             (let [[x1 y1] (:origin zoom-rectangle)
