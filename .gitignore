@@ -43,3 +43,4 @@ resources/secrets.edn
 node_modules/
 resources/public/js/
 services/ui/js/
+services/analysis-viewer/js/

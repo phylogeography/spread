@@ -45,4 +45,19 @@
        :release
        {:compiler-options {:warnings-as-errors true
                            :infer-externs      :auto
-                           :optimizations      :advanced}}}}}
+                           :optimizations      :advanced}}}
+  :analysis-viewer {:target     :browser
+                    :output-dir "services/analysis-viewer/js"
+                    :asset-path "/js"
+                    :js-options {:js-package-dirs ["node_modules"]}
+                    :modules
+                    {:main ;; <- becomes /js/main.js
+                     {:entries [analysis-viewer.main]}}
+                    :devtools
+                    {:http-root "services/analysis-viewer"
+                     :http-port 8021}
+                    :release
+                    {:compiler-options {:warnings-as-errors true
+                                        :infer-externs      :auto
+                                        :optimizations      :advanced}}}
+  }}
