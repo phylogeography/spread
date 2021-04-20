@@ -85,8 +85,8 @@
             :line-color "orange"
             :data-point-color "#00ffa5"})
 
-(def animation-delta-t 400)
-(def animation-increment 0.04)
+(def animation-delta-t 50)
+(def animation-increment 0.02)
 
 (defn controls [{:keys [dec-time-fn inc-time-fn time]}]
   [:div
@@ -120,7 +120,6 @@
          ^{:key (str (:id primitive-object))}
          [map-primitive-object primitive-object scale time])])))
 
-;; TODO: refactor this component and its subscriptions for performance
 (defn animated-data-map []
   (let [time (reagent/atom 0)
         inct (fn [] (if (< @time (- 1 animation-increment))
