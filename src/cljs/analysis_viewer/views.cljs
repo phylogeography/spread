@@ -6,7 +6,7 @@
             [analysis-viewer.svg-renderer :as svg-renderer]
             [clojure.string :as str]
             [goog.string :as gstr]
-            [re-frame.core :as re-frame :refer [dispatch]]
+            [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [reagent.core :as reagent]
             [shared.math-utils :as math-utils]))
 
@@ -88,21 +88,17 @@
 (def animation-delta-t 50)
 (def animation-increment 0.02)
 
-(defn animation-controls [{:keys [dec-time-fn inc-time-fn time]}]
+(defn animation-controls [{:keys [dec-time-fn inc-time-fn time-ref]}]
   [:div.animation-controls
    [:button {:on-click dec-time-fn} "<"]
    [:button {:on-click inc-time-fn} ">"]
    [:button {:on-click (fn next-anim-step []
                          (js/setTimeout
-                          (fn [] (when (< @time 1)
+                          (fn [] (when (< @time-ref 1)
                                    (inc-time-fn)
                                    (next-anim-step)))
                           animation-delta-t))} "Play"]
-   [:span (str (int (* 100 @time)) "%")]
-   [:button {:on-click #(dispatch [:map/toggle-show-world])}
-    "Hide/Show World map"]
-   [:button {:on-click #(dispatch [:map/download-current-as-svg @time])}
-    "Download"]])
+   [:span (str (int (* 100 @time-ref)) "%")]])
 
 (defn map-group []
   (let [geo-json-map @(re-frame/subscribe [::subs/map-data])]
@@ -120,14 +116,13 @@
          ^{:key (str (:id primitive-object))}
          [map-primitive-object primitive-object scale time])])))
 
-(defn animated-data-map []
-  (let [time (reagent/atom 0)
-        inct (fn [] (if (< @time (- 1 animation-increment))
-                      (swap! time #(+ % animation-increment))
-                      (reset! time 1)))
-        dect (fn [] (if (> @time animation-increment)
-                      (swap! time #(- % animation-increment))
-                      (reset! time 0)))]
+(defn animated-data-map [time-ref]
+  (let [inct (fn [] (if (< @time-ref (- 1 animation-increment))
+                      (swap! time-ref #(+ % animation-increment))
+                      (reset! time-ref 1)))
+        dect (fn [] (if (> @time-ref animation-increment)
+                      (swap! time-ref #(- % animation-increment))
+                      (reset! time-ref 0)))]
     (fn []      
       (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])
             scale (or scale 1)
@@ -199,7 +194,7 @@
                                        scale scale)}
            [:svg {:view-box "0 0 360 180"}
             [map-group]
-            [data-group @time]]]
+            [data-group @time-ref]]]
 
           (when zoom-rectangle
             (let [[x1 y1] (:origin zoom-rectangle)
@@ -207,7 +202,7 @@
               [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke (:data-point-color theme) :fill :transparent}]))]
          [animation-controls {:dec-time-fn dect
                               :inc-time-fn inct
-                              :time time}]])
+                              :time-ref time-ref}]])
       
       )))
 
@@ -218,44 +213,51 @@
      [:div.hex.hex1] [:div.hex.hex2] [:div.hex.hex3] [:div.hex.hex4] ]
     [:span.text "spread"]]])
 
+(defn collapsible-tab [parent-id {:keys [id title child]}]
+  (let [open? @(subscribe [:collapsible-tabs/open? parent-id id])]
+    [:div.tab {:on-click #(dispatch [:collapsible-tabs/toggle parent-id id])}
+     [:div.title [:span.text title] [:span.arrow (if open? "▲" "▼")]]
+     [:div.tab-body {:class (if open? "open" "collapsed")}
+      child]]))
+
 (defn collapsible-tabs [{:keys [id title childs]}]
   [:div.collapsible-tabs
    [:div.title title]
    [:div.tabs
     (for [c childs]
       ^{:key (str (:id c))}
-      [:div.tab {:on-click #(dispatch [:collapsible-tabs/toggle id (:id c)])}
-       [:div.title (:title c)]
-       (:comp c)])]])
+      [collapsible-tab id c])]])
 
-(defn controls-side-bar []
+(defn controls-side-bar [time]
   [:div.side-bar
    [:div.tabs
     [collapsible-tabs {:title "Parameters"
                        :id :parameters
                        :childs [{:title "Layer visibility"
                                  :id :layer-visibility
-                                 :comp [:div "XXXXXXX"]}
+                                 :child [:div "XXXXXXX"]}
                                 {:title "Map Color"
                                  :id :map-color
-                                 :comp [:div "XXXXXXX"]}
+                                 :child [:div "yyyyyyyy"]}
                                 {:title "Polygon opacity"
                                  :id :polygon-opacity
-                                 :comp [:div "XXXXXXX"]}]}]
+                                 :child [:div "aaaaaaaaaaa"]}]}]
     [collapsible-tabs {:title "Filters"
                        :id :filters
                        :childs [{:title "States prob"
                                  :id :states-prob
-                                 :comp [:div "XXXXXXX"]}
+                                 :child [:div "BALBALBALB"]}
                                 {:title "Node Name"
                                  :id :node-name
-                                 :comp [:div "XXXXXXX"]}]}]]
+                                 :child [:div "UUUUUUUUU"]}]}]]
    [:div.export-panel
-    [:button.export {}
+    [:button.export {:on-click #(dispatch [:map/download-current-as-svg time])}
      "Export results"]]])
 
 (defn main-screen []
-  [:div.main-screen
-   [top-bar]
-   [controls-side-bar]
-   [animated-data-map]])
+  (let [time-ref (reagent/atom 0)]
+   (fn []
+     [:div.main-screen
+      [top-bar]
+      [controls-side-bar @time-ref]
+      [animated-data-map time-ref]])))

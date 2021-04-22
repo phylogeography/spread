@@ -15,6 +15,7 @@ button {
 	color: #ECEFF8;
 	padding: 10px 20px 10px 20px;
 	border: unset;
+	cursor: pointer;
 }
 /***********/
 /* Top bar */
@@ -101,14 +102,46 @@ button {
     justify-content: space-between;
 }
 
-.side-bar > .tabs {
-    
-}
 .export-panel {
 	text-align: center;
     border-top: 1px solid #E2E2EA;
     padding: 25px 0 25px 0;
 } 
+
+.collapsible-tabs > .title {
+	color: #3A3668;
+    font-weight: bold;
+	text-align: center;
+	border-bottom: 1px solid #E2E2EA;
+	border-top: 1px solid #E2E2EA;
+	padding: 15px 0 15px 0;
+}
+
+.collapsible-tabs > .tabs > .tab > .title {
+	display: flex;
+	justify-content: space-between;	
+	color: #3A3668;
+    border-bottom: 1px solid #E2E2EA;
+	border-top: 1px solid #E2E2EA;
+    padding: 15px 15px 15px 15px;
+	background-color: #FBFCFE;
+	cursor: pointer;
+}
+
+.collapsible-tabs .tab-body {
+    overflow: hidden;
+}
+.collapsible-tabs .tab-body.open {
+	height: 100%;
+}
+
+.collapsible-tabs .tab-body.collapsed {
+	height: 0;
+}
+
+/*****************/
+/* Animated map  */
+/*****************/
 
 .animated-data-map {
 	grid-area: animated-data-map;       
@@ -119,9 +152,14 @@ button {
 	height: calc(100% - 164px - 4px); /*substract the animation-controls height*/
 }
 
+/**********************/
+/* Animation controls */
+/**********************/
+
 .animation-controls {
 	width: 100%;
 	height: 164px;
     text-align: center;
 }
+
 

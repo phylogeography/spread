@@ -1,5 +1,6 @@
 (ns analysis-viewer.events
   (:require [analysis-viewer.events.maps :as events.maps]
+            [analysis-viewer.events.ui :as events.ui]
             [analysis-viewer.db :as db]
             [re-frame.core :refer [reg-event-db reg-event-fx] :as re-frame]
             [clojure.spec.alpha :as s]
@@ -31,3 +32,5 @@
 (reg-event-db :map/zoom-rectangle-update [sc] events.maps/zoom-rectangle-update)
 (reg-event-fx :map/zoom-rectangle-release [sc] events.maps/zoom-rectangle-release)
 (reg-event-fx :map/toggle-show-world [sc] events.maps/toggle-show-world)
+
+(reg-event-db :collapsible-tabs/toggle [sc] events.ui/toggle-collapsible-tab)
