@@ -45,4 +45,15 @@
  (fn [db _]
    (:analysis/data db)))
 
+(reg-sub
+ :collapsible-tabs/tabs
+ (fn [db _]
+   (:ui.collapsible-tabs/tabs db)))
+
+(reg-sub
+ :collapsible-tabs/open?
+ :<- [:collapsible-tabs/tabs]
+ (fn [tabs [_ parent-id tab-id]]
+   (get-in tabs [parent-id tab-id])))
+
 
