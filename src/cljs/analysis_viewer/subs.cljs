@@ -13,12 +13,12 @@
 (reg-sub
  ::maps
  (fn [db _]
-  (:maps db)))
+  (:maps/data db)))
 
 (reg-sub
  ::map-state
  (fn [db _]
-   (:map-state db)))
+   (:map/state db)))
 
 (reg-sub
  ::map-state-show
@@ -43,6 +43,6 @@
 (reg-sub
  ::analysis-data
  (fn [db _]
-   (:analysis-data db)))
+   (:analysis/data db)))
 
 

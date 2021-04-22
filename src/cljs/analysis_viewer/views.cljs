@@ -78,18 +78,18 @@
 (def wheel-button 1)
 (def right-button 2)
 
-(def theme {:map-fill-color "#424242"
-            :background-color "#292929"
-            :map-stroke-color "pink"
-            :map-text-color "pink"
-            :line-color "orange"
-            :data-point-color "#00ffa5"})
+(def theme {:map-fill-color "#ffffff"
+            :background-color "#ECEFF8"
+            :map-stroke-color "#079DAB"
+            :map-text-color "#079DAB"
+            :line-color "#B20707"
+            :data-point-color "#DD0808"})
 
 (def animation-delta-t 50)
 (def animation-increment 0.02)
 
-(defn controls [{:keys [dec-time-fn inc-time-fn time]}]
-  [:div
+(defn animation-controls [{:keys [dec-time-fn inc-time-fn time]}]
+  [:div.animation-controls
    [:button {:on-click dec-time-fn} "<"]
    [:button {:on-click inc-time-fn} ">"]
    [:button {:on-click (fn next-anim-step []
@@ -132,57 +132,52 @@
       (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])
             scale (or scale 1)
             [translate-x translate-y] translate]
-        [:div {:style {:height (str events.maps/map-screen-height "px")
-                       :width  (str events.maps/map-screen-width  "px")}
-               :on-wheel (fn [evt]
-                           (let [x (-> evt .-nativeEvent .-offsetX)
-                                 y (-> evt .-nativeEvent .-offsetY)]
-                             (dispatch [:map/zoom {:delta (.-deltaY evt)
-                                                   :x x
-                                                   :y y}])))
-               :on-mouse-down (fn [evt]
-                                (.stopPropagation evt)
-                                (.preventDefault evt)
-                                (let [x (-> evt .-nativeEvent .-offsetX)
-                                      y (-> evt .-nativeEvent .-offsetY)]
-                                  (cond
+        [:div.animated-data-map {:style {} #_{:height (str events.maps/map-screen-height "px")
+                                         :width  (str events.maps/map-screen-width  "px")}
+                                 :on-wheel (fn [evt]
+                                             (let [x (-> evt .-nativeEvent .-offsetX)
+                                                   y (-> evt .-nativeEvent .-offsetY)]
+                                               (dispatch [:map/zoom {:delta (.-deltaY evt)
+                                                                     :x x
+                                                                     :y y}])))
+                                 :on-mouse-down (fn [evt]
+                                                  (.stopPropagation evt)
+                                                  (.preventDefault evt)
+                                                  (let [x (-> evt .-nativeEvent .-offsetX)
+                                                        y (-> evt .-nativeEvent .-offsetY)]
+                                                    (cond
 
-                                    ;; left button pressed
-                                    (= left-button (.-button evt))                                  
-                                    (dispatch [:map/grab {:x x :y y}])
+                                                      ;; left button pressed
+                                                      (= left-button (.-button evt))                                  
+                                                      (dispatch [:map/grab {:x x :y y}])
 
-                                    ;; wheel button pressed
-                                    (= wheel-button (.-button evt))
-                                    (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
-               
-               :on-mouse-move (fn [evt]
-                                (let [x (-> evt .-nativeEvent .-offsetX)
-                                      y (-> evt .-nativeEvent .-offsetY)]
-                                  (cond
-                                    grab
-                                    (dispatch [:map/drag {:x x :y y}])
+                                                      ;; wheel button pressed
+                                                      (= wheel-button (.-button evt))
+                                                      (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
+                                 
+                                 :on-mouse-move (fn [evt]
+                                                  (let [x (-> evt .-nativeEvent .-offsetX)
+                                                        y (-> evt .-nativeEvent .-offsetY)]
+                                                    (cond
+                                                      grab
+                                                      (dispatch [:map/drag {:x x :y y}])
 
-                                    zoom-rectangle
-                                    (dispatch [:map/zoom-rectangle-update {:x x :y y}]))))
-               :on-mouse-up (fn [evt]
-                              (.stopPropagation evt)
-                              (.preventDefault evt)
-                              (cond
-                                (= left-button (.-button evt))
-                                (dispatch [:map/grab-release])
+                                                      zoom-rectangle
+                                                      (dispatch [:map/zoom-rectangle-update {:x x :y y}]))))
+                                 :on-mouse-up (fn [evt]
+                                                (.stopPropagation evt)
+                                                (.preventDefault evt)
+                                                (cond
+                                                  (= left-button (.-button evt))
+                                                  (dispatch [:map/grab-release])
 
-                                (= wheel-button (.-button evt))
-                                (dispatch [:map/zoom-rectangle-release])))}
-         
-         ;; Controls
-         [controls {:dec-time-fn dect
-                    :inc-time-fn inct
-                    :time time}]
-
+                                                  (= wheel-button (.-button evt))
+                                                  (dispatch [:map/zoom-rectangle-release])))}
+                  
          ;; SVG data map
          [:svg {:xmlns "http://www.w3.org/2000/svg"
                 :xmlns:amcharts "http://amcharts.com/ammap"
-                :xmlns:xlink "http://www.w3.org/1999/xlink"
+                :xmlnsXlink "http://www.w3.org/1999/xlink"
                 :version "1.1"
                 :width "100%"
                 :height "100%"
@@ -209,8 +204,58 @@
           (when zoom-rectangle
             (let [[x1 y1] (:origin zoom-rectangle)
                   [x2 y2] (:current zoom-rectangle)]
-              [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke (:data-point-color theme) :fill :transparent}]))]])
+              [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke (:data-point-color theme) :fill :transparent}]))]
+         [animation-controls {:dec-time-fn dect
+                              :inc-time-fn inct
+                              :time time}]])
       
       )))
 
+(defn top-bar []
+  [:div.top-bar
+   [:div.logo
+    [:div.logo-img
+     [:div.hex.hex1] [:div.hex.hex2] [:div.hex.hex3] [:div.hex.hex4] ]
+    [:span.text "spread"]]])
 
+(defn collapsible-tabs [{:keys [id title childs]}]
+  [:div.collapsible-tabs
+   [:div.title title]
+   [:div.tabs
+    (for [c childs]
+      ^{:key (str (:id c))}
+      [:div.tab {:on-click #(dispatch [:collapsible-tabs/toggle id (:id c)])}
+       [:div.title (:title c)]
+       (:comp c)])]])
+
+(defn controls-side-bar []
+  [:div.side-bar
+   [:div.tabs
+    [collapsible-tabs {:title "Parameters"
+                       :id :parameters
+                       :childs [{:title "Layer visibility"
+                                 :id :layer-visibility
+                                 :comp [:div "XXXXXXX"]}
+                                {:title "Map Color"
+                                 :id :map-color
+                                 :comp [:div "XXXXXXX"]}
+                                {:title "Polygon opacity"
+                                 :id :polygon-opacity
+                                 :comp [:div "XXXXXXX"]}]}]
+    [collapsible-tabs {:title "Filters"
+                       :id :filters
+                       :childs [{:title "States prob"
+                                 :id :states-prob
+                                 :comp [:div "XXXXXXX"]}
+                                {:title "Node Name"
+                                 :id :node-name
+                                 :comp [:div "XXXXXXX"]}]}]]
+   [:div.export-panel
+    [:button.export {}
+     "Export results"]]])
+
+(defn main-screen []
+  [:div.main-screen
+   [top-bar]
+   [controls-side-bar]
+   [animated-data-map]])

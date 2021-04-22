@@ -20,7 +20,11 @@
   [re-frame "1.1.2"]
   [reagent "1.0.0"]
   [refactor-nrepl "2.5.0"]
-  [hiccups "0.3.0"]]
+  [hiccups "0.3.0"]
+
+  ;; for dev
+  [jpmonettas/flow-storm "0.5.0"]
+  [expound "0.8.9"]]
 
  :nrepl
  {:port       46000
