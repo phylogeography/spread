@@ -46,6 +46,19 @@
    (:analysis/data db)))
 
 (reg-sub
+ ::analysis-data-timeline
+ :<- [::analysis-data]
+ (fn [_ _]
+   (let [tick-gap 10
+         ticks-x-base 10]
+     (->> (range 2011 2020)
+          (mapcat (fn [year]
+                    (-> (repeatedly 11 (fn [] {:label nil :type :short :perc (rand-int 100)}))
+                        (into [{:label (str year) :type :long :perc (rand-int 100)}]))))
+          (map-indexed (fn [idx tick]
+                         (assoc tick :x (+ (* idx tick-gap) ticks-x-base))))))))
+
+(reg-sub
  :collapsible-tabs/tabs
  (fn [db _]
    (:ui.collapsible-tabs/tabs db)))

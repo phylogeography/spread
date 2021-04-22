@@ -1,8 +1,7 @@
 (ns analysis-viewer.views
   "Render maps and analysis data as hiccup svg vectors.
   Also handles animations."
-  (:require [analysis-viewer.events.maps :as events.maps]
-            [analysis-viewer.subs :as subs]
+  (:require [analysis-viewer.subs :as subs]
             [analysis-viewer.svg-renderer :as svg-renderer]
             [clojure.string :as str]
             [goog.string :as gstr]
@@ -89,16 +88,54 @@
 (def animation-increment 0.02)
 
 (defn animation-controls [{:keys [dec-time-fn inc-time-fn time-ref]}]
-  [:div.animation-controls
-   [:button {:on-click dec-time-fn} "<"]
-   [:button {:on-click inc-time-fn} ">"]
-   [:button {:on-click (fn next-anim-step []
-                         (js/setTimeout
-                          (fn [] (when (< @time-ref 1)
-                                   (inc-time-fn)
-                                   (next-anim-step)))
-                          animation-delta-t))} "Play"]
-   [:span (str (int (* 100 @time-ref)) "%")]])
+  (let [ticks-data @(subscribe [::subs/analysis-data-timeline])
+        zoom-perc 50
+        ticks-y-base 80
+        ticks-bars-y-base (- ticks-y-base 11)
+        ticks-bars-full 50                
+        full-length (apply max (map :x ticks-data))
+        play-line-x (* @time-ref full-length)]
+    [:div.animation-controls
+     [:div.anim-bar-zoom
+      [:button "+"]
+      [:div {:width "6px" :height "100%"}
+       [:svg 
+        [:line {:x1 "10" :y1 "100" :x2 "10" :y2 "0" :stroke "#DEDEE8" :stroke-width 3}]
+        [:line {:x1 "10" :y1 "100" :x2 "10" :y2 "0" :stroke "#EEBE53" :stroke-width 3
+                :stroke-dasharray 100
+                :stroke-dashoffset zoom-perc}]
+        [:rect {:x "5" :y (str (- zoom-perc 6)) :width "12" :height "12" :fill "white" :stroke "grey"}]]]
+      [:button "-"]]
+     [:div.inner
+      [:div.buttons
+       [:i.zmdi.zmdi-skip-previous {:on-click dec-time-fn} ""]    
+       [:i.zmdi.zmdi-play {:on-click (fn next-anim-step []
+                                       (js/setTimeout
+                                        (fn [] (when (< @time-ref 1)
+                                                 (inc-time-fn)
+                                                 (next-anim-step)))
+                                        animation-delta-t))}]
+       [:i.zmdi.zmdi-skip-next {:on-click inc-time-fn} ""]]
+      [:div.timeline {:width "100%" :height "100%"}
+       [:svg {:width "100%" :height "100%"}
+        [:g
+         [:line {:x1 play-line-x :y1 0 
+                 :x2 play-line-x :y2 100
+                 :stroke "#EEBE53"
+                 :stroke-width 2}]
+         (for [{:keys [label x type perc]} ticks-data]
+           ^{:key (str x)}
+           [:g
+            [:line {:x1 x :y1 ticks-y-base
+                    :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
+                    :stroke "#3A3668"}]
+            (when (pos? perc)
+              [:line {:x1 x :y1 ticks-bars-y-base
+                    :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
+                      :stroke "red"}])
+            (when label
+              [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
+               label])])]]]]]))
 
 (defn map-group []
   (let [geo-json-map @(re-frame/subscribe [::subs/map-data])]

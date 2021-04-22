@@ -1,10 +1,10 @@
 (ns analysis-viewer.events
-  (:require [analysis-viewer.events.maps :as events.maps]
+  (:require [analysis-viewer.db :as db]
+            [analysis-viewer.events.maps :as events.maps]
             [analysis-viewer.events.ui :as events.ui]
-            [analysis-viewer.db :as db]
-            [re-frame.core :refer [reg-event-db reg-event-fx] :as re-frame]
             [clojure.spec.alpha :as s]
-            [expound.alpha :as expound]))
+            [expound.alpha :as expound]
+            [re-frame.core :refer [reg-event-db reg-event-fx] :as re-frame]))
 
 (defn check-and-throw
   "Throws an exception if `db` doesn't match the Spec `a-spec`."
