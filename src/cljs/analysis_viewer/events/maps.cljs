@@ -1,6 +1,7 @@
 (ns analysis-viewer.events.maps
   "Handle events registered in events.cljs under :map/*"
   (:require [ajax.core :as ajax]
+            [analysis-viewer.db :as db]
             [analysis-viewer.map-emitter :as map-emitter]
             [analysis-viewer.subs :as subs]
             [clojure.string :as string]
@@ -24,23 +25,21 @@
 ;; TODO: grab this from config
 (def s3-bucket-url "http://127.0.0.1:9000/spread-dev-uploads/")
 
-(defn initialize [{:keys [db]} [_ maps analysis-type analysis-data-url]]
+(defn initialize [_ [_ maps analysis-type analysis-data-url]]
   (let [load-maps-events (->> maps
                               (mapv (fn [map-code]
                                       (let [world-map? (string/ends-with? map-code "WORLD")]
                                         [:map/load-map (cond-> {:map/url (str s3-bucket-url "maps/country-code-maps/" map-code ".json")}
                                                          world-map? (assoc :map/z-index 0))]))))
         load-data-event [:map/load-data analysis-type analysis-data-url]]
-    {:db (merge db {:current-animation-perc 0
-                    :map-state {:scale 1
-                                :translate [0 0]}}) 
+    {:db (db/initial-db) 
      :fx (->> (conj load-maps-events load-data-event)
               (map (fn [ev] [:dispatch ev])))}))
 
 (defn map-loaded [{:keys [db]} [_ map-data geo-json-map]]
-  {:db (update db :maps conj (-> map-data
-                                 (update :map/z-index #(or % 100))
-                                 (assoc :map/geo-json geo-json-map)))})
+  {:db (update db :maps/data conj (-> map-data
+                                      (update :map/z-index #(or % 100))
+                                      (assoc :map/geo-json geo-json-map)))})
 
 (defn get-analysis-objects-view-box [objects]
   (let [all-coords (->> objects
@@ -61,7 +60,7 @@
         padding 2]
 
     {:db (-> db
-             (assoc :analysis-data analysis-data))
+             (assoc :analysis/data analysis-data))
      :dispatch [:map/set-view-box {:x1 (- x1 padding) :y1 (- y1 padding)
                                    :x2 (+ x2 padding) :y2 (+ y2 padding)}]}))
 
@@ -84,15 +83,15 @@
 (defn set-view-box [db [_ {:keys [x1 y1 x2 y2]}]]
   (let [{:keys [translate scale]} (math-utils/calc-zoom-for-view-box x1 y1 x2 y2 proj-scale)]
     (-> db
-        (assoc :map-state {:translate translate
+        (assoc :map/state {:translate translate
                            :scale     scale}))))
 
-(defn zoom [{:keys [map-state] :as db} [_ {:keys [delta x y]}]]
+(defn zoom [{:keys [map/state] :as db} [_ {:keys [delta x y]}]]
   (let [screen-coords [x y]
-        {:keys [translate scale]} map-state
+        {:keys [translate scale]} state
         zoom-dir (if (pos? delta) -1 1)
         [proj-x proj-y] (math-utils/screen-coord->proj-coord translate scale proj-scale screen-coords)]
-    (update db :map-state
+    (update db :map/state
             (fn [{:keys [translate scale] :as map-state}]
               (let [new-scale (+ scale (* zoom-dir 0.8))
                     scaled-proj-x (* proj-x scale proj-scale)
@@ -113,48 +112,48 @@
 
 (defn map-grab [db [_ {:keys [x y]}]]
   (-> db
-      (assoc-in [:map-state :grab :screen-origin]  [x y])
-      (assoc-in [:map-state :grab :screen-current]  [x y])))
+      (assoc-in [:map/state :grab :screen-origin]  [x y])
+      (assoc-in [:map/state :grab :screen-current]  [x y])))
 
 (defn map-release [db _]
-  (update db :map-state dissoc :grab))
+  (update db :map/state dissoc :grab))
 
-(defn drag [{:keys [map-state] :as db} [_ {:keys [x y]}]]
+(defn drag [{:keys [map/state] :as db} [_ {:keys [x y]}]]
   (let [current-screen-coord [x y]]
-    (if (:grab map-state)
+    (if (:grab state)
       (let [[screen-x screen-y] current-screen-coord
-            before-screen-coord (-> map-state :grab :screen-current)
+            before-screen-coord (-> state :grab :screen-current)
             [before-screen-x before-screen-y] before-screen-coord
             screen-drag-x (- screen-x before-screen-x)
             screen-drag-y (- screen-y before-screen-y)]
         (-> db            
-            (assoc-in  [:map-state :grab :screen-current] current-screen-coord)
-            (update-in [:map-state :translate 0] + screen-drag-x)
-            (update-in [:map-state :translate 1] + screen-drag-y)))
+            (assoc-in  [:map/state :grab :screen-current] current-screen-coord)
+            (update-in [:map/state :translate 0] + screen-drag-x)
+            (update-in [:map/state :translate 1] + screen-drag-y)))
       db)))
 
 (defn zoom-rectangle-grab [db [_ {:keys [x y]}]]
   (-> db
-      (assoc-in [:map-state :zoom-rectangle] {:origin [x y] :current [x y]})))
+      (assoc-in [:map/state :zoom-rectangle] {:origin [x y] :current [x y]})))
 
-(defn zoom-rectangle-update[{:keys [map-state] :as db} [_ {:keys [x y]}]]
-  (when (:zoom-rectangle map-state)
-    (assoc-in db [:map-state :zoom-rectangle :current] [x y])))
+(defn zoom-rectangle-update[{:keys [map/state] :as db} [_ {:keys [x y]}]]
+  (when (:zoom-rectangle state)
+    (assoc-in db [:map/state :zoom-rectangle :current] [x y])))
 
 (defn zoom-rectangle-release [{:keys [db]} _]
-  (let [{:keys [map-state]} db
-        {:keys [translate scale zoom-rectangle]} map-state
+  (let [{:keys [map/state]} db
+        {:keys [translate scale zoom-rectangle]} state
         {:keys [origin current]} zoom-rectangle
         [x1 y1] (math-utils/screen-coord->proj-coord translate scale proj-scale origin)              
         [x2 y2] (math-utils/screen-coord->proj-coord translate scale proj-scale current)]     
-    {:db (update db :map-state dissoc :zoom-rectangle)
+    {:db (update db :map/state dissoc :zoom-rectangle)
      :dispatch [:map/set-view-box {:x1 x1 :y1 y1
                                    :x2 x2 :y2 y2}]}))
 
 (defn toggle-show-world [{:keys [db]} _]
-  {:db (update-in db [:map-state :show-world?] not)})
+  {:db (update-in db [:map/state :show-world?] not)})
 
 (defn download-current-as-svg [{:keys [db]} [_ time]]
-  {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps db))
-                                        :analysis-data (:analysis-data db)
+  {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps/data db))
+                                        :analysis-data (:analysis/data db)
                                         :time time}})

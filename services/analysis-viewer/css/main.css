@@ -1,3 +1,127 @@
-body {
-	color: green;
+html, body, #app{
+	padding: 0px;
+	margin: 0px;
+	height: 100%;
+	background-color: white;
+	font-family: 'Roboto', sans-serif;
 }
+
+button {
+	background: #3428CA 0% 0% no-repeat padding-box;
+	box-shadow: 0px 10px 30px #3341EA4D;
+	border-radius: 8px;
+	font: normal normal 500 16px/19px Roboto;	
+	letter-spacing: 0px;
+	color: #ECEFF8;
+	padding: 10px 20px 10px 20px;
+	border: unset;
+}
+/***********/
+/* Top bar */
+/***********/
+
+.top-bar{
+	grid-area: top-bar;
+    border-bottom: 1px solid #DEDEE7
+}
+
+.top-bar .text {
+	position: absolute;
+	top: 33px;
+	left: 95px;
+	width: 134px;
+	height: 35px;
+    text-align: left;
+	font: normal normal 900 30px/35px Roboto;
+	letter-spacing: 3.9px;
+	color: #3A3668;
+	text-transform: uppercase;
+	opacity: 1;	
+}
+
+.top-bar > .logo .logo-img {
+    display: inline-block;
+}
+.top-bar > .logo .logo-img .hex {
+	width: 16px;
+	height: 18px;
+	transform: matrix(0, 1, -1, 0, 0, 0);    
+	opacity: 1;
+	position: absolute;
+}
+.top-bar > .logo .logo-img .hex1 {
+	top: 33px;
+	left: 50px;	
+	background: #3A3668 0% 0% no-repeat padding-box;
+	box-shadow: 0px 3px 6px #39376529;
+}
+
+.top-bar > .logo .logo-img .hex2 {
+	top: 33px;
+	left: 69px;	
+	background: #EEBE53 0% 0% no-repeat padding-box;
+	box-shadow: 0px 3px 6px #EEBE53;
+}
+
+.top-bar > .logo .logo-img .hex3 {
+	top: 50px;
+	left: 40px;
+	background: #3A3668 0% 0% no-repeat padding-box;
+	box-shadow: 0px 3px 6px #39376529;
+}
+
+.top-bar > .logo .logo-img .hex4 {
+	top: 50px;
+	left: 59px;
+	background: #3A3668 0% 0% no-repeat padding-box;
+	box-shadow: 0px 3px 6px #39376529;
+}
+
+
+.main-screen {
+	height: 100%;    
+	display: grid;
+	grid-template-columns: 256px auto;
+	grid-template-rows: 104px auto;
+	grid-template-areas:
+		    "top-bar  top-bar           top-bar"
+			"side-bar animated-data-map animated-data-map";
+            
+            
+}
+
+/************/
+/* Side bar */
+/************/
+.side-bar {
+	grid-area: side-bar;    
+    border-right: 1px solid #DEDEE7;
+	display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.side-bar > .tabs {
+    
+}
+.export-panel {
+	text-align: center;
+    border-top: 1px solid #E2E2EA;
+    padding: 25px 0 25px 0;
+} 
+
+.animated-data-map {
+	grid-area: animated-data-map;       
+}
+
+
+.animated-data-map > svg {
+	height: calc(100% - 164px - 4px); /*substract the animation-controls height*/
+}
+
+.animation-controls {
+	width: 100%;
+	height: 164px;
+    text-align: center;
+}
+

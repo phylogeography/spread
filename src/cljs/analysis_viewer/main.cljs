@@ -6,11 +6,13 @@
             [clojure.string :as str]
             [day8.re-frame.http-fx]
             [re-frame.core :as re-frame]
-            [reagent.dom :as rdom]))
+            [reagent.dom :as rdom]
+            [flow-storm.api :as fsa]))
 
 (defn ^:dev/before-load stop []
   (js/console.log "Stopping..."))
 
+;; google-chrome --allow-file-access-from-files file:///home/jmonetta/non-rep-software/spread-d3/language_D3/renderers/d3/d3renderer/index.html
 ;; http://localhost:8021/?maps=AU,TZ&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3a6cc419-5da4-4d28-8b0d-f74c98a89d6e.json
 ;; http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3a6cc419-5da4-4d28-8b0d-f74c98a89d6e.json&maps=AU,TZ
 
@@ -23,12 +25,16 @@
 
 (defn ^:dev/after-load start []
   (js/console.log "Starting..." )
+  (fsa/connect {:tap-name "analysis-viewer"})
+  (fsa/trace-ref re-frame.db/app-db {:ref-name "re-frame-db"
+                                     :ignore-keys [:maps/data ;; this one is super big
+                                                   :map/state]}) ;; this one changes a lot when zooming, dragging, etc
   (let [{:keys [maps output]} (parse-url-qstring (subs js/window.location.search 1))]
     (re-frame/dispatch-sync [:map/initialize
                              (into ["WORLD"] (str/split maps #",") )
                              :continuous-tree
                              (str events.maps/s3-bucket-url "/" output)])
-    (rdom/render [views/animated-data-map]
+    (rdom/render [views/main-screen]
                  (.getElementById js/document "app"))))
 
 (defn ^:export init []
