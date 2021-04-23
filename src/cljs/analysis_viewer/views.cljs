@@ -34,10 +34,9 @@
       {:points (->> coords
                     (map (fn [coord] (str/join " " coord)))
                     (str/join ","))
-       :stroke :red
-       :fill :blue
-       ;; TODO: make this depend on scale
-       :stroke-width "0.02"}]]))
+       
+       :fill :red
+       :opacity "0.3"}]]))
 
 (defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end]} scale time-perc]
   (let [show? (<= show-start time-perc show-end)
