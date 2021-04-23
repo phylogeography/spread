@@ -1,0 +1,45 @@
+.switch-button {
+	position: relative;
+    width: 56px;
+	height: 24px;
+    cursor: pointer;
+	color: white;
+	font-size: 11px;
+	border-radius: 6px;
+}
+
+.switch-button.on{
+	background-color: #EEBE53;
+}
+.switch-button.off{
+	background-color: grey;
+}
+.switch-button span.on {
+    position: relative;
+	top: 7px;
+	left: 9px;
+}
+.switch-button .block {
+	display: inline-block;
+    position: absolute;
+    top: 3px;
+    left: 7px;
+    width: 17px;
+    height: 17px;
+    background-color: white;
+    border-radius: 4px;
+}
+
+.switch-button .block.block-off {
+    left: 7px;
+}
+
+.switch-button .block.block-on {
+	left: 29px;
+}
+
+.switch-button span.off {
+    position: relative;
+	top: 7px;
+	left: 15px;
+}

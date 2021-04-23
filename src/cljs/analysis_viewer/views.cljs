@@ -3,6 +3,7 @@
   Also handles animations."
   (:require [analysis-viewer.subs :as subs]
             [analysis-viewer.events.maps :as events.maps]
+            [analysis-viewer.components :refer [switch-button]]
             [analysis-viewer.svg-renderer :as svg-renderer]
             [clojure.string :as str]
             [goog.string :as gstr]
@@ -281,6 +282,12 @@
       ^{:key (str (:id c))}
       [collapsible-tab id c])]])
 
+(defn layer-visibility []
+  [:div.layer-visibility
+   [:label "Borders"]    [switch-button {:id :map-borders}]
+   [:label "Directions"] [switch-button {:id :directions}]
+   [:label "Radius"]     [switch-button {:id :radius}]])
+
 (defn map-color-chooser []
   (let [colors ["#079DAB" "#3428CA" "#757295" "#DD0808" "#EEBE53" "#B20707" "#ECEFF8" "#FBFCFE" "#DEDEE9"
                 "#266C08" "#C76503" "#1C58D0" "#A5387B" "#1C58D9" "#3A3668" "#757299" "#DEDEE8" "#3428CB"]
@@ -304,7 +311,7 @@
                        :id :parameters
                        :childs [{:title "Layer visibility"
                                  :id :layer-visibility
-                                 :child [:div "XXXXXXX"]}
+                                 :child [layer-visibility]}
                                 {:title "Map Color"
                                  :id :map-color
                                  :child [map-color-chooser]}

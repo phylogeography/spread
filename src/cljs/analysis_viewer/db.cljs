@@ -19,11 +19,13 @@
 (s/def :maps/data (s/coll-of :map/data))
 (s/def :analysis/data any?) ;; TODO: I think this can be specified
 
-(s/def :ui.collapsible-tabs/tabs (s/nilable (s/map-of keyword? (s/map-of keyword? boolean?))))
+(s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
+(s/def :ui.switch-buttons/states (s/map-of keyword? boolean?))
 (s/def :ui/parameters map?)
 
 (s/def ::db (s/keys :req [:map/state
                           :ui.collapsible-tabs/tabs
+                          :ui.switch-buttons/states
                           :ui/parameters]
                     :opt [:map/data
                           :analysis/data]))
@@ -31,5 +33,8 @@
 (defn initial-db []
   {:map/state {:scale 1
                :translate [0 0]}
-   :ui.collapsible-tabs/tabs {}
+   :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
+                                           :map-color true,
+                                           :polygon-opacity true}}
+   :ui.switch-buttons/states {}
    :ui/parameters {:map-borders-color "#079DAB"}})
