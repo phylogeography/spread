@@ -70,3 +70,13 @@
    (get-in tabs [parent-id tab-id])))
 
 
+(reg-sub
+ :ui/parameters
+ (fn [db _]
+   (:ui/parameters db)))
+
+(reg-sub
+ :parameters/selected 
+ :<- [:ui/parameters]
+ (fn [parameters [_ id]]
+   (get parameters id)))
