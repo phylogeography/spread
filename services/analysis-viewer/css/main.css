@@ -182,11 +182,12 @@ button {
 /*****************/
 
 .animated-data-map {
-	grid-area: animated-data-map;       
+	grid-area: animated-data-map;
+	width: 99%;
 }
 
 
-.animated-data-map > svg {
+.animated-data-map > .map-wrapper {
 	height: calc(100% - 204px - 4px); /*substract the animation-controls height*/
 }
 
