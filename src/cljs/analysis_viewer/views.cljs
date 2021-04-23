@@ -24,7 +24,7 @@
         [x1 y1] coord]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r (/ 0.4 scale) :stroke :red :fill :blue}]]))
+     [:circle {:cx x1 :cy y1 :r (/ 0.4 scale) :stroke "#DD0808" :fill "#B20707"}]]))
 
 (defn svg-area-object [{:keys [coords show-start show-end]} _ time-perc]
   (let [show? (<= show-start time-perc show-end)]
@@ -35,7 +35,7 @@
                     (map (fn [coord] (str/join " " coord)))
                     (str/join ","))
        
-       :fill :red
+       :fill "#9E15E6"
        :opacity "0.3"}]]))
 
 (defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end]} scale time-perc]
@@ -217,8 +217,8 @@
           ;; gradients definitions
           [:defs {}
            [:linearGradient {:id "grad"}
-            [:stop {:offset "0%" :stop-color :red}]
-            [:stop {:offset "100%" :stop-color :yellow}]]]
+            [:stop {:offset "0%" :stop-color "#DD0808"}]
+            [:stop {:offset "100%" :stop-color "#B20707"}]]]
 
           ;; map background
           [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color theme)}]

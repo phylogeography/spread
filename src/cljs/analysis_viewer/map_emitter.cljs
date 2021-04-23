@@ -74,11 +74,16 @@
                                                 (mapv (fn [poly-point]
                                                         (calc-proj-coord poly-point))))
                                    :attrs {}}
-                                  (calc-show-percs area)))))
-        _ (println (gstr/format "Got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
+                                  (calc-show-percs area)))))        
         objects (->> (concat area-objects arcs-objects points-objects)
                      (map-indexed (fn [idx o]
                                     (assoc o :id idx))))]
+    (println timeline)
+    (println (gstr/format "Continuous tree, got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
+    (println (gstr/format "Start: %s(%d), End: %s(%d), Total time %ds"
+                          startTime start-time-millis
+                          endTime   end-time-millis
+                          timeline-millis))
     objects))
 
 (defn discrete-tree-output->map-data [_]
