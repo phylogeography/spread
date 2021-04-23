@@ -69,6 +69,16 @@
  (fn [tabs [_ parent-id tab-id]]
    (get-in tabs [parent-id tab-id])))
 
+(reg-sub
+ :switch-buttons/states
+ (fn [db _]
+   (:ui.switch-buttons/states db)))
+
+(reg-sub
+ :switch-buttons/on?
+ :<- [:switch-buttons/states]
+ (fn [states [_ id]]
+   (get states id)))
 
 (reg-sub
  :ui/parameters

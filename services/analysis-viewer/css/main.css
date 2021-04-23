@@ -100,6 +100,7 @@ button {
 	display: flex;
     flex-direction: column;
     justify-content: space-between;
+	color: #3A3668;
 }
 
 .export-panel {
@@ -109,7 +110,6 @@ button {
 } 
 
 .collapsible-tabs > .title {
-	color: #3A3668;
     font-weight: bold;
 	text-align: center;
 	border-bottom: 1px solid #E2E2EA;
@@ -120,7 +120,6 @@ button {
 .collapsible-tabs > .tabs > .tab > .title {
 	display: flex;
 	justify-content: space-between;	
-	color: #3A3668;
     border-bottom: 1px solid #E2E2EA;
 	border-top: 1px solid #E2E2EA;
     padding: 15px 15px 15px 15px;
@@ -164,6 +163,18 @@ button {
 }
 .color i {
 	margin-top: 4px;
+}
+
+/********************/
+/* Layer visibility */
+/********************/
+
+.layer-visibility {
+	display: grid;
+    grid-template-columns: 60% 40%;
+    padding: 17px;
+    grid-row-gap: 9px;
+	font-size: 14px;
 }
 
 /*****************/
