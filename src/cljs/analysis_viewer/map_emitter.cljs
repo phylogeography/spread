@@ -26,7 +26,8 @@
 
   all coordinates are in proj-coord [x y] where 0 <= x  <= 360, 0 <= y <= 180
   "
-  (:require [shared.math-utils :as math-utils]))
+  (:require [shared.math-utils :as math-utils]
+            [goog.string :as gstr]))
 
 (defn continuous-tree-output->map-data [{:keys [timeline layers]}]  
   (let [layer (first layers) ;; current that format only use one layer
@@ -69,12 +70,13 @@
                           (map (fn [{:keys [polygon] :as area}]
                                  (merge
                                   {:type :area
-                                   :coords (->> polygon
+                                   :coords (->> (:coordinates polygon)
                                                 (mapv (fn [poly-point]
                                                         (calc-proj-coord poly-point))))
                                    :attrs {}}
                                   (calc-show-percs area)))))
-        objects (->> (concat points-objects arcs-objects area-objects)
+        _ (println (gstr/format "Got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
+        objects (->> (concat area-objects arcs-objects points-objects)
                      (map-indexed (fn [idx o]
                                     (assoc o :id idx))))]
     objects))
