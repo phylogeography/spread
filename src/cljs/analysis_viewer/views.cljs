@@ -96,7 +96,7 @@
      [:line {:x1 "10" :y1 "100" :x2 "10" :y2 "0" :stroke "#EEBE53" :stroke-width 3
              :stroke-dasharray 100
              :stroke-dashoffset zoom-perc}]
-     [:rect {:x "5" :y (str (- zoom-perc 6)) :width "12" :height "12" :fill "white" :stroke "grey"}]]]
+     [:rect {:x "4" :y (str (- zoom-perc 6)) :width "12" :height "12" :fill "white" :stroke "grey"}]]]
    [:button {:on-click zoom-dec-fn} "-"]])
 
 (defn animation-controls [{:keys [dec-time-fn inc-time-fn time-ref]}]
@@ -141,10 +141,13 @@
                label])])]]]]]))
 
 (defn map-group []
-  (let [geo-json-map @(re-frame/subscribe [::subs/map-data])]
+  (let [geo-json-map @(re-frame/subscribe [::subs/map-data])
+        map-borders-color @(re-frame/subscribe [:parameters/selected :map-borders-color])]
     (when geo-json-map
       [:g {}
-       (binding [svg-renderer/*theme* theme]
+       (binding [svg-renderer/*theme* (assoc theme
+                                             :map-stroke-color map-borders-color
+                                             :map-text-color map-borders-color)]
          (svg-renderer/geojson->svg geo-json-map))])))
 
 (defn data-group [time]
@@ -278,6 +281,22 @@
       ^{:key (str (:id c))}
       [collapsible-tab id c])]])
 
+(defn map-color-chooser []
+  (let [colors ["#079DAB" "#3428CA" "#757295" "#DD0808" "#EEBE53" "#B20707" "#ECEFF8" "#FBFCFE" "#DEDEE9"
+                "#266C08" "#C76503" "#1C58D0" "#A5387B" "#1C58D9" "#3A3668" "#757299" "#DEDEE8" "#3428CB"]
+        selected-color @(subscribe [:parameters/selected :map-borders-color])]
+    [:div.map-color-chooser
+     [:div.colors
+      (for [c colors]
+        ^{:key c}
+        [:div.color {:style {:background-color c}
+                     :on-click (fn [evt]
+                                 (.stopPropagation evt)
+                                 (dispatch [:parameters/select :map-borders-color c]))}
+         (when (= selected-color c)
+           [:i.zmdi.zmdi-check])
+         ])]]))
+
 (defn controls-side-bar [time]
   [:div.side-bar
    [:div.tabs
@@ -288,7 +307,7 @@
                                  :child [:div "XXXXXXX"]}
                                 {:title "Map Color"
                                  :id :map-color
-                                 :child [:div "yyyyyyyy"]}
+                                 :child [map-color-chooser]}
                                 {:title "Polygon opacity"
                                  :id :polygon-opacity
                                  :child [:div "aaaaaaaaaaa"]}]}]

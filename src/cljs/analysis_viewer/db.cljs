@@ -20,13 +20,16 @@
 (s/def :analysis/data any?) ;; TODO: I think this can be specified
 
 (s/def :ui.collapsible-tabs/tabs (s/nilable (s/map-of keyword? (s/map-of keyword? boolean?))))
+(s/def :ui/parameters map?)
 
 (s/def ::db (s/keys :req [:map/state
-                          :ui.collapsible-tabs/tabs]
+                          :ui.collapsible-tabs/tabs
+                          :ui/parameters]
                     :opt [:map/data
                           :analysis/data]))
 
 (defn initial-db []
   {:map/state {:scale 1
                :translate [0 0]}
-   :ui.collapsible-tabs/tabs {}})
+   :ui.collapsible-tabs/tabs {}
+   :ui/parameters {:map-borders-color "#079DAB"}})

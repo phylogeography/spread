@@ -140,6 +140,33 @@ button {
 }
 
 /*****************/
+/* Color chooser */
+/*****************/
+.map-color-chooser {
+    display:flex;
+	justify-content: center;    
+}
+.map-color-chooser .colors {
+	display: grid;
+	grid-template-columns: 22px 22px 22px 22px 22px 22px 22px 22px 22px;
+	grid-column-gap: 4px;
+	grid-row-gap: 4px;
+	margin: 10px;
+}
+
+.map-color-chooser .color {
+	cursor: pointer;
+	width: 21px;
+	height: 22px;
+	border-radius: 5px;
+	border: 1px solid #E2E2EA;
+	text-align: center;    
+}
+.color i {
+	margin-top: 4px;
+}
+
+/*****************/
 /* Animated map  */
 /*****************/
 
