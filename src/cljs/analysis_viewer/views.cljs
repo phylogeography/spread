@@ -78,13 +78,6 @@
 (def wheel-button 1)
 (def right-button 2)
 
-(def theme {:map-fill-color "#ffffff"
-            :background-color "#ECEFF8"
-            :map-stroke-color "#079DAB"
-            :map-text-color "#079DAB"
-            :line-color "#B20707"
-            :data-point-color "#DD0808"})
-
 (def animation-delta-t 50)
 (def animation-increment 0.02)
 
@@ -143,13 +136,10 @@
 
 (defn map-group []
   (let [geo-json-map @(re-frame/subscribe [::subs/map-data])
-        map-borders-color @(re-frame/subscribe [:parameters/selected :map-borders-color])]
+        map-options @(re-frame/subscribe [:map/parameters])]    
     (when geo-json-map
       [:g {}
-       (binding [svg-renderer/*theme* (assoc theme
-                                             :map-stroke-color map-borders-color
-                                             :map-text-color map-borders-color)]
-         (svg-renderer/geojson->svg geo-json-map))])))
+       (svg-renderer/geojson->svg geo-json-map map-options)])))
 
 (defn data-group [time]
   (let [analysis-data  @(re-frame/subscribe [::subs/analysis-data])
@@ -172,7 +162,7 @@
             scale (or scale 1)
             [translate-x translate-y] translate]
         [:div.animated-data-map {:style {} #_{:height (str events.maps/map-screen-height "px")
-                                         :width  (str events.maps/map-screen-width  "px")}
+                                              :width  (str events.maps/map-screen-width  "px")}
                                  :on-wheel (fn [evt]
                                              (let [x (-> evt .-nativeEvent .-offsetX)
                                                    y (-> evt .-nativeEvent .-offsetY)]
@@ -222,7 +212,7 @@
                                                          :x (/ events.maps/map-screen-width 2)
                                                          :y (/ events.maps/map-screen-height 2)}])
                      :class "map-zoom"}]]
-                  
+         
          ;; SVG data map
          [:svg {:xmlns "http://www.w3.org/2000/svg"
                 :xmlns:amcharts "http://amcharts.com/ammap"
@@ -239,7 +229,7 @@
             [:stop {:offset "100%" :stop-color "#B20707"}]]]
 
           ;; map background
-          [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color theme)}]
+          [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill "#ECEFF8"}]
           
           ;; map and data svg
           [:g {:transform (gstr/format "translate(%f %f) scale(%f %f)"
@@ -253,12 +243,10 @@
           (when zoom-rectangle
             (let [[x1 y1] (:origin zoom-rectangle)
                   [x2 y2] (:current zoom-rectangle)]
-              [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke (:data-point-color theme) :fill :transparent}]))]
+              [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke "#DD0808" :fill :transparent}]))]
          [animation-controls {:dec-time-fn dect
                               :inc-time-fn inct
-                              :time-ref time-ref}]])
-      
-      )))
+                              :time-ref time-ref}]]))))
 
 (defn top-bar []
   [:div.top-bar

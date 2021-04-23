@@ -36,5 +36,5 @@
    :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
                                            :map-color true,
                                            :polygon-opacity true}}
-   :ui.switch-buttons/states {}
+   :ui.switch-buttons/states {:map-borders true}
    :ui/parameters {:map-borders-color "#079DAB"}})
