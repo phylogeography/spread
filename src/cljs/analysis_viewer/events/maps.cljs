@@ -11,6 +11,8 @@
 ;; proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
 ;; map-coord:    [lat,lon]  coordinates in map lat,long coords, -180 <= lon <= 180, -90 <= lat <= 90
 
+;; TODO: this should be obtained after the map svg is rendered
+;; since the map screen size isn't fixed anymore
 (def map-screen-width    1200)
 (def map-screen-height   600)
 
@@ -20,7 +22,7 @@
 (def proj-scale (/ map-screen-width map-proj-width))
 
 (def max-scale 22)
-(def min-scale 0.1)
+(def min-scale 0.8)
 
 ;; TODO: grab this from config
 (def s3-bucket-url "http://127.0.0.1:9000/spread-dev-uploads/")

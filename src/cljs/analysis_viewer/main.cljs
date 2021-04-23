@@ -14,6 +14,10 @@
   (js/console.log "Stopping..."))
 
 ;; google-chrome --allow-file-access-from-files file:///home/jmonetta/non-rep-software/spread-d3/language_D3/renderers/d3/d3renderer/index.html
+
+
+;; http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/644e6959-0a6c-4da8-8413-cb4caafe5f62.json&maps=AU,TZ
+
 ;; http://localhost:8021/?maps=AU,TZ&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3a6cc419-5da4-4d28-8b0d-f74c98a89d6e.json
 ;; http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3a6cc419-5da4-4d28-8b0d-f74c98a89d6e.json&maps=AU,TZ
 
