@@ -152,6 +152,31 @@ button {
 	height: calc(100% - 204px - 4px); /*substract the animation-controls height*/
 }
 
+.map-zoom {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 10;
+}
+.zoom-bar-outer {
+	position: relative;
+	top: 10px;
+	left: 10px;
+	border-radius: 10px;    
+}
+
+.zoom-bar-outer .zoom-bar-back {
+	position: absolute;
+	top: 0;
+	left: 5px;
+    width: 43px;
+    height: 165px;
+	background-color: #757295;
+	border-radius: 10px;
+	opacity: 0.5;
+	z-index: 0;
+}
+
 /**********************/
 /* Animation controls */
 /**********************/
@@ -177,26 +202,30 @@ button {
 	color: #3A3668;
 }
 
-.animation-controls .anim-bar-zoom {
+.animation-controls .inner .buttons i.zmdi-play{
+	font-size: 40px;    
+}
+
+/**********************/
+/* General components */
+/**********************/
+.zoom-bar {
 	display: inline-flex;
 	flex-direction: column;
 	margin-right: 15px;
     margin-left: 15px;
 	width: 22px;
 	height: 164px;
-	justify-content: center;
+	justify-content: center;    
 }
 
-.animation-controls .anim-bar-zoom button {
+.zoom-bar button {
 	padding: 1px 6px 1px 6px;
 	color: #3A3668;
 	background-color: #DEDEE8;
 	border-radius: 3px;
 }
 
-.animation-controls .anim-bar-zoom svg {
+.zoom-bar svg {
 	height: 100px;
-}
-.animation-controls .inner .buttons i.zmdi-play{
-	font-size: 40px;    
 }
