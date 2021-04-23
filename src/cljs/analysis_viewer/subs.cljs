@@ -59,6 +59,20 @@
                          (assoc tick :x (+ (* idx tick-gap) ticks-x-base))))))))
 
 (reg-sub
+ :map/parameters
+ :<- [:ui/parameters]
+ :<- [:switch-buttons/states]
+ (fn [[params buttons-states] _]
+   {:map-fill-color "#ffffff"
+    :background-color "#ECEFF8"
+    :map-stroke-color (if (get buttons-states :map-borders)
+                        (get params :map-borders-color "#079DAB")
+                        :transparent)
+    :map-text-color (get params :map-borders-color "#079DAB")
+    :line-color "#B20707"
+    :data-point-color "#DD0808"}))
+
+(reg-sub
  :collapsible-tabs/tabs
  (fn [db _]
    (:ui.collapsible-tabs/tabs db)))

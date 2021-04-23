@@ -5,7 +5,7 @@
             [hiccups.runtime :as hiccupsrt]
             [re-frame.core :as re-frame]))
 
-(defn data-map [geo-json-map analysis-data time]
+(defn data-map [geo-json-map analysis-data time opts]
   [:svg {:xmlns "http://www.w3.org/2000/svg"
          :xmlns:amcharts "http://amcharts.com/ammap"
          :xmlns:xlink "http://www.w3.org/1999/xlink"
@@ -21,15 +21,14 @@
      [:stop {:offset "100%" :stop-color :yellow}]]]
 
    ;; map background
-   [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color views/theme)}]
+   [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color opts)}]
    
    ;; map and data svg
    [:g {}
     [:svg {:view-box "0 0 360 180"}
      ;; map group
      [:g {}
-      (binding [svg-renderer/*theme* views/theme]
-        (svg-renderer/geojson->svg geo-json-map))]
+      (svg-renderer/geojson->svg geo-json-map opts)]
 
      ;; data group
      [:g {}
@@ -41,8 +40,9 @@
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg
- (fn [{:keys [geo-json-map analysis-data time]}]
-   (let [ svg-text (html (data-map geo-json-map analysis-data time))
+ (fn [{:keys [geo-json-map analysis-data time opts]}]
+   (let [map-options @(re-frame/subscribe [:map/parameters])
+         svg-text (html (data-map geo-json-map analysis-data time map-options))
          download-anchor (js/document.createElement "a")]
 
      (.setAttribute download-anchor "href" (str "data:image/svg+xml;charset=utf-8," (js/encodeURIComponent svg-text)))
