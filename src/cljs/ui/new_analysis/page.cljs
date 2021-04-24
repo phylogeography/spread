@@ -214,14 +214,7 @@
                   [:legend "Locations"]
                   [select-input {:value     location-attribute
                                  :options   attribute-names
-                                 :on-change #(>evt [:discrete-mcc-tree/set-location-attribute %])}]]]
-             #_   [:div.column
-                 [:span "Select x coordinate"]
-                 [:fieldset
-                  [:legend "Longitude"]
-                  [select-input {:value     x-coordinate
-                                 :options   attribute-names
-                                 :on-change #(>evt [:continuous-mcc-tree/set-x-coordinate %])}]]]]
+                                 :on-change #(>evt [:discrete-mcc-tree/set-locations-attribute %])}]]]]
 
              #_[:div.row
                 [:div.column

@@ -22,7 +22,7 @@
    :tree-file-url             nil
    :locations-file-url        nil
    :readable-name             nil
-   :location-attribute-name   nil
+   :locations-attribute-name  nil
    :timescale-multiplier      nil
    :most-recent-sampling-date nil
    :output-file-url           nil})

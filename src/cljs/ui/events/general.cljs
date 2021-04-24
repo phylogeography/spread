@@ -25,6 +25,7 @@
 (defn initialize [{:keys [db]} [_ config]]
   (let [{:keys [name] :as active-page} (router-queries/active-page db)]
     {:db         (assoc db :config config)
+     ;; TODO : only if there is token in localstorage, else it will result in an auth error
      :dispatch-n [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
                                                  :format     :json
                                                  :on-connect [:graphql/ws-authorize
