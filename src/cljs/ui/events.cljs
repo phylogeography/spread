@@ -1,8 +1,8 @@
 (ns ui.events
   (:require [re-frame.core :as re-frame :refer [reg-event-fx]]
             [ui.events.analysis :as events.analysis]
-            [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
             [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
+            [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
             [ui.events.general :as events.general]
             [ui.events.graphql :as events.graphql]
             [ui.events.home :as events.home]

@@ -1,10 +1,8 @@
 (ns ui.events.graphql
-  (:require ;;["axios" :as axios]
-            [ajax.core :as ajax]
+  (:require [ajax.core :as ajax]
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
             [clojure.string :as string]
-            [day8.re-frame.http-fx]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
             [ui.utils :refer [>evt dispatch-n]]))
@@ -245,20 +243,19 @@
                   merge
                   discrete-tree-parser)})
 
-;; TODO
 (defmethod handler :update-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
-  #_(when (= "ARGUMENTS_SET" status)
+  (when (= "ARGUMENTS_SET" status)
     (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                  startContinuousTreeParser(id: $id) {
+                                                  startDiscreteTreeParser(id: $id) {
                                                     id
                                                     status
                                                 }
                                               }"
                                   :variables {:id id}}]
                  [:graphql/subscription {:id        id
-                                         :query     "subscription ContinuousTreeParserStatus($id: ID!) {
-                                                           continuousTreeParserStatus(id: $id) {
+                                         :query     "subscription DiscreteTreeParserStatus($id: ID!) {
+                                                           discreteTreeParserStatus(id: $id) {
                                                              id
                                                              status
                                                              progress
@@ -267,16 +264,9 @@
                                          :variables {:id id}}]]))
   {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
-
-
-
-
-
-
-
-
-
-
+(defmethod handler :start-discrete-tree-parser
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]

@@ -128,16 +128,11 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
-;; TODO https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed2a1969683d34ac93fb
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree    (re-frame/subscribe [::subs/discrete-mcc-tree])
         discrete-tree-parser (re-frame/subscribe [::subs/active-discrete-tree-parser])
         field-errors         (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
-
-      (prn "@discrete-mcc-tree" @discrete-mcc-tree)
-      (prn "@discrete-tree-parser" @discrete-tree-parser)
-
       (let [{:keys [attribute-names]} @discrete-tree-parser
             {:keys [tree-file tree-file-upload-progress
                     locations-file locations-file-url locations-file-upload-progress
