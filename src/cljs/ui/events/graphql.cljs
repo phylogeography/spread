@@ -130,16 +130,6 @@
            (assoc-in [:discrete-tree-parsers id :status] status)
            (assoc-in [:discrete-tree-parsers id :progress] progress))})
 
-;; TODO: handler dispatch clash
-;; NOTE: is this one needed? map component wasn't supposed to be calling the API
-#_(defmethod handler :get-continuous-tree
-  [_ _ {:keys [maps output-file-url]}]
-  (re-frame/dispatch [:map/initialize
-                      maps
-                      :continuous-tree
-                      ;; TODO: fix this, why is it coming without protocol?
-                      (str "http://" output-file-url)]))
-
 (defmethod handler :get-continuous-tree
   [{:keys [db]} _ {:keys [id] :as continuous-tree-parser}]
   {:db (update-in db [:continuous-tree-parsers id]
@@ -210,6 +200,64 @@
                                                          }"
                                          :variables {:id id}}]]))
   {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+
+(defmethod handler :upload-discrete-tree
+  [{:keys [db]} _ {:keys [id status]}]
+  (>evt [:graphql/subscription {:id        id
+                                :query     "subscription DiscreteTreeParserStatus($id: ID!) {
+                                                           discreteTreeParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                :variables {:id id}}])
+  {:db (-> db
+           (assoc-in [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id] id)
+           (assoc-in [:discrete-tree-parsers id :status] status))})
+
+;; TODO
+(defmethod handler :discrete-tree-parser-status
+  [{:keys [db]} _ {:keys [id status progress]}]
+  ;; when worker has parsed the attributes
+  ;; stop the ongoing subscription and query the attributes
+  (when (= status "ATTRIBUTES_PARSED")
+    (dispatch-n [[:graphql/unsubscribe {:id id}]
+                 [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
+                                                        getDiscreteTree(id: $id) {
+                                                          id
+                                                          attributeNames
+                                                        }
+                                                      }"
+                                  :variables {:id id}}]]))
+
+  (prn "@discrete-tree-parser-status" status)
+
+  (when (= status "SUCCEEDED")
+    (>evt [:graphql/unsubscribe {:id id}]))
+
+  {:db (-> db
+           (assoc-in [:discrete-tree-parsers id :status] status)
+           (assoc-in [:discrete-tree-parsers id :progress] progress))})
+
+(defmethod handler :get-discrete-tree
+  [{:keys [db]} _ {:keys [id] :as discrete-tree-parser}]
+  {:db (update-in db [:discrete-tree-parsers id]
+                  merge
+                  discrete-tree-parser)})
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]

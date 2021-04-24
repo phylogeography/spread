@@ -130,25 +130,73 @@
 
 ;; TODO https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed2a1969683d34ac93fb
 (defn discrete-mcc-tree []
-  (let []
+  (let [discrete-mcc-tree    (re-frame/subscribe [::subs/discrete-mcc-tree])
+        discrete-tree-parser (re-frame/subscribe [::subs/active-discrete-tree-parser])
+        field-errors           (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
-      (let []
-        [:div.discrete-mcc-tree
 
+      (prn "@discrete-mcc-tree" @discrete-mcc-tree)
+      (prn "@discrete-tree-parser" @discrete-tree-parser)
+
+      (let [{:keys [attribute-names]} @discrete-tree-parser
+            {:keys [tree-file tree-file-upload-progress readable-name
+                    most-recent-sampling-date
+                    time-scale-multiplier]
+             :or   {
+                    ;; (first attribute-names)
+                    most-recent-sampling-date (time/now)
+                    time-scale-multiplier     1}}
+            @discrete-mcc-tree
+            ]
+
+        [:div.discrete-mcc-tree
          ;; TODO : independently handle two uploads
 
          [:div.upload
           [:span "Load tree file"]
-          [button-file-upload {:icon             :upload
-                               :class            "upload-button"
-                               :label            "Choose a file"
-                               :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+          [:div
+           [:div
+            (cond
+              (and (nil? tree-file-upload-progress) (nil? tree-file))
+              [button-file-upload {:icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+
+              (not= 1 tree-file-upload-progress)
+              [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
+
+              :else [:span.tree-filename tree-file])]
+
+           (if (nil? tree-file)
+             [:p
+              [:span "When upload is complete all unique attributes will be automatically filled."]
+              [:span "You can then select geographical coordinates and change other settings."]]
+             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-tree-file])
+                                :icon     :delete}])]
 
           [:span "Load locations file"]
-          #_[button-file-upload {:icon             :upload
-                               :class            "upload-button"
-                               :label            "Choose a file"
-                               :on-file-accepted #(prn % )}]
+          [:div
+           [:div
+            #_(cond
+              (and (nil? tree-file-upload-progress) (nil? tree-file))
+              [button-file-upload {:icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+
+              (not= 1 tree-file-upload-progress)
+              [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
+
+              :else [:span.tree-filename tree-file])]
+
+           #_(if (nil? tree-file)
+             [:p
+              [:span "When upload is complete all unique attributes will be automatically filled."]
+              [:span "You can then select geographical coordinates and change other settings."]]
+             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-tree-file])
+                                :icon     :delete}])]
+
 
 
           ]

@@ -15,7 +15,8 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :do-nothing (constantly nil))
-(reg-event-fx :log-error (fn [_ ev] (js/console.error ev) {}))
+(reg-event-fx :log-error (fn [_ ev]
+                           (js/console.error ev)))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Graphql events ;;
@@ -71,8 +72,9 @@
 ;; TODO
 (re-frame/reg-event-fx :discrete-mcc-tree/on-tree-file-selected events.discrete-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :discrete-mcc-tree/s3-tree-file-upload events.discrete-mcc-tree/s3-tree-file-upload)
+(re-frame/reg-event-fx :discrete-mcc-tree/tree-file-upload-progress events.discrete-mcc-tree/tree-file-upload-progress)
 (re-frame/reg-event-fx :discrete-mcc-tree/tree-file-upload-success events.discrete-mcc-tree/tree-file-upload-success)
-
+(re-frame/reg-event-fx :discrete-mcc-tree/delete-tree-file events.discrete-mcc-tree/delete-tree-file)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Websockets events ;;

@@ -13,7 +13,7 @@
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
                                    }"
                                 :variables  {:filename fname :extension "tree"}
-                                :on-success [:discrete-mcc-tree/s3-upload file-with-meta]}]}))
+                                :on-success [:discrete-mcc-tree/s3-tree-file-upload file-with-meta]}]}))
 
 (defn s3-tree-file-upload [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
@@ -26,6 +26,9 @@
                   :handle-progress (fn [sent total]
                                      (>evt [:discrete-mcc-tree/tree-file-upload-progress (/ sent total)]))}}))
 
+(defn tree-file-upload-progress [{:keys [db]} [_ progress]]
+  {:db (assoc-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress] progress)})
+
 (defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _]       (string/split url "?")
         readable-name (first (string/split filename "."))]
@@ -37,6 +40,10 @@
                                               }"
                                 :variables {:treeFileUrl url}}]
      :db       (-> db
-                   (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
+                   (assoc-in [:new-analysis :discrete-mcc-tree :tree-file] filename)
                    ;; default name: file name root
-                   (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))}))
+                   (assoc-in [:new-analysis :discrete-mcc-tree :readable-name] readable-name))}))
+
+(defn delete-tree-file [{:keys [db]}]
+  ;; TODO : dispatch graphql mutation to delete from db & S3
+  {:db (dissoc-in db [:new-analysis :discrete-mcc-tree])})
