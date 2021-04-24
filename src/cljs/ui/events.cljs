@@ -1,6 +1,7 @@
 (ns ui.events
   (:require [re-frame.core :as re-frame :refer [reg-event-fx]]
             [ui.events.analysis :as events.analysis]
+            [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
             [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
             [ui.events.general :as events.general]
             [ui.events.graphql :as events.graphql]
@@ -55,17 +56,23 @@
 ;; New analysis events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(re-frame/reg-event-fx :continuous-mcc-tree/on-tree-file-selected events.continuous-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :continuous-mcc-tree/tree-file-upload-progress events.continuous-mcc-tree/tree-file-upload-progress)
 (re-frame/reg-event-fx :continuous-mcc-tree/tree-file-upload-success events.continuous-mcc-tree/tree-file-upload-success)
 (re-frame/reg-event-fx :continuous-mcc-tree/delete-tree-file events.continuous-mcc-tree/delete-tree-file)
 (re-frame/reg-event-fx :continuous-mcc-tree/s3-upload events.continuous-mcc-tree/s3-upload)
-(re-frame/reg-event-fx :continuous-mcc-tree/on-tree-file-selected events.continuous-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :continuous-mcc-tree/start-analysis events.continuous-mcc-tree/start-analysis)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-readable-name events.continuous-mcc-tree/set-readable-name)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-y-coordinate events.continuous-mcc-tree/set-y-coordinate)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-x-coordinate events.continuous-mcc-tree/set-x-coordinate)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-most-recent-sampling-date events.continuous-mcc-tree/set-most-recent-sampling-date)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-time-scale-multiplier events.continuous-mcc-tree/set-time-scale-multiplier)
+
+;; TODO
+(re-frame/reg-event-fx :discrete-mcc-tree/on-tree-file-selected events.discrete-mcc-tree/on-tree-file-selected)
+(re-frame/reg-event-fx :discrete-mcc-tree/s3-tree-file-upload events.discrete-mcc-tree/s3-tree-file-upload)
+(re-frame/reg-event-fx :discrete-mcc-tree/tree-file-upload-success events.discrete-mcc-tree/tree-file-upload-success)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Websockets events ;;

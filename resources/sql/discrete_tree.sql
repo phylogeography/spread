@@ -30,6 +30,7 @@ readable_name = :readable-name
 UPDATE discrete_tree
 SET
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
+locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
 location_attribute_name = IF(:location-attribute-name IS NOT NULL, :location-attribute-name, location_attribute_name),
 timescale_multiplier = IF(:timescale-multiplier IS NOT NULL, :timescale-multiplier, timescale_multiplier),
 most_recent_sampling_date = IF(:most-recent-sampling-date IS NOT NULL, :most-recent-sampling-date, most_recent_sampling_date),

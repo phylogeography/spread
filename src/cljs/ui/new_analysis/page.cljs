@@ -130,7 +130,34 @@
 
 ;; TODO https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed2a1969683d34ac93fb
 (defn discrete-mcc-tree []
-  [:pre "discrete mcc tree"])
+  (let []
+    (fn []
+      (let []
+        [:div.discrete-mcc-tree
+
+         ;; TODO : independently handle two uploads
+
+         [:div.upload
+          [:span "Load tree file"]
+          [button-file-upload {:icon             :upload
+                               :class            "upload-button"
+                               :label            "Choose a file"
+                               :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+
+          [:span "Load locations file"]
+          #_[button-file-upload {:icon             :upload
+                               :class            "upload-button"
+                               :label            "Choose a file"
+                               :on-file-accepted #(prn % )}]
+
+
+          ]
+
+
+
+
+
+         ]))))
 
 (defn discrete-rates []
   [:pre "discrete-rates"])

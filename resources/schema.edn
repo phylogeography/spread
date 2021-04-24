@@ -16,10 +16,10 @@
                   :extension {:type String}}}}
 
  :objects
- {:PageInfo {:fields {:hasNextPage {:type (non-null Boolean)}
+ {:PageInfo {:fields {:hasNextPage     {:type (non-null Boolean)}
                       :hasPreviousPage {:type (non-null Boolean)}
-                      :startCursor {:type String}
-                      :endCursor   {:type String}}}
+                      :startCursor     {:type String}
+                      :endCursor       {:type String}}}
 
   :Analysis
   {:fields {:id           {:type (non-null ID)}
@@ -159,10 +159,10 @@
 
   :searchUserAnalysis {:type        :AnalysisConnection
                        :description "Returns paginated result with completed analysis for the authenticated user."
-                       :args        {:first  {:type Int}
-                                     :after  {:type String}
-                                     :last {:type Int}
-                                     :before {:type String}
+                       :args        {:first    {:type Int}
+                                     :after    {:type String}
+                                     :last     {:type Int}
+                                     :before   {:type String}
                                      :statuses {:type (list :AnalysisStatus)}}
                        :resolve     :query/searchUserAnalysis}
 
@@ -228,13 +228,15 @@
                        :description "Persists discrete tree. Returns a ParserStatus with id."
                        :args        {:readableName     {:type String}
                                      :treeFileUrl      {:type (non-null String)}
-                                     :locationsFileUrl {:type (non-null String)}}
+                                     :locationsFileUrl {:type String}
+                                     }
                        :resolve     :mutation/uploadDiscreteTree}
 
   :updateDiscreteTree {:type        :ParserStatus
                        :description "Updates the entity with settings for parsing the tree graph."
                        :args        {:id                     {:type (non-null ID)}
                                      :readableName           {:type String}
+                                     :locationsFileUrl       {:type String}
                                      :locationAttributeName  {:type (non-null String)}
                                      :timescaleMultiplier    {:type Float}
                                      :mostRecentSamplingDate {:type (non-null String)}}
