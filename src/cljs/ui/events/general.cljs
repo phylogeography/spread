@@ -23,22 +23,21 @@
 ;; - close subscriptions when status changes
 
 (defn initialize [{:keys [db]} [_ config]]
-  (let [{:keys [name] :as active-page} (router-queries/active-page db)]
-    {:db         (assoc db :config config)
-     ;; TODO : only if there is token in localstorage, else it will result in an auth error
-     :dispatch-n [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
-                                                 :format     :json
-                                                 :on-connect [:graphql/ws-authorize
-                                                              {:on-timeout [:graphql/ws-authorize-failed]}]
-                                                 :protocols  ["graphql-ws"]}]
+  {:db         (assoc db :config config)
+   ;; TODO : only if there is token in localstorage, else it will result in an auth error
+   :dispatch-n [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
+                                               :format     :json
+                                               :on-connect [:graphql/ws-authorize
+                                                            {:on-timeout [:graphql/ws-authorize-failed]}]
+                                               :protocols  ["graphql-ws"]}]
 
-                  [:graphql/query {:query
-                                   "query {
+                [:graphql/query {:query
+                                 "query {
                                        getAuthorizedUser {
                                          id
                                          email
                                        }
                                      }"}]]
-     :forward-events {:register    :active-page-changed
-                      :events      #{:router/active-page-changed}
-                      :dispatch-to [:general/active-page-changed]}}))
+   :forward-events {:register    :active-page-changed
+                    :events      #{:router/active-page-changed}
+                    :dispatch-to [:general/active-page-changed]}})

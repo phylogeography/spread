@@ -78,8 +78,7 @@
   {:db (assoc-in db [:new-analysis :discrete-mcc-tree :locations-file-upload-progress] progress)})
 
 (defn locations-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")
-        readable-name (first (string/split filename "."))]
+  (let [[url _]       (string/split url "?")]
     {:db (-> db
              (assoc-in [:new-analysis :discrete-mcc-tree :locations-file-url] url)
              (assoc-in [:new-analysis :discrete-mcc-tree :locations-file] filename))}))
