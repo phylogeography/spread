@@ -128,6 +128,7 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
+;; TODO https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed2a1969683d34ac93fb
 (defn discrete-mcc-tree []
   [:pre "discrete mcc tree"])
 
