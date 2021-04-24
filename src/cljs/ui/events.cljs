@@ -70,7 +70,6 @@
 (re-frame/reg-event-fx :continuous-mcc-tree/set-most-recent-sampling-date events.continuous-mcc-tree/set-most-recent-sampling-date)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-time-scale-multiplier events.continuous-mcc-tree/set-time-scale-multiplier)
 
-;; TODO
 (re-frame/reg-event-fx :discrete-mcc-tree/on-tree-file-selected events.discrete-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :discrete-mcc-tree/s3-tree-file-upload events.discrete-mcc-tree/s3-tree-file-upload)
 (re-frame/reg-event-fx :discrete-mcc-tree/tree-file-upload-progress events.discrete-mcc-tree/tree-file-upload-progress)
@@ -80,14 +79,11 @@
 (re-frame/reg-event-fx :discrete-mcc-tree/s3-locations-file-upload events.discrete-mcc-tree/s3-locations-file-upload)
 (re-frame/reg-event-fx :discrete-mcc-tree/locations-file-upload-progress events.discrete-mcc-tree/locations-file-upload-progress)
 (re-frame/reg-event-fx :discrete-mcc-tree/locations-file-upload-success events.discrete-mcc-tree/locations-file-upload-success)
-
 (re-frame/reg-event-fx :discrete-mcc-tree/set-readable-name events.discrete-mcc-tree/set-readable-name)
 (re-frame/reg-event-fx :discrete-mcc-tree/set-locations-attribute events.discrete-mcc-tree/set-locations-attribute)
 (re-frame/reg-event-fx :discrete-mcc-tree/set-most-recent-sampling-date events.discrete-mcc-tree/set-most-recent-sampling-date)
 (re-frame/reg-event-fx :discrete-mcc-tree/set-time-scale-multiplier events.discrete-mcc-tree/set-time-scale-multiplier)
-
-
-
+(re-frame/reg-event-fx :discrete-mcc-tree/start-analysis events.discrete-mcc-tree/start-analysis)
 (re-frame/reg-event-fx :discrete-mcc-tree/delete-locations-file events.discrete-mcc-tree/delete-locations-file)
 
 ;;;;;;;;;;;;;;;;;;;;;;;

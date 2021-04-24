@@ -138,14 +138,14 @@
       (prn "@discrete-mcc-tree" @discrete-mcc-tree)
       (prn "@discrete-tree-parser" @discrete-tree-parser)
 
-      (let [{:keys [attribute-names location-attribute]} @discrete-tree-parser
+      (let [{:keys [attribute-names]} @discrete-tree-parser
             {:keys [tree-file tree-file-upload-progress
                     locations-file locations-file-url locations-file-upload-progress
                     readable-name
+                    locations-attribute
                     most-recent-sampling-date
                     time-scale-multiplier]
-             :or   {
-                    ;; (first attribute-names)
+             :or   {locations-attribute       (first attribute-names)
                     most-recent-sampling-date (time/now)
                     time-scale-multiplier     1}}
             @discrete-mcc-tree]
@@ -208,59 +208,44 @@
                            :on-change #(>evt [:discrete-mcc-tree/set-readable-name %])}]]
 
              [:div.row
-                [:div.column
-                 [:span "Select locations attribute"]
-                 [:fieldset
-                  [:legend "Locations"]
-                  [select-input {:value     location-attribute
-                                 :options   attribute-names
-                                 :on-change #(>evt [:discrete-mcc-tree/set-locations-attribute %])}]]]]
+              [:div.column
+               [:span "Select locations attribute"]
+               [:fieldset
+                [:legend "Locations"]
+                [select-input {:value     locations-attribute
+                               :options   attribute-names
+                               :on-change #(>evt [:discrete-mcc-tree/set-locations-attribute %])}]]]
+              [:div.column
+               [:span "Most recent sampling date"]
+               [date-picker {:date-format time/date-format
+                             :on-change   #(>evt [:discrete-mcc-tree/set-most-recent-sampling-date %])
+                             :selected    most-recent-sampling-date}]]]
 
-             #_[:div.row
-                [:div.column
-                 [:span "Select HPD level"]
-                 [:fieldset
-                  [:legend "Level"]
-                  [select-input {:value     hpd-level
-                                 :options   hpd-levels
-                                 :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]
-                [:div.column
-                 [:span "Most recent sampling date"]
-                 [date-picker {:date-format time/date-format
-                               :on-change   #(>evt [:continuous-mcc-tree/set-most-recent-sampling-date %])
-                               :selected    most-recent-sampling-date}]]]
+             [:div.row
+              [:div.column
+               [:span "Time scale"]
+               [:fieldset
+                [:legend "Multiplier"]
+                [amount-input {:class     :multiplier-field
+                               :value     time-scale-multiplier
+                               :on-change #(>evt [:discrete-mcc-tree/set-time-scale-multiplier %])}]]
+               [error-reported (:time-scale-multiplier @field-errors)]]]
 
-             #_[:div.row
-                [:div.column
-                 [:span "Time scale"]
-                 [:fieldset
-                  [:legend "Multiplier"]
-                  [amount-input {:class     :multiplier-field
-                                 :value     time-scale-multiplier
-                                 :on-change #(>evt [:continuous-mcc-tree/set-time-scale-multiplier %])}]]
-                 [error-reported (:time-scale-multiplier @field-errors)]]]
-
-             #_[:div.start-analysis-section
-                [button-with-label {:label     "Start analysis"
-                                    :class     :button-start-analysis
-                                    :disabled? (seq @field-errors)
-                                    :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                                            :y-coordinate              y-coordinate
-                                                                                            :x-coordinate              x-coordinate
-                                                                                            :hpd-level                 hpd-level
-                                                                                            :most-recent-sampling-date most-recent-sampling-date
-                                                                                            :time-scale-multiplier     time-scale-multiplier}])}]
-                [button-with-label {:label    "Paste settings"
-                                    :class    :button-paste-settings
-                                    :on-click #(prn "TODO : paste settings")}]
-                [button-with-label {:label    "Reset"
-                                    :class    :button-reset
-                                    :on-click #(prn "TODO : reset")}]]])
-
-          ]
-
-
-         ]))))
+             [:div.start-analysis-section
+              [button-with-label {:label     "Start analysis"
+                                  :class     :button-start-analysis
+                                  :disabled? (seq @field-errors)
+                                  :on-click  #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                        :locations-attribute-name  locations-attribute
+                                                                                        :locations-file-url        locations-file-url
+                                                                                        :most-recent-sampling-date most-recent-sampling-date
+                                                                                        :time-scale-multiplier     time-scale-multiplier}])}]
+              [button-with-label {:label    "Paste settings"
+                                  :class    :button-paste-settings
+                                  :on-click #(prn "TODO : paste settings")}]
+              [button-with-label {:label    "Reset"
+                                  :class    :button-reset
+                                  :on-click #(prn "TODO : reset")}]]])]]))))
 
 (defn discrete-rates []
   [:pre "discrete-rates"])

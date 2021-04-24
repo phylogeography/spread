@@ -73,17 +73,17 @@
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateTree($id: ID!,
-                                                                  $locationAttribute: String!,
+                                                                  $locationsAttribute: String!,
                                                                   $mrsd: String!) {
                                                 updateDiscreteTree(id: $id,
-                                                                   locationAttributeName: $locationAttribute,
+                                                                   locationsAttributeName: $locationsAttribute,
                                                                    mostRecentSamplingDate: $mrsd) {
                                                   status
                                                 }
                                               }"
-                                             :variables {:id                id
-                                                         :locationAttribute "states"
-                                                         :mrsd              "2019/02/12"}})
+                                             :variables {:id                 id
+                                                         :locationsAttribute "states"
+                                                         :mrsd               "2019/02/12"}})
                                  [:data :updateDiscreteTree])
 
         _ (is :ARGUMENTS_SET (keyword status))

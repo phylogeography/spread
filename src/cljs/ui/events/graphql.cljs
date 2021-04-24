@@ -245,7 +245,27 @@
                   merge
                   discrete-tree-parser)})
 
-
+;; TODO
+(defmethod handler :update-discrete-tree
+  [{:keys [db]} _ {:keys [id status]}]
+  #_(when (= "ARGUMENTS_SET" status)
+    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+                                                  startContinuousTreeParser(id: $id) {
+                                                    id
+                                                    status
+                                                }
+                                              }"
+                                  :variables {:id id}}]
+                 [:graphql/subscription {:id        id
+                                         :query     "subscription ContinuousTreeParserStatus($id: ID!) {
+                                                           continuousTreeParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                         :variables {:id id}}]]))
+  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
 
 

@@ -98,3 +98,40 @@
          true                           (assoc-in [:new-analysis :discrete-mcc-tree :time-scale-multiplier] value)
          (> value 0)                    (dissoc-in [:new-analysis :discrete-mcc-tree :errors :time-scale-multiplier])
          (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :discrete-mcc-tree :errors :time-scale-multiplier] "Set positive value"))})
+
+;; TODO: clean analysis fields (dissoc)
+(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url locations-attribute-name
+                                              most-recent-sampling-date time-scale-multiplier]}]]
+
+  (prn "@start-analysis" {;;:id                     id
+                          :name                   readable-name
+                          :locationsFileUrl       locations-file-url
+                          :locationsAttributeName locations-attribute-name
+                          :multiplier             time-scale-multiplier
+                          :mrsd                   (time/format most-recent-sampling-date)})
+
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id])]
+    {:db       (assoc-in db [:discrete-tree-parsers id :readable-name] readable-name)
+     :dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $name: String!,
+                                                     $locationsFileUrl: String!,
+                                                     $locationsAttributeName: String!,
+                                                     $multiplier: Float!,
+                                                     $mrsd: String!) {
+                                                   updateDiscreteTree(id: $id,
+                                                                        readableName: $name,
+                                                                        locationsFileUrl: $locationsFileUrl,
+                                                                        locationsAttributeName: $locationsAttributeName,
+                                                                        timescaleMultiplier: $multiplier,
+                                                                        mostRecentSamplingDate: $mrsd) {
+                                                     id
+                                                     status
+                                                   }
+                                              }"
+                                :variables {:id                     id
+                                            :name                   readable-name
+                                            :locationsFileUrl       locations-file-url
+                                            :locationsAttributeName locations-attribute-name
+                                            :multiplier             time-scale-multiplier
+                                            :mrsd                   (time/format most-recent-sampling-date)}}]}))

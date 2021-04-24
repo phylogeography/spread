@@ -166,7 +166,8 @@
 (defn update-discrete-tree
   [{:keys [authed-user-id db]} {id                        :id
                                 readable-name             :readableName
-                                location-attribute-name   :locationAttributeName
+                                locations-file-url        :locationsFileUrl
+                                locations-attribute-name  :locationsAttributeName
                                 timescale-multiplier      :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
                                 :or                       {timescale-multiplier 1}
@@ -177,7 +178,8 @@
     (let [status :ARGUMENTS_SET]
       (discrete-tree-model/update! db {:id                        id
                                        :readable-name             readable-name
-                                       :location-attribute-name   location-attribute-name
+                                       :locations-file-url        locations-file-url
+                                       :locations-attribute-name  locations-attribute-name
                                        :timescale-multiplier      timescale-multiplier
                                        :most-recent-sampling-date most-recent-sampling-date})
       (discrete-tree-model/upsert-status! db {:tree-id id
