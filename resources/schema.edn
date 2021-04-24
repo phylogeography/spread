@@ -81,7 +81,7 @@
                                :createdOn              {:type (non-null :BigInt)}
                                :treeFileUrl            {:type (non-null String)}
                                :locationsFileUrl       {:type (non-null String)}
-                               :locationAttributeName  {:type String}
+                               :locationsAttributeName {:type String}
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
                                :status                 {:type :AnalysisStatus}
@@ -237,7 +237,7 @@
                        :args        {:id                     {:type (non-null ID)}
                                      :readableName           {:type String}
                                      :locationsFileUrl       {:type String}
-                                     :locationAttributeName  {:type (non-null String)}
+                                     :locationsAttributeName {:type (non-null String)}
                                      :timescaleMultiplier    {:type Float}
                                      :mostRecentSamplingDate {:type (non-null String)}}
                        :resolve     :mutation/updateDiscreteTree}

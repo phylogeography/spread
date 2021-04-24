@@ -132,26 +132,24 @@
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree    (re-frame/subscribe [::subs/discrete-mcc-tree])
         discrete-tree-parser (re-frame/subscribe [::subs/active-discrete-tree-parser])
-        field-errors           (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
+        field-errors         (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
 
       (prn "@discrete-mcc-tree" @discrete-mcc-tree)
       (prn "@discrete-tree-parser" @discrete-tree-parser)
 
-      (let [{:keys [attribute-names]} @discrete-tree-parser
-            {:keys [tree-file tree-file-upload-progress readable-name
+      (let [{:keys [attribute-names location-attribute]} @discrete-tree-parser
+            {:keys [tree-file tree-file-upload-progress
+                    locations-file locations-file-url locations-file-upload-progress
+                    readable-name
                     most-recent-sampling-date
                     time-scale-multiplier]
              :or   {
                     ;; (first attribute-names)
                     most-recent-sampling-date (time/now)
                     time-scale-multiplier     1}}
-            @discrete-mcc-tree
-            ]
-
+            @discrete-mcc-tree]
         [:div.discrete-mcc-tree
-         ;; TODO : independently handle two uploads
-
          [:div.upload
           [:span "Load tree file"]
           [:div
@@ -171,38 +169,102 @@
            (if (nil? tree-file)
              [:p
               [:span "When upload is complete all unique attributes will be automatically filled."]
-              [:span "You can then select geographical coordinates and change other settings."]]
+              [:span "You can then select location attribute and change other settings."]]
              [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-tree-file])
                                 :icon     :delete}])]
 
           [:span "Load locations file"]
           [:div
            [:div
-            #_(cond
-              (and (nil? tree-file-upload-progress) (nil? tree-file))
+            (cond
+              (and (nil? locations-file-upload-progress) (nil? locations-file))
               [button-file-upload {:icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
 
               (not= 1 tree-file-upload-progress)
-              [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
+              [progress-bar {:class "locations-upload-progress-bar" :progress locations-file-upload-progress :label "Uploading. Please wait"}]
 
-              :else [:span.tree-filename tree-file])]
+              :else [:span.tree-filename locations-file])]
 
-           #_(if (nil? tree-file)
+           (if (nil? locations-file)
              [:p
-              [:span "When upload is complete all unique attributes will be automatically filled."]
-              [:span "You can then select geographical coordinates and change other settings."]]
-             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-tree-file])
-                                :icon     :delete}])]
+              [:span "Select a file that maps geographical coordinates to the location attribute states."]
+              [:span "Once this file is uploaded you can then start your analysis."]]
+             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-locations-file])
+                                :icon     :delete}])]]
 
+         [:div.settings
+          ;; show indicator before worker parses the attributes
+          (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
+            [busy])
 
+          (when attribute-names
+            [:<>
+             [:fieldset
+              [:legend "name"]
+              [text-input {:value     readable-name
+                           :on-change #(>evt [:discrete-mcc-tree/set-readable-name %])}]]
+
+             [:div.row
+                [:div.column
+                 [:span "Select locations attribute"]
+                 [:fieldset
+                  [:legend "Locations"]
+                  [select-input {:value     location-attribute
+                                 :options   attribute-names
+                                 :on-change #(>evt [:discrete-mcc-tree/set-location-attribute %])}]]]
+             #_   [:div.column
+                 [:span "Select x coordinate"]
+                 [:fieldset
+                  [:legend "Longitude"]
+                  [select-input {:value     x-coordinate
+                                 :options   attribute-names
+                                 :on-change #(>evt [:continuous-mcc-tree/set-x-coordinate %])}]]]]
+
+             #_[:div.row
+                [:div.column
+                 [:span "Select HPD level"]
+                 [:fieldset
+                  [:legend "Level"]
+                  [select-input {:value     hpd-level
+                                 :options   hpd-levels
+                                 :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]
+                [:div.column
+                 [:span "Most recent sampling date"]
+                 [date-picker {:date-format time/date-format
+                               :on-change   #(>evt [:continuous-mcc-tree/set-most-recent-sampling-date %])
+                               :selected    most-recent-sampling-date}]]]
+
+             #_[:div.row
+                [:div.column
+                 [:span "Time scale"]
+                 [:fieldset
+                  [:legend "Multiplier"]
+                  [amount-input {:class     :multiplier-field
+                                 :value     time-scale-multiplier
+                                 :on-change #(>evt [:continuous-mcc-tree/set-time-scale-multiplier %])}]]
+                 [error-reported (:time-scale-multiplier @field-errors)]]]
+
+             #_[:div.start-analysis-section
+                [button-with-label {:label     "Start analysis"
+                                    :class     :button-start-analysis
+                                    :disabled? (seq @field-errors)
+                                    :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                            :y-coordinate              y-coordinate
+                                                                                            :x-coordinate              x-coordinate
+                                                                                            :hpd-level                 hpd-level
+                                                                                            :most-recent-sampling-date most-recent-sampling-date
+                                                                                            :time-scale-multiplier     time-scale-multiplier}])}]
+                [button-with-label {:label    "Paste settings"
+                                    :class    :button-paste-settings
+                                    :on-click #(prn "TODO : paste settings")}]
+                [button-with-label {:label    "Reset"
+                                    :class    :button-reset
+                                    :on-click #(prn "TODO : reset")}]]])
 
           ]
-
-
-
 
 
          ]))))

@@ -136,13 +136,12 @@
                   merge
                   continuous-tree-parser)})
 
-;; TODO: match on status:
-;; QUEUED | RUNNING -> :queued {:status :progress} -> for left pane status
 (defmethod handler :continuous-tree-parser-status
   [{:keys [db]} _ {:keys [id status progress]}]
-  ;; when worker has parsed the attributes
-  ;; stop the ongoing subscription and query the attributes
-  (when (= status "ATTRIBUTES_PARSED")
+  (case status
+    ;; when worker has parsed the attributes
+    ;; stop the ongoing subscription and query the attributes
+    "ATTRIBUTES_PARSED"
     (dispatch-n [[:graphql/unsubscribe {:id id}]
                  [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {
@@ -151,10 +150,11 @@
                                                           hpdLevels
                                                         }
                                                       }"
-                                  :variables {:id id}}]]))
+                                  :variables {:id id}}]])
 
-  (when (= status "SUCCEEDED")
-    (>evt [:graphql/unsubscribe {:id id}]))
+    "SUCCEEDED"
+    (>evt [:graphql/unsubscribe {:id id}])
+    nil)
 
   {:db (-> db
            (assoc-in [:continuous-tree-parsers id :status] status)
@@ -216,12 +216,12 @@
            (assoc-in [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id] id)
            (assoc-in [:discrete-tree-parsers id :status] status))})
 
-;; TODO
 (defmethod handler :discrete-tree-parser-status
   [{:keys [db]} _ {:keys [id status progress]}]
-  ;; when worker has parsed the attributes
-  ;; stop the ongoing subscription and query the attributes
-  (when (= status "ATTRIBUTES_PARSED")
+  (case status
+    ;; when worker has parsed the attributes
+    ;; stop the ongoing subscription and query the attributes
+    "ATTRIBUTES_PARSED"
     (dispatch-n [[:graphql/unsubscribe {:id id}]
                  [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
                                                         getDiscreteTree(id: $id) {
@@ -229,12 +229,11 @@
                                                           attributeNames
                                                         }
                                                       }"
-                                  :variables {:id id}}]]))
+                                  :variables {:id id}}]])
 
-  (prn "@discrete-tree-parser-status" status)
-
-  (when (= status "SUCCEEDED")
-    (>evt [:graphql/unsubscribe {:id id}]))
+    "SUCCEEDED"
+    (>evt [:graphql/unsubscribe {:id id}])
+    nil)
 
   {:db (-> db
            (assoc-in [:discrete-tree-parsers id :status] status)

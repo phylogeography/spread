@@ -6,19 +6,19 @@
              [button-with-icon button-with-icon-and-label]]
             [ui.component.icon :refer [icon-with-label icons]]
             [ui.format :refer [format-percentage]]
-            [ui.subscriptions :as subs]))
+            [ui.subscriptions :as subs]
+            [ui.utils :as ui-utils :refer [>evt]]))
 
-(defn user-login []
-  (fn [{:keys [email]}]
-    [:div.hover-dropdown
-     [:div
-      [:span email]
-      [:img {:src (:user icons)}]
-      [:img {:src (:dropdown icons)}]]
-     [:div.dropdown-content
-      [:a {:on-click #(prn "TODO: logout")} "Log out"]
-      [:a {:on-click #(prn "TODO: clear-data")} "Clear data"]
-      [:a {:on-click #(prn "TODO: delete-account")} "Delete account"]]]))
+(defn user-login [email]
+  [:div.hover-dropdown
+   [:div
+    [:span email]
+    [:img {:src (:user icons)}]
+    [:img {:src (:dropdown icons)}]]
+   [:div.dropdown-content
+    [:a {:on-click #(>evt [:general/logout])} "Log out"]
+    [:a {:on-click #(prn "TODO: clear-data")} "Clear data"]
+    [:a {:on-click #(prn "TODO: delete-account")} "Delete account"]]])
 
 (defn header []
   (let [authed-user (re-frame/subscribe [::subs/authorized-user])]
@@ -26,7 +26,7 @@
       (let [{:keys [email]} @authed-user]
         [:div.header
          [icon-with-label {:icon (:spread icons) :label "spread" :on-click #(re-frame/dispatch [:router/navigate :route/home])}]
-         [user-login {:email email}]]))))
+         [user-login email]]))))
 
 (defn run-new [{:keys [open?]}]
   (let [open? (reagent/atom open?)
