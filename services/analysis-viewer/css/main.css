@@ -244,27 +244,3 @@ button {
 .animation-controls .inner .buttons i.zmdi-play{
 	font-size: 40px;    
 }
-
-/**********************/
-/* General components */
-/**********************/
-.zoom-bar {
-	display: inline-flex;
-	flex-direction: column;
-	margin-right: 15px;
-    margin-left: 15px;
-	width: 22px;
-	height: 164px;
-	justify-content: center;    
-}
-
-.zoom-bar button {
-	padding: 1px 6px 1px 6px;
-	color: #3A3668;
-	background-color: #DEDEE8;
-	border-radius: 3px;
-}
-
-.zoom-bar svg {
-	height: 100px;
-}
