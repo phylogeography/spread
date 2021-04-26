@@ -3,7 +3,7 @@
   Also handles animations."
   (:require [analysis-viewer.subs :as subs]
             [analysis-viewer.events.maps :as events.maps]
-            [analysis-viewer.components :refer [switch-button]]
+            [analysis-viewer.components :refer [switch-button slider]]
             [analysis-viewer.svg-renderer :as svg-renderer]
             [clojure.string :as str]
             [goog.string :as gstr]
@@ -81,17 +81,7 @@
 (def animation-delta-t 50)
 (def animation-increment 0.02)
 
-(defn zoom-bar [{:keys [zoom-perc zoom-inc-fn zoom-dec-fn class]}]
-  [:div.zoom-bar {:class class}
-   [:button {:on-click zoom-inc-fn} "+"]
-   [:div {:width "6px" :height "100%"}
-    [:svg 
-     [:line {:x1 "10" :y1 "100" :x2 "10" :y2 "0" :stroke "#DEDEE8" :stroke-width 3}]
-     [:line {:x1 "10" :y1 "100" :x2 "10" :y2 "0" :stroke "#EEBE53" :stroke-width 3
-             :stroke-dasharray 100
-             :stroke-dashoffset zoom-perc}]
-     [:rect {:x "4" :y (str (- zoom-perc 6)) :width "12" :height "12" :fill "white" :stroke "grey"}]]]
-   [:button {:on-click zoom-dec-fn} "-"]])
+
 
 (defn animation-controls [{:keys [dec-time-fn inc-time-fn time-ref]}]
   (let [ticks-data @(subscribe [::subs/analysis-data-timeline])
@@ -102,7 +92,7 @@
         full-length (apply max (map :x ticks-data))
         play-line-x (* @time-ref full-length)]
     [:div.animation-controls
-     [zoom-bar {:zoom-perc zoom-perc}]
+     [slider {:zoom-perc zoom-perc}]
      [:div.inner
       [:div.buttons
        [:i.zmdi.zmdi-skip-previous {:on-click dec-time-fn} ""]    
@@ -205,14 +195,14 @@
                                             (dispatch [:map/zoom-rectangle-release])))}
           [:div.zoom-bar-outer
            [:div.zoom-bar-back]
-           [zoom-bar {:zoom-perc (- 100 (/ (* 100 scale) events.maps/max-scale ))
-                      :zoom-inc-fn #(dispatch [:map/zoom {:delta -50
-                                                          :x (/ events.maps/map-screen-width 2)
-                                                          :y (/ events.maps/map-screen-height 2)}])
-                      :zoom-dec-fn #(dispatch [:map/zoom {:delta 50
-                                                          :x (/ events.maps/map-screen-width 2)
-                                                          :y (/ events.maps/map-screen-height 2)}])
-                      :class "map-zoom"}]]
+           [slider {:zoom-perc (- 100 (/ (* 100 scale) events.maps/max-scale ))
+                    :zoom-inc-fn #(dispatch [:map/zoom {:delta -50
+                                                        :x (/ events.maps/map-screen-width 2)
+                                                        :y (/ events.maps/map-screen-height 2)}])
+                    :zoom-dec-fn #(dispatch [:map/zoom {:delta 50
+                                                        :x (/ events.maps/map-screen-width 2)
+                                                        :y (/ events.maps/map-screen-height 2)}])
+                    :class "map-zoom"}]]
           
           ;; SVG data map
           [:svg {:xmlns "http://www.w3.org/2000/svg"
@@ -293,6 +283,11 @@
            [:i.zmdi.zmdi-check])
          ])]]))
 
+(defn polygon-opacity []
+  [:div
+   ]
+  )
+
 (defn controls-side-bar [time]
   [:div.side-bar
    [:div.tabs
@@ -306,7 +301,7 @@
                                  :child [map-color-chooser]}
                                 {:title "Polygon opacity"
                                  :id :polygon-opacity
-                                 :child [:div "aaaaaaaaaaa"]}]}]
+                                 :child [polygon-opacity]}]}]
     [collapsible-tabs {:title "Filters"
                        :id :filters
                        :childs [{:title "States prob"

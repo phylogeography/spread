@@ -1,3 +1,7 @@
+/*****************/
+/* Switch button */
+/*****************/
+
 .switch-button {
 	position: relative;
     width: 56px;
@@ -42,4 +46,29 @@
     position: relative;
 	top: 7px;
 	left: 15px;
+}
+
+/**********/
+/* Slider */
+/**********/
+
+.slider {
+	display: inline-flex;
+	flex-direction: column;
+	margin-right: 15px;
+    margin-left: 15px;
+	width: 22px;
+	height: 164px;
+	justify-content: center;    
+}
+
+.slider button {
+	padding: 1px 6px 1px 6px;
+	color: #3A3668;
+	background-color: #DEDEE8;
+	border-radius: 3px;
+}
+
+.slider svg {
+	height: 100px;
 }
