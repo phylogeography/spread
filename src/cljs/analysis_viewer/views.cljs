@@ -296,10 +296,11 @@
    [slider {:inc-buttons 0.1
             :min-val 0
             :max-val 1
-            :length 100
+            :length 140
             :vertical? false
             :subs-vec [:ui/parameters :polygon-opacity]
-            :ev-vec [:parameters/select :polygon-opacity]}]])
+            :ev-vec [:parameters/select :polygon-opacity]}]
+   ])
 
 (defn controls-side-bar [time]
   [:div.side-bar
