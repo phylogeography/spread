@@ -18,7 +18,7 @@
                        :grab-screen-length nil}) ;; if it is vertical? it will store y, x otherwise
         val->screen-length (fn [v] (/ (* (- v min-val) length) (- max-val min-val)))
         screen-length->val (fn [sl]
-                             (let [v (/ (* sl (- max-val min-val)) 100)]
+                             (let [v (/ (* sl (- max-val min-val)) length)]
                                (+ min-val v)))
         gap 5
         start 10]
