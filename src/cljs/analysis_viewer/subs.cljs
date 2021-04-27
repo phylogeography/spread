@@ -21,6 +21,12 @@
    (:map/state db)))
 
 (reg-sub
+ :map/scale
+ :<- [::map-state]
+ (fn [map-state _]
+   (:scale map-state)))
+
+(reg-sub
  ::map-state-show
  :<- [::map-state]
  (fn [{:keys [show-world?]}]
@@ -62,13 +68,13 @@
  :map/parameters
  :<- [:ui/parameters]
  :<- [:switch-buttons/states]
- (fn [[params buttons-states] _]
+ (fn [[params buttons-states] [_ param-id]]
    {:map-fill-color "#ffffff"
     :background-color "#ECEFF8"
     :map-stroke-color (if (get buttons-states :map-borders)
                         (get params :map-borders-color "#079DAB")
                         :transparent)
-    :map-text-color (get params :map-borders-color "#079DAB")
+    :map-text-color (get params :map-borders-color "#079DAB")                     
     :line-color "#B20707"
     :data-point-color "#DD0808"}))
 
@@ -96,8 +102,10 @@
 
 (reg-sub
  :ui/parameters
- (fn [db _]
-   (:ui/parameters db)))
+ (fn [db [_ param-id]]
+   (if param-id
+     (get-in db [:ui/parameters param-id])
+     (:ui/parameters db))))
 
 (reg-sub
  :parameters/selected 

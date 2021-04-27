@@ -129,6 +129,7 @@ button {
 
 .collapsible-tabs .tab-body {
     overflow: hidden;
+	padding: 17px;   
 }
 .collapsible-tabs .tab-body.open {
 	height: 100%;
@@ -171,8 +172,7 @@ button {
 
 .layer-visibility {
 	display: grid;
-    grid-template-columns: 60% 40%;
-    padding: 17px;
+    grid-template-columns: 70% 30%;
     grid-row-gap: 9px;
 	font-size: 14px;
 }
@@ -193,7 +193,7 @@ button {
 
 .map-zoom {
 	position: absolute;
-	top: 0;
+	top: 10px;
 	left: 0;
 	z-index: 10;
 }
