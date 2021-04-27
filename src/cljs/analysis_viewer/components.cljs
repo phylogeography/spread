@@ -13,7 +13,15 @@
      [:span.block {:class (if on? "block-on" "block-off")}]
      [:span.off "Off"]]))
 
-(defn slider [{:keys [inc-buttons length vertical? subs-vec ev-vec min-val max-val  class]}]
+(defn slider
+  "Re-frame friendly vertical slider.
+  vertical? - When true will be drawed vertically
+  length - the length in pixels of the slider line
+  subs-vec - A subscription vector from where the component should read the current value
+  ev-vec - A event vector that is going to be dispatched with the new value everytime the slider changes
+  min-val, max-val - The limits of the value read using subs-vec and set by ev-vec
+  inc-buttons - [OPTIONAL] When a number will render a +/- buttons that increment/decrement the slider by this amount"
+  [{:keys [inc-buttons length vertical? subs-vec ev-vec min-val max-val  class]}]
   (let [state (r/atom {:grab-screen-val nil
                        :grab-screen-length nil}) ;; if it is vertical? it will store y, x otherwise
         val->screen-length (fn [v] (/ (* (- v min-val) length) (- max-val min-val)))
