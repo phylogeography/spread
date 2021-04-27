@@ -58,8 +58,7 @@
 	margin-right: 15px;
     margin-left: 15px;
 	width: 22px;
-	height: 164px;
-	justify-content: center;    
+    justify-content: center;    
 }
 
 .slider button {
@@ -69,6 +68,20 @@
 	border-radius: 3px;
 }
 
-.slider svg {
-	height: 100px;
+.slider .outer {
+    display: flex;
 }
+
+.slider .outer.vertical {
+    flex-direction: column;
+}
+
+.slider .outer.horizontal{
+    flex-direction: row;
+}
+
+.slider button{
+    width: 20px;
+	height: 20px;
+}
+

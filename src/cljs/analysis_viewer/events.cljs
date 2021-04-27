@@ -24,6 +24,7 @@
 
 ;; map graphics manipulation
 (reg-event-db :map/set-view-box [sc] events.maps/set-view-box)
+(reg-event-db :map/zoom-inc events.maps/zoom-inc)
 (reg-event-db :map/zoom events.maps/zoom)
 (reg-event-db :map/grab [sc] events.maps/map-grab)
 (reg-event-db :map/grab-release [sc] events.maps/map-release)

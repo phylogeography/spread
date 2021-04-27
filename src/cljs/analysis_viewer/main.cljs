@@ -33,7 +33,7 @@
   (fsa/connect {:tap-name "analysis-viewer"})
   (fsa/trace-ref re-frame.db/app-db {:ref-name "re-frame-db"
                                      :ignore-keys [:maps/data ;; this one is super big
-                                                   :map/state]}) ;; this one changes a lot when zooming, dragging, etc
+                                                   #_:map/state]}) ;; this one changes a lot when zooming, dragging, etc
   (let [{:keys [maps output]} (parse-url-qstring (subs js/window.location.search 1))]
     (re-frame/dispatch-sync [:map/initialize
                              (into ["WORLD"] (str/split maps #",") )

@@ -5,9 +5,8 @@
 
 (s/def :map/scale number?)
 (s/def :map/translate :cartesian/coord)
-(s/def :map/screen-origin :cartesian/coord)
 (s/def :map/screen-current :cartesian/coord)
-(s/def :map/grab (s/keys :req-un [:map/screen-origin :map/screen-current]))
+(s/def :map/grab (s/keys :req-un [:map/screen-current]))
 (s/def :map/state (s/keys :req-un [:map/scale
                                    :map/translate]
                           :opt-un [:map/grab]))
@@ -21,7 +20,10 @@
 
 (s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
 (s/def :ui.switch-buttons/states (s/map-of keyword? boolean?))
-(s/def :ui/parameters map?)
+(s/def :parameter/border-color string?)
+(s/def :parameter/polygon-opacity (s/and number? #(<= 0 % 1)))
+(s/def :ui/parameters (s/keys :req-un [:parameter/map-borders-color
+                                       :parameter/polygon-opacity]))
 
 (s/def ::db (s/keys :req [:map/state
                           :ui.collapsible-tabs/tabs
@@ -37,4 +39,5 @@
                                            :map-color true,
                                            :polygon-opacity true}}
    :ui.switch-buttons/states {:map-borders true}
-   :ui/parameters {:map-borders-color "#079DAB"}})
+   :ui/parameters {:map-borders-color "#079DAB"
+                   :polygon-opacity 0.3}})

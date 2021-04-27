@@ -21,14 +21,14 @@
 ;; as svg elements                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-point-object [{:keys [coord show-start show-end]} scale time-perc]
+(defn svg-point-object [{:keys [coord show-start show-end]} scale time-perc params]
   (let [show? (<= show-start time-perc show-end)
         [x1 y1] coord]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
      [:circle {:cx x1 :cy y1 :r 0.3 #_(/ 0.4 scale) :stroke "#DD0808" :fill "#B20707"}]]))
 
-(defn svg-area-object [{:keys [coords show-start show-end]} _ time-perc]
+(defn svg-area-object [{:keys [coords show-start show-end]} _ time-perc params]
   (let [show? (<= show-start time-perc show-end)]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
@@ -38,9 +38,9 @@
                     (str/join ","))
        
        :fill "#9E15E6"
-       :opacity "0.3"}]]))
+       :opacity (:polygon-opacity params)}]]))
 
-(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end]} scale time-perc]
+(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end]} scale time-perc params]
   (let [show? (<= show-start time-perc show-end)
         clip-perc (when show?
                     (/ (- time-perc show-start)
@@ -68,11 +68,11 @@
               ;; normal curves
               curve-path-info)]]))
 
-(defn map-primitive-object [{:keys [type] :as primitive-object} scale time]
+(defn map-primitive-object [{:keys [type] :as primitive-object} scale time params]
   (case type
-    :arc   (svg-quad-curve-object primitive-object scale time)
-    :point (svg-point-object primitive-object scale time)
-    :area  (svg-area-object primitive-object scale time)))
+    :arc   (svg-quad-curve-object primitive-object scale time params)
+    :point (svg-point-object primitive-object scale time params)
+    :area  (svg-area-object primitive-object scale time params)))
 
 (def left-button  0)
 (def wheel-button 1)
@@ -91,8 +91,14 @@
         ticks-bars-full 50                
         full-length (apply max (map :x ticks-data))
         play-line-x (* @time-ref full-length)]
-    [:div.animation-controls
-     [slider {:zoom-perc zoom-perc}]
+    [:div.animation-controls     
+     [slider {:inc-buttons 0.8
+              :min-val events.maps/min-scale
+              :max-val events.maps/max-scale
+              :length 100
+              :vertical? true
+              :subs-vec [:map/scale]
+              :ev-vec [:map/zoom 100 100]}]
      [:div.inner
       [:div.buttons
        [:i.zmdi.zmdi-skip-previous {:on-click dec-time-fn} ""]    
@@ -133,12 +139,13 @@
 
 (defn data-group [time]
   (let [analysis-data  @(re-frame/subscribe [::subs/analysis-data])
-        {:keys [scale]} @(re-frame/subscribe [::subs/map-state])]
+        {:keys [scale]} @(re-frame/subscribe [::subs/map-state])
+        params @(subscribe [:ui/parameters])]
     (when analysis-data
       [:g {}
        (for [primitive-object analysis-data]
          ^{:key (str (:id primitive-object))}
-         [map-primitive-object primitive-object scale time])])))
+         [map-primitive-object primitive-object scale time params])])))
 
 (defn animated-data-map [time-ref]
   (let [inct (fn [] (if (< @time-ref (- 1 animation-increment))
@@ -157,9 +164,9 @@
                            :on-wheel (fn [evt]
                                        (let [x (-> evt .-nativeEvent .-offsetX)
                                              y (-> evt .-nativeEvent .-offsetY)]
-                                         (dispatch [:map/zoom {:delta (.-deltaY evt)
-                                                               :x x
-                                                               :y y}])))
+                                         (dispatch [:map/zoom-inc {:delta (.-deltaY evt)
+                                                                   :x x
+                                                                   :y y}])))
                            :on-mouse-down (fn [evt]
                                             (.stopPropagation evt)
                                             (.preventDefault evt)
@@ -195,13 +202,13 @@
                                             (dispatch [:map/zoom-rectangle-release])))}
           [:div.zoom-bar-outer
            [:div.zoom-bar-back]
-           [slider {:zoom-perc (- 100 (/ (* 100 scale) events.maps/max-scale ))
-                    :zoom-inc-fn #(dispatch [:map/zoom {:delta -50
-                                                        :x (/ events.maps/map-screen-width 2)
-                                                        :y (/ events.maps/map-screen-height 2)}])
-                    :zoom-dec-fn #(dispatch [:map/zoom {:delta 50
-                                                        :x (/ events.maps/map-screen-width 2)
-                                                        :y (/ events.maps/map-screen-height 2)}])
+           [slider {:inc-buttons 0.8
+                    :min-val events.maps/min-scale
+                    :max-val events.maps/max-scale
+                    :length 100
+                    :vertical? true
+                    :subs-vec [:map/scale]
+                    :ev-vec [:map/zoom 100 100]
                     :class "map-zoom"}]]
           
           ;; SVG data map
@@ -248,8 +255,9 @@
 
 (defn collapsible-tab [parent-id {:keys [id title child]}]
   (let [open? @(subscribe [:collapsible-tabs/open? parent-id id])]
-    [:div.tab {:on-click #(dispatch [:collapsible-tabs/toggle parent-id id])}
-     [:div.title [:span.text title] [:span.arrow (if open? "▲" "▼")]]
+    [:div.tab 
+     [:div.title {:on-click #(dispatch [:collapsible-tabs/toggle parent-id id])}
+      [:span.text title] [:span.arrow (if open? "▲" "▼")]]
      [:div.tab-body {:class (if open? "open" "collapsed")}
       child]]))
 
@@ -284,9 +292,14 @@
          ])]]))
 
 (defn polygon-opacity []
-  [:div
-   ]
-  )
+  [:div.polygon-opacity
+   [slider {:inc-buttons 0.1
+            :min-val 0
+            :max-val 1
+            :length 100
+            :vertical? false
+            :subs-vec [:ui/parameters :polygon-opacity]
+            :ev-vec [:parameters/select :polygon-opacity]}]])
 
 (defn controls-side-bar [time]
   [:div.side-bar

@@ -88,15 +88,13 @@
         (assoc :map/state {:translate translate
                            :scale     scale}))))
 
-(defn zoom [{:keys [map/state] :as db} [_ {:keys [delta x y]}]]
-  (let [screen-coords [x y]
-        {:keys [translate scale]} state
-        zoom-dir (if (pos? delta) -1 1)
+(defn zoom [{:keys [map/state] :as db} [_ x y new-scale]]
+  (let [{:keys [translate scale]} state
+        screen-coords [x y]
         [proj-x proj-y] (math-utils/screen-coord->proj-coord translate scale proj-scale screen-coords)]
     (update db :map/state
             (fn [{:keys [translate scale] :as map-state}]
-              (let [new-scale (+ scale (* zoom-dir 0.8))
-                    scaled-proj-x (* proj-x scale proj-scale)
+              (let [scaled-proj-x (* proj-x scale proj-scale)
                     scaled-proj-y (* proj-y scale proj-scale)
                     new-scaled-proj-x (* proj-x new-scale proj-scale)
                     new-scaled-proj-y (* proj-y new-scale proj-scale)
@@ -112,9 +110,14 @@
                          :scale new-scale)
                   map-state))))))
 
+(defn zoom-inc [{:keys [map/state] :as db} [_ {:keys [delta x y]}]]
+  (let [{:keys [translate scale]} state
+        zoom-dir (if (pos? delta) -1 1)
+        new-scale (+ scale (* zoom-dir 0.8))]
+    (zoom db [nil x y new-scale])))
+
 (defn map-grab [db [_ {:keys [x y]}]]
   (-> db
-      (assoc-in [:map/state :grab :screen-origin]  [x y])
       (assoc-in [:map/state :grab :screen-current]  [x y])))
 
 (defn map-release [db _]
