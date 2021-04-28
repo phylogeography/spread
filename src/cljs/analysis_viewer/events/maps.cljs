@@ -11,15 +11,8 @@
 ;; proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
 ;; map-coord:    [lat,lon]  coordinates in map lat,long coords, -180 <= lon <= 180, -90 <= lat <= 90
 
-;; TODO: this should be obtained after the map svg is rendered
-;; since the map screen size isn't fixed anymore
-(def map-screen-width    1200)
-(def map-screen-height   600)
-
 (def map-proj-width  360)
 (def map-proj-height 180)
-
-(def proj-scale (/ map-screen-width map-proj-width))
 
 (def max-scale 22)
 (def min-scale 0.8)
@@ -83,13 +76,17 @@
                 :on-failure      [:log-error]}})
 
 (defn set-view-box [db [_ {:keys [x1 y1 x2 y2]}]]
-  (let [{:keys [translate scale]} (math-utils/calc-zoom-for-view-box x1 y1 x2 y2 proj-scale)]
+  (let [map-screen-width (-> db :map/state :width)
+        proj-scale (/ map-screen-width map-proj-width)
+        {:keys [translate scale]} (math-utils/calc-zoom-for-view-box x1 y1 x2 y2 proj-scale)]
     (-> db
-        (assoc :map/state {:translate translate
-                           :scale     scale}))))
+        (update :map/state merge {:translate translate
+                                  :scale     scale}))))
 
 (defn zoom [{:keys [map/state] :as db} [_ x y new-scale]]
-  (let [{:keys [translate scale]} state
+  (let [map-screen-width (:width state)
+        proj-scale (/ map-screen-width map-proj-width)
+        {:keys [translate scale]} state
         screen-coords [x y]
         [proj-x proj-y] (math-utils/screen-coord->proj-coord translate scale proj-scale screen-coords)]
     (update db :map/state
@@ -141,12 +138,17 @@
   (-> db
       (assoc-in [:map/state :zoom-rectangle] {:origin [x y] :current [x y]})))
 
-(defn zoom-rectangle-update[{:keys [map/state] :as db} [_ {:keys [x y]}]]
-  (when (:zoom-rectangle state)
-    (assoc-in db [:map/state :zoom-rectangle :current] [x y])))
+(defn zoom-rectangle-update [{:keys [map/state] :as db} [_ {:keys [x y]}]]
+  (if (:zoom-rectangle state)
+    (assoc-in db [:map/state :zoom-rectangle :current] [x y])
+    db))
 
 (defn zoom-rectangle-release [{:keys [db]} _]
+  (println "**********" (:map/state db))
   (let [{:keys [map/state]} db
+        map-screen-width (:width state)
+        proj-scale (/ map-screen-width map-proj-width)
+        _ (println "Proj scale is " proj-scale "->" (:width state) "from " state)
         {:keys [translate scale zoom-rectangle]} state
         {:keys [origin current]} zoom-rectangle
         [x1 y1] (math-utils/screen-coord->proj-coord translate scale proj-scale origin)              
@@ -189,3 +191,9 @@
      :ticker/stop nil}
     {:db (assoc db :animation/state :play)
      :ticker/start {:millis 50}}))
+
+(defn set-dimensions [db [_ {:keys [width height]}]]
+  (println "Reseting map dimensions to " width "x" height)
+  (-> db
+      (assoc-in [:map/state :width] width)
+      (assoc-in [:map/state :height] height)))

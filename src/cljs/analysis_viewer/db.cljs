@@ -7,9 +7,13 @@
 (s/def :map/translate :cartesian/coord)
 (s/def :map/screen-current :cartesian/coord)
 (s/def :map/grab (s/keys :req-un [:map/screen-current]))
+(s/def :map/width (s/nilable number?))
+(s/def :map/height (s/nilable number?))
 (s/def :map/state (s/keys :req-un [:map/scale
                                    :map/translate]
-                          :opt-un [:map/grab]))
+                          :opt-un [:map/grab
+                                   :map/width
+                                   :map/height]))
 
 (s/def :map/url string?)
 (s/def :map/z-index number?)
@@ -39,7 +43,9 @@
 
 (defn initial-db []
   {:map/state {:scale 1
-               :translate [0 0]}
+               :translate [0 0]
+               :width nil
+               :height nil}
    :animation/percentage 0
    :animation/state :stop
    :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,

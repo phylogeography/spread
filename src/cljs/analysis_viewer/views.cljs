@@ -9,6 +9,7 @@
             [goog.string :as gstr]
             [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [reagent.core :as reagent]
+            [reagent.dom :as rdom]
             [shared.math-utils :as math-utils]))
 
 (def data-box-padding
@@ -146,96 +147,101 @@
          ^{:key (str (:id primitive-object))}
          [map-primitive-object primitive-object scale time params])])))
 
-(defn animated-data-map []
-  (fn []      
-    (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [:map/state])
-          scale (or scale 1)
-          [translate-x translate-y] translate]
-      [:div.animated-data-map
-       [:div.map-wrapper {:style {} #_{:height (str events.maps/map-screen-height "px")
-                                       :width  (str events.maps/map-screen-width  "px")}
-                          :on-wheel (fn [evt]
-                                      (let [x (-> evt .-nativeEvent .-offsetX)
-                                            y (-> evt .-nativeEvent .-offsetY)]
-                                        (dispatch [:map/zoom-inc {:delta (.-deltaY evt)
-                                                                  :x x
-                                                                  :y y}])))
-                          :on-mouse-down (fn [evt]
+(defn data-map []
+  (let [update-after-render (fn [div-cmp]                             
+                              (let [dom-node (rdom/dom-node div-cmp)                                   
+                                    brect (.getBoundingClientRect dom-node)]                                
+                                (dispatch [:map/set-dimensions {:width (.-width brect)
+                                                                :height (.-height brect)}])))]
+   (reagent/create-class
+    {:component-did-mount (fn [this] (update-after-render this))
+     ;; :component-did-update (fn [this] (update-after-render this))
+     :reagent-render
+     (fn []
+       (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [:map/state])
+             scale (or scale 1)
+             [translate-x translate-y] translate]
+         [:div.map-wrapper {:on-wheel (fn [evt]
+                                        (let [x (-> evt .-nativeEvent .-offsetX)
+                                              y (-> evt .-nativeEvent .-offsetY)]
+                                          (dispatch [:map/zoom-inc {:delta (.-deltaY evt)
+                                                                    :x x
+                                                                    :y y}])))
+                            :on-mouse-down (fn [evt]
+                                             (.stopPropagation evt)
+                                             (.preventDefault evt)
+                                             (let [x (-> evt .-nativeEvent .-offsetX)
+                                                   y (-> evt .-nativeEvent .-offsetY)]
+                                               (cond
+
+                                                 ;; left button pressed
+                                                 (= left-button (.-button evt))                                  
+                                                 (dispatch [:map/grab {:x x :y y}])
+
+                                                 ;; wheel button pressed
+                                                 (= wheel-button (.-button evt))
+                                                 (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
+                           
+                            :on-mouse-move (fn [evt]
+                                             (let [x (-> evt .-nativeEvent .-offsetX)
+                                                   y (-> evt .-nativeEvent .-offsetY)]
+                                               (cond
+                                                 grab
+                                                 (dispatch [:map/drag {:x x :y y}])
+
+                                                 zoom-rectangle
+                                                 (dispatch [:map/zoom-rectangle-update {:x x :y y}]))))
+                            :on-mouse-up (fn [evt]
                                            (.stopPropagation evt)
                                            (.preventDefault evt)
-                                           (let [x (-> evt .-nativeEvent .-offsetX)
-                                                 y (-> evt .-nativeEvent .-offsetY)]
-                                             (cond
+                                           (cond
+                                             (= left-button (.-button evt))
+                                             (dispatch [:map/grab-release])
 
-                                               ;; left button pressed
-                                               (= left-button (.-button evt))                                  
-                                               (dispatch [:map/grab {:x x :y y}])
-
-                                               ;; wheel button pressed
-                                               (= wheel-button (.-button evt))
-                                               (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
-                          
-                          :on-mouse-move (fn [evt]
-                                           (let [x (-> evt .-nativeEvent .-offsetX)
-                                                 y (-> evt .-nativeEvent .-offsetY)]
-                                             (cond
-                                               grab
-                                               (dispatch [:map/drag {:x x :y y}])
-
-                                               zoom-rectangle
-                                               (dispatch [:map/zoom-rectangle-update {:x x :y y}]))))
-                          :on-mouse-up (fn [evt]
-                                         (.stopPropagation evt)
-                                         (.preventDefault evt)
-                                         (cond
-                                           (= left-button (.-button evt))
-                                           (dispatch [:map/grab-release])
-
-                                           (= wheel-button (.-button evt))
-                                           (dispatch [:map/zoom-rectangle-release])))}
-        [:div.zoom-bar-outer
-         [:div.zoom-bar-back]
-         [slider {:inc-buttons 0.8
-                  :min-val events.maps/min-scale
-                  :max-val events.maps/max-scale
-                  :length 100
-                  :vertical? true
-                  :subs-vec [:map/scale]
-                  :ev-vec [:map/zoom 100 100]
-                  :class "map-zoom"}]]
-        
-        ;; SVG data map
-        [:svg {:xmlns "http://www.w3.org/2000/svg"
-               :xmlns:amcharts "http://amcharts.com/ammap"
-               :xmlnsXlink "http://www.w3.org/1999/xlink"
-               :version "1.1"
-               :width "100%"
-               :height "100%"
-               :id "map-and-data"}
-
-         ;; gradients definitions
-         [:defs {}
-          [:linearGradient {:id "grad"}
-           [:stop {:offset "0%" :stop-color "#DD0808"}]
-           [:stop {:offset "100%" :stop-color "#B20707"}]]]
-
-         ;; map background
-         [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill "#ECEFF8"}]
+                                             (= wheel-button (.-button evt))
+                                             (dispatch [:map/zoom-rectangle-release])))}
+          [:div.zoom-bar-outer
+           [:div.zoom-bar-back]
+           [slider {:inc-buttons 0.8
+                    :min-val events.maps/min-scale
+                    :max-val events.maps/max-scale
+                    :length 100
+                    :vertical? true
+                    :subs-vec [:map/scale]
+                    :ev-vec [:map/zoom 100 100]
+                    :class "map-zoom"}]]
          
-         ;; map and data svg
-         [:g {:transform (gstr/format "translate(%f %f) scale(%f %f)"
-                                      (or translate-x 0)
-                                      (or translate-y 0)
-                                      scale scale)}
-          [:svg {:view-box "0 0 360 180"}
-           [map-group]
-           [data-group]]]
+          ;; SVG data map
+          [:svg {:xmlns "http://www.w3.org/2000/svg"
+                 :xmlns:amcharts "http://amcharts.com/ammap"
+                 :xmlnsXlink "http://www.w3.org/1999/xlink"
+                 :version "1.1"
+                 :width "100%"
+                 :height "100%"
+                 :id "map-and-data"}
 
-         (when zoom-rectangle
-           (let [[x1 y1] (:origin zoom-rectangle)
-                 [x2 y2] (:current zoom-rectangle)]
-             [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke "#DD0808" :fill :transparent}]))]]
-       [animation-controls]])))
+           ;; gradients definitions
+           [:defs {}
+            [:linearGradient {:id "grad"}
+             [:stop {:offset "0%" :stop-color "#DD0808"}]
+             [:stop {:offset "100%" :stop-color "#B20707"}]]]
+
+           ;; map background
+           [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill "#ECEFF8"}]
+          
+           ;; map and data svg
+           [:g {:transform (gstr/format "translate(%f %f) scale(%f %f)"
+                                        (or translate-x 0)
+                                        (or translate-y 0)
+                                        scale scale)}
+            [:svg {:view-box "0 0 360 180"}
+             [map-group]
+             [data-group]]]
+
+           (when zoom-rectangle
+             (let [[x1 y1] (:origin zoom-rectangle)
+                   [x2 y2] (:current zoom-rectangle)]
+               [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke "#DD0808" :fill :transparent}]))]]))})))
 
 (defn top-bar []
   [:div.top-bar
@@ -324,4 +330,6 @@
     [:div.main-screen
      [top-bar]
      [controls-side-bar]
-     [animated-data-map]]))
+     [:div.animated-data-map
+      [data-map]
+      [animation-controls]]]))
