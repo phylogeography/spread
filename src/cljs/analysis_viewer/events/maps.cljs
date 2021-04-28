@@ -158,7 +158,34 @@
 (defn toggle-show-world [{:keys [db]} _]
   {:db (update-in db [:map/state :show-world?] not)})
 
-(defn download-current-as-svg [{:keys [db]} [_ time]]
+(defn download-current-as-svg [{:keys [db]} [_ ]]
   {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps/data db))
                                         :analysis-data (:analysis/data db)
-                                        :time time}})
+                                        :time (:animation/percentage db)}})
+
+(def tick-step 0.02)
+
+(defn ticker-tick [{:keys [db]} _]
+  (let [{:keys [animation/percentage]} db]
+    (if (>= (+ percentage tick-step) 1)
+      {:db (assoc db :animation/percentage 1)
+       :ticker/stop nil}
+      
+      {:db (update db :animation/percentage #(+ % tick-step))})))
+
+(defn animation-prev [{:keys [animation/percentage] :as db} _]
+  (if (<= (- percentage tick-step) 0)
+    (assoc db :animation/percentage 0)
+    (update db :animation/percentage #(- % tick-step))))
+
+(defn animation-next [{:keys [animation/percentage] :as db} _]
+  (if (>= (- percentage tick-step) 1)
+    (assoc db :animation/percentage 1)
+    (update db :animation/percentage #(+ % tick-step))))
+
+(defn animation-toggle-play-stop [{:keys [db]} _]
+  (if (= (:animation/state db) :play)
+    {:db (assoc db :animation/state :stop)
+     :ticker/stop nil}
+    {:db (assoc db :animation/state :play)
+     :ticker/start {:millis 50}}))

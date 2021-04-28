@@ -21,6 +21,16 @@
    (:map/state db)))
 
 (reg-sub
+ :animation/percentage
+ (fn [db _]
+   (:animation/percentage db)))
+
+(reg-sub
+ :animation/state
+ (fn [db _]
+   (:animation/state db)))
+
+(reg-sub
  :map/scale
  :<- [::map-state]
  (fn [map-state _]
@@ -40,11 +50,6 @@
    (let [hide-world? (false? show-world?)]
      (geo-json-data-map (cond->> maps
                           hide-world? (remove #(zero? (:map/z-index %))))))))
-
-(reg-sub
- ::map-view-box
- (fn [{:keys [map-view-box-center map-view-box-radius]} _]
-   (math-utils/outscribing-rectangle map-view-box-center map-view-box-radius)))
 
 (reg-sub
  ::analysis-data

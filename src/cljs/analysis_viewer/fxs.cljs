@@ -52,3 +52,25 @@
      (js/document.body.appendChild download-anchor)
      (.click download-anchor)
      (js/document.body.removeChild download-anchor))))
+
+(def ticker-ref (atom nil))
+
+(defn stop-ticker []
+  (when-let [ticker @ticker-ref]    
+    (js/clearInterval ticker)))
+
+(re-frame/reg-fx
+ :ticker/start
+ (fn [{:keys [millis]}]
+   ;; make sure no ticker is running before starting one
+   (stop-ticker)
+   
+   (reset! ticker-ref
+           (js/setInterval (fn []
+                             (re-frame/dispatch [:ticker/tick]))
+                           millis))))
+
+(re-frame/reg-fx
+ :ticker/stop
+ (fn [_]
+   (stop-ticker)))
