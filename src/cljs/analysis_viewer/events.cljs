@@ -37,3 +37,9 @@
 (reg-event-db :collapsible-tabs/toggle [sc] events.ui/toggle-collapsible-tab)
 (reg-event-db :switch-button/toggle [sc] events.ui/toggle-switch-button)
 (reg-event-db :parameters/select [sc] events.ui/parameters-select)
+
+(reg-event-db :animation/prev [sc] events.maps/animation-prev)
+(reg-event-db :animation/next [sc] events.maps/animation-next)
+(reg-event-fx :animation/toggle-play-stop [sc] events.maps/animation-toggle-play-stop)
+
+(reg-event-fx :ticker/tick [] events.maps/ticker-tick)

@@ -25,7 +25,12 @@
 (s/def :ui/parameters (s/keys :req-un [:parameter/map-borders-color
                                        :parameter/polygon-opacity]))
 
+(s/def :animation/percentage (s/and number? #(<= 0 % 1)))
+(s/def :animation/state #{:stop :play})
+
 (s/def ::db (s/keys :req [:map/state
+                          :animation/percentage
+                          :animation/state
                           :ui.collapsible-tabs/tabs
                           :ui.switch-buttons/states
                           :ui/parameters]
@@ -35,6 +40,8 @@
 (defn initial-db []
   {:map/state {:scale 1
                :translate [0 0]}
+   :animation/percentage 0
+   :animation/state :stop
    :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
                                            :map-color true,
                                            :polygon-opacity true}}
