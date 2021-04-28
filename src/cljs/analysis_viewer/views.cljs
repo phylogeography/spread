@@ -86,7 +86,7 @@
 (defn animation-controls [{:keys [dec-time-fn inc-time-fn time-ref]}]
   (let [time @(subscribe [:animation/percentage])
         playing? (= :play @(subscribe [:animation/state]))
-        ticks-data @(subscribe [::subs/analysis-data-timeline])
+        ticks-data @(subscribe [:analysis/data-timeline])
         zoom-perc 50
         ticks-y-base 80
         ticks-bars-y-base (- ticks-y-base 11)
@@ -129,7 +129,7 @@
                label])])]]]]]))
 
 (defn map-group []
-  (let [geo-json-map @(re-frame/subscribe [::subs/map-data])
+  (let [geo-json-map @(re-frame/subscribe [:map/data])
         map-options @(re-frame/subscribe [:map/parameters])]    
     (when geo-json-map
       [:g {}
@@ -137,8 +137,8 @@
 
 (defn data-group []
   (let [time @(re-frame/subscribe [:animation/percentage])
-        analysis-data  @(re-frame/subscribe [::subs/analysis-data])
-        {:keys [scale]} @(re-frame/subscribe [::subs/map-state])
+        analysis-data  @(re-frame/subscribe [:analysis/data])
+        {:keys [scale]} @(re-frame/subscribe [:map/state])
         params @(subscribe [:ui/parameters])]
     (when analysis-data
       [:g {}
@@ -148,7 +148,7 @@
 
 (defn animated-data-map []
   (fn []      
-    (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [::subs/map-state])
+    (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [:map/state])
           scale (or scale 1)
           [translate-x translate-y] translate]
       [:div.animated-data-map

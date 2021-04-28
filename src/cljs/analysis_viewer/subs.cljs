@@ -11,12 +11,12 @@
     (assoc maps :map-box (svg-renderer/geo-json-bounding-box maps))))
 
 (reg-sub
- ::maps
+ :maps/all-maps-data
  (fn [db _]
   (:maps/data db)))
 
 (reg-sub
- ::map-state
+ :map/state
  (fn [db _]
    (:map/state db)))
 
@@ -32,33 +32,33 @@
 
 (reg-sub
  :map/scale
- :<- [::map-state]
+ :<- [:map/state]
  (fn [map-state _]
    (:scale map-state)))
 
 (reg-sub
- ::map-state-show
- :<- [::map-state]
+ :map.state/show-world?
+ :<- [:map/state]
  (fn [{:keys [show-world?]}]
    show-world?))
 
 (reg-sub
- ::map-data
- :<- [::maps]
- :<- [::map-state-show]
+ :map/data
+ :<- [:maps/all-maps-data]
+ :<- [:map.state/show-world?]
  (fn [[maps show-world?] _]
    (let [hide-world? (false? show-world?)]
      (geo-json-data-map (cond->> maps
                           hide-world? (remove #(zero? (:map/z-index %))))))))
 
 (reg-sub
- ::analysis-data
+ :analysis/data
  (fn [db _]
    (:analysis/data db)))
 
 (reg-sub
- ::analysis-data-timeline
- :<- [::analysis-data]
+ :analysis/data-timeline
+ :<- [:analysis/data]
  (fn [_ _]
    (let [tick-gap 10
          ticks-x-base 10]
