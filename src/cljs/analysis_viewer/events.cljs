@@ -43,3 +43,5 @@
 (reg-event-fx :animation/toggle-play-stop [sc] events.maps/animation-toggle-play-stop)
 
 (reg-event-fx :ticker/tick [] events.maps/ticker-tick)
+
+(reg-event-db :map/set-dimensions [sc] events.maps/set-dimensions)
