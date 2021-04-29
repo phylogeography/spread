@@ -42,7 +42,7 @@
                                   (case (:type o)
                                     :arc [(:from-coord o) (:to-coord o)]
                                     :point [(:coord o)]
-                                    :area (:coord o)))))]
+                                    :area (:coords o)))))]
     {:x1 (apply min (map first all-coords))
      :y1 (apply min (map second all-coords))
      :x2 (apply max (map first all-coords))
@@ -54,7 +54,7 @@
                         :discrete-tree   (map-emitter/discrete-tree-output->map-data data)
                         :bayes           (map-emitter/bayes-output->map-data data)
                         :timeslicer      (map-emitter/timeslicer-output->map-data data))
-        {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box analysis-data)
+        {:keys [x1 y1 x2 y2] :as vb} (get-analysis-objects-view-box analysis-data)
         padding 2]
 
     {:db (-> db
