@@ -260,6 +260,7 @@ public class TimeSlicerParser implements IProgressReporter {
         layersList.add(contoursLayer);
 
         SpreadData spreadData = new SpreadData.Builder()
+            .withAnalysisType(ParsersUtils.TIME_SLICER)
             .withTimeline(timeline)
             .withAreaAttributes(uniqueAreaAttributes)
             .withLayers(layersList)

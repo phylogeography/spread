@@ -18,7 +18,6 @@ import jebl.evolution.trees.RootedTree;
 public class ParsersUtils {
 
     public static final double EARTH_RADIUS = 6371.0;
-
     public static final String EMPTY_STRING = "";
     public static final String BLANK_SPACE = "\\s+";
     public static final String TAB = "\t";
@@ -47,6 +46,11 @@ public class ParsersUtils {
     public static final String NEGATIVE_SIGN = "-";
     public static final String X_COORDINATE = "xCoordinate";
     public static final String Y_COORDINATE = "yCoordinate";
+
+    public static final String CONTINUOUS_TREE = "ContinuousTree";
+    public static final String DISCRETE_TREE = "DiscreteTree";
+    public static final String BAYES_FACTOR = "BayesFactor";
+    public static final String TIME_SLICER = "TimeSlicer";
 
     // Use this for all random numbers
     private static final Random random = new Random();

@@ -336,6 +336,7 @@ public class BayesFactorParser implements IProgressReporter {
         layersList.add(bfLayer);
 
         SpreadData spreadData = new SpreadData.Builder()
+            .withAnalysisType(ParsersUtils.BAYES_FACTOR)
             .withAxisAttributes(new AxisAttributes(xCoordinate.getId(),
                                                    yCoordinate.getId()))
             .withLineAttributes(uniqueLineAttributes)

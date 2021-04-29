@@ -46,6 +46,8 @@ public class DiscreteTreeParserTest {
         Gson gson = new Gson();
         SpreadData data = gson.fromJson(json, SpreadData.class);
 
+        assertEquals("returns correct type", ParsersUtils.DISCRETE_TREE, data.getAnalysisType());
+
         assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeline().getEndTime());
         assertEquals("returns correct root date", "2007/11/17", data.getTimeline().getStartTime());
 

@@ -11,6 +11,7 @@ import com.spread.data.Attribute;
 import com.spread.data.SpreadData;
 import com.spread.exceptions.SpreadException;
 import com.spread.parsers.ContinuousTreeParser;
+import com.spread.utils.ParsersUtils;
 
 import org.junit.Test;
 
@@ -42,6 +43,8 @@ public class ContinuousTreeParserTest {
         String json = parser.parse();
         Gson gson = new Gson();
         SpreadData data = gson.fromJson(json, SpreadData.class);
+
+        assertEquals("returns correct type", ParsersUtils.CONTINUOUS_TREE, data.getAnalysisType());
 
         assertEquals("returns correct mrsd", mostRecentSamplingDate, data.getTimeline().getEndTime());
         assertEquals("returns correct root date", "2016/10/24", data.getTimeline().getStartTime());

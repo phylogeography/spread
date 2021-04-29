@@ -12,6 +12,8 @@ import lombok.ToString;
 public class SpreadData {
 
     @Getter
+    private String analysisType;
+    @Getter
     private final Timeline timeline;
     @Getter
     private final AxisAttributes axisAttributes;
@@ -38,8 +40,14 @@ public class SpreadData {
         private List<Attribute> areaAttributes;
         private List<Location> locations;
         private List<Layer> layers;
+        private String analysisType;
 
         public Builder() {
+        }
+
+        public Builder withAnalysisType(String analysisType) {
+            this.analysisType = analysisType;
+            return this;
         }
 
         public Builder withTimeline(Timeline timeline) {
@@ -85,6 +93,7 @@ public class SpreadData {
     }
 
     private SpreadData(Builder builder) {
+        this.analysisType = builder.analysisType;
         this.timeline = builder.timeline;
         this.axisAttributes = builder.axisAttributes;
         this.lineAttributes = builder.lineAttributes;
