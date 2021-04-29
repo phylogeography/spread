@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-fx]]
             [ui.events.analysis :as events.analysis]
             [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
+            [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
             [ui.events.general :as events.general]
             [ui.events.graphql :as events.graphql]
             [ui.events.home :as events.home]
@@ -14,7 +15,8 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :do-nothing (constantly nil))
-(reg-event-fx :log-error (fn [_ ev] (js/console.error ev) {}))
+(reg-event-fx :log-error (fn [_ ev]
+                           (js/console.error ev)))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Graphql events ;;
@@ -35,13 +37,14 @@
 
 (reg-event-fx :general/active-page-changed events.general/active-page-changed)
 (reg-event-fx :general/initialize events.general/initialize)
+(reg-event-fx :general/logout [(re-frame/inject-cofx :localstorage)] events.general/logout)
 
 ;;;;;;;;;;;;;;;;;
 ;; Home events ;;
 ;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :home/initialize-page events.home/initialize-page)
-(reg-event-fx :home/initial-query events.home/initialize-query)
+(reg-event-fx :home/initial-query events.home/initial-query)
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Splash events ;;
@@ -55,17 +58,33 @@
 ;; New analysis events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(re-frame/reg-event-fx :continuous-mcc-tree/on-tree-file-selected events.continuous-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :continuous-mcc-tree/tree-file-upload-progress events.continuous-mcc-tree/tree-file-upload-progress)
 (re-frame/reg-event-fx :continuous-mcc-tree/tree-file-upload-success events.continuous-mcc-tree/tree-file-upload-success)
 (re-frame/reg-event-fx :continuous-mcc-tree/delete-tree-file events.continuous-mcc-tree/delete-tree-file)
 (re-frame/reg-event-fx :continuous-mcc-tree/s3-upload events.continuous-mcc-tree/s3-upload)
-(re-frame/reg-event-fx :continuous-mcc-tree/on-tree-file-selected events.continuous-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :continuous-mcc-tree/start-analysis events.continuous-mcc-tree/start-analysis)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-readable-name events.continuous-mcc-tree/set-readable-name)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-y-coordinate events.continuous-mcc-tree/set-y-coordinate)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-x-coordinate events.continuous-mcc-tree/set-x-coordinate)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-most-recent-sampling-date events.continuous-mcc-tree/set-most-recent-sampling-date)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-time-scale-multiplier events.continuous-mcc-tree/set-time-scale-multiplier)
+
+(re-frame/reg-event-fx :discrete-mcc-tree/on-tree-file-selected events.discrete-mcc-tree/on-tree-file-selected)
+(re-frame/reg-event-fx :discrete-mcc-tree/s3-tree-file-upload events.discrete-mcc-tree/s3-tree-file-upload)
+(re-frame/reg-event-fx :discrete-mcc-tree/tree-file-upload-progress events.discrete-mcc-tree/tree-file-upload-progress)
+(re-frame/reg-event-fx :discrete-mcc-tree/tree-file-upload-success events.discrete-mcc-tree/tree-file-upload-success)
+(re-frame/reg-event-fx :discrete-mcc-tree/delete-tree-file events.discrete-mcc-tree/delete-tree-file)
+(re-frame/reg-event-fx :discrete-mcc-tree/on-locations-file-selected events.discrete-mcc-tree/on-locations-file-selected)
+(re-frame/reg-event-fx :discrete-mcc-tree/s3-locations-file-upload events.discrete-mcc-tree/s3-locations-file-upload)
+(re-frame/reg-event-fx :discrete-mcc-tree/locations-file-upload-progress events.discrete-mcc-tree/locations-file-upload-progress)
+(re-frame/reg-event-fx :discrete-mcc-tree/locations-file-upload-success events.discrete-mcc-tree/locations-file-upload-success)
+(re-frame/reg-event-fx :discrete-mcc-tree/set-readable-name events.discrete-mcc-tree/set-readable-name)
+(re-frame/reg-event-fx :discrete-mcc-tree/set-locations-attribute events.discrete-mcc-tree/set-locations-attribute)
+(re-frame/reg-event-fx :discrete-mcc-tree/set-most-recent-sampling-date events.discrete-mcc-tree/set-most-recent-sampling-date)
+(re-frame/reg-event-fx :discrete-mcc-tree/set-time-scale-multiplier events.discrete-mcc-tree/set-time-scale-multiplier)
+(re-frame/reg-event-fx :discrete-mcc-tree/start-analysis events.discrete-mcc-tree/start-analysis)
+(re-frame/reg-event-fx :discrete-mcc-tree/delete-locations-file events.discrete-mcc-tree/delete-locations-file)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Websockets events ;;

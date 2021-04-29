@@ -129,7 +129,118 @@
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
 (defn discrete-mcc-tree []
-  [:pre "discrete mcc tree"])
+  (let [discrete-mcc-tree    (re-frame/subscribe [::subs/discrete-mcc-tree])
+        discrete-tree-parser (re-frame/subscribe [::subs/active-discrete-tree-parser])
+        field-errors         (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
+    (fn []
+      (let [{:keys [attribute-names]} @discrete-tree-parser
+            {:keys [tree-file tree-file-upload-progress
+                    locations-file locations-file-url locations-file-upload-progress
+                    readable-name
+                    locations-attribute
+                    most-recent-sampling-date
+                    time-scale-multiplier]
+             :or   {locations-attribute       (first attribute-names)
+                    most-recent-sampling-date (time/now)
+                    time-scale-multiplier     1}}
+            @discrete-mcc-tree]
+        [:div.discrete-mcc-tree
+         [:div.upload
+          [:span "Load tree file"]
+          [:div
+           [:div
+            (cond
+              (and (nil? tree-file-upload-progress) (nil? tree-file))
+              [button-file-upload {:icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+
+              (not= 1 tree-file-upload-progress)
+              [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
+
+              :else [:span.tree-filename tree-file])]
+
+           (if (nil? tree-file)
+             [:p
+              [:span "When upload is complete all unique attributes will be automatically filled."]
+              [:span "You can then select location attribute and change other settings."]]
+             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-tree-file])
+                                :icon     :delete}])]
+
+          [:span "Load locations file"]
+          [:div
+           [:div
+            (cond
+              (and (nil? locations-file-upload-progress) (nil? locations-file))
+              [button-file-upload {:icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
+
+              (not= 1 tree-file-upload-progress)
+              [progress-bar {:class "locations-upload-progress-bar" :progress locations-file-upload-progress :label "Uploading. Please wait"}]
+
+              :else [:span.tree-filename locations-file])]
+
+           (if (nil? locations-file)
+             [:p
+              [:span "Select a file that maps geographical coordinates to the location attribute states."]
+              [:span "Once this file is uploaded you can then start your analysis."]]
+             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-locations-file])
+                                :icon     :delete}])]]
+
+         [:div.settings
+          ;; show indicator before worker parses the attributes
+          (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
+            [busy])
+
+          (when attribute-names
+            [:<>
+             [:fieldset
+              [:legend "name"]
+              [text-input {:value     readable-name
+                           :on-change #(>evt [:discrete-mcc-tree/set-readable-name %])}]]
+
+             [:div.row
+              [:div.column
+               [:span "Select locations attribute"]
+               [:fieldset
+                [:legend "Locations"]
+                [select-input {:value     locations-attribute
+                               :options   attribute-names
+                               :on-change #(>evt [:discrete-mcc-tree/set-locations-attribute %])}]]]
+              [:div.column
+               [:span "Most recent sampling date"]
+               [date-picker {:date-format time/date-format
+                             :on-change   #(>evt [:discrete-mcc-tree/set-most-recent-sampling-date %])
+                             :selected    most-recent-sampling-date}]]]
+
+             [:div.row
+              [:div.column
+               [:span "Time scale"]
+               [:fieldset
+                [:legend "Multiplier"]
+                [amount-input {:class     :multiplier-field
+                               :value     time-scale-multiplier
+                               :on-change #(>evt [:discrete-mcc-tree/set-time-scale-multiplier %])}]]
+               [error-reported (:time-scale-multiplier @field-errors)]]]
+
+             [:div.start-analysis-section
+              [button-with-label {:label     "Start analysis"
+                                  :class     :button-start-analysis
+                                  :disabled? (seq @field-errors)
+                                  :on-click  #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                        :locations-attribute-name  locations-attribute
+                                                                                        :locations-file-url        locations-file-url
+                                                                                        :most-recent-sampling-date most-recent-sampling-date
+                                                                                        :time-scale-multiplier     time-scale-multiplier}])}]
+              [button-with-label {:label    "Paste settings"
+                                  :class    :button-paste-settings
+                                  :on-click #(prn "TODO : paste settings")}]
+              [button-with-label {:label    "Reset"
+                                  :class    :button-reset
+                                  :on-click #(prn "TODO : reset")}]]])]]))))
 
 (defn discrete-rates []
   [:pre "discrete-rates"])

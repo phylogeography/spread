@@ -12,7 +12,7 @@
                     :dispatch-to [:home/initial-query]}})
 
 ;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
-(defn initialize-query [_]
+(defn initial-query [_]
   {:dispatch
    [:graphql/subscription {:id        :home-page
                            :query     "subscription SubscriptionRoot($id: ID!) {

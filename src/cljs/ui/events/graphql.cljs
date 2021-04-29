@@ -1,10 +1,8 @@
 (ns ui.events.graphql
-  (:require ;;["axios" :as axios]
-            [ajax.core :as ajax]
+  (:require [ajax.core :as ajax]
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
             [clojure.string :as string]
-            [day8.re-frame.http-fx]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
             [ui.utils :refer [>evt dispatch-n]]))
@@ -130,29 +128,18 @@
            (assoc-in [:discrete-tree-parsers id :status] status)
            (assoc-in [:discrete-tree-parsers id :progress] progress))})
 
-;; TODO: handler dispatch clash
-;; NOTE: is this one needed? map component wasn't supposed to be calling the API
-#_(defmethod handler :get-continuous-tree
-  [_ _ {:keys [maps output-file-url]}]
-  (re-frame/dispatch [:map/initialize
-                      maps
-                      :continuous-tree
-                      ;; TODO: fix this, why is it coming without protocol?
-                      (str "http://" output-file-url)]))
-
 (defmethod handler :get-continuous-tree
   [{:keys [db]} _ {:keys [id] :as continuous-tree-parser}]
   {:db (update-in db [:continuous-tree-parsers id]
                   merge
                   continuous-tree-parser)})
 
-;; TODO: match on status:
-;; QUEUED | RUNNING -> :queued {:status :progress} -> for left pane status
 (defmethod handler :continuous-tree-parser-status
   [{:keys [db]} _ {:keys [id status progress]}]
-  ;; when worker has parsed the attributes
-  ;; stop the ongoing subscription and query the attributes
-  (when (= status "ATTRIBUTES_PARSED")
+  (case status
+    ;; when worker has parsed the attributes
+    ;; stop the ongoing subscription and query the attributes
+    "ATTRIBUTES_PARSED"
     (dispatch-n [[:graphql/unsubscribe {:id id}]
                  [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {
@@ -161,10 +148,11 @@
                                                           hpdLevels
                                                         }
                                                       }"
-                                  :variables {:id id}}]]))
+                                  :variables {:id id}}]])
 
-  (when (= status "SUCCEEDED")
-    (>evt [:graphql/unsubscribe {:id id}]))
+    "SUCCEEDED"
+    (>evt [:graphql/unsubscribe {:id id}])
+    nil)
 
   {:db (-> db
            (assoc-in [:continuous-tree-parsers id :status] status)
@@ -210,6 +198,75 @@
                                                          }"
                                          :variables {:id id}}]]))
   {:db (assoc-in db [:continuous-tree-parsers id :status] status)})
+
+(defmethod handler :upload-discrete-tree
+  [{:keys [db]} _ {:keys [id status]}]
+  (>evt [:graphql/subscription {:id        id
+                                :query     "subscription DiscreteTreeParserStatus($id: ID!) {
+                                                           discreteTreeParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                :variables {:id id}}])
+  {:db (-> db
+           (assoc-in [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id] id)
+           (assoc-in [:discrete-tree-parsers id :status] status))})
+
+(defmethod handler :discrete-tree-parser-status
+  [{:keys [db]} _ {:keys [id status progress]}]
+  (case status
+    ;; when worker has parsed the attributes
+    ;; stop the ongoing subscription and query the attributes
+    "ATTRIBUTES_PARSED"
+    (dispatch-n [[:graphql/unsubscribe {:id id}]
+                 [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
+                                                        getDiscreteTree(id: $id) {
+                                                          id
+                                                          attributeNames
+                                                        }
+                                                      }"
+                                  :variables {:id id}}]])
+
+    "SUCCEEDED"
+    (>evt [:graphql/unsubscribe {:id id}])
+    nil)
+
+  {:db (-> db
+           (assoc-in [:discrete-tree-parsers id :status] status)
+           (assoc-in [:discrete-tree-parsers id :progress] progress))})
+
+(defmethod handler :get-discrete-tree
+  [{:keys [db]} _ {:keys [id] :as discrete-tree-parser}]
+  {:db (update-in db [:discrete-tree-parsers id]
+                  merge
+                  discrete-tree-parser)})
+
+(defmethod handler :update-discrete-tree
+  [{:keys [db]} _ {:keys [id status]}]
+  (when (= "ARGUMENTS_SET" status)
+    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+                                                  startDiscreteTreeParser(id: $id) {
+                                                    id
+                                                    status
+                                                }
+                                              }"
+                                  :variables {:id id}}]
+                 [:graphql/subscription {:id        id
+                                         :query     "subscription DiscreteTreeParserStatus($id: ID!) {
+                                                           discreteTreeParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                         :variables {:id id}}]]))
+  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
+
+(defmethod handler :start-discrete-tree-parser
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]

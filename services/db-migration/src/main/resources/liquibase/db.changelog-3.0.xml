@@ -14,12 +14,10 @@
       <column name="tree_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-      <column name="locations_file_url" type="VARCHAR(200)">
-        <constraints nullable="false" />
-      </column>
+      <column name="locations_file_url" type="VARCHAR(200)"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
-      <column name="location_attribute_name" type="VARCHAR(50)"/>
+      <column name="locations_attribute_name" type="VARCHAR(50)"/>
       <column name="timescale_multiplier" type="float"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
       <column name="created_on" type="BIGINT">

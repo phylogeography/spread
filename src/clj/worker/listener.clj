@@ -59,7 +59,7 @@
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-discrete-tree" args)
   (try
-    (let [{:keys [user-id location-attribute-name
+    (let [{:keys [user-id locations-attribute-name
                   timescale-multiplier most-recent-sampling-date
                   locations-file-url]}
           (discrete-tree-model/get-tree db {:id id})
@@ -91,7 +91,7 @@
           parser               (doto (new DiscreteTreeParser)
                                  (.setTreeFilePath tree-file-path)
                                  (.setLocationsFilePath locations-file-path)
-                                 (.setLocationTraitAttributeName location-attribute-name)
+                                 (.setLocationTraitAttributeName locations-attribute-name)
                                  (.setTimescaleMultiplier timescale-multiplier)
                                  (.setMostRecentSamplingDate most-recent-sampling-date)
                                  (.registerProgressObserver progress-handler))

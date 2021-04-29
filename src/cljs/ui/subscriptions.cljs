@@ -59,6 +59,25 @@
   (fn [db]
     (get-in db [:new-analysis :continuous-mcc-tree :errors])))
 
+(re-frame/reg-sub
+ ::active-discrete-tree-parser
+ (fn [db _]
+   (let [id (get-in db [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id])]
+     (get (get db :discrete-tree-parsers) id))))
+
+(re-frame/reg-sub
+  ::discrete-mcc-tree
+  (fn [db]
+    (get-in db [:new-analysis :discrete-mcc-tree])))
+
+(re-frame/reg-sub
+  ::discrete-mcc-tree-field-errors
+  (fn [db]
+    (get-in db [:new-analysis :discrete-mcc-tree :errors])))
+
+
+
+
 (comment
   @(re-frame/subscribe [::authorized-user])
   @(re-frame/subscribe [::discrete-tree-parsers])

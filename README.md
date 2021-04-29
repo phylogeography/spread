@@ -62,7 +62,7 @@ Compile and package libspread:
 mvn clean package
 ```
 
-Start an instance of a worker-service:
+Start an instance of the worker-service:
 
 ```bash
 clj -A:run-worker

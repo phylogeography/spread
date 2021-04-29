@@ -23,7 +23,10 @@
                                   }"
                               :variables {:googleCode code :redirectUri redirect-uri}}]})
 
-(defn login-success[{:keys [localstorage]} [_ access-token]]
+;; TODO : this event likely should also connect the WS and getAuthorizedUser
+;; to popultate left pane and the header with user data
+;; see general/initialize
+(defn login-success [{:keys [localstorage]} [_ access-token]]
   (log/debug "login success" {:access-token access-token})
   ;; saves token in browser localstorage and navigates to the home page
   {:localstorage (assoc localstorage :access-token access-token)
