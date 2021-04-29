@@ -45,7 +45,6 @@ public class SpreadData {
         public Builder() {
         }
 
-        // TODO
         public Builder withAnalysisType(String analysisType) {
             this.analysisType = analysisType;
             return this;
