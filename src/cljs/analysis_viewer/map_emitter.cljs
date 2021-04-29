@@ -90,7 +90,6 @@
     objects))
 
 (defn discrete-tree-output->map-data [{:keys [timeline axisAttributes lineAttributes pointAttributes locations layers] :as data}]
-  
   (let [[counts-layer tree-layer] layers
         calc-show-percs (build-show-percentages-calculator timeline)
         all-points (concat (:points counts-layer) (:points tree-layer))
@@ -130,9 +129,42 @@
     (println (gstr/format "Discrete tree, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
     objects))
 
-(defn bayes-output->map-data [_]  
-  ;; TODO: implement
-  (throw (js/Error. "Bayes map data emitter not implemented yet.")))
+(defn bayes-output->map-data [{:keys [axisAttributes lineAttributes pointAttributes locations layers] :as data}]
+  (let [layer (first layers)
+        all-points (:points layer)
+        locations-index (->> locations
+                             (map (fn [l] [(:id l) l]))
+                             (into {}))
+        points-index (build-points-index all-points)        
+        point-coordinate (fn [point-id]
+                           (->> (get points-index point-id)
+                                :locationId
+                                (get locations-index)
+                                :coordinate))
+        points-objects (->> all-points
+                            (map (fn [{:keys [id attributes] :as point}]
+                                   (let [coordinate (point-coordinate id)
+                                         count-attr (get attributes :count)]
+                                     {:type :point
+                                      :show-start 0
+                                      :show-end 1
+                                      :coord (calc-proj-coord coordinate)                                      
+                                      :attrs attributes}))))
+        arcs-objects (->> (:lines layer)
+                          (map (fn [{:keys [startPointId endPointId attributes] :as line}]
+                                 (let [start-point (get points-index startPointId)
+                                       end-point (get points-index endPointId)]
+                                   {:type :arc
+                                    :show-start 0
+                                    :show-end 1
+                                    :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
+                                    :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
+                                    :attrs attributes}))))
+        objects (->> (concat arcs-objects points-objects)
+                     (map-indexed (fn [idx o]
+                                    (assoc o :id idx))))]
+    (println (gstr/format "Bayes analysis, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
+    objects))
 
 (defn timeslicer-output->map-data [_]
   ;; TODO: implement

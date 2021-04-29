@@ -23,11 +23,11 @@
 
 ;; Some discrete tree examples
 
-;; http://localhost:8021/?output-type=discrete-tree&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/985ecd9f-a9eb-425d-9795-7e92a81d2941.json&maps=AU,TZ
+;; http://localhost:8021/?output-type=discrete-tree&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/985ecd9f-a9eb-425d-9795-7e92a81d2941.json&maps=CN
 
 ;; Some bayes examples
 
-;; http://localhost:8021/?output-type=bayes&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/e9d1f428-0d26-42a0-bb7a-b9c14e59d9dd.json&maps=AU,TZ
+;; http://localhost:8021/?output-type=bayes&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/e9d1f428-0d26-42a0-bb7a-b9c14e59d9dd.json&maps=CN
 
 ;; Some timeslicer examples
 
