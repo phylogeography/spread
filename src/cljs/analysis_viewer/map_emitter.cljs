@@ -29,26 +29,33 @@
   (:require [shared.math-utils :as math-utils]
             [goog.string :as gstr]))
 
-(defn continuous-tree-output->map-data [{:keys [timeline layers]}]  
-  (let [layer (first layers) ;; current that format only use one layer
-        {:keys [startTime endTime]} timeline
+(defn build-show-percentages-calculator [timeline]
+  (let [{:keys [startTime endTime]} timeline
         start-time-millis (.getTime (js/Date. startTime))
         end-time-millis (.getTime (js/Date. endTime))
-        timeline-millis (- end-time-millis start-time-millis)
-        calc-show-percs (fn [{:keys [startTime endTime]}]
-                          (let [p-start-time-millis (if startTime
-                                                      (.getTime (js/Date. startTime))
-                                                      start-time-millis)
-                                p-end-time-millis (if endTime
-                                                    (.getTime (js/Date. endTime))
-                                                    end-time-millis)]
-                            {:show-start (/ (- p-start-time-millis start-time-millis) timeline-millis)
-                             :show-end   (/ (- p-end-time-millis start-time-millis) timeline-millis)}))
-        calc-proj-coord (fn [{:keys [xCoordinate yCoordinate]}]
-                          (math-utils/map-coord->proj-coord [xCoordinate yCoordinate]))
-        points-map (->> (:points layer)
-                        (map (fn [p] [(:id p) p]))
-                        (into {}))
+        timeline-millis (- end-time-millis start-time-millis)]
+    (fn [{:keys [startTime endTime]}]
+      (let [p-start-time-millis (if startTime
+                                  (.getTime (js/Date. startTime))
+                                  start-time-millis)
+            p-end-time-millis (if endTime
+                                (.getTime (js/Date. endTime))
+                                end-time-millis)]
+        {:show-start (/ (- p-start-time-millis start-time-millis) timeline-millis)
+         :show-end   (/ (- p-end-time-millis start-time-millis) timeline-millis)}))))
+
+(defn calc-proj-coord [{:keys [xCoordinate yCoordinate]}]
+  (math-utils/map-coord->proj-coord [xCoordinate yCoordinate]))
+
+(defn build-points-index [points]
+  (->> points
+       (map (fn [p] [(:id p) p]))
+       (into {})))
+
+(defn continuous-tree-output->map-data [{:keys [timeline layers]}]  
+  (let [layer (first layers) ;; current that format only use one layer
+        calc-show-percs (build-show-percentages-calculator timeline)
+        points-index (build-points-index (:points layer))
         points-objects (->> (:points layer)
                             (map (fn [{:keys [coordinate attributes] :as point}]
                                    (merge
@@ -58,8 +65,8 @@
                                     (calc-show-percs point)))))
         arcs-objects (->> (:lines layer)
                            (map (fn [{:keys [startPointId endPointId attributes] :as line}]
-                                  (let [start-point (get points-map startPointId)
-                                        end-point (get points-map endPointId)]
+                                  (let [start-point (get points-index startPointId)
+                                        end-point (get points-index endPointId)]
                                     (merge
                                      {:type :arc
                                       :from-coord (calc-proj-coord (:coordinate start-point))
@@ -80,24 +87,54 @@
                                     (assoc o :id idx))))]
     (println timeline)
     (println (gstr/format "Continuous tree, got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
-    (println (gstr/format "Start: %s(%d), End: %s(%d), Total time %ds"
-                          startTime start-time-millis
-                          endTime   end-time-millis
-                          timeline-millis))
     objects))
 
-(defn discrete-tree-output->map-data [_]
-  []
-  ;; TODO: implement 
-  )
+(defn discrete-tree-output->map-data [{:keys [timeline axisAttributes lineAttributes pointAttributes locations layers] :as data}]
+  
+  (let [[counts-layer tree-layer] layers
+        calc-show-percs (build-show-percentages-calculator timeline)
+        all-points (concat (:points counts-layer) (:points tree-layer))
+        locations-index (->> locations
+                             (map (fn [l] [(:id l) l]))
+                             (into {}))
+        points-index (build-points-index all-points)        
+        point-coordinate (fn [point-id]
+                           (->> (get points-index point-id)
+                                :locationId
+                                (get locations-index)
+                                :coordinate))
+        points-objects (->> all-points
+                            (map (fn [{:keys [id attributes] :as point}]
+                                   (let [coordinate (point-coordinate id)
+                                         count-attr (get attributes :count)]
+                                     (cond-> (merge
+                                              {:type :point
+                                               :coord (calc-proj-coord coordinate)                                      
+                                               :attrs attributes}
+                                              (calc-show-percs point))
+                                       count-attr (assoc :radius-factor count-attr))))))
+        arcs-objects (->> (:lines tree-layer)
+                          (map (fn [{:keys [startPointId endPointId attributes] :as line}]
+                                 (let [start-point (get points-index startPointId)
+                                       end-point (get points-index endPointId)]
+                                   (merge
+                                    {:type :arc
+                                     :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
+                                     :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
+                                     :attrs attributes}
+                                    (calc-show-percs line))))))
+        objects (->> (concat arcs-objects points-objects)
+                     (map-indexed (fn [idx o]
+                                    (assoc o :id idx))))]
+    (println timeline)
+    (println (gstr/format "Discrete tree, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
+    objects))
 
-(defn bayes-output->map-data [_]
-  []
-  ;; TODO: implement 
-  )
+(defn bayes-output->map-data [_]  
+  ;; TODO: implement
+  (throw (js/Error. "Bayes map data emitter not implemented yet.")))
 
 (defn timeslicer-output->map-data [_]
-  []
-  ;; TODO: implement 
-  )
+  ;; TODO: implement
+  (throw (js/Error. "Timeslicer map data emitter not implemented yet.")))
 

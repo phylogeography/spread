@@ -50,7 +50,10 @@
 
 (defn data-loaded [{:keys [db]} [_ analysis-type data]]
   (let [analysis-data (case analysis-type
-                        :continuous-tree (map-emitter/continuous-tree-output->map-data data))
+                        :continuous-tree (map-emitter/continuous-tree-output->map-data data)
+                        :discrete-tree   (map-emitter/discrete-tree-output->map-data data)
+                        :bayes           (map-emitter/bayes-output->map-data data)
+                        :timeslicer      (map-emitter/timeslicer-output->map-data data))
         {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box analysis-data)
         padding 2]
 

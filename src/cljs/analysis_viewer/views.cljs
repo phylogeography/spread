@@ -22,12 +22,12 @@
 ;; as svg elements                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-point-object [{:keys [coord show-start show-end]} scale time-perc params]
+(defn svg-point-object [{:keys [coord show-start show-end radius-factor]} scale time-perc params]
   (let [show? (<= show-start time-perc show-end)
         [x1 y1] coord]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r 0.3 #_(/ 0.4 scale) :stroke "#DD0808" :fill "#B20707"}]]))
+     [:circle {:cx x1 :cy y1 :r (* 0.3 (or radius-factor 1)) #_(/ 0.4 scale) :stroke "#DD0808" :fill "#B20707"}]]))
 
 (defn svg-area-object [{:keys [coords show-start show-end]} _ time-perc params]
   (let [show? (<= show-start time-perc show-end)]
