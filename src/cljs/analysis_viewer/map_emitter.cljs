@@ -166,7 +166,22 @@
     (println (gstr/format "Bayes analysis, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
     objects))
 
-(defn timeslicer-output->map-data [_]
-  ;; TODO: implement
-  (throw (js/Error. "Timeslicer map data emitter not implemented yet.")))
+(defn timeslicer-output->map-data [{:keys [timeline areaAttributes layers] :as data}]
+  (let [layer (first layers)
+        calc-show-percs (build-show-percentages-calculator timeline)
+        area-objects (->> (:areas layer)
+                          (map (fn [{:keys [polygon] :as area}]
+                                 (merge
+                                  {:type :area
+                                   :coords (->> (:coordinates polygon)
+                                                (mapv (fn [poly-point]
+                                                        (calc-proj-coord poly-point))))
+                                   :attrs {}}
+                                  (calc-show-percs area)))))
+        objects (->> area-objects
+                     (map-indexed (fn [idx o]
+                                    (assoc o :id idx))))]
+    (println timeline)
+    (println (gstr/format "Timeslicer, got %d areas" (count area-objects)))
+    objects))
 
