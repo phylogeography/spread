@@ -389,6 +389,7 @@ public class DiscreteTreeParser implements IProgressReporter {
                                                  yCoordinate.getId());
 
         SpreadData spreadData = new SpreadData.Builder()
+            .withAnalysisType(ParsersUtils.DISCRETE_TREE)
             .withTimeline(timeline)
             .withAxisAttributes(axis)
             .withLineAttributes(uniqueBranchAttributes)

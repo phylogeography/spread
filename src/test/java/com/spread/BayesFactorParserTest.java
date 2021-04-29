@@ -69,6 +69,8 @@ public class BayesFactorParserTest {
         BayesFactorParser.BayesFactorParserOutput output = gson.fromJson(json, BayesFactorParser.BayesFactorParserOutput.class);
         SpreadData data = output.spreadData;
 
+        assertEquals("returns correct type", ParsersUtils.BAYES_FACTOR, data.getAnalysisType());
+
         List<BayesFactor> bayesFactors = output.bayesFactors;
         assertEquals("Bayes Factors", expected, bayesFactors);
 

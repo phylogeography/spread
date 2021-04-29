@@ -31,7 +31,6 @@ import com.spread.utils.ParsersUtils;
 import jebl.evolution.graphs.Node;
 import jebl.evolution.io.ImportException;
 import jebl.evolution.trees.RootedTree;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -522,6 +521,7 @@ public class ContinuousTreeParser implements IProgressReporter {
         layersList.add(treeLayer);
 
         SpreadData spreadData = new SpreadData.Builder()
+            .withAnalysisType(ParsersUtils.CONTINUOUS_TREE)
             .withTimeline(timeline)
             .withAxisAttributes(axis)
             .withLineAttributes(uniqueBranchAttributes)
