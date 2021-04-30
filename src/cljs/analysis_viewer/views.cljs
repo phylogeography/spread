@@ -1,9 +1,8 @@
 (ns analysis-viewer.views
   "Render maps and analysis data as hiccup svg vectors.
   Also handles animations."
-  (:require [analysis-viewer.subs :as subs]
+  (:require [analysis-viewer.components :refer [switch-button slider]]
             [analysis-viewer.events.maps :as events.maps]
-            [analysis-viewer.components :refer [switch-button slider]]
             [analysis-viewer.svg-renderer :as svg-renderer]
             [clojure.string :as str]
             [goog.string :as gstr]
@@ -22,7 +21,7 @@
 ;; as svg elements                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-point-object [{:keys [coord show-start show-end radius-factor]} scale time-perc params]
+(defn svg-point-object [{:keys [coord show-start show-end radius-factor]} _ time-perc _]
   (let [show? (<= show-start time-perc show-end)
         [x1 y1] coord]
     ;; TODO: add attrs
@@ -41,7 +40,7 @@
        :fill "#9E15E6"
        :opacity (:polygon-opacity params)}]]))
 
-(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end]} scale time-perc params]
+(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end]} scale time-perc _]
   (let [show? (<= show-start time-perc show-end)
         clip-perc (when show?
                     (/ (- time-perc show-start)
@@ -85,11 +84,10 @@
 
 
 
-(defn animation-controls [{:keys [dec-time-fn inc-time-fn time-ref]}]
+(defn animation-controls []
   (let [time @(subscribe [:animation/percentage])
         playing? (= :play @(subscribe [:animation/state]))
         ticks-data @(subscribe [:analysis/data-timeline])
-        zoom-perc 50
         ticks-y-base 80
         ticks-bars-y-base (- ticks-y-base 11)
         ticks-bars-full 50                

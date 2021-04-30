@@ -1,7 +1,6 @@
 (ns analysis-viewer.subs
   (:require [analysis-viewer.svg-renderer :as svg-renderer]
-            [re-frame.core :refer [reg-sub]]
-            [shared.math-utils :as math-utils]))
+            [re-frame.core :refer [reg-sub]]))
 
 (defn geo-json-data-map [db-maps]
   (let [maps {:type "FeatureCollection"
@@ -73,7 +72,7 @@
  :map/parameters
  :<- [:ui/parameters]
  :<- [:switch-buttons/states]
- (fn [[params buttons-states] [_ param-id]]
+ (fn [[params buttons-states] [_]]
    {:map-fill-color "#ffffff"
     :background-color "#ECEFF8"
     :map-stroke-color (if (get buttons-states :map-borders)

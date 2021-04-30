@@ -8,8 +8,7 @@
             [flow-storm.api :as fsa]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [reagent.dom :as rdom]
-            [clojure.string :as str]))
+            [reagent.dom :as rdom]))
 
 (defn ^:dev/before-load stop []
   (js/console.log "Stopping..."))
