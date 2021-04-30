@@ -8,30 +8,17 @@
             [flow-storm.api :as fsa]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [reagent.dom :as rdom]))
+            [reagent.dom :as rdom]
+            [clojure.string :as str]))
 
 (defn ^:dev/before-load stop []
   (js/console.log "Stopping..."))
 
 ;; google-chrome --allow-file-access-from-files file:///home/jmonetta/non-rep-software/spread-d3/language_D3/renderers/d3/d3renderer/index.html
 
-;; Some continuous tree examples
-
-;; http://localhost:8021/?output-type=continuous-tree&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/644e6959-0a6c-4da8-8413-cb4caafe5f62.json&maps=AU,TZ
-;; http://localhost:8021/?maps=AU,TZ&output-type=continuous-tree&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3a6cc419-5da4-4d28-8b0d-f74c98a89d6e.json
-;; http://localhost:8021/?output-type=continuous-tree&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3a6cc419-5da4-4d28-8b0d-f74c98a89d6e.json&maps=AU,TZ
-
-;; Some discrete tree examples
-
-;; http://localhost:8021/?output-type=discrete-tree&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/985ecd9f-a9eb-425d-9795-7e92a81d2941.json&maps=CN
-
-;; Some bayes examples
-
-;; http://localhost:8021/?output-type=bayes&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/e9d1f428-0d26-42a0-bb7a-b9c14e59d9dd.json&maps=CN
-
-;; Some timeslicer examples
-
-;; http://localhost:8021/?output-type=timeslicer&output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/8d76e55a-441b-4e65-8691-7e664b70e5bf.json&maps=AU,TZ
+;; [CT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/dab13811-8c99-454b-9fc4-b31d6dfcae9e.json&maps=
+;; [B]  http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/ba47f735-0a97-40b1-b761-860b1a914e28.json
+;; [TS] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/8d7b6ea9-b4f7-4387-9b35-042e5ed89981.json
 
 (defn parse-url-qstring [qstring]
   (->> (str/split qstring #"&")
@@ -48,10 +35,9 @@
                                                    :map/state ;; this one changes a lot when zooming, dragging, etc
                                                    :animation/percentage ;; this one changes a lot
                                                    ]}) 
-  (let [{:keys [maps output output-type]} (parse-url-qstring (subs js/window.location.search 1))]
+  (let [{:keys [maps output]} (parse-url-qstring (subs js/window.location.search 1))]
     (re-frame/dispatch-sync [:map/initialize
-                             (into ["WORLD"] (str/split maps #",") )
-                             (keyword output-type)
+                             (into ["WORLD"] (remove str/blank? (str/split maps #",")) )                             
                              (str events.maps/s3-bucket-url "/" output)])
     (rdom/render [views/main-screen]
                  (.getElementById js/document "app"))))
