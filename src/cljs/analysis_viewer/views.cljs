@@ -53,7 +53,8 @@
         curve-path-info {:d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
                          :stroke "url(#grad)"
                          :stroke-width (/ 0.6 scale)
-                         :fill :transparent}]
+                         :fill :transparent}
+        misile-size 0.3]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
      [:circle {:cx x1 :cy y1 :r 0.3 #_(/ 0.4 scale) :stroke :red :fill :blue}] 
@@ -63,9 +64,9 @@
               ;; animated dashed curves
               (let [c-length (int (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2))]
                 (assoc curve-path-info
-                       :stroke-dasharray c-length
+                       :stroke-dasharray [(* misile-size c-length) (* (- 1 misile-size) c-length)]
                        :stroke-dashoffset (- c-length (* c-length clip-perc))))
-
+ 
               ;; normal curves
               curve-path-info)]]))
 
@@ -143,6 +144,10 @@
         params @(subscribe [:ui/parameters])]
     (when analysis-data
       [:g {}
+       ;; for debugging the data view-box
+       #_(let [{:keys [x1 y1 x2 y2]} (events.maps/get-analysis-objects-view-box analysis-data)]
+         [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke :red :stroke-width 0.1 :fill :transparent}])
+       
        (for [primitive-object analysis-data]
          ^{:key (str (:id primitive-object))}
          [map-primitive-object primitive-object scale time params])])))
@@ -228,13 +233,13 @@
 
            ;; map background
            [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill "#ECEFF8"}]
-          
+
            ;; map and data svg
            [:g {:transform (gstr/format "translate(%f %f) scale(%f %f)"
                                         (or translate-x 0)
                                         (or translate-y 0)
-                                        scale scale)}
-            [:svg {:view-box "0 0 360 180"}
+                                        scale scale)}            
+            [:svg {:view-box "0 0 360 180" :preserve-aspect-ratio "xMinYMin"}
              [map-group]
              [data-group]]]
 
