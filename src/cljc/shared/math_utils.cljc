@@ -122,8 +122,8 @@
   [x1 y1 x2 y2 proj-scale]
   (let [map-proj-width  360
         map-proj-height 180
-        scale-x (/ map-proj-width  (max (- x2 x1)))
-        scale-y (/ map-proj-height (max (- y2 y1)))
+        scale-x (/ map-proj-width  (- x2 x1))
+        scale-y (/ map-proj-height (- y2 y1))
         scale (min scale-x scale-y)
         tx    (* -1 scale proj-scale x1)
         ty    (* -1 scale proj-scale y1)]

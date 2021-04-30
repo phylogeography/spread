@@ -78,17 +78,23 @@
                 :on-success      [:map/data-loaded analysis-type]
                 :on-failure      [:log-error]}})
 
+(defn calc-proj-scale [{:keys [map/state]}]
+  ;; TODO: this is correct on wide windows, make it work
+  ;; on windows that are higher than wider
+  
+  (let [{:keys [width height]} state
+        width (* 2 height)]
+    (/ width map-proj-width)))
+
 (defn set-view-box [db [_ {:keys [x1 y1 x2 y2]}]]
-  (let [map-screen-width (-> db :map/state :width)
-        proj-scale (/ map-screen-width map-proj-width)
+  (let [proj-scale (calc-proj-scale db)
         {:keys [translate scale]} (math-utils/calc-zoom-for-view-box x1 y1 x2 y2 proj-scale)]
     (-> db
         (update :map/state merge {:translate translate
                                   :scale     scale}))))
 
 (defn zoom [{:keys [map/state] :as db} [_ x y new-scale]]
-  (let [map-screen-width (:width state)
-        proj-scale (/ map-screen-width map-proj-width)
+  (let [proj-scale (calc-proj-scale db)
         {:keys [translate scale]} state
         screen-coords [x y]
         [proj-x proj-y] (math-utils/screen-coord->proj-coord translate scale proj-scale screen-coords)]
@@ -147,11 +153,8 @@
     db))
 
 (defn zoom-rectangle-release [{:keys [db]} _]
-  (println "**********" (:map/state db))
   (let [{:keys [map/state]} db
-        map-screen-width (:width state)
-        proj-scale (/ map-screen-width map-proj-width)
-        _ (println "Proj scale is " proj-scale "->" (:width state) "from " state)
+        proj-scale (calc-proj-scale db)
         {:keys [translate scale zoom-rectangle]} state
         {:keys [origin current]} zoom-rectangle
         [x1 y1] (math-utils/screen-coord->proj-coord translate scale proj-scale origin)              
