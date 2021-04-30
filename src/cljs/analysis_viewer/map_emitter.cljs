@@ -26,8 +26,8 @@
 
   all coordinates are in proj-coord [x y] where 0 <= x  <= 360, 0 <= y <= 180
   "
-  (:require [shared.math-utils :as math-utils]
-            [goog.string :as gstr]))
+  (:require [goog.string :as gstr]
+            [shared.math-utils :as math-utils]))
 
 (defn build-show-percentages-calculator [timeline]
   (let [{:keys [startTime endTime]} timeline
@@ -89,7 +89,7 @@
     (println (gstr/format "Continuous tree, got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
     objects))
 
-(defn discrete-tree-output->map-data [{:keys [timeline axisAttributes lineAttributes pointAttributes locations layers] :as data}]
+(defn discrete-tree-output->map-data [{:keys [timeline locations layers]}]
   (let [[counts-layer tree-layer] layers
         calc-show-percs (build-show-percentages-calculator timeline)
         all-points (concat (:points counts-layer) (:points tree-layer))
@@ -129,7 +129,7 @@
     (println (gstr/format "Discrete tree, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
     objects))
 
-(defn bayes-output->map-data [{:keys [axisAttributes lineAttributes pointAttributes locations layers] :as data}]
+(defn bayes-output->map-data [{:keys [locations layers]}]
   (let [layer (first layers)
         all-points (:points layer)
         locations-index (->> locations
@@ -142,16 +142,15 @@
                                 (get locations-index)
                                 :coordinate))
         points-objects (->> all-points
-                            (map (fn [{:keys [id attributes] :as point}]
-                                   (let [coordinate (point-coordinate id)
-                                         count-attr (get attributes :count)]
+                            (map (fn [{:keys [id attributes]}]
+                                   (let [coordinate (point-coordinate id)]
                                      {:type :point
                                       :show-start 0
                                       :show-end 1
                                       :coord (calc-proj-coord coordinate)                                      
                                       :attrs attributes}))))
         arcs-objects (->> (:lines layer)
-                          (map (fn [{:keys [startPointId endPointId attributes] :as line}]
+                          (map (fn [{:keys [startPointId endPointId attributes]}]
                                  (let [start-point (get points-index startPointId)
                                        end-point (get points-index endPointId)]
                                    {:type :arc
@@ -166,7 +165,7 @@
     (println (gstr/format "Bayes analysis, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
     objects))
 
-(defn timeslicer-output->map-data [{:keys [timeline areaAttributes layers] :as data}]
+(defn timeslicer-output->map-data [{:keys [timeline layers]}]
   (let [layer (first layers)
         calc-show-percs (build-show-percentages-calculator timeline)
         area-objects (->> (:areas layer)

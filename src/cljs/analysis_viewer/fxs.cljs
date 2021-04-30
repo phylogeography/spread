@@ -40,7 +40,7 @@
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg
- (fn [{:keys [geo-json-map analysis-data time opts]}]
+ (fn [{:keys [geo-json-map analysis-data time]}]
    (let [params @(re-frame/subscribe [:ui/parameters])
          map-options @(re-frame/subscribe [:map/parameters])
          svg-text (html (data-map geo-json-map analysis-data time map-options params))

@@ -56,7 +56,7 @@
                         :DiscreteTree   (map-emitter/discrete-tree-output->map-data data)
                         :BayesFactor    (map-emitter/bayes-output->map-data data)
                         :TimeSlicer     (map-emitter/timeslicer-output->map-data data))
-        {:keys [x1 y1 x2 y2] :as vb} (get-analysis-objects-view-box analysis-data)
+        {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box analysis-data)
         padding 2]
 
     {:db (-> db
@@ -84,7 +84,7 @@
   ;; TODO: this is correct on wide windows, make it work
   ;; on windows that are higher than wider
   
-  (let [{:keys [width height]} state
+  (let [{:keys [height]} state
         width (* 2 height)]
     (/ width map-proj-width)))
 
@@ -119,7 +119,7 @@
                   map-state))))))
 
 (defn zoom-inc [{:keys [map/state] :as db} [_ {:keys [delta x y]}]]
-  (let [{:keys [translate scale]} state
+  (let [{:keys [scale]} state
         zoom-dir (if (pos? delta) -1 1)
         new-scale (+ scale (* zoom-dir 0.8))]
     (zoom db [nil x y new-scale])))

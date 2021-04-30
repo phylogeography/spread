@@ -1,7 +1,6 @@
 (ns analysis-viewer.components
   (:require [re-frame.core :refer [dispatch subscribe]]
-            [reagent.core :as r]
-            [goog.string :as gstr]))
+            [reagent.core :as r]))
 
 (defn switch-button [{:keys [id]}]
   (let [on? @(subscribe [:switch-buttons/on? id])]
@@ -60,7 +59,7 @@
                                                                   (- grab-screen-length screen-change)
                                                                   (+ grab-screen-length screen-change))]
                                           (set-new-val (screen-length->val new-screen-length)))))
-                     :on-mouse-up (fn [evt]                                 
+                     :on-mouse-up (fn [_]                                 
                                     (swap! state dissoc :grab-screen-val :grab-screen-length))}        
         [:div.outer {:class (if vertical? "vertical" "horizontal")
                      :style {:width slider-width :height slider-height}}
