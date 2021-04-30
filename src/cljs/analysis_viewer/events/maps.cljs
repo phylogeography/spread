@@ -20,13 +20,13 @@
 ;; TODO: grab this from config
 (def s3-bucket-url "http://127.0.0.1:9000/spread-dev-uploads/")
 
-(defn initialize [_ [_ maps analysis-type analysis-data-url]]
+(defn initialize [_ [_ maps analysis-data-url]]
   (let [load-maps-events (->> maps
                               (mapv (fn [map-code]
                                       (let [world-map? (string/ends-with? map-code "WORLD")]
                                         [:map/load-map (cond-> {:map/url (str s3-bucket-url "maps/country-code-maps/" map-code ".json")}
                                                          world-map? (assoc :map/z-index 0))]))))
-        load-data-event [:map/load-data analysis-type analysis-data-url]]
+        load-data-event [:map/load-data analysis-data-url]]
     {:db (db/initial-db) 
      :fx (->> (conj load-maps-events load-data-event)
               (map (fn [ev] [:dispatch ev])))}))
@@ -48,12 +48,14 @@
      :x2 (apply max (map first all-coords))
      :y2 (apply max (map second all-coords))}))
 
-(defn data-loaded [{:keys [db]} [_ analysis-type data]]
-  (let [analysis-data (case analysis-type
-                        :continuous-tree (map-emitter/continuous-tree-output->map-data data)
-                        :discrete-tree   (map-emitter/discrete-tree-output->map-data data)
-                        :bayes           (map-emitter/bayes-output->map-data data)
-                        :timeslicer      (map-emitter/timeslicer-output->map-data data))
+(defn data-loaded [{:keys [db]} [_ data]]
+  (println "Loaded analysis of type " (:analysisType data) "with keys:" (keys data))
+  (let [analysis-type (keyword (:analysisType data))
+        analysis-data (case analysis-type
+                        :ContinuousTree (map-emitter/continuous-tree-output->map-data data)
+                        :DiscreteTree   (map-emitter/discrete-tree-output->map-data data)
+                        :BayesFactor    (map-emitter/bayes-output->map-data data)
+                        :TimeSlicer     (map-emitter/timeslicer-output->map-data data))
         {:keys [x1 y1 x2 y2] :as vb} (get-analysis-objects-view-box analysis-data)
         padding 2]
 
@@ -70,12 +72,12 @@
                 :on-success      [:map/map-loaded map-data]
                 :on-failure      [:log-error]}})
 
-(defn load-data [_ [_ analysis-type analysis-data-url]]
+(defn load-data [_ [_ analysis-data-url]]
   {:http-xhrio {:method          :get
                 :uri             analysis-data-url
                 :timeout         8000 
                 :response-format (ajax/json-response-format {:keywords? true}) 
-                :on-success      [:map/data-loaded analysis-type]
+                :on-success      [:map/data-loaded]
                 :on-failure      [:log-error]}})
 
 (defn calc-proj-scale [{:keys [map/state]}]
