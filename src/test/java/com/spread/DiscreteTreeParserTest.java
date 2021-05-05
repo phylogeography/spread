@@ -72,12 +72,9 @@ public class DiscreteTreeParserTest {
         assertEquals("returns correct x coordinate", 118.283, loc.getCoordinate().getXCoordinate(), 0.0);
         assertEquals("returns correct x coordinate", 25.917, loc.getCoordinate().getYCoordinate(), 0.0);
 
-        // assertEquals("first layer is counts", Layer.Type.counts, data.getLayers().get(0).getType());
-        assertEquals("returns correct number of Points in Layer", 20, data.getLayers().get(0).getPoints().size());
-
-        // assertEquals("second layer is tree", Layer.Type.tree, data.getLayers().get(1).getType());
-        assertEquals("returns correct number of points", 51, data.getLayers().get(1).getPoints().size());
-        assertEquals("returns correct number of lines", 30, data.getLayers().get(1).getLines().size());
+        assertEquals("returns correct number of counts", 20, data.getLayers().get(0).getCounts().size ());
+        assertEquals("returns correct number of points", 51, data.getLayers().get(0).getPoints().size());
+        assertEquals("returns correct number of lines", 30, data.getLayers().get(0).getLines().size());
     }
 
 }

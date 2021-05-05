@@ -368,13 +368,13 @@ public class DiscreteTreeParser implements IProgressReporter {
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-        Layer countsLayer = new Layer.Builder ().withPoints (countsList).build ();
-
-        layersList.add(countsLayer);
+        // Layer countsLayer = new Layer.Builder ().withPoints (countsList).build ();
+        // layersList.add(countsLayer);
 
         Layer treeLayer = new Layer.Builder ()
             .withPoints (pointsList)
             .withLines (linesList)
+            .withCounts (countsList)
             .build ();
 
         layersList.add(treeLayer);
