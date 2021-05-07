@@ -38,3 +38,14 @@
    (doall
      (for [option options]
        [:option {:key option} option]))])
+
+(defn range-input
+  [{:keys [value min max on-change class]}]
+  [:input {:type      :range
+           :class     class
+           :value     value
+           :min min
+           :max max
+           :on-change (fn [^js event]
+                        (let [value (-> event .-target .-value)]
+                          (on-change value)))}])

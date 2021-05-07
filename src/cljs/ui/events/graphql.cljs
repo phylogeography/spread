@@ -268,6 +268,45 @@
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
+(defmethod handler :upload-bayes-factor-analysis
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (-> db
+           (assoc-in [:new-analysis :bayes-factor :bayes-factor-parser-id] id)
+           (assoc-in [:bayes-factor-parsers id :status] status))})
+
+(defmethod handler :update-bayes-factor-analysis
+  [{:keys [db]} _ {:keys [id status]}]
+  (when (= "ARGUMENTS_SET" status)
+    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+                                                startBayesFactorParser(id: $id) {
+                                                 status
+                                                }
+                                              }"
+                                  :variables {:id id}}]
+                 [:graphql/subscription {:id        id
+                                         :query     "subscription BayesFactorParserStatus($id: ID!) {
+                                                           bayesFactorParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                         :variables {:id id}}]]))
+  {:db (assoc-in db [:bayes-factor-parsers id :status] status)})
+
+(defmethod handler :start-bayes-factor-parser
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (assoc-in db [:bayes-factor-parsers id :status] status)})
+
+(defmethod handler :bayes-factor-parser-status
+  [{:keys [db]} _ {:keys [id status progress]}]
+  (when status
+    "SUCCEEDED"
+    (>evt [:graphql/unsubscribe {:id id}]))
+  {:db (-> db
+           (assoc-in [:bayes-factor-parsers id :status] status)
+           (assoc-in [:bayes-factor-parsers id :progress] progress))})
+
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
   {:db (-> db

@@ -6,7 +6,7 @@
              [button-file-upload button-with-icon button-with-label]]
             [ui.component.date-picker :refer [date-picker]]
             [ui.component.indicator :refer [busy]]
-            [ui.component.input :refer [amount-input select-input text-input]]
+            [ui.component.input :refer [amount-input select-input text-input range-input]]
             [ui.component.progress :refer [progress-bar]]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
@@ -42,10 +42,11 @@
            [:div
             (cond
               (and (nil? tree-file-upload-progress) (nil? tree-file))
-              [button-file-upload {:icon             :upload
+              [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
+                                   :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
+                                   :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
 
               (not= 1 tree-file-upload-progress)
               [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
@@ -56,7 +57,7 @@
              [:p
               [:span "When upload is complete all unique attributes will be automatically filled."]
               [:span "You can then select geographical coordinates and change other settings."]]
-             [button-with-icon {:on-click #(>evt [:continuous-mcc-tree/delete-tree-file])
+             [button-with-icon {:on-click #(>evt [:bayes-factor/delete-log-file])
                                 :icon     :delete}])]]
 
          [:div.settings
@@ -151,7 +152,8 @@
            [:div
             (cond
               (and (nil? tree-file-upload-progress) (nil? tree-file))
-              [button-file-upload {:icon             :upload
+              [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
+                                   :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
@@ -173,7 +175,8 @@
            [:div
             (cond
               (and (nil? locations-file-upload-progress) (nil? locations-file))
-              [button-file-upload {:icon             :upload
+              [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
+                                   :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
@@ -186,7 +189,7 @@
            (if (nil? locations-file)
              [:p
               [:span "Select a file that maps geographical coordinates to the location attribute states."]
-              [:span "Once this file is uploaded you can then start your analysis."]]
+              [:span "Once this file is uploaded you can start your analysis."]]
              [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-locations-file])
                                 :icon     :delete}])]]
 
@@ -243,8 +246,105 @@
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
 (defn discrete-rates []
-  [:pre "discrete-rates"])
+  (let [bayes-factor        (re-frame/subscribe [::subs/bayes-factor])
+        bayes-factor-parser (re-frame/subscribe [::subs/active-bayes-factor-parser])
+        field-errors        (re-frame/subscribe [::subs/bayes-factor-field-errors])]
+    (fn []
+      (let [{:keys [status]} @bayes-factor-parser
+            {:keys [log-file
+                    log-file-upload-progress
+                    locations-file
+                    locations-file-url
+                    locations-file-upload-progress
+                    readable-name
+                    burn-in]
+             :or   {burn-in 10}}
+            @bayes-factor]
+        [:div.bayes-factor
+         [:div.upload
+          [:span "Load log file"]
+          [:div
+           [:div
+            (cond
+              (and (nil? log-file-upload-progress) (nil? log-file))
+              [button-file-upload {:id               "bayes-factor-log-file-upload-button"
+                                   :icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
 
+              (not= 1 log-file-upload-progress)
+              [progress-bar {:class "log-file-upload-progress-bar" :progress log-file-upload-progress :label "Uploading. Please wait"}]
+
+              :else [:span.log-filename log-file])]
+
+           (if (nil? log-file)
+             [:p
+              [:span  "Upload log file."]
+              [:span  "You can then upload a matching coordinates file."]]
+             [button-with-icon {:on-click #(>evt [:bayes-factor/delete-log-file])
+                                :icon     :delete}])]
+
+          [:span "Load locations file"]
+          [:div
+           [:div
+            (cond
+              (and (nil? locations-file-upload-progress) (nil? locations-file))
+              [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
+                                   :icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
+
+              (not= 1 locations-file-upload-progress)
+              [progress-bar {:class "locations-upload-progress-bar" :progress locations-file-upload-progress :label "Uploading. Please wait"}]
+
+              :else [:span.locations-filename locations-file])]
+
+           (if (nil? locations-file)
+             [:p
+              [:span "Select a file that maps geographical coordinates to the locations."]
+              [:span "Once this file is uploaded you can then start your analysis."]]
+             [button-with-icon {:on-click #(>evt [:bayes-factor/delete-locations-file])
+                                :icon     :delete}])]]
+
+         [:div.settings
+          (when (= "UPLOADING" status)
+            [busy])
+
+          (when (and (= 1 log-file-upload-progress)
+                     (= 1 locations-file-upload-progress))
+            [:<>
+             [:fieldset
+              [:legend "name"]
+              [text-input {:value     readable-name
+                           :on-change #(>evt [:bayes-factor/set-readable-name %])}]]
+
+             [:div.row
+              [:div.column
+               [:span "Select burn-in"]
+               [:fieldset
+                [:legend "Burn-in"]
+                [range-input {:value     burn-in
+                              :min       0
+                              :max       99
+                              :on-change #(>evt [:bayes-factor/set-burn-in %])}]]]]
+
+             [:div.start-analysis-section
+              [button-with-label {:label     "Start analysis"
+                                  :class     :button-start-analysis
+                                  :disabled? (seq @field-errors)
+                                  :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name      readable-name
+                                                                                   :burn-in            (/ burn-in 100)
+                                                                                   :locations-file-url locations-file-url}])}]
+              [button-with-label {:label    "Paste settings"
+                                  :class    :button-paste-settings
+                                  :on-click #(prn "TODO : paste settings")}]
+              [button-with-label {:label    "Reset"
+                                  :class    :button-reset
+                                  :on-click #(prn "TODO : reset")}]]])]]))))
+
+;; TODO : add MCC tree to inputs
 (defn continuous-time-slices []
   [:pre "continuous-time-slices"])
 

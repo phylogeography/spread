@@ -26,7 +26,7 @@
           (Thread/sleep 1000)
           (recur (query-status id)))))))
 
-(deftest continuous-tree-test
+(deftest bayes-factor-test
   (let [[log-url locations-url] (get-in (run-query {:query
                                                     "mutation GetUploadUrls($files: [File]) {
                                                         getUploadUrls(files: $files)
@@ -85,11 +85,12 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id readableName createdOn status progress outputFileUrl bayesFactors]}
+        {:keys [id readableName burnIn createdOn status progress outputFileUrl bayesFactors]}
         (get-in (run-query {:query
                             "query GetResults($id: ID!) {
                                      getBayesFactorAnalysis(id: $id) {
                                        id
+                                       burnIn
                                        readableName
                                        createdOn
                                        status
@@ -108,9 +109,14 @@
 
     (log/debug "response" {:id            id
                            :name          readableName
+                           :burn-in       burnIn
                            :created-on    createdOn
                            :status        status
                            :bayes-factors bayesFactors})
+
+    (is (= (Float/parseFloat (format "%.2f" 0.1))
+           ;; because apollo returns floats with max precision 0.10000000149011612
+           (Float/parseFloat (format "%.2f" burnIn))))
 
     (is (= (:dd (time/now))
            (:dd (time/from-millis createdOn))))

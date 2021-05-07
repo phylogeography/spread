@@ -326,7 +326,7 @@
 (defn update-bayes-factor-analysis
   [{:keys [authed-user-id db]} {id                  :id
                                 readable-name       :readableName
-                                ;; locations-file-url  :locationsFileUrl
+                                locations-file-url  :locationsFileUrl
                                 number-of-locations :numberOfLocations
                                 burn-in             :burnIn
                                 :or                 {burn-in 0.1}
@@ -336,10 +336,11 @@
   (try
     (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
-      (discrete-tree-model/update! db {:id                  id
-                                       :readable-name       readable-name
-                                       :number-of-locations number-of-locations
-                                       :burn-in             burn-in})
+      (bayes-factor-model/update! db {:id                  id
+                                      :readable-name       readable-name
+                                      :locations-file-url  locations-file-url
+                                      :number-of-locations number-of-locations
+                                      :burn-in             burn-in})
       (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
                                              :status                   status})
       {:id     id
