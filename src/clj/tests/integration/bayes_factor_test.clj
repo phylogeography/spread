@@ -90,6 +90,7 @@
                             "query GetResults($id: ID!) {
                                      getBayesFactorAnalysis(id: $id) {
                                        id
+                                       burnIn
                                        readableName
                                        createdOn
                                        status
@@ -108,12 +109,14 @@
 
     (log/debug "response" {:id            id
                            :name          readableName
-                           :burnIn burnIn
+                           :burn-in       burnIn
                            :created-on    createdOn
                            :status        status
                            :bayes-factors bayesFactors})
 
-    (is (= 0.1 burnIn))
+    (is (= (Float/parseFloat (format "%.2f" 0.1))
+           ;; because apollo returns floats with max precision 0.10000000149011612
+           (Float/parseFloat (format "%.2f" burnIn))))
 
     (is (= (:dd (time/now))
            (:dd (time/from-millis createdOn))))

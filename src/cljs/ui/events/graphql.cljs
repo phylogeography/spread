@@ -268,15 +268,12 @@
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
-;; TODO : Bayes factor rates
-
 (defmethod handler :upload-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id status]}]
   {:db (-> db
            (assoc-in [:new-analysis :bayes-factor :bayes-factor-parser-id] id)
            (assoc-in [:bayes-factor-parsers id :status] status))})
 
-;; TODO
 (defmethod handler :update-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id status]}]
   (when (= "ARGUMENTS_SET" status)
@@ -303,32 +300,12 @@
 
 (defmethod handler :bayes-factor-parser-status
   [{:keys [db]} _ {:keys [id status progress]}]
-
-  (prn "@@@ bayes-factor-parser-status" {:status status})
-
   (when status
     "SUCCEEDED"
     (>evt [:graphql/unsubscribe {:id id}]))
-
   {:db (-> db
            (assoc-in [:bayes-factor-parsers id :status] status)
            (assoc-in [:bayes-factor-parsers id :progress] progress))})
-
-
-;; END: TODO
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]

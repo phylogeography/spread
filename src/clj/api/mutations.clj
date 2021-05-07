@@ -338,7 +338,7 @@
       ;; TODO : in a transaction
       (bayes-factor-model/update! db {:id                  id
                                       :readable-name       readable-name
-                                      :locations-file-url locations-file-url
+                                      :locations-file-url  locations-file-url
                                       :number-of-locations number-of-locations
                                       :burn-in             burn-in})
       (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
