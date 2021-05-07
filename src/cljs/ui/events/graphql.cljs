@@ -306,22 +306,9 @@
 
   (prn "@@@ bayes-factor-parser-status" {:status status})
 
-  #_(case status
-    ;; when worker
-    ;; stop the ongoing subscription and query the attributes
-    "ATTRIBUTES_PARSED"
-    (dispatch-n [[:graphql/unsubscribe {:id id}]
-                 #_[:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
-                                                        getDiscreteTree(id: $id) {
-                                                          id
-                                                          attributeNames
-                                                        }
-                                                      }"
-                                  :variables {:id id}}]])
-
-   #_ "SUCCEEDED"
-    #_(>evt [:graphql/unsubscribe {:id id}])
-    nil)
+  (when status
+    "SUCCEEDED"
+    (>evt [:graphql/unsubscribe {:id id}]))
 
   {:db (-> db
            (assoc-in [:bayes-factor-parsers id :status] status)

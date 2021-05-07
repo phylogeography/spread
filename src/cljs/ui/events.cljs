@@ -1,16 +1,18 @@
 (ns ui.events
-  (:require [re-frame.core :as re-frame :refer [reg-event-fx]]
-            [ui.events.analysis :as events.analysis]
-            [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
-            [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
-            [ui.events.bayes-factor :as events.bayes-factor]
-            day8.re-frame.http-fx
-            [ui.events.general :as events.general]
-            [ui.events.graphql :as events.graphql]
-            [ui.events.home :as events.home]
-            [ui.events.router :as events.router]
-            [ui.events.splash :as events.splash]
-            [ui.events.websocket :as events.websocket]))
+  (:require
+   [day8.re-frame.http-fx]
+   [re-frame.core :as re-frame :refer [reg-event-fx]]
+   [ui.events.analysis :as events.analysis]
+   [ui.events.bayes-factor :as events.bayes-factor]
+   [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
+   [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
+   [ui.events.general :as events.general]
+   [ui.events.graphql :as events.graphql]
+   [ui.events.home :as events.home]
+   [ui.events.router :as events.router]
+   [ui.events.splash :as events.splash]
+   [ui.events.websocket :as events.websocket]
+   ))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; General events ;;
@@ -99,6 +101,7 @@
 (re-frame/reg-event-fx :bayes-factor/locations-file-upload-success events.bayes-factor/locations-file-upload-success)
 (re-frame/reg-event-fx :bayes-factor/delete-locations-file events.bayes-factor/delete-locations-file)
 (re-frame/reg-event-fx :bayes-factor/set-burn-in events.bayes-factor/set-burn-in)
+(re-frame/reg-event-fx :bayes-factor/set-readable-name events.bayes-factor/set-readable-name)
 (re-frame/reg-event-fx :bayes-factor/start-analysis events.bayes-factor/start-analysis)
 
 ;;;;;;;;;;;;;;;;;;;;;;;

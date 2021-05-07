@@ -189,7 +189,7 @@
            (if (nil? locations-file)
              [:p
               [:span "Select a file that maps geographical coordinates to the location attribute states."]
-              [:span "Once this file is uploaded you can then start your analysis."]]
+              [:span "Once this file is uploaded you can start your analysis."]]
              [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-locations-file])
                                 :icon     :delete}])]]
 
@@ -245,7 +245,6 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
-;; TODO
 (defn discrete-rates []
   (let [bayes-factor        (re-frame/subscribe [::subs/bayes-factor])
         bayes-factor-parser (re-frame/subscribe [::subs/active-bayes-factor-parser])
@@ -261,10 +260,6 @@
                     burn-in]
              :or   {burn-in 10}}
             @bayes-factor]
-
-        (prn "@@@ bf" {:parser @bayes-factor-parser
-                       :bf     @bayes-factor})
-
         [:div.bayes-factor
          [:div.upload
           [:span "Load log file"]
@@ -273,7 +268,6 @@
             (cond
               (and (nil? log-file-upload-progress) (nil? log-file))
               [button-file-upload {:id               "bayes-factor-log-file-upload-button"
-                                   :style            {:background :red}
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
@@ -286,8 +280,8 @@
 
            (if (nil? log-file)
              [:p
-              [:span "TODO" #_"When upload is complete all unique attributes will be automatically filled."]
-              [:span "TODO" #_"You can then select location attribute and change other settings."]]
+              [:span  "Upload log file."]
+              [:span  "You can then upload a matching coordinates file."]]
              [button-with-icon {:on-click #(>evt [:bayes-factor/delete-log-file])
                                 :icon     :delete}])]
 
@@ -315,8 +309,7 @@
                                 :icon     :delete}])]]
 
          [:div.settings
-          (when (and (not (nil? status))
-                     (not (= "UPLOADED" status)))
+          (when (= "UPLOADING" status)
             [busy])
 
           (when (and (= 1 log-file-upload-progress)
@@ -342,7 +335,7 @@
                                   :class     :button-start-analysis
                                   :disabled? (seq @field-errors)
                                   :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name      readable-name
-                                                                                   :burn-in (/ burn-in 100)
+                                                                                   :burn-in            (/ burn-in 100)
                                                                                    :locations-file-url locations-file-url}])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
