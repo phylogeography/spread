@@ -97,8 +97,8 @@
 ;; TODO
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
 
-  (prn "@start-analysis" {:name             readable-name
-                          :locationsFileUrl locations-file-url
+  (prn "@start-analysis" {:readable-name    readable-name
+                          :locations-file-url locations-file-url
                           :burn-in          burn-in})
 
   (let [id (get-in db [:new-analysis :bayes-factor :bayes-factor-parser-id])]

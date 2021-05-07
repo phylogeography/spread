@@ -325,11 +325,11 @@
                      (.setBurnIn (double burn-in))
                      (.registerProgressObserver progress-handler)))
 
-                 [true true]
-                 (throw (ex-info "Bad input settings"
-                                 {:why?   "Can't specify both `log-file-path` and `number-of-locations`"
-                                  :where? ::parse-bayes-factors}))
                  [false false]
+                 (throw (ex-info "Bad input settings"
+                                 {:why?   "Can't specify both `locations-file-path` and `number-of-locations`"
+                                  :where? ::parse-bayes-factors}))
+                 [true true]
                  (throw (ex-info "Bad input settings"
                                  {:why?   "You need to specify one of `log-file-path` and `number-of-locations`"
                                   :where? ::parse-bayes-factors}))
