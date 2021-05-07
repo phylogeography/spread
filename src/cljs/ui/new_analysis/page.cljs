@@ -6,7 +6,7 @@
              [button-file-upload button-with-icon button-with-label]]
             [ui.component.date-picker :refer [date-picker]]
             [ui.component.indicator :refer [busy]]
-            [ui.component.input :refer [amount-input select-input text-input]]
+            [ui.component.input :refer [amount-input select-input text-input range-input]]
             [ui.component.progress :refer [progress-bar]]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
@@ -42,7 +42,7 @@
            [:div
             (cond
               (and (nil? tree-file-upload-progress) (nil? tree-file))
-              [button-file-upload {:id "continuous-mcc-tree-file-upload-button"
+              [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
@@ -152,7 +152,7 @@
            [:div
             (cond
               (and (nil? tree-file-upload-progress) (nil? tree-file))
-              [button-file-upload {:id "discrete-mcc-tree-file-upload-button"
+              [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
@@ -175,7 +175,7 @@
            [:div
             (cond
               (and (nil? locations-file-upload-progress) (nil? locations-file))
-              [button-file-upload {:id "discrete-mcc-locations-file-upload-button"
+              [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
@@ -249,33 +249,21 @@
 (defn discrete-rates []
   (let [bayes-factor        (re-frame/subscribe [::subs/bayes-factor])
         bayes-factor-parser (re-frame/subscribe [::subs/active-bayes-factor-parser])
-        field-errors        (re-frame/subscribe [::subs/bayes-factor-field-errors])
-        ]
+        field-errors        (re-frame/subscribe [::subs/bayes-factor-field-errors])]
     (fn []
-
-
       (let [{:keys [status]} @bayes-factor-parser
-            {:keys [
-                    log-file
+            {:keys [log-file
                     log-file-upload-progress
                     locations-file
                     locations-file-url
                     locations-file-upload-progress
                     readable-name
-                    ;; locations-attribute
-                    ;; most-recent-sampling-date
-                    ;; time-scale-multiplier
-                    ]
-             :or   {
-                    ;; locations-attribute       (first attribute-names)
-                    ;; most-recent-sampling-date (time/now)
-                    ;; time-scale-multiplier     1
-                    }
-             }
+                    burn-in]
+             :or   {burn-in 10}}
             @bayes-factor]
 
         (prn "@@@ bf" {:parser @bayes-factor-parser
-                       :bf @bayes-factor})
+                       :bf     @bayes-factor})
 
         [:div.bayes-factor
          [:div.upload
@@ -284,8 +272,8 @@
            [:div
             (cond
               (and (nil? log-file-upload-progress) (nil? log-file))
-              [button-file-upload {:id "bayes-factor-log-file-upload-button"
-                                   :style {:background :red}
+              [button-file-upload {:id               "bayes-factor-log-file-upload-button"
+                                   :style            {:background :red}
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
@@ -305,91 +293,65 @@
 
           [:span "Load locations file"]
           [:div
-             [:div
-              (cond
-                (and (nil? locations-file-upload-progress) (nil? locations-file))
-                [button-file-upload {:id "bayes-factor-locations-file-upload-button"
-                                     :icon             :upload
-                                     :class            "upload-button"
-                                     :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
+           [:div
+            (cond
+              (and (nil? locations-file-upload-progress) (nil? locations-file))
+              [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
+                                   :icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
 
-                (not= 1 locations-file-upload-progress)
-                [progress-bar {:class "locations-upload-progress-bar" :progress locations-file-upload-progress :label "Uploading. Please wait"}]
+              (not= 1 locations-file-upload-progress)
+              [progress-bar {:class "locations-upload-progress-bar" :progress locations-file-upload-progress :label "Uploading. Please wait"}]
 
-                :else [:span.locations-filename locations-file])]
+              :else [:span.locations-filename locations-file])]
 
-             (if (nil? locations-file)
-               [:p
-                [:span "Select a file that maps geographical coordinates to the locations."]
-                [:span "Once this file is uploaded you can then start your analysis."]]
-               [button-with-icon {:on-click #(>evt [:bayes-factor/delete-locations-file])
-                                  :icon     :delete}])]]
+           (if (nil? locations-file)
+             [:p
+              [:span "Select a file that maps geographical coordinates to the locations."]
+              [:span "Once this file is uploaded you can then start your analysis."]]
+             [button-with-icon {:on-click #(>evt [:bayes-factor/delete-locations-file])
+                                :icon     :delete}])]]
 
          [:div.settings
+          (when (and (not (nil? status))
+                     (not (= "UPLOADED" status)))
+            [busy])
 
-          #_(cond
-            (= 1 log-file-upload-progress)
+          (when (and (= 1 log-file-upload-progress)
+                     (= 1 locations-file-upload-progress))
+            [:<>
+             [:fieldset
+              [:legend "name"]
+              [text-input {:value     readable-name
+                           :on-change #(>evt [:bayes-factor/set-readable-name %])}]]
 
-
-            )
-
-            #_(when-not (= 1 log-file-upload-progress) #_(nil? attribute-names)
-              [busy])
-
-            #_(when attribute-names
-              [:<>
+             [:div.row
+              [:div.column
+               [:span "Select burn-in"]
                [:fieldset
-                [:legend "name"]
-                [text-input {:value     readable-name
-                             :on-change #(>evt [:discrete-mcc-tree/set-readable-name %])}]]
+                [:legend "Burn-in"]
+                [range-input {:value     burn-in
+                              :min       0
+                              :max       99
+                              :on-change #(>evt [:bayes-factor/set-burn-in %])}]]]]
 
-               [:div.row
-                [:div.column
-                 [:span "Select locations attribute"]
-                 [:fieldset
-                  [:legend "Locations"]
-                  [select-input {:value     locations-attribute
-                                 :options   attribute-names
-                                 :on-change #(>evt [:discrete-mcc-tree/set-locations-attribute %])}]]]
-                [:div.column
-                 [:span "Most recent sampling date"]
-                 [date-picker {:date-format time/date-format
-                               :on-change   #(>evt [:discrete-mcc-tree/set-most-recent-sampling-date %])
-                               :selected    most-recent-sampling-date}]]]
+             [:div.start-analysis-section
+              [button-with-label {:label     "Start analysis"
+                                  :class     :button-start-analysis
+                                  :disabled? (seq @field-errors)
+                                  :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name      readable-name
+                                                                                   :burn-in (/ burn-in 100)
+                                                                                   :locations-file-url locations-file-url}])}]
+              [button-with-label {:label    "Paste settings"
+                                  :class    :button-paste-settings
+                                  :on-click #(prn "TODO : paste settings")}]
+              [button-with-label {:label    "Reset"
+                                  :class    :button-reset
+                                  :on-click #(prn "TODO : reset")}]]])]]))))
 
-               [:div.row
-                [:div.column
-                 [:span "Time scale"]
-                 [:fieldset
-                  [:legend "Multiplier"]
-                  [amount-input {:class     :multiplier-field
-                                 :value     time-scale-multiplier
-                                 :on-change #(>evt [:discrete-mcc-tree/set-time-scale-multiplier %])}]]
-                 [error-reported (:time-scale-multiplier @field-errors)]]]
-
-               [:div.start-analysis-section
-                [button-with-label {:label     "Start analysis"
-                                    :class     :button-start-analysis
-                                    :disabled? (seq @field-errors)
-                                    :on-click  #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                                          :locations-attribute-name  locations-attribute
-                                                                                          :locations-file-url        locations-file-url
-                                                                                          :most-recent-sampling-date most-recent-sampling-date
-                                                                                          :time-scale-multiplier     time-scale-multiplier}])}]
-                [button-with-label {:label    "Paste settings"
-                                    :class    :button-paste-settings
-                                    :on-click #(prn "TODO : paste settings")}]
-                [button-with-label {:label    "Reset"
-                                    :class    :button-reset
-                                    :on-click #(prn "TODO : reset")}]]])]])))
-
-
-
-
-
-  )
-
+;; TODO : add MCC tree to inputs
 (defn continuous-time-slices []
   [:pre "continuous-time-slices"])
 

@@ -85,7 +85,7 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id readableName createdOn status progress outputFileUrl bayesFactors]}
+        {:keys [id readableName burnIn createdOn status progress outputFileUrl bayesFactors]}
         (get-in (run-query {:query
                             "query GetResults($id: ID!) {
                                      getBayesFactorAnalysis(id: $id) {
@@ -108,9 +108,12 @@
 
     (log/debug "response" {:id            id
                            :name          readableName
+                           :burnIn burnIn
                            :created-on    createdOn
                            :status        status
                            :bayes-factors bayesFactors})
+
+    (is (= 0.1 burnIn))
 
     (is (= (:dd (time/now))
            (:dd (time/from-millis createdOn))))

@@ -336,10 +336,10 @@
   (try
     (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
-      (discrete-tree-model/update! db {:id                  id
-                                       :readable-name       readable-name
-                                       :number-of-locations number-of-locations
-                                       :burn-in             burn-in})
+      (bayes-factor-model/update! db {:id                  id
+                                      :readable-name       readable-name
+                                      :number-of-locations number-of-locations
+                                      :burn-in             burn-in})
       (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
                                              :status                   status})
       {:id     id

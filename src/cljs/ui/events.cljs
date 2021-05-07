@@ -93,12 +93,13 @@
 (re-frame/reg-event-fx :bayes-factor/log-file-upload-progress events.bayes-factor/log-file-upload-progress)
 (re-frame/reg-event-fx :bayes-factor/log-file-upload-success events.bayes-factor/log-file-upload-success)
 (re-frame/reg-event-fx :bayes-factor/delete-log-file events.bayes-factor/delete-log-file)
-
 (re-frame/reg-event-fx :bayes-factor/on-locations-file-selected events.bayes-factor/on-locations-file-selected)
 (re-frame/reg-event-fx :bayes-factor/s3-locations-file-upload events.bayes-factor/s3-locations-file-upload)
 (re-frame/reg-event-fx :bayes-factor/locations-file-upload-progress events.bayes-factor/locations-file-upload-progress)
 (re-frame/reg-event-fx :bayes-factor/locations-file-upload-success events.bayes-factor/locations-file-upload-success)
 (re-frame/reg-event-fx :bayes-factor/delete-locations-file events.bayes-factor/delete-locations-file)
+(re-frame/reg-event-fx :bayes-factor/set-burn-in events.bayes-factor/set-burn-in)
+(re-frame/reg-event-fx :bayes-factor/start-analysis events.bayes-factor/start-analysis)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Websockets events ;;

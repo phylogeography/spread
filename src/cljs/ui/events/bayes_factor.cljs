@@ -38,7 +38,9 @@
 
 (defn delete-locations-file [{:keys [db]}]
   ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (dissoc-in db [:new-analysis :bayes-factor :locations-file])})
+  {:db (-> db
+           (dissoc-in [:new-analysis :bayes-factor :locations-file])
+           (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))})
 
 (defn log-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _]       (string/split url "?")
@@ -56,9 +58,6 @@
                    (assoc-in [:new-analysis :bayes-factor :readable-name] readable-name))}))
 
 (defn on-locations-file-selected [_ [_ file-with-meta]]
-
-  (prn "@@@ on-locations-file-selected")
-
   (let [{:keys [filename]} file-with-meta
         splitted           (string/split filename ".")
         fname              (first splitted)]
@@ -88,3 +87,39 @@
     {:db (-> db
              (assoc-in [:new-analysis :bayes-factor :locations-file-url] url)
              (assoc-in [:new-analysis :bayes-factor :locations-file] filename))}))
+
+(defn set-readable-name [{:keys [db]} [_ readable-name]]
+  {:db (assoc-in db [:new-analysis :bayes-factor :readable-name] readable-name)})
+
+(defn set-burn-in [{:keys [db]} [_ burn-in]]
+  {:db (assoc-in db [:new-analysis :bayes-factor :burn-in] burn-in)})
+
+;; TODO
+(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
+
+  (prn "@start-analysis" {:name             readable-name
+                          :locationsFileUrl locations-file-url
+                          :burn-in          burn-in})
+
+  (let [id (get-in db [:new-analysis :bayes-factor :bayes-factor-parser-id])]
+
+    (prn "@start-analysis" {:id id})
+
+    {:db       (assoc-in db [:bayes-factor-parsers id :readable-name] readable-name)
+     :dispatch [:graphql/query {:query
+                                "mutation UpdateBayesFactor($id: ID!,
+                                                            $name: String!,
+                                                            $locationsFileUrl: String!,
+                                                            $burnIn: Float!) {
+                                            updateBayesFactorAnalysis(id: $id,
+                                                                      readableName: $name,
+                                                                      locationsFileUrl: $locationsFileUrl,
+                                                                      burnIn: $burnIn) {
+                                                id
+                                                status
+                                              }
+                                            }"
+                                :variables {:id               id
+                                            :name             readable-name
+                                            :locationsFileUrl locations-file-url
+                                            :burnIn           burn-in}}]}))

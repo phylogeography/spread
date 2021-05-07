@@ -50,7 +50,9 @@
 
 (defn delete-locations-file [{:keys [db]}]
   ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (dissoc-in db [:new-analysis :discrete-mcc-tree :locations-file])})
+  {:db (-> db
+           (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file])
+           (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-upload-progress]))})
 
 (defn on-locations-file-selected [_ [_ file-with-meta]]
   (let [{:keys [filename]} file-with-meta
@@ -78,7 +80,7 @@
   {:db (assoc-in db [:new-analysis :discrete-mcc-tree :locations-file-upload-progress] progress)})
 
 (defn locations-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")]
+  (let [[url _] (string/split url "?")]
     {:db (-> db
              (assoc-in [:new-analysis :discrete-mcc-tree :locations-file-url] url)
              (assoc-in [:new-analysis :discrete-mcc-tree :locations-file] filename))}))
@@ -103,11 +105,11 @@
                                               most-recent-sampling-date time-scale-multiplier]}]]
 
   #_(prn "@start-analysis" {;;:id                     id
-                          :name                   readable-name
-                          :locationsFileUrl       locations-file-url
-                          :locationsAttributeName locations-attribute-name
-                          :multiplier             time-scale-multiplier
-                          :mrsd                   (time/format most-recent-sampling-date)})
+                            :name                   readable-name
+                            :locationsFileUrl       locations-file-url
+                            :locationsAttributeName locations-attribute-name
+                            :multiplier             time-scale-multiplier
+                            :mrsd                   (time/format most-recent-sampling-date)})
 
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id])]
     {:db       (assoc-in db [:discrete-tree-parsers id :readable-name] readable-name)
