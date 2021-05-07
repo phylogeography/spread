@@ -268,6 +268,62 @@
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:discrete-tree-parsers id :status] status)})
 
+;; TODO : Bayes factor rates
+
+(defmethod handler :upload-bayes-factor-analysis
+  [{:keys [db]} _ {:keys [id status]}]
+  #_(>evt [:graphql/subscription {:id        id
+                                :query     "subscription BayesFactorParserStatus($id: ID!) {
+                                                           bayesFactorParserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                           }
+                                                         }"
+                                :variables {:id id}}])
+  {:db (-> db
+           (assoc-in [:new-analysis :bayes-factor :bayes-factor-parser-id] id)
+           (assoc-in [:bayes-factor-parsers id :status] status))})
+
+#_(defmethod handler :bayes-factor-parser-status
+  [{:keys [db]} _ {:keys [id status progress]}]
+  (case status
+    ;; when worker
+    ;; stop the ongoing subscription and query the attributes
+    "ATTRIBUTES_PARSED"
+    (dispatch-n [[:graphql/unsubscribe {:id id}]
+                 #_[:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
+                                                        getDiscreteTree(id: $id) {
+                                                          id
+                                                          attributeNames
+                                                        }
+                                                      }"
+                                  :variables {:id id}}]])
+
+   #_ "SUCCEEDED"
+    #_(>evt [:graphql/unsubscribe {:id id}])
+    nil)
+
+  {:db (-> db
+           (assoc-in [:bayes-factor-parsers id :status] status)
+           (assoc-in [:bayes-factor-parsers id :progress] progress))})
+
+
+;; END: TODO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
   {:db (-> db

@@ -26,7 +26,7 @@
           (Thread/sleep 1000)
           (recur (query-status id)))))))
 
-(deftest continuous-tree-test
+(deftest bayes-factor-test
   (let [[log-url locations-url] (get-in (run-query {:query
                                                     "mutation GetUploadUrls($files: [File]) {
                                                         getUploadUrls(files: $files)

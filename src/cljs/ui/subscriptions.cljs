@@ -76,7 +76,21 @@
     (get-in db [:new-analysis :discrete-mcc-tree :errors])))
 
 
+(re-frame/reg-sub
+  ::bayes-factor
+  (fn [db]
+    (get-in db [:new-analysis :bayes-factor])))
 
+(re-frame/reg-sub
+ ::active-bayes-factor-parser
+ (fn [db _]
+   (let [id (get-in db [:new-analysis :bayes-factor :bayes-factor-parser-id])]
+     (get (get db :bayes-factor-parsers) id))))
+
+(re-frame/reg-sub
+  ::bayes-factor-field-errors
+  (fn [db]
+    (get-in db [:new-analysis :bayes-factor :errors])))
 
 (comment
   @(re-frame/subscribe [::authorized-user])

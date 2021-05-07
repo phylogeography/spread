@@ -102,7 +102,7 @@
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url locations-attribute-name
                                               most-recent-sampling-date time-scale-multiplier]}]]
 
-  (prn "@start-analysis" {;;:id                     id
+  #_(prn "@start-analysis" {;;:id                     id
                           :name                   readable-name
                           :locationsFileUrl       locations-file-url
                           :locationsAttributeName locations-attribute-name

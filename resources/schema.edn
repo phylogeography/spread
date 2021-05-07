@@ -277,7 +277,7 @@
                               :description "Persists bayes factor trees. Returns a ParserStatus with id."
                               :args        {:readableName      {:type String}
                                             :logFileUrl        {:type (non-null String)}
-                                            :locationsFileUrl  {:type (non-null String)}
+                                            :locationsFileUrl  {:type String}
                                             :numberOfLocations {:type Int}
                                             :burnIn            {:type Float}}
                               :resolve     :mutation/uploadBayesFactorAnalysis}

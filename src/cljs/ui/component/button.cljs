@@ -34,14 +34,16 @@
 
 ;; TODO : https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/d09a0797-fbb6-4a0a-891a-21ee253fb709/
 (defn button-file-upload
-  [{:keys [disabled?
+  [{:keys [id
+           style
+           disabled?
            icon label class
            file-accept-predicate on-file-accepted on-file-rejected]
     :or   {file-accept-predicate (constantly true)}}]
   [:div.file-upload-button {:class class}
    [:input {:type      :file
             :disabled disabled?
-            :id        "file-upload-button"
+            :id        (or id "file-upload-button")
             :hidden    true
             :on-change (fn [event]
                          (let [file           (-> event .-target .-files (aget 0))
@@ -55,4 +57,4 @@
                                                  :file-accept-predicate file-accept-predicate
                                                  :on-file-accepted      on-file-accepted
                                                  :on-file-rejected      on-file-rejected})))}]
-   [:label {:for "file-upload-button"} [:img {:src (arg->icon icon)}] label]])
+   [:label {:style style :for (or id "file-upload-button")} [:img {:src (arg->icon icon)}] label]])
