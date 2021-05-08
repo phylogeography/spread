@@ -59,6 +59,12 @@ public class TimeSlicerParser implements IProgressReporter {
     private String mostRecentSamplingDate;
     @Setter
     private double timescaleMultiplier;
+    @Setter
+    private String mccTreeFilePath;
+    @Setter
+    private String xCoordinateAttributeName;
+    @Setter
+    private String yCoordinateAttributeName;
     private IProgressObserver progressObserver;
 
     public TimeSlicerParser() {
@@ -72,7 +78,11 @@ public class TimeSlicerParser implements IProgressReporter {
                             double hpdLevel,
                             int gridSize,
                             String mostRecentSamplingDate,
-                            double timescaleMultiplier) {
+                            double timescaleMultiplier,
+                            String mccTreeFilePath,
+                            String xCoordinateAttributeName,
+                            String yCoordinateAttributeName
+                            ) {
         this.treesFilePath = treesFilePath;
         this.sliceHeightsFilePath = sliceHeightsFilePath;
         this.burnIn = burnIn;
@@ -82,6 +92,9 @@ public class TimeSlicerParser implements IProgressReporter {
         this.gridSize = gridSize;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
         this.timescaleMultiplier = timescaleMultiplier;
+        this.mccTreeFilePath = mccTreeFilePath;
+        this.xCoordinateAttributeName = xCoordinateAttributeName;
+        this.yCoordinateAttributeName = yCoordinateAttributeName;
     }
 
     public TimeSlicerParser(String treesFilePath,
@@ -92,7 +105,11 @@ public class TimeSlicerParser implements IProgressReporter {
                             double hpdLevel,
                             int gridSize,
                             String mostRecentSamplingDate,
-                            double timescaleMultiplier) {
+                            double timescaleMultiplier,
+                            String mccTreeFilePath,
+                            String xCoordinateAttributeName,
+                            String yCoordinateAttributeName
+                            ) {
         this.treesFilePath = treesFilePath;
         this.burnIn = burnIn;
         this.numberOfIntervals = numberOfIntervals;
@@ -102,15 +119,19 @@ public class TimeSlicerParser implements IProgressReporter {
         this.gridSize = gridSize;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
         this.timescaleMultiplier = timescaleMultiplier;
+        this.mccTreeFilePath = mccTreeFilePath;
+        this.xCoordinateAttributeName = xCoordinateAttributeName;
+        this.yCoordinateAttributeName = yCoordinateAttributeName;
     }
 
-    public String parse() throws IOException, ImportException, SpreadException {
+    private SpreadData parseContours()
+        throws IOException, ImportException, SpreadException {
 
         double progress = 0;
         double progressStepSize = 0;
         this.updateProgress(progress);
 
-        // ---parse trees---//
+        // --- parse trees ---//
 
         Double sliceHeights[] = null;
         if (this.sliceHeightsFilePath == null) {
@@ -192,7 +213,7 @@ public class TimeSlicerParser implements IProgressReporter {
             }
         }
 
-        // ---collect attributes from areas---//
+        // --- collect attributes from areas --- //
 
         Map<String, Attribute> areasAttributesMap = new HashMap<String, Attribute>();
 
@@ -259,15 +280,46 @@ public class TimeSlicerParser implements IProgressReporter {
         Layer contoursLayer = new Layer.Builder ().withAreas (areasList).build ();
         layersList.add(contoursLayer);
 
-        SpreadData spreadData = new SpreadData.Builder()
-            .withAnalysisType(ParsersUtils.TIME_SLICER)
+        return new SpreadData.Builder()
             .withTimeline(timeline)
             .withAreaAttributes(uniqueAreaAttributes)
             .withLayers(layersList)
             .build();
+    }
+
+    private SpreadData parseMccTree() throws IOException, ImportException, SpreadException {
+        return new ContinuousTreeParser (this.mccTreeFilePath,
+                                         this.xCoordinateAttributeName,
+                                         this.yCoordinateAttributeName,
+                                         "PLACEHOLDER",
+                                         true,
+                                         this.timescaleMultiplier,
+                                         this.mostRecentSamplingDate).parseMccTree();
+    }
+
+    public String parse() throws IOException, ImportException, SpreadException {
+
+        SpreadData mccTree = this.parseMccTree();
+        SpreadData contours = this.parseContours();
+
+        LinkedList<Layer> layersList = new LinkedList<Layer>();
+
+        Layer layer = new Layer.Builder ()
+            .withLines(mccTree.getLayers().get(0).getLines())
+            .withPoints(mccTree.getLayers().get(0).getPoints())
+            .withAreas (contours.getLayers().get(0).getAreas())
+            .build ();
+        layersList.add(layer);
+
+         SpreadData data = new SpreadData.Builder()
+            .withAnalysisType(ParsersUtils.TIME_SLICER)
+            .withTimeline(contours.getTimeline())
+            .withAreaAttributes(contours.getAreaAttributes())
+            .withLayers(layersList)
+            .build();
 
         this.updateProgress(1.0);
-        return new GsonBuilder().create().toJson(spreadData);
+        return new GsonBuilder().create().toJson(data);
     }
 
     private int getTreesCount(String file) throws IOException {

@@ -35,6 +35,8 @@ public class TimeSlicerParserTest {
         String path = "timeSlicer/WNV_small.trees";
         File treesfile = new File(getClass().getClassLoader().getResource(path).getFile());
 
+        File treefile = new File(getClass().getClassLoader().getResource("timeSlicer/WNV_MCC.tre").getFile());
+
         TimeSlicerParser parser = new TimeSlicerParser (treesfile.getAbsolutePath(),
                                                         0.1,
                                                         10,
@@ -43,7 +45,11 @@ public class TimeSlicerParserTest {
                                                         hpdLevel,
                                                         100,
                                                         mostRecentSamplingDate,
-                                                        1.0);
+                                                        1.0,
+                                                        treefile.getAbsolutePath(),
+                                                        "location2",
+                                                        "location1"
+                                                        );
 
         Set<String> expectedAttributes = new HashSet<>(Arrays.asList("rate", "location"));
         Set<String> uniqueAttributes = gson.fromJson(parser.parseAttributes(), new TypeToken<Set<String>>(){}.getType());

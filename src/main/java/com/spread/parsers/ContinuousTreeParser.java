@@ -62,8 +62,7 @@ public class ContinuousTreeParser implements IProgressReporter {
                                 String hpdLevel,
                                 boolean hasExternalAnnotations,
                                 double timescaleMultiplier,
-                                String mostRecentSamplingDate
-                                ) {
+                                String mostRecentSamplingDate) {
         this.treeFilePath = treeFilePath;
         this.xCoordinateAttributeName = xCoordinateAttributeName;
         this.yCoordinateAttributeName = yCoordinateAttributeName;
@@ -73,7 +72,7 @@ public class ContinuousTreeParser implements IProgressReporter {
         this.mostRecentSamplingDate = mostRecentSamplingDate;
     }
 
-    public String parse() throws IOException, ImportException, SpreadException {
+    protected SpreadData parseMccTree() throws IOException, ImportException, SpreadException {
 
         double progress = 0;
         double progressStepSize = 0;
@@ -520,7 +519,9 @@ public class ContinuousTreeParser implements IProgressReporter {
 
         layersList.add(treeLayer);
 
-        SpreadData spreadData = new SpreadData.Builder()
+        this.updateProgress(0.90);
+
+        return new SpreadData.Builder()
             .withAnalysisType(ParsersUtils.CONTINUOUS_TREE)
             .withTimeline(timeline)
             .withAxisAttributes(axis)
@@ -529,9 +530,12 @@ public class ContinuousTreeParser implements IProgressReporter {
             .withAreaAttributes(uniqueAreaAttributes)
             .withLayers(layersList)
             .build();
+    }
 
+    public String parse() throws IOException, ImportException, SpreadException {
+        SpreadData data = this.parseMccTree();
         this.updateProgress(1.0);
-        return new GsonBuilder().create().toJson(spreadData);
+        return new GsonBuilder().create().toJson(data);
     }
 
     //  return attributes set and hpd levels
