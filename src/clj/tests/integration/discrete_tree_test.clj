@@ -20,7 +20,8 @@
                                   [:data :getDiscreteTree :status])
                           keyword)]
     (loop [current-status (query-status id)]
-      (if (= status current-status)
+      (if (or (= status current-status)
+              (= :ERROR current-status))
         current-status
         (do
           (Thread/sleep 1000)
