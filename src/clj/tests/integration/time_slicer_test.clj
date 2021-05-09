@@ -76,7 +76,8 @@
                                                                   $traitAttributeName: String!,
                                                                   $contouringGridSize: Int!,
                                                                   $hpd: Float!,
-                                                                  $mrsd: String!) {
+                                                                  $mrsd: String!,
+                                                                  $mccTreeUrl: String!) {
                                                    updateTimeSlicer(id: $id,
                                                                     burnIn: $burnIn,
                                                                     numberOfIntervals: $numberOfIntervals,
@@ -84,11 +85,13 @@
                                                                     traitAttributeName: $traitAttributeName,
                                                                     contouringGridSize: $contouringGridSize,
                                                                     hpdLevel: $hpd,
-                                                                    mostRecentSamplingDate: $mrsd) {
+                                                                    mostRecentSamplingDate: $mrsd,
+                                                                    mccTreeFileUrl: $mccTreeUrl) {
                                                      status
-                                                   }
+                                                }
                                               }"
                                              :variables {:id                   id
+                                                         :mccTreeUrl           mcc-tree-url
                                                          :traitAttributeName   "location"
                                                          :rrwRateAttributeName "rate"
                                                          :contouringGridSize   100

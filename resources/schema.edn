@@ -97,6 +97,7 @@
                              :readableName                       {:type String}
                              :createdOn                          {:type (non-null :BigInt)}
                              :treesFileUrl                       {:type (non-null String)}
+                             :mccTreeFileUrl                     {:type (non-null String)}
                              :sliceHeightsFileUrl                {:type String}
                              :burnIn                             {:type Float}
                              :relaxedRandomWalkRateAttributeName {:type String}
@@ -251,6 +252,7 @@
                      :description "Persists continuous trees. Returns a ParserStatus with id."
                      :args        {:readableName        {:type String}
                                    :treesFileUrl        {:type (non-null String)}
+                                   :mccTreeFileUrl      {:type String}
                                    :sliceHeightsFileUrl {:type String}}
                      :resolve     :mutation/uploadTimeSlicer}
 
@@ -258,6 +260,7 @@
                      :description "Updates the entity with settings for parsing."
                      :args        {:id                                 {:type (non-null ID)}
                                    :readableName                       {:type String}
+                                   :mccTreeFileUrl                     {:type String}
                                    :burnIn                             {:type Float}
                                    :relaxedRandomWalkRateAttributeName {:type (non-null String)}
                                    :traitAttributeName                 {:type (non-null String)}
