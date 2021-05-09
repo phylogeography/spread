@@ -20,22 +20,27 @@
                                   [:data :getTimeSlicer :status])
                           keyword)]
     (loop [current-status (query-status id)]
-      (if (= status current-status)
+      (if (or (= status current-status)
+              (= :ERROR current-status))
         current-status
         (do
           (Thread/sleep 1000)
           (recur (query-status id)))))))
 
 (deftest time-slicer-test
-  (let [[url _] (get-in (run-query {:query
-                                    "mutation GetUploadUrl($files: [File]) {
-                                       getUploadUrls(files: $files)
-                                     }"
-                                    :variables {:files [{:name      "WNV_small"
-                                                         :extension "trees"}]}})
-                        [:data :getUploadUrls])
+  (let [[trees-url mcc-tree-url] (get-in (run-query {:query
+                                                     "mutation GetUploadUrls($files: [File]) {
+                                                        getUploadUrls(files: $files)
+                                                      }"
+                                                     :variables {:files [{:name      "WNV_small"
+                                                                          :extension "trees"}
+                                                                         {:name      "WNV_MCC"
+                                                                          :extension "tree"}]}})
+                                         [:data :getUploadUrls])
 
-        _ (http/put url {:body (io/file "src/test/resources/timeSlicer/WNV_small.trees")})
+        _ (http/put trees-url {:body (io/file "src/test/resources/timeSlicer/WNV_small.trees")})
+
+        _ (http/put mcc-tree-url {:body (io/file "src/test/resources/timeSlicer/WNV_MCC.tre")})
 
         {:keys [id status]} (get-in (run-query {:query
                                                 "mutation UploadTimeSlicer($url: String!) {
@@ -44,7 +49,7 @@
                                                      status
                                                    }
                                                 }"
-                                                :variables {:url (-> url
+                                                :variables {:url (-> trees-url
                                                                      (string/split  #"\?")
                                                                      first)}})
                                     [:data :uploadTimeSlicer])
@@ -71,7 +76,8 @@
                                                                   $traitAttributeName: String!,
                                                                   $contouringGridSize: Int!,
                                                                   $hpd: Float!,
-                                                                  $mrsd: String!) {
+                                                                  $mrsd: String!,
+                                                                  $mccTreeUrl: String!) {
                                                    updateTimeSlicer(id: $id,
                                                                     burnIn: $burnIn,
                                                                     numberOfIntervals: $numberOfIntervals,
@@ -79,11 +85,15 @@
                                                                     traitAttributeName: $traitAttributeName,
                                                                     contouringGridSize: $contouringGridSize,
                                                                     hpdLevel: $hpd,
-                                                                    mostRecentSamplingDate: $mrsd) {
+                                                                    mostRecentSamplingDate: $mrsd,
+                                                                    mccTreeFileUrl: $mccTreeUrl) {
                                                      status
-                                                   }
+                                                }
                                               }"
                                              :variables {:id                   id
+                                                         :mccTreeUrl           (-> mcc-tree-url
+                                                                                   (string/split  #"\?")
+                                                                                   first)
                                                          :traitAttributeName   "location"
                                                          :rrwRateAttributeName "rate"
                                                          :contouringGridSize   100

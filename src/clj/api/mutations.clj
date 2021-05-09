@@ -210,6 +210,7 @@
                           {trees-file-url         :treesFileUrl
                            readable-name          :readableName
                            slice-heights-file-url :sliceHeightsFileUrl
+                           mcc-tree-file-url      :mccTreeFileUrl
                            :as                    args} _]
   (log/info "upload-time-slicer" {:user/id authed-user-id
                                   :args    args})
@@ -222,6 +223,7 @@
                                      :created-on             (time/millis (time/now))
                                      :user-id                authed-user-id
                                      :trees-file-url         trees-file-url
+                                     :mcc-tree-file-url      mcc-tree-file-url
                                      :slice-heights-file-url slice-heights-file-url})
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         status})
@@ -239,6 +241,7 @@
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
                                 readable-name                           :readableName
+                                mcc-tree-file-url                       :mccTreeFileUrl
                                 burn-in                                 :burnIn
                                 relaxed-random-walk-rate-attribute-name :relaxedRandomWalkRateAttributeName
                                 trait-attribute-name                    :traitAttributeName
@@ -259,6 +262,7 @@
       (time-slicer-model/update! db {:id                                      id
                                      :readable-name                           readable-name
                                      :burn-in                                 burn-in
+                                     :mcc-tree-file-url                       mcc-tree-file-url
                                      :number-of-intervals                     number-of-intervals
                                      :relaxed-random-walk-rate-attribute-name relaxed-random-walk-rate-attribute-name
                                      :trait-attribute-name                    trait-attribute-name

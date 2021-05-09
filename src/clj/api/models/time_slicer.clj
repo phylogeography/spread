@@ -19,6 +19,7 @@
   {:id                                      nil
    :user-id                                 nil
    :trees-file-url                          nil
+   :mcc-tree-file-url                       nil
    :slice-heights-file-url                  nil
    :readable-name                           nil
    :burn-in                                 nil

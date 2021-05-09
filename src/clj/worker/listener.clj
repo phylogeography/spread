@@ -200,7 +200,7 @@
                                                      :key       trees-object-key
                                                      :dest-path trees-file-path})
           parser           (doto (new TimeSlicerParser)
-                                     (.setTreesFilePath trees-file-path))
+                             (.setTreesFilePath trees-file-path))
           attributes       (json/read-str (.parseAttributes parser))]
       (log/info "Parsed attributes" {:id         id
                                      :attributes attributes})
@@ -217,7 +217,7 @@
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-time-slicer" args)
   (try
-    (let [{:keys [user-id
+    (let [{:keys                     [user-id
                   burn-in
                   relaxed-random-walk-rate-attribute-name
                   trait-attribute-name
@@ -225,16 +225,32 @@
                   contouring-grid-size
                   hpd-level
                   timescale-multiplier
-                  most-recent-sampling-date]}
+                  most-recent-sampling-date
+                  mcc-tree-file-url] :as ts}
           (time-slicer-model/get-time-slicer db {:id id})
+
+          _ (log/debug "time slicer" {:ts ts})
+
           ;; TODO: parse extension
-          trees-object-key   (str user-id "/" id ".trees")
-          trees-file-path    (str tmp-dir "/" trees-object-key)
+          trees-object-key (str user-id "/" id ".trees")
+          trees-file-path  (str tmp-dir "/" trees-object-key)
           ;; is it cached on disk?
-          _                  (when-not (file-exists? trees-file-path)
-                               (aws-s3/download-file s3 {:bucket    bucket-name
-                                                         :key       trees-object-key
-                                                         :dest-path trees-file-path}))
+          _                (when-not (file-exists? trees-file-path)
+                             (aws-s3/download-file s3 {:bucket    bucket-name
+                                                       :key       trees-object-key
+                                                       :dest-path trees-file-path}))
+
+
+          mcc-tree-file-id    (s3-url->id mcc-tree-file-url user-id)
+          ;; TODO: parse extension
+          mcc-tree-object-key (str user-id "/" mcc-tree-file-id ".tree")
+          mcc-tree-file-path  (str tmp-dir "/" mcc-tree-object-key)
+          ;; is it cached on disk?
+          _                   (when-not (file-exists? mcc-tree-file-path)
+                                (aws-s3/download-file s3 {:bucket    bucket-name
+                                                          :key       mcc-tree-object-key
+                                                          :dest-path mcc-tree-file-path}))
+
           progress-handler   (new-progress-handler (fn [progress]
                                                      (let [progress (round 2 progress)]
                                                        (when (= (mod progress 0.1) 0.0)
@@ -246,9 +262,13 @@
           ;; call all setters
           parser             (doto (new TimeSlicerParser)
                                (.setTreesFilePath trees-file-path)
+                               (.setMccTreeFilePath mcc-tree-file-path)
+                               ;; NOTE: this should always hold unless someone switches the usual lat/long convention
+                               (.setXCoordinateAttributeName (str trait-attribute-name "2")) ;; long
+                               (.setYCoordinateAttributeName (str trait-attribute-name "1"));; lat
+                               (.setTraitName trait-attribute-name)
                                (.setBurnIn burn-in)
                                (.setRrwRateName relaxed-random-walk-rate-attribute-name)
-                               (.setTraitName trait-attribute-name)
                                (.setNumberOfIntervals number-of-intervals)
                                (.setHpdLevel hpd-level)
                                (.setGridSize contouring-grid-size)
