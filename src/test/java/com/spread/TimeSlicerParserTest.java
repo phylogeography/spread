@@ -73,6 +73,8 @@ public class TimeSlicerParserTest {
         assertArrayEquals("returns correct HPD attribute range", new Double[]{hpdLevel, hpdLevel}, hpdAreaAttribute.getRange());
         assertTrue("Areas are generated", data.getLayers() .get(0).getAreas().size() > 0);
 
-    }
+        assertEquals("returns correct number of points", 207, data.getLayers().get(0).getPoints().size());
+        assertEquals("returns correct number of lines", 206, data.getLayers().get(0).getLines().size());
 
+    }
 }
