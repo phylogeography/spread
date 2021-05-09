@@ -91,7 +91,9 @@
                                                 }
                                               }"
                                              :variables {:id                   id
-                                                         :mccTreeUrl           mcc-tree-url
+                                                         :mccTreeUrl           (-> mcc-tree-url
+                                                                                   (string/split  #"\?")
+                                                                                   first)
                                                          :traitAttributeName   "location"
                                                          :rrwRateAttributeName "rate"
                                                          :contouringGridSize   100

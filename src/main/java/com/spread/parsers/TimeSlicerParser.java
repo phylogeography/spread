@@ -288,13 +288,17 @@ public class TimeSlicerParser implements IProgressReporter {
     }
 
     private SpreadData parseMccTree() throws IOException, ImportException, SpreadException {
-        return new ContinuousTreeParser (this.mccTreeFilePath,
-                                         this.xCoordinateAttributeName,
-                                         this.yCoordinateAttributeName,
-                                         "PLACEHOLDER",
-                                         true,
-                                         this.timescaleMultiplier,
-                                         this.mostRecentSamplingDate).parseMccTree();
+        if (this.mccTreeFilePath == null) {
+            throw new SpreadException("mccTreeFilePath parameter was not set");
+        } else if (this.xCoordinateAttributeName == null) {
+            throw new SpreadException("xCoordinateAttributeName parameter was not set");
+        } else if (this.yCoordinateAttributeName == null) {
+            throw new SpreadException("yCoordinateAttributeName parameter was not set");
+        } else {
+            return new ContinuousTreeParser(this.mccTreeFilePath, this.xCoordinateAttributeName,
+                                            this.yCoordinateAttributeName, "PLACEHOLDER", true, this.timescaleMultiplier,
+                                            this.mostRecentSamplingDate).parseMccTree();
+        }
     }
 
     public String parse() throws IOException, ImportException, SpreadException {
