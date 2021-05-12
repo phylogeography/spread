@@ -111,7 +111,7 @@
                                                :coord (calc-proj-coord coordinate)                                      
                                                :attrs attributes}
                                               (calc-show-percs point))
-                                       count-attr (assoc :radius-factor count-attr))))))
+                                       count-attr (assoc :radius (* 0.05 count-attr)))))))
         arcs-objects (->> (:lines tree-layer)
                           (map (fn [{:keys [startPointId endPointId attributes] :as line}]
                                  (let [start-point (get points-index startPointId)

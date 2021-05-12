@@ -173,10 +173,9 @@
                                         :analysis-data (:analysis/data db)
                                         :time (:animation/percentage db)}})
 
-(def tick-step 0.02)
-
+(def tick-step 0.000750188)
 (defn ticker-tick [{:keys [db]} _]
-  (let [{:keys [animation/percentage]} db]
+  (let [{:keys [animation/percentage]} db]    
     (if (>= (+ percentage tick-step) 1)
       {:db (assoc db :animation/percentage 1)
        :ticker/stop nil}
@@ -205,3 +204,4 @@
   (-> db
       (assoc-in [:map/state :width] width)
       (assoc-in [:map/state :height] height)))
+ 

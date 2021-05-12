@@ -21,12 +21,12 @@
 ;; as svg elements                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-point-object [{:keys [coord show-start show-end radius-factor]} _ time-perc _]
+(defn svg-point-object [{:keys [coord show-start show-end radius]} scale time-perc _]
   (let [show? (<= show-start time-perc show-end)
         [x1 y1] coord]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r (* 0.3 (or radius-factor 1)) #_(/ 0.4 scale) :stroke "#DD0808" :fill "#B20707"}]]))
+     [:circle {:cx x1 :cy y1 :r (or radius 0.1) :opacity 0.2 :fill "#B20707"}]]))
 
 (defn svg-area-object [{:keys [coords show-start show-end]} _ time-perc params]
   (let [show? (<= show-start time-perc show-end)]
@@ -56,14 +56,14 @@
         misile-size 0.3]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r 0.3 #_(/ 0.4 scale) :stroke :red :fill :blue}] 
-     [:circle {:cx x2 :cy y2 :r 0.3 #_(/ 0.4 scale) :stroke :red :fill :blue}]
+     [:circle {:cx x1 :cy y1 :r 0.05 #_(/ 0.4 scale)  :fill :blue}] 
+     [:circle {:cx x2 :cy y2 :r 0.05 #_(/ 0.4 scale)  :fill :blue}]
      [:path (if clip-perc
 
               ;; animated dashed curves
-              (let [c-length (int (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2))]
+              (let [c-length (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2)]
                 (assoc curve-path-info
-                       :stroke-dasharray [(* misile-size c-length) (* (- 1 misile-size) c-length)]
+                       :stroke-dasharray c-length #_[(* misile-size c-length) (* (- 1 misile-size) c-length)]
                        :stroke-dashoffset (- c-length (* c-length clip-perc))))
  
               ;; normal curves
