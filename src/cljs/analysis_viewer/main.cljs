@@ -19,6 +19,7 @@
 ;; [B]  http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/ba47f735-0a97-40b1-b761-860b1a914e28.json
 ;; [TS] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/8d7b6ea9-b4f7-4387-9b35-042e5ed89981.json
 
+;; [DT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/893367d9-7224-4587-b492-8344e45e6e83.json&maps=
 (defn parse-url-qstring [qstring]
   (->> (str/split qstring #"&")
        (map (fn [s]
@@ -37,7 +38,7 @@
   (let [{:keys [maps output]} (parse-url-qstring (subs js/window.location.search 1))]
     (re-frame/dispatch-sync [:map/initialize
                              (into ["WORLD"] (remove str/blank? (str/split maps #",")) )                             
-                             (str events.maps/s3-bucket-url "/" output)])
+                             (str events.maps/s3-bucket-url output)])
     (rdom/render [views/main-screen]
                  (.getElementById js/document "app"))))
 
