@@ -31,7 +31,6 @@ import jebl.evolution.graphs.Node;
 import jebl.evolution.io.ImportException;
 import jebl.evolution.trees.RootedTree;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 public class ContinuousTreeParser implements IProgressReporter {
 
@@ -41,8 +40,6 @@ public class ContinuousTreeParser implements IProgressReporter {
     private String xCoordinateAttributeName;
     @Setter
     private String yCoordinateAttributeName;
-    // @Setter
-    // private String hpdLevel;
     @Setter
     private double timescaleMultiplier;
     @Setter
@@ -55,13 +52,11 @@ public class ContinuousTreeParser implements IProgressReporter {
     public ContinuousTreeParser(String treeFilePath,
                                 String xCoordinateAttributeName,
                                 String yCoordinateAttributeName,
-                                // String hpdLevel,
                                 double timescaleMultiplier,
                                 String mostRecentSamplingDate) {
         this.treeFilePath = treeFilePath;
         this.xCoordinateAttributeName = xCoordinateAttributeName;
         this.yCoordinateAttributeName = yCoordinateAttributeName;
-        // this.hpdLevel = hpdLevel;
         this.timescaleMultiplier = timescaleMultiplier;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
     }
@@ -76,9 +71,6 @@ public class ContinuousTreeParser implements IProgressReporter {
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         Timeline timeline = timeParser.getTimeline(rootedTree.getHeight(rootedTree.getRootNode()));
 
-        // boolean externalAnnotations = this.hasExternalAnnotations;
-        // String hpd = this.hpdLevel;
-
         LinkedList<Line> linesList = new LinkedList<Line>();
         LinkedList<Point> pointsList = new LinkedList<Point>();
         LinkedList<Area> areasList = new LinkedList<Area>();
@@ -87,18 +79,6 @@ public class ContinuousTreeParser implements IProgressReporter {
         LinkedList<Attribute> uniqueAreaAttributes = new LinkedList<Attribute>();
 
         HashMap<Node, Point> pointsMap = new HashMap<Node, Point>();
-
-        // remove digits to get name
-        // String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
-        // String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
-
-        // TODO : create array of all modalityAttributeNames
-        // TODO : loop over them parsing all polygons
-        // NOTE: HPD_modality:coordinates_80%HPD_modality
-
-        // System.out.println(this.parseHpdAttributesSet());
-
-        // System.out.println("HPD_modality: " + modalityAttributeName);
 
         Set<String> modalityAttributeNames = this.parseHpdAttributesSet();
 
@@ -522,7 +502,6 @@ public class ContinuousTreeParser implements IProgressReporter {
             .filter(node -> !tree.isRoot(node))
             .flatMap(node -> node.getAttributeNames().stream())
             .filter(attributeName -> attributeName.contains("HPD_modality"))
-            // .map(name -> name)
             .collect(Collectors.toSet());
 
         return hpdAttributes;
@@ -540,23 +519,6 @@ public class ContinuousTreeParser implements IProgressReporter {
     public String parseAttributes() throws IOException, ImportException  {
         return new GsonBuilder().create().toJson(this.parseAllAttributesSet());
     }
-
-    // public String parseAttributesAndHpdLevels() throws IOException, ImportException  {
-
-    //     RootedTree tree = ParsersUtils.importRootedTree(this.treeFilePath);
-
-    //     Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
-    //         .flatMap(node -> node.getAttributeNames().stream())
-    //         .map(name -> name)
-    //         .collect(Collectors.toSet());
-
-    //     Set<String> hpdLevels = uniqueAttributes.stream().filter(attributeName -> attributeName.contains("HPD_modality"))
-    //         .map(hpdString -> hpdString.replaceAll("\\D+", ""))
-    //         .collect(Collectors.toSet());
-
-    //     Object pair = new Object[] {uniqueAttributes, hpdLevels};
-    //     return new GsonBuilder().create().toJson(pair);
-    // }
 
     private Point createPoint(Node node, Coordinate coordinate, RootedTree rootedTree, TimeParser timeParser)
         throws SpreadException {
