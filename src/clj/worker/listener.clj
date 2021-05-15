@@ -124,13 +124,12 @@
                                                             :dest-path tree-file-path})
           parser                  (doto (new ContinuousTreeParser)
                                     (.setTreeFilePath tree-file-path))
-          [attributes hpd-levels] (json/read-str (.parseAttributesAndHpdLevels parser))]
+          attributes (json/read-str (.parseAttributes parser))]
       (log/info "Parsed attributes and hpd-levels" {:id         id
-                                                    :attributes attributes
-                                                    :hpd-levels hpd-levels})
+                                                    :attributes attributes})
       ;; TODO : in a transaction
       (continuous-tree-model/insert-attributes! db id attributes)
-      (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
+      ;; (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
       (continuous-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ATTRIBUTES_PARSED}))
     (catch Exception e

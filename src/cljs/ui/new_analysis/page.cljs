@@ -24,14 +24,13 @@
         continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])
         field-errors           (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [attribute-names hpd-levels]} @continuous-tree-parser
+      (let [{:keys [attribute-names]} @continuous-tree-parser
             {:keys [tree-file tree-file-upload-progress readable-name
                     y-coordinate x-coordinate
-                    hpd-level most-recent-sampling-date
+                    most-recent-sampling-date
                     time-scale-multiplier]
              :or   {y-coordinate              (first attribute-names)
                     x-coordinate              (first attribute-names)
-                    hpd-level                 (first hpd-levels)
                     most-recent-sampling-date (time/now)
                     time-scale-multiplier     1}}
             @continuous-mcc-tree]
@@ -46,7 +45,7 @@
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected])}]
+                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
 
               (not= 1 tree-file-upload-progress)
               [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
@@ -90,26 +89,16 @@
 
              [:div.row
               [:div.column
-               [:span "Select HPD level"]
-               [:fieldset
-                [:legend "Level"]
-                [select-input {:value     hpd-level
-                               :options   hpd-levels
-                               :on-change #(>evt [:continuous-mcc-tree/set-hpd-level %])}]]]
-              [:div.column
                [:span "Most recent sampling date"]
                [date-picker {:date-format time/date-format
                              :on-change   #(>evt [:continuous-mcc-tree/set-most-recent-sampling-date %])
-                             :selected    most-recent-sampling-date}]]]
+                             :selected    most-recent-sampling-date}]]
 
-             [:div.row
               [:div.column
-               [:span "Time scale"]
-               [:fieldset
-                [:legend "Multiplier"]
-                [amount-input {:class     :multiplier-field
-                               :value     time-scale-multiplier
-                               :on-change #(>evt [:continuous-mcc-tree/set-time-scale-multiplier %])}]]
+               [:span "Time scale multiplier"]
+               [amount-input {:class     :multiplier-field
+                              :value     time-scale-multiplier
+                              :on-change #(>evt [:continuous-mcc-tree/set-time-scale-multiplier %])}]
                [error-reported (:time-scale-multiplier @field-errors)]]]
 
              [:div.start-analysis-section
@@ -119,7 +108,6 @@
                                   :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name             readable-name
                                                                                           :y-coordinate              y-coordinate
                                                                                           :x-coordinate              x-coordinate
-                                                                                          :hpd-level                 hpd-level
                                                                                           :most-recent-sampling-date most-recent-sampling-date
                                                                                           :time-scale-multiplier     time-scale-multiplier}])}]
               [button-with-label {:label    "Paste settings"
@@ -344,9 +332,6 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
-;; TODO : add MCC tree to inputs
-(defn continuous-time-slices []
-  [:pre "continuous-time-slices"])
 
 (defmethod page :route/new-analysis []
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
@@ -378,16 +363,16 @@
                        [:span "Continuous"]
                        [:span "MCC tree"]]
 
-                      "continuous-time-slices"
-                      [:div
-                       [:span "Continuous"]
-                       [:span "Time slices"]]
+                      ;; "continuous-time-slices"
+                      ;; [:div
+                      ;;  [:span "Continuous"]
+                      ;;  [:span "Time slices"]]
                       nil)])
                  ["discrete-mcc-tree" "discrete-rates" "continuous-mcc-tree" "continuous-time-slices"])]
            [:div.panel
             (case active-tab
-              "discrete-mcc-tree"      [discrete-mcc-tree]
-              "discrete-rates"         [discrete-rates]
-              "continuous-mcc-tree"    [continuous-mcc-tree]
-              "continuous-time-slices" [continuous-time-slices]
+              "discrete-mcc-tree"   [discrete-mcc-tree]
+              "discrete-rates"      [discrete-rates]
+              "continuous-mcc-tree" [continuous-mcc-tree]
+              ;; "continuous-time-slices" [continuous-time-slices]
               [continuous-mcc-tree])]]]]))))

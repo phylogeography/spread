@@ -25,7 +25,7 @@
     (log/info "continuous-tree->attributes" {:attributes attributes})
     attributes))
 
-(defn continuous-tree->hpd-levels
+#_(defn continuous-tree->hpd-levels
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->hpd-levels" parent)
   (let [levels (map :level (continuous-tree-model/get-hpd-levels db {:tree-id tree-id}))]

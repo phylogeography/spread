@@ -145,7 +145,6 @@
                                                         getContinuousTree(id: $id) {
                                                           id
                                                           attributeNames
-                                                          hpdLevels
                                                         }
                                                       }"
                                   :variables {:id id}}]])
@@ -327,7 +326,6 @@
                                                         getContinuousTree(id: $id) {
                                                           id
                                                           attributeNames
-                                                          hpdLevels
                                                         }
                                                       }"
                          :variables {:id "19512998-11cb-468a-9c13-f497a0920737"}}]))

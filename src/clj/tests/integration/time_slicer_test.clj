@@ -9,6 +9,8 @@
 
 (use-fixtures :once db-fixture)
 
+;; TODO : continuous-tree-with-time-slicer-test
+
 (defn- block-on-status [id status]
   (let [query-status #(-> (get-in (run-query {:query
                                               "query GetStatus($id: ID!) {

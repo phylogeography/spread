@@ -57,8 +57,8 @@
                                  :treeFileUrl              {:type (non-null String)}
                                  :xCoordinateAttributeName {:type String}
                                  :yCoordinateAttributeName {:type String}
-                                 :hpdLevel                 {:type String}
-                                 :hasExternalAnnotations   {:type Boolean}
+                                 ;; :hpdLevel                 {:type String}
+                                 ;; :hasExternalAnnotations   {:type Boolean}
                                  :timescaleMultiplier      {:type Float}
                                  :mostRecentSamplingDate   {:type String}
                                  :status                   {:type :AnalysisStatus}
@@ -69,8 +69,8 @@
                                  ;; isn't there a way to abstract it away with union types?
                                  :maps                     {:type    (list String)
                                                             :resolve :resolve/analysis->maps}
-                                 :hpdLevels                {:type    (list String)
-                                                            :resolve :resolve/continuous-tree->hpd-levels}
+                                 ;; :hpdLevels                {:type    (list String)
+                                 ;;                            :resolve :resolve/continuous-tree->hpd-levels}
                                  :outputFileUrl            {:type String}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
@@ -214,8 +214,8 @@
                                        :readableName             {:type String}
                                        :xCoordinateAttributeName {:type (non-null String)}
                                        :yCoordinateAttributeName {:type (non-null String)}
-                                       :hpdLevel                 {:type (non-null String)}
-                                       :hasExternalAnnotations   {:type String}
+                                       ;; :hpdLevel                 {:type (non-null String)}
+                                       ;; :hasExternalAnnotations   {:type String}
                                        :timescaleMultiplier      {:type Float}
                                        :mostRecentSamplingDate   {:type (non-null String)}}
                          :resolve     :mutation/updateContinuousTree}

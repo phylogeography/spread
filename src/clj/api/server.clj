@@ -1,5 +1,5 @@
 (ns api.server
-  (:require [api.auth :as auth]      
+  (:require [api.auth :as auth]
             [api.db :as db]
             [api.mutations :as mutations]
             [api.resolvers :as resolvers]
@@ -17,7 +17,7 @@
             [com.walmartlabs.lacinia.util :as lacinia-util]
             [io.pedestal.http :as http]
             [io.pedestal.interceptor :refer [interceptor]]
-            [mount.core :as mount :refer [defstate]]           
+            [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
 (declare server)
@@ -49,7 +49,7 @@
    :mutation/updateContinuousTree       (auth-decorator mutations/update-continuous-tree)
    :query/getContinuousTree             resolvers/get-continuous-tree
    :resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
-   :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
+   ;; :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
    :mutation/startContinuousTreeParser  (auth-decorator mutations/start-continuous-tree-parser)
 
    :mutation/uploadDiscreteTree       (auth-decorator mutations/upload-discrete-tree)

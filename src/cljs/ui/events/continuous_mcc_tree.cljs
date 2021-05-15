@@ -57,7 +57,6 @@
                                 "mutation UpdateTree($id: ID!,
                                                       $x: String!,
                                                       $y: String!,
-                                                      $hpd: String!,
                                                       $mrsd: String!,
                                                       $name: String!,
                                                       $multiplier: Float!) {
@@ -66,7 +65,6 @@
                                                                         timescaleMultiplier: $multiplier,
                                                                         xCoordinateAttributeName: $x,
                                                                         yCoordinateAttributeName: $y,
-                                                                        hpdLevel: $hpd,
                                                                         mostRecentSamplingDate: $mrsd) {
                                                      id
                                                      status
@@ -76,7 +74,6 @@
                                             :x          x-coordinate
                                             :y          y-coordinate
                                             :multiplier time-scale-multiplier
-                                            :hpd        hpd-level
                                             :name       readable-name
                                             :mrsd       (time/format most-recent-sampling-date)}}]}))
 

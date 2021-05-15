@@ -6,6 +6,9 @@
 (defn upload
   "handle-progress is as optional function taking two arguments: sent and total"
   [{:keys [url data on-success on-error handle-progress]}]
+
+  (prn "@@@ upload" url data)
+
   (let [^js xhr (new js/XMLHttpRequest)]
     (js/Promise.
       (fn [resolve reject]
