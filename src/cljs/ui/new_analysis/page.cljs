@@ -46,7 +46,7 @@
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
+                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected])}]
 
               (not= 1 tree-file-upload-progress)
               [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
@@ -57,7 +57,7 @@
              [:p
               [:span "When upload is complete all unique attributes will be automatically filled."]
               [:span "You can then select geographical coordinates and change other settings."]]
-             [button-with-icon {:on-click #(>evt [:bayes-factor/delete-log-file])
+             [button-with-icon {:on-click #(>evt [:continuous-mcc-tree/delete-tree-file])
                                 :icon     :delete}])]]
 
          [:div.settings

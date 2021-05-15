@@ -19,7 +19,7 @@ public class Layer {
     @Getter
     private final List<Area> areas;
     @Getter
-    private List<Point> counts;
+    private final List<Point> counts;
 
     public static class Builder {
 

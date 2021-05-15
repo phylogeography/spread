@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import com.google.gson.GsonBuilder;
 import com.spread.data.Attribute;
 import com.spread.data.AxisAttributes;
-import com.spread.data.Layer;
 import com.spread.data.SpreadData;
 import com.spread.data.Timeline;
 import com.spread.data.attributable.Area;
@@ -42,11 +41,8 @@ public class ContinuousTreeParser implements IProgressReporter {
     private String xCoordinateAttributeName;
     @Setter
     private String yCoordinateAttributeName;
-    @Setter
-    private String hpdLevel;
-    @Accessors(fluent = true)
-    @Setter
-    private boolean hasExternalAnnotations;
+    // @Setter
+    // private String hpdLevel;
     @Setter
     private double timescaleMultiplier;
     @Setter
@@ -59,15 +55,13 @@ public class ContinuousTreeParser implements IProgressReporter {
     public ContinuousTreeParser(String treeFilePath,
                                 String xCoordinateAttributeName,
                                 String yCoordinateAttributeName,
-                                String hpdLevel,
-                                boolean hasExternalAnnotations,
+                                // String hpdLevel,
                                 double timescaleMultiplier,
                                 String mostRecentSamplingDate) {
         this.treeFilePath = treeFilePath;
         this.xCoordinateAttributeName = xCoordinateAttributeName;
         this.yCoordinateAttributeName = yCoordinateAttributeName;
-        this.hpdLevel = hpdLevel;
-        this.hasExternalAnnotations = hasExternalAnnotations;
+        // this.hpdLevel = hpdLevel;
         this.timescaleMultiplier = timescaleMultiplier;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
     }
@@ -82,8 +76,8 @@ public class ContinuousTreeParser implements IProgressReporter {
         TimeParser timeParser = new TimeParser(this.mostRecentSamplingDate);
         Timeline timeline = timeParser.getTimeline(rootedTree.getHeight(rootedTree.getRootNode()));
 
-        boolean externalAnnotations = this.hasExternalAnnotations;
-        String hpd = this.hpdLevel;
+        // boolean externalAnnotations = this.hasExternalAnnotations;
+        // String hpd = this.hpdLevel;
 
         LinkedList<Line> linesList = new LinkedList<Line>();
         LinkedList<Point> pointsList = new LinkedList<Point>();
@@ -95,10 +89,19 @@ public class ContinuousTreeParser implements IProgressReporter {
         HashMap<Node, Point> pointsMap = new HashMap<Node, Point>();
 
         // remove digits to get name
-        String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
-        String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
+        // String prefix = xCoordinateAttributeName.replaceAll("\\d*$", "");
+        // String modalityAttributeName = prefix.concat("_").concat(hpd).concat("%").concat("HPD_modality");
 
-        // progress = 0;
+        // TODO : create array of all modalityAttributeNames
+        // TODO : loop over them parsing all polygons
+        // NOTE: HPD_modality:coordinates_80%HPD_modality
+
+        // System.out.println(this.parseHpdAttributesSet());
+
+        // System.out.println("HPD_modality: " + modalityAttributeName);
+
+        Set<String> modalityAttributeNames = this.parseHpdAttributesSet();
+
         progressStepSize = 0.25 / (double) rootedTree.getNodes().size();
         for (Node node : rootedTree.getNodes()) {
 
@@ -189,86 +192,69 @@ public class ContinuousTreeParser implements IProgressReporter {
 
                 // ---AREAS PARSED LAST DO NOT CHANGE ORDER---//
 
-                boolean parseNode = true;
-                if (rootedTree.isExternal(node)) {
-                    parseNode = false;
-                    if (externalAnnotations) {
-                        parseNode = true;
-                    }
+                    for (String modalityAttributeName : modalityAttributeNames) {
 
-                } else {
-                    parseNode = true;
-                }
-
-                if (parseNode) {
-
-                    Integer modality = 0;
-
-                    try {
-
-                        modality = (Integer) ParsersUtils.getObjectNodeAttribute(node, modalityAttributeName);
-
-                    } catch (SpreadException e) {
-                        // String nodeType = (rootedTree.isExternal(node) ? "external" : "internal");
-                        // String message = modalityAttributeName + " attribute could not be found on the " + nodeType
-                        //     + " node. Resulting visualisation may be incomplete!";
-                        // System.out.println (message);
-                        continue;
-                    }
-
-                    for (int m = 1; m <= modality; m++) {
-
-                        // trait1_80%HPD_1
-                        String xCoordinateHPDName = xCoordinateAttributeName.concat("_").concat(hpd).concat("%")
-                            .concat(ParsersUtils.HPD.toUpperCase() + "_" + m);
-
-                        String yCoordinateHPDName = yCoordinateAttributeName.concat("_").concat(hpd).concat("%")
-                            .concat(ParsersUtils.HPD.toUpperCase() + "_" + m);
-
-                        Object[] xCoordinateHPD = null;
-                        Object[] yCoordinateHPD = null;
-                        tryingCoordinate = 0;
-
+                        Integer modality = 0;
                         try {
-
-                            tryingCoordinate = ParsersUtils.X_INDEX;
-                            xCoordinateHPD = ParsersUtils.getObjectArrayNodeAttribute(node, xCoordinateHPDName);
-
-                            tryingCoordinate = ParsersUtils.Y_INDEX;
-                            yCoordinateHPD = ParsersUtils.getObjectArrayNodeAttribute(node, yCoordinateHPDName);
-
+                            modality = (Integer) ParsersUtils.getObjectNodeAttribute(node, modalityAttributeName);
                         } catch (SpreadException e) {
-                            String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateHPDName
-                                                     : yCoordinateHPDName);
-                            String message = coordinateName
-                                + " attribute could not be found on the child node. Resulting visualisation may be incomplete!";
-                            System.out.println (message);
                             continue;
                         }
 
-                        List<Coordinate> coordinateList = new ArrayList<Coordinate>();
-                        for (int c = 0; c < xCoordinateHPD.length; c++) {
-                            Double xCoordinate = (Double) xCoordinateHPD[c];
-                            Double yCoordinate = (Double) yCoordinateHPD[c];
+                        String hpd = modalityAttributeName.replaceAll("\\D+", "");
 
-                            Coordinate coordinate = new Coordinate(yCoordinate, // lat
-                                                                   xCoordinate // long
-                                                                   );
-                            coordinateList.add(coordinate);
+                        for (int m = 1; m <= modality; m++) {
+
+                            // trait1_80%HPD_1
+                            String xCoordinateHPDName = xCoordinateAttributeName.concat("_").concat(hpd).concat("%")
+                                    .concat(ParsersUtils.HPD.toUpperCase() + "_" + m);
+
+                            String yCoordinateHPDName = yCoordinateAttributeName.concat("_").concat(hpd).concat("%")
+                                    .concat(ParsersUtils.HPD.toUpperCase() + "_" + m);
+
+                            Object[] xCoordinateHPD = null;
+                            Object[] yCoordinateHPD = null;
+                            tryingCoordinate = 0;
+
+                            try {
+
+                                tryingCoordinate = ParsersUtils.X_INDEX;
+                                xCoordinateHPD = ParsersUtils.getObjectArrayNodeAttribute(node, xCoordinateHPDName);
+
+                                tryingCoordinate = ParsersUtils.Y_INDEX;
+                                yCoordinateHPD = ParsersUtils.getObjectArrayNodeAttribute(node, yCoordinateHPDName);
+
+                            } catch (SpreadException e) {
+                                String coordinateName = (tryingCoordinate == ParsersUtils.X_INDEX ? xCoordinateHPDName
+                                        : yCoordinateHPDName);
+                                String message = coordinateName
+                                        + " attribute could not be found on the child node. Resulting visualisation may be incomplete!";
+                                System.out.println(message);
+                                continue;
+                            }
+
+                            List<Coordinate> coordinateList = new ArrayList<Coordinate>();
+                            for (int c = 0; c < xCoordinateHPD.length; c++) {
+                                Double xCoordinate = (Double) xCoordinateHPD[c];
+                                Double yCoordinate = (Double) yCoordinateHPD[c];
+
+                                Coordinate coordinate = new Coordinate(yCoordinate, // lat
+                                        xCoordinate // long
+                                );
+                                coordinateList.add(coordinate);
+                            }
+
+                            Polygon polygon = new Polygon(coordinateList);
+
+                            HashMap<String, Object> areaAttributesMap = new HashMap<String, Object>();
+                            areaAttributesMap.putAll(nodePoint.getAttributes());
+                            areaAttributesMap.put(ParsersUtils.HPD.toUpperCase(), hpd);
+
+                            Area area = new Area(polygon, nodePoint.getStartTime(), areaAttributesMap);
+                            areasList.add(area);
+
                         }
-
-                        Polygon polygon = new Polygon(coordinateList);
-
-                        HashMap<String, Object> areaAttributesMap = new HashMap<String, Object>();
-                        areaAttributesMap.putAll(nodePoint.getAttributes());
-                        areaAttributesMap.put(ParsersUtils.HPD.toUpperCase(), hpd);
-
-                        Area area = new Area(polygon, nodePoint.getStartTime(), areaAttributesMap);
-                        areasList.add(area);
-
                     }
-
-                }
 
             } else {
 
@@ -507,18 +493,6 @@ public class ContinuousTreeParser implements IProgressReporter {
         AxisAttributes axis = new AxisAttributes(this.xCoordinateAttributeName,
                                                  this.yCoordinateAttributeName);
 
-        LinkedList<Layer> layersList = new LinkedList<Layer>();
-
-        // --- DATA LAYER (TREE LINES & POINTS, AREAS) --- //
-
-        Layer treeLayer = new Layer.Builder ()
-            .withPoints (pointsList)
-            .withLines (linesList)
-            .withAreas (areasList)
-            .build ();
-
-        layersList.add(treeLayer);
-
         this.updateProgress(0.90);
 
         return new SpreadData.Builder()
@@ -528,7 +502,9 @@ public class ContinuousTreeParser implements IProgressReporter {
             .withLineAttributes(uniqueBranchAttributes)
             .withPointAttributes(uniqueNodeAttributes)
             .withAreaAttributes(uniqueAreaAttributes)
-            .withLayers(layersList)
+            .withPoints (pointsList)
+            .withLines (linesList)
+            .withAreas (areasList)
             .build();
     }
 
@@ -538,23 +514,49 @@ public class ContinuousTreeParser implements IProgressReporter {
         return new GsonBuilder().create().toJson(data);
     }
 
-    //  return attributes set and hpd levels
-    public String parseAttributesAndHpdLevels() throws IOException, ImportException  {
+    public Set<String> parseHpdAttributesSet() throws IOException, ImportException  {
 
         RootedTree tree = ParsersUtils.importRootedTree(this.treeFilePath);
 
+        Set<String> hpdAttributes = tree.getNodes().stream()
+            .filter(node -> !tree.isRoot(node))
+            .flatMap(node -> node.getAttributeNames().stream())
+            .filter(attributeName -> attributeName.contains("HPD_modality"))
+            // .map(name -> name)
+            .collect(Collectors.toSet());
+
+        return hpdAttributes;
+    }
+
+    public Set<String> parseAllAttributesSet() throws IOException, ImportException  {
+        RootedTree tree = ParsersUtils.importRootedTree(this.treeFilePath);
         Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
             .flatMap(node -> node.getAttributeNames().stream())
             .map(name -> name)
             .collect(Collectors.toSet());
-
-        Set<String> hpdLevels = uniqueAttributes.stream().filter(attributeName -> attributeName.contains("HPD_modality"))
-            .map(hpdString -> hpdString.replaceAll("\\D+", ""))
-            .collect(Collectors.toSet());
-
-        Object pair = new Object[] {uniqueAttributes, hpdLevels};
-        return new GsonBuilder().create().toJson(pair);
+        return uniqueAttributes;
     }
+
+    public String parseAttributes() throws IOException, ImportException  {
+        return new GsonBuilder().create().toJson(this.parseAllAttributesSet());
+    }
+
+    // public String parseAttributesAndHpdLevels() throws IOException, ImportException  {
+
+    //     RootedTree tree = ParsersUtils.importRootedTree(this.treeFilePath);
+
+    //     Set<String> uniqueAttributes = tree.getNodes().stream().filter(node -> !tree.isRoot(node))
+    //         .flatMap(node -> node.getAttributeNames().stream())
+    //         .map(name -> name)
+    //         .collect(Collectors.toSet());
+
+    //     Set<String> hpdLevels = uniqueAttributes.stream().filter(attributeName -> attributeName.contains("HPD_modality"))
+    //         .map(hpdString -> hpdString.replaceAll("\\D+", ""))
+    //         .collect(Collectors.toSet());
+
+    //     Object pair = new Object[] {uniqueAttributes, hpdLevels};
+    //     return new GsonBuilder().create().toJson(pair);
+    // }
 
     private Point createPoint(Node node, Coordinate coordinate, RootedTree rootedTree, TimeParser timeParser)
         throws SpreadException {

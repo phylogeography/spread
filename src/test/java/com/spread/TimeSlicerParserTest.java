@@ -45,10 +45,10 @@ public class TimeSlicerParserTest {
                                                         hpdLevel,
                                                         100,
                                                         mostRecentSamplingDate,
-                                                        1.0,
-                                                        treefile.getAbsolutePath(),
-                                                        "location2", // x (long)
-                                                        "location1" // y (lat)
+                                                        1.0
+                                                        // treefile.getAbsolutePath(),
+                                                        // "location2", // x (long)
+                                                        // "location1" // y (lat)
                                                         );
 
         Set<String> expectedAttributes = new HashSet<>(Arrays.asList("rate", "location"));

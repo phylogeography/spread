@@ -55,12 +55,12 @@
     {:db       (assoc-in db [:continuous-tree-parsers id :readable-name] readable-name)
      :dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
-                                                       $x: String!,
-                                                       $y: String!,
-                                                       $hpd: String!,
-                                                       $mrsd: String!,
-                                                       $name: String!,
-                                                       $multiplier: Float!) {
+                                                      $x: String!,
+                                                      $y: String!,
+                                                      $hpd: String!,
+                                                      $mrsd: String!,
+                                                      $name: String!,
+                                                      $multiplier: Float!) {
                                                    updateContinuousTree(id: $id,
                                                                         readableName: $name,
                                                                         timescaleMultiplier: $multiplier,

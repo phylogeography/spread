@@ -2,6 +2,10 @@ package com.spread.data;
 
 import java.util.List;
 
+import com.spread.data.attributable.Area;
+import com.spread.data.attributable.Line;
+import com.spread.data.attributable.Point;
+
 import lombok.Getter;
 import lombok.ToString;
 
@@ -25,24 +29,54 @@ public class SpreadData {
     private final List<Attribute> pointAttributes;
     @Getter
     private final List<Attribute> areaAttributes;
-
     @Getter
     private final List<Location> locations;
+
     @Getter
-    private final List<Layer> layers;
+    private final List<Point> points;
+    @Getter
+    private final List<Line> lines;
+    @Getter
+    private final List<Area> areas;
+    @Getter
+    private final List<Point> counts;
 
     public static class Builder {
 
+        private String analysisType;
         private Timeline timeline;
         private AxisAttributes axisAttributes;
         private List<Attribute> lineAttributes;
         private List<Attribute> pointAttributes;
         private List<Attribute> areaAttributes;
         private List<Location> locations;
-        private List<Layer> layers;
-        private String analysisType;
+
+        private List<Point> points;
+        private List<Line> lines;
+        private List<Area> areas;
+        private List<Point> counts;
 
         public Builder() {
+        }
+
+        public Builder withCounts(List<Point> counts) {
+            this.counts = counts;
+            return this;
+        }
+
+        public Builder withPoints(List<Point> points) {
+            this.points = points;
+            return this;
+        }
+
+        public Builder withLines(List<Line> lines) {
+            this.lines = lines;
+            return this;
+        }
+
+        public Builder withAreas(List<Area> areas) {
+            this.areas = areas;
+            return this;
         }
 
         public Builder withAnalysisType(String analysisType) {
@@ -80,11 +114,6 @@ public class SpreadData {
             return this;
         }
 
-        public Builder withLayers(List<Layer> layers) {
-            this.layers = layers;
-            return this;
-        }
-
         public SpreadData build() {
             SpreadData data = new SpreadData (this);
             return data;
@@ -100,7 +129,10 @@ public class SpreadData {
         this.pointAttributes = builder.pointAttributes;
         this.areaAttributes = builder.areaAttributes;
         this.locations = builder.locations;
-        this.layers = builder.layers;
+        this.points = builder.points;
+        this.lines = builder.lines;
+        this.counts = builder.counts;
+        this.areas = builder.areas;
     }
 
 }

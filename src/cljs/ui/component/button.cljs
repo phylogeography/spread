@@ -40,6 +40,9 @@
            icon label class
            file-accept-predicate on-file-accepted on-file-rejected]
     :or   {file-accept-predicate (constantly true)}}]
+
+;; (prn "@@@ button-file-upload" id)
+
   [:div.file-upload-button {:class class}
    [:input {:type      :file
             :disabled disabled?

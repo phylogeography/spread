@@ -59,12 +59,12 @@ public class TimeSlicerParser implements IProgressReporter {
     private String mostRecentSamplingDate;
     @Setter
     private double timescaleMultiplier;
-    @Setter
-    private String mccTreeFilePath;
-    @Setter
-    private String xCoordinateAttributeName;
-    @Setter
-    private String yCoordinateAttributeName;
+    // @Setter
+    // private String mccTreeFilePath;
+    // @Setter
+    // private String xCoordinateAttributeName;
+    // @Setter
+    // private String yCoordinateAttributeName;
     private IProgressObserver progressObserver;
 
     public TimeSlicerParser() {
@@ -78,10 +78,10 @@ public class TimeSlicerParser implements IProgressReporter {
                             double hpdLevel,
                             int gridSize,
                             String mostRecentSamplingDate,
-                            double timescaleMultiplier,
-                            String mccTreeFilePath,
-                            String xCoordinateAttributeName,
-                            String yCoordinateAttributeName
+                            double timescaleMultiplier
+                            // String mccTreeFilePath,
+                            // String xCoordinateAttributeName,
+                            // String yCoordinateAttributeName
                             ) {
         this.treesFilePath = treesFilePath;
         this.sliceHeightsFilePath = sliceHeightsFilePath;
@@ -92,9 +92,9 @@ public class TimeSlicerParser implements IProgressReporter {
         this.gridSize = gridSize;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
         this.timescaleMultiplier = timescaleMultiplier;
-        this.mccTreeFilePath = mccTreeFilePath;
-        this.xCoordinateAttributeName = xCoordinateAttributeName;
-        this.yCoordinateAttributeName = yCoordinateAttributeName;
+        // this.mccTreeFilePath = mccTreeFilePath;
+        // this.xCoordinateAttributeName = xCoordinateAttributeName;
+        // this.yCoordinateAttributeName = yCoordinateAttributeName;
     }
 
     public TimeSlicerParser(String treesFilePath,
@@ -119,9 +119,9 @@ public class TimeSlicerParser implements IProgressReporter {
         this.gridSize = gridSize;
         this.mostRecentSamplingDate = mostRecentSamplingDate;
         this.timescaleMultiplier = timescaleMultiplier;
-        this.mccTreeFilePath = mccTreeFilePath;
-        this.xCoordinateAttributeName = xCoordinateAttributeName;
-        this.yCoordinateAttributeName = yCoordinateAttributeName;
+        // this.mccTreeFilePath = mccTreeFilePath;
+        // this.xCoordinateAttributeName = xCoordinateAttributeName;
+        // this.yCoordinateAttributeName = yCoordinateAttributeName;
     }
 
     private SpreadData parseContours()
@@ -287,30 +287,30 @@ public class TimeSlicerParser implements IProgressReporter {
             .build();
     }
 
-    private SpreadData parseMccTree() throws IOException, ImportException, SpreadException {
-        if (this.mccTreeFilePath == null) {
-            throw new SpreadException("mccTreeFilePath parameter was not set");
-        } else if (this.xCoordinateAttributeName == null) {
-            throw new SpreadException("xCoordinateAttributeName parameter was not set");
-        } else if (this.yCoordinateAttributeName == null) {
-            throw new SpreadException("yCoordinateAttributeName parameter was not set");
-        } else {
-            return new ContinuousTreeParser(this.mccTreeFilePath, this.xCoordinateAttributeName,
-                                            this.yCoordinateAttributeName, "PLACEHOLDER", true, this.timescaleMultiplier,
-                                            this.mostRecentSamplingDate).parseMccTree();
-        }
-    }
+    // private SpreadData parseMccTree() throws IOException, ImportException, SpreadException {
+    //     if (this.mccTreeFilePath == null) {
+    //         throw new SpreadException("mccTreeFilePath parameter was not set");
+    //     } else if (this.xCoordinateAttributeName == null) {
+    //         throw new SpreadException("xCoordinateAttributeName parameter was not set");
+    //     } else if (this.yCoordinateAttributeName == null) {
+    //         throw new SpreadException("yCoordinateAttributeName parameter was not set");
+    //     } else {
+    //         return new ContinuousTreeParser(this.mccTreeFilePath, this.xCoordinateAttributeName,
+    //                                         this.yCoordinateAttributeName, "PLACEHOLDER", true, this.timescaleMultiplier,
+    //                                         this.mostRecentSamplingDate).parseMccTree();
+    //     }
+    // }
 
     public String parse() throws IOException, ImportException, SpreadException {
 
-        SpreadData mccTree = this.parseMccTree();
+        // SpreadData mccTree = this.parseMccTree();
         SpreadData contours = this.parseContours();
 
         LinkedList<Layer> layersList = new LinkedList<Layer>();
 
         Layer layer = new Layer.Builder ()
-            .withLines(mccTree.getLayers().get(0).getLines())
-            .withPoints(mccTree.getLayers().get(0).getPoints())
+            // .withLines(mccTree.getLayers().get(0).getLines())
+            // .withPoints(mccTree.getLayers().get(0).getPoints())
             .withAreas (contours.getLayers().get(0).getAreas())
             .build ();
         layersList.add(layer);
