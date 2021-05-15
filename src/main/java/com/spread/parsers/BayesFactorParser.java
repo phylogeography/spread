@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import com.google.gson.GsonBuilder;
 import com.spread.data.Attribute;
 import com.spread.data.AxisAttributes;
-import com.spread.data.Layer;
 import com.spread.data.Location;
 import com.spread.data.SpreadData;
 import com.spread.data.attributable.Line;
@@ -21,10 +20,10 @@ import com.spread.progress.IProgressObserver;
 import com.spread.progress.IProgressReporter;
 import com.spread.utils.ParsersUtils;
 
-import lombok.Setter;
-import lombok.Getter;
-import lombok.ToString;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 public class BayesFactorParser implements IProgressReporter {
 
@@ -326,14 +325,13 @@ public class BayesFactorParser implements IProgressReporter {
         uniquePointAttributes.add(xCoordinate);
         uniquePointAttributes.add(yCoordinate);
 
-        LinkedList<Layer> layersList = new LinkedList<Layer>();
+        // LinkedList<Layer> layersList = new LinkedList<Layer>();
 
-        Layer bfLayer = new Layer.Builder ()
-            .withPoints (pointsList)
-            .withLines (linesList)
-            .build ();
+        // Layer bfLayer = new Layer.Builder ()
 
-        layersList.add(bfLayer);
+        //     .build ();
+
+        // layersList.add(bfLayer);
 
         SpreadData spreadData = new SpreadData.Builder()
             .withAnalysisType(ParsersUtils.BAYES_FACTOR)
@@ -342,7 +340,9 @@ public class BayesFactorParser implements IProgressReporter {
             .withLineAttributes(uniqueLineAttributes)
             .withPointAttributes(uniquePointAttributes)
             .withLocations(locationsList)
-            .withLayers(layersList)
+            .withPoints (pointsList)
+            .withLines (linesList)
+            // .withLayers(layersList)
             .build();
 
         LinkedList<BayesFactor> bayesFactorsData = new LinkedList<BayesFactor>();
