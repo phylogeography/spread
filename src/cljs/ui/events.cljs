@@ -63,10 +63,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (re-frame/reg-event-fx :continuous-mcc-tree/on-tree-file-selected events.continuous-mcc-tree/on-tree-file-selected)
+(re-frame/reg-event-fx :continuous-mcc-tree/upload-tree-file events.continuous-mcc-tree/upload-tree-file)
 (re-frame/reg-event-fx :continuous-mcc-tree/tree-file-upload-progress events.continuous-mcc-tree/tree-file-upload-progress)
 (re-frame/reg-event-fx :continuous-mcc-tree/tree-file-upload-success events.continuous-mcc-tree/tree-file-upload-success)
 (re-frame/reg-event-fx :continuous-mcc-tree/delete-tree-file events.continuous-mcc-tree/delete-tree-file)
-(re-frame/reg-event-fx :continuous-mcc-tree/s3-upload events.continuous-mcc-tree/s3-upload)
+
+(re-frame/reg-event-fx :continuous-mcc-tree/on-trees-file-selected events.continuous-mcc-tree/on-trees-file-selected)
+(re-frame/reg-event-fx :continuous-mcc-tree/upload-trees-file events.continuous-mcc-tree/upload-trees-file)
+(re-frame/reg-event-fx :continuous-mcc-tree/trees-file-upload-progress events.continuous-mcc-tree/trees-file-upload-progress)
+(re-frame/reg-event-fx :continuous-mcc-tree/trees-file-upload-success events.continuous-mcc-tree/trees-file-upload-success)
+(re-frame/reg-event-fx :continuous-mcc-tree/delete-trees-file events.continuous-mcc-tree/delete-trees-file)
+
+
 (re-frame/reg-event-fx :continuous-mcc-tree/start-analysis events.continuous-mcc-tree/start-analysis)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-readable-name events.continuous-mcc-tree/set-readable-name)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-y-coordinate events.continuous-mcc-tree/set-y-coordinate)

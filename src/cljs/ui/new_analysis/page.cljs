@@ -25,7 +25,9 @@
         field-errors           (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
       (let [{:keys [attribute-names]} @continuous-tree-parser
-            {:keys [tree-file tree-file-upload-progress readable-name
+            {:keys [readable-name
+                    tree-file tree-file-upload-progress
+                    trees-file trees-file-upload-progress
                     y-coordinate x-coordinate
                     most-recent-sampling-date
                     time-scale-multiplier]
@@ -57,6 +59,29 @@
               [:span "When upload is complete all unique attributes will be automatically filled."]
               [:span "You can then select geographical coordinates and change other settings."]]
              [button-with-icon {:on-click #(>evt [:continuous-mcc-tree/delete-tree-file])
+                                :icon     :delete}])]
+
+          [:span "Load trees file"]
+          [:div
+           [:div
+            (cond
+              (and (nil? trees-file-upload-progress) (nil? trees-file))
+              [button-file-upload {:id               "mcc-trees-file-upload-button"
+                                   :icon             :upload
+                                   :class            "upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
+
+              (not= 1 trees-file-upload-progress)
+              [progress-bar {:class "trees-upload-progress-bar" :progress trees-file-upload-progress :label "Uploading. Please wait"}]
+
+              :else [:span.trees-filename trees-file])]
+
+           (if (nil? trees-file)
+             [:p
+              [:span "Optional: Select a file with corresponding trees distribution."]
+              [:span "This file will be used to compute a density interval around the MCC tree."]]
+             [button-with-icon {:on-click #(>evt [:continuous-mcc-tree/delete-trees-file])
                                 :icon     :delete}])]]
 
          [:div.settings
