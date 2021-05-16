@@ -258,6 +258,10 @@ body {
   align-content: center;
 }
 
+.upload-button.disabled > label  {
+  background: #999999 0% 0% no-repeat padding-box;
+}
+
 progress {
   text-align: center;
   -webkit-appearance: none;

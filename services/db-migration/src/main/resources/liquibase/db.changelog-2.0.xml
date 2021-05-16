@@ -14,9 +14,6 @@
       <column name="tree_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-
-      <column name="time_slicer_id" type="VARCHAR(36)"/>
-      
       <column name="output_file_url" type="VARCHAR(200)"/>
       <column name="readable_name" type="VARCHAR(200)"/>
       <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
@@ -49,20 +46,6 @@
                              initiallyDeferred="false"
                              validate="true"/>
   </changeSet>
-
-  <changeSet author="filip" id="2.0-4">
-    <addForeignKeyConstraint constraintName="continuous_tree_SLASH_time_slicer_id_FK"
-                             baseColumnNames="time_slicer_id"
-                             baseTableName="continuous_tree"
-                             referencedColumnNames="id"
-                             referencedTableName="time_slicer"
-                             onDelete="CASCADE"
-                             onUpdate="RESTRICT"
-                             deferrable="false"
-                             initiallyDeferred="false"
-                             validate="true"/>
-  </changeSet>
-
   
   <changeSet author="filip" id="2.0-5">
     <createTable tableName="continuous_tree_attributes">

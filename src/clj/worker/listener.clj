@@ -137,6 +137,7 @@
       (continuous-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR}))))
 
+;; TODO : if time slicer parse it and combineoutput data
 (defmethod handler :parse-continuous-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-continuous-tree" args)
@@ -188,7 +189,7 @@
       (continuous-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR}))))
 
-(defmethod handler :time-slicer-upload
+#_(defmethod handler :time-slicer-upload
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling time-slicer-upload" args)
   (try
@@ -212,23 +213,24 @@
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         :ERROR}))))
 
-(defmethod handler :parse-time-slicer
+#_(defmethod handler :parse-time-slicer
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-time-slicer" args)
   (try
-    (let [{:keys                     [user-id
-                  burn-in
-                  relaxed-random-walk-rate-attribute-name
-                  trait-attribute-name
-                  number-of-intervals
-                  contouring-grid-size
-                  hpd-level
-                  timescale-multiplier
-                  most-recent-sampling-date
-                  mcc-tree-file-url] :as ts}
+    (let [{:keys
+           [user-id
+            burn-in
+            relaxed-random-walk-rate-attribute-name
+            trait-attribute-name
+            number-of-intervals
+            contouring-grid-size
+            hpd-level
+            timescale-multiplier
+            most-recent-sampling-date
+            mcc-tree-file-url] :as time-slicer}
           (time-slicer-model/get-time-slicer db {:id id})
 
-          _ (log/debug "time slicer" {:ts ts})
+          _ (log/info "time slicer" time-slicer)
 
           ;; TODO: parse extension
           trees-object-key (str user-id "/" id ".trees")
@@ -295,8 +297,9 @@
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-bayes-factors" args)
   (try
-    (let [_                (bayes-factor-model/update! db {:id     id
-                                                           :status :RUNNING})
+    (let [_
+          (bayes-factor-model/update! db {:id     id
+                                          :status :RUNNING})
           {:keys [user-id
                   locations-file-url
                   number-of-locations

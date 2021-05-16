@@ -48,9 +48,6 @@
                                 :variables  {:filename fname :extension "tree"}
                                 :on-success [:continuous-mcc-tree/upload-tree-file file-with-meta]}]}))
 
-
-;; TODO
-
 (defn on-trees-file-selected [_ [_ file-with-meta]]
   (let [{:keys [filename]} file-with-meta
         splitted           (string/split filename ".")
@@ -59,7 +56,7 @@
                                 "mutation GetUploadUrls($filename: String!, $extension: String!) {
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
                                    }"
-                                :variables  {:filename fname :extension "tree"}
+                                :variables  {:filename fname :extension "trees"}
                                 :on-success [:continuous-mcc-tree/upload-trees-file file-with-meta]}]}))
 
 
@@ -74,12 +71,23 @@
                   :handle-progress (fn [sent total]
                                      (>evt [:continuous-mcc-tree/trees-file-upload-progress (/ sent total)]))}}))
 
+;; TODO : mutation to get the id
 (defn trees-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _] (string/split url "?")]
-    {:db (-> db
-             (assoc-in [:new-analysis :continuous-mcc-tree :trees-file-url] url)
-             ;; default name: file name root
-             (assoc-in [:new-analysis :continuous-mcc-tree :trees-file] filename))}))
+  (let [[url _] (string/split url "?")
+        continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
+                                                   uploadTimeSlicer(continuousTreeId: $continuousTreeId,
+                                                                    treesFileUrl: $url) {
+                                                     id
+                                                     status
+                                                   }
+                                                }"
+                                :variables {:url url
+                                            :continuousTreeId continuous-tree-id}}]
+     :db (-> db
+                   ;; (assoc-in [:new-analysis :continuous-mcc-tree :trees-file-url] url)
+                   (assoc-in [:new-analysis :continuous-mcc-tree :trees-file] filename))}))
 
 (defn trees-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :trees-file-upload-progress] progress)})

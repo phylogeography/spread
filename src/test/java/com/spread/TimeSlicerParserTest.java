@@ -39,7 +39,7 @@ public class TimeSlicerParserTest {
                                                         0.1,
                                                         10,
                                                         "location",
-                                                        "rate",
+                                                        "rate", // pass null for a rate of 1
                                                         hpdLevel,
                                                         100,
                                                         mostRecentSamplingDate,

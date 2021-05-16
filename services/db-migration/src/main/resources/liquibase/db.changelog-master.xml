@@ -3,10 +3,11 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-           http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-    <include file="liquibase/db.changelog-1.0.xml"/>
-    <include file="liquibase/db.changelog-4.0.xml"/>    
-    <include file="liquibase/db.changelog-2.0.xml"/>
-    <include file="liquibase/db.changelog-3.0.xml"/>
-    <include file="liquibase/db.changelog-5.0.xml"/>    
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+  <!-- do not change order -->
+  <include file="liquibase/db.changelog-1.0.xml"/>
+  <include file="liquibase/db.changelog-2.0.xml"/>
+  <include file="liquibase/db.changelog-3.0.xml"/>
+  <include file="liquibase/db.changelog-4.0.xml"/>
+  <include file="liquibase/db.changelog-5.0.xml"/>
 </databaseChangeLog>

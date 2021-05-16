@@ -5,6 +5,7 @@
 ;; These are just not to upset clj-kondo
 (declare upsert-time-slicer)
 (declare get-time-slicer)
+(declare get-time-slicer-by-continuous-tree-id)
 (declare update-time-slicer)
 (declare insert-attribute)
 (declare get-attributes)
@@ -18,8 +19,8 @@
 (def ^:private nil-time-slicer
   {:id                                      nil
    :user-id                                 nil
+   :continuous-tree-id                      nil
    :trees-file-url                          nil
-   :mcc-tree-file-url                       nil
    :slice-heights-file-url                  nil
    :readable-name                           nil
    :burn-in                                 nil

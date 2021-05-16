@@ -55,7 +55,8 @@
       urls)))
 
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url authed-user-id db]}
-                              {tree-file-url :treeFileUrl readable-name :readableName
+                              {tree-file-url :treeFileUrl
+                               readable-name :readableName
                                :as           args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args    args})
@@ -206,11 +207,12 @@
         (discrete-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR})))))
 
+;; TODO : return the id to be merged with MCC tree
 (defn upload-time-slicer [{:keys [sqs workers-queue-url authed-user-id db]}
-                          {trees-file-url         :treesFileUrl
-                           readable-name          :readableName
+                          {continuous-tree-id     :continuousTreeId
+                           trees-file-url         :treesFileUrl
+                           ;; readable-name          :readableName
                            slice-heights-file-url :sliceHeightsFileUrl
-                           mcc-tree-file-url      :mccTreeFileUrl
                            :as                    args} _]
   (log/info "upload-time-slicer" {:user/id authed-user-id
                                   :args    args})
@@ -219,20 +221,21 @@
     (try
       ;; TODO : in a transaction
       (time-slicer-model/upsert! db {:id                     id
-                                     :readable-name          readable-name
+                                     ;; :readable-name          readable-name
+                                     :continuous-tree-id     continuous-tree-id
                                      :created-on             (time/millis (time/now))
                                      :user-id                authed-user-id
                                      :trees-file-url         trees-file-url
-                                     :mcc-tree-file-url      mcc-tree-file-url
                                      :slice-heights-file-url slice-heights-file-url})
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         status})
       ;; sends message to the worker to parse attributes
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :time-slicer-upload
-                                                   :id           id
-                                                   :user-id      authed-user-id})
-      {:id     id
-       :status status}
+      #_(aws-sqs/send-message sqs workers-queue-url {:message/type :time-slicer-upload
+                                                     :id           id
+                                                     :user-id      authed-user-id})
+      {:id                 id
+       :continuous-tree-id continuous-tree-id
+       :status             status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (time-slicer-model/upsert-status! db {:time-slicer-id id
@@ -241,7 +244,6 @@
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
                                 readable-name                           :readableName
-                                mcc-tree-file-url                       :mccTreeFileUrl
                                 burn-in                                 :burnIn
                                 relaxed-random-walk-rate-attribute-name :relaxedRandomWalkRateAttributeName
                                 trait-attribute-name                    :traitAttributeName
@@ -262,7 +264,6 @@
       (time-slicer-model/update! db {:id                                      id
                                      :readable-name                           readable-name
                                      :burn-in                                 burn-in
-                                     :mcc-tree-file-url                       mcc-tree-file-url
                                      :number-of-intervals                     number-of-intervals
                                      :relaxed-random-walk-rate-attribute-name relaxed-random-walk-rate-attribute-name
                                      :trait-attribute-name                    trait-attribute-name
@@ -279,7 +280,7 @@
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         :ERROR}))))
 
-(defn start-time-slicer-parser
+#_(defn start-time-slicer-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
   (log/info "start-time-slicer-parser" args)
   (let [status :QUEUED]

@@ -45,12 +45,14 @@
 
    :query/getAuthorizedUser (auth-decorator resolvers/get-authorized-user)
 
-   :mutation/uploadContinuousTree       (auth-decorator mutations/upload-continuous-tree)
-   :mutation/updateContinuousTree       (auth-decorator mutations/update-continuous-tree)
-   :query/getContinuousTree             resolvers/get-continuous-tree
-   :resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
+   :mutation/uploadContinuousTree        (auth-decorator mutations/upload-continuous-tree)
+   :mutation/updateContinuousTree        (auth-decorator mutations/update-continuous-tree)
+   :query/getContinuousTree              resolvers/get-continuous-tree
+   :resolve/continuous-tree->attributes  resolvers/continuous-tree->attributes
+   :resolve/continuous-tree->time-slicer resolvers/continuous-tree->time-slicer
+
    ;; :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
-   :mutation/startContinuousTreeParser  (auth-decorator mutations/start-continuous-tree-parser)
+   :mutation/startContinuousTreeParser (auth-decorator mutations/start-continuous-tree-parser)
 
    :mutation/uploadDiscreteTree       (auth-decorator mutations/upload-discrete-tree)
    :mutation/updateDiscreteTree       (auth-decorator mutations/update-discrete-tree)
@@ -58,11 +60,11 @@
    :resolve/discrete-tree->attributes resolvers/discrete-tree->attributes
    :mutation/startDiscreteTreeParser  (auth-decorator mutations/start-discrete-tree-parser)
 
-   :mutation/uploadTimeSlicer       (auth-decorator mutations/upload-time-slicer)
-   :mutation/updateTimeSlicer       (auth-decorator mutations/update-time-slicer)
-   :query/getTimeSlicer             resolvers/get-time-slicer
+   :mutation/uploadTimeSlicer (auth-decorator mutations/upload-time-slicer)
+   :mutation/updateTimeSlicer (auth-decorator mutations/update-time-slicer)
+   ;; :query/getTimeSlicer             resolvers/get-time-slicer
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
-   :mutation/startTimeSlicerParser  (auth-decorator mutations/start-time-slicer-parser)
+   ;; :mutation/startTimeSlicerParser  (auth-decorator mutations/start-time-slicer-parser)
 
    :mutation/uploadBayesFactorAnalysis           (auth-decorator mutations/upload-bayes-factor-analysis)
    :mutation/updateBayesFactorAnalysis           (auth-decorator mutations/update-bayes-factor-analysis)
@@ -72,7 +74,7 @@
 
    :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
 
-   :resolve/analysis->maps resolvers/analysis->maps
+   ;; :resolve/analysis->maps resolvers/analysis->maps
    })
 
 (defn streamer-map []

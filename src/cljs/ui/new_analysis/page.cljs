@@ -67,6 +67,7 @@
             (cond
               (and (nil? trees-file-upload-progress) (nil? trees-file))
               [button-file-upload {:id               "mcc-trees-file-upload-button"
+                                   :disabled?        (nil? attribute-names)
                                    :icon             :upload
                                    :class            "upload-button"
                                    :label            "Choose a file"
