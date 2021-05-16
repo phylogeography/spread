@@ -118,14 +118,14 @@
   (log/info "handling continuous-tree-upload" args)
   (try
     (let [;; TODO: parse extension
-          tree-object-key         (str user-id "/" id ".tree")
-          tree-file-path          (str tmp-dir "/" tree-object-key)
-          _                       (aws-s3/download-file s3 {:bucket    bucket-name
-                                                            :key       tree-object-key
-                                                            :dest-path tree-file-path})
-          parser                  (doto (new ContinuousTreeParser)
-                                    (.setTreeFilePath tree-file-path))
-          attributes (json/read-str (.parseAttributes parser))]
+          tree-object-key (str user-id "/" id ".tree")
+          tree-file-path  (str tmp-dir "/" tree-object-key)
+          _               (aws-s3/download-file s3 {:bucket    bucket-name
+                                                    :key       tree-object-key
+                                                    :dest-path tree-file-path})
+          parser          (doto (new ContinuousTreeParser)
+                            (.setTreeFilePath tree-file-path))
+          attributes      (json/read-str (.parseAttributes parser))]
       (log/info "Parsed attributes and hpd-levels" {:id         id
                                                     :attributes attributes})
       ;; TODO : in a transaction
@@ -138,8 +138,6 @@
       (continuous-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR}))))
 
-;; TODO : if time slicer parse it and combineoutput data
-
 (defmethod handler
   ;; "This handler will parse the continuous MCC tree and create HPD interval contours around it if a corresponding trees sample is provided"
   :parse-continuous-tree
@@ -150,16 +148,16 @@
                   timescale-multiplier most-recent-sampling-date]}
           (continuous-tree-model/get-tree db {:id id})
 
-          {time-slicer-id       :id
-           hpd-level            :hpd-level
-           burn-in              :burn-in
-           number-of-intervals  :number-of-intervals
-           contouring-grid-size :contouring-grid-size
+          {time-slicer-id                          :id
+           hpd-level                               :hpd-level
+           burn-in                                 :burn-in
+           number-of-intervals                     :number-of-intervals
+           contouring-grid-size                    :contouring-grid-size
            relaxed-random-walk-rate-attribute-name :relaxed-random-walk-rate-attribute-name
-           :as                  time-slicer}
+           :as                                     time-slicer}
           (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})
 
-          _ (log/debug "TimeSlicer retrieved by continuous tree id" time-slicer)
+          _ (log/info "TimeSlicer retrieved by continuous tree id" time-slicer)
 
           ;; TODO: parse extension
           tree-object-key  (str user-id "/" id ".tree")
@@ -178,8 +176,6 @@
                                                                                                  :status   :RUNNING
                                                                                                  :progress progress})))))
 
-          ;; TODO : two paths, with or without .trees
-
           ;; call all setters
           continuous-tree-parser (doto (new ContinuousTreeParser)
                                    (.setTreeFilePath tree-file-path)
@@ -189,14 +185,12 @@
                                    (.setMostRecentSamplingDate most-recent-sampling-date))
 
           ;; NOTE: if we are not using time slicer let this parser report progress
-          continuous-tree-parser (if time-slicer
+          continuous-tree-parser (if-not time-slicer
                                    (doto continuous-tree-parser
                                      (.registerProgressObserver progress-handler))
                                    continuous-tree-parser)
 
-          {:keys [analysisType timeline
-                  axisAttributes pointAttributes lineAttributes
-                  lines points areas]}
+          continuous-tree-parser-output
           (json/read-str (.parse continuous-tree-parser) :key-fn keyword)
 
           {:keys [areaAttributes areas]}
@@ -222,23 +216,16 @@
 
           output-object-key  (str user-id "/" id ".json")
           output-object-path (str tmp-dir "/" output-object-key)
-          data (json/write-str {:analysisType    analysisType
-                                :timeline        timeline
-                                :axisAttributes  axisAttributes
-                                :pointAttributes pointAttributes
-                                :lineAttributes  lineAttributes
-                                :lines           lines
-                                :points          points
-                                :areas           areas})
-          _                  (spit output-object-path data :append false)
-
+          data               (merge continuous-tree-parser-output
+                                    (when time-slicer
+                                      {:areaAttributes areaAttributes
+                                       :areas          areas}))
+          _                  (spit output-object-path (json/write-str data) :append false)
           _                  (aws-s3/upload-file s3 {:bucket    bucket-name
                                                      :key       output-object-key
                                                      :file-path output-object-path})
-          url                (aws-s3/build-url aws-config bucket-name output-object-key)]
-
-      (log/info "Continuous tree output URL" {:url url})
-
+          url                (aws-s3/build-url aws-config bucket-name output-object-key)
+          _                  (log/info "Continuous tree output URL" {:url url})]
       ;; TODO : in a transaction
       (continuous-tree-model/update! db {:id              id
                                          :output-file-url url})
@@ -248,30 +235,6 @@
       (log/error "Exception when handling parse-continuous-tree" {:error e})
       (continuous-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR}))))
-
-#_(defmethod handler :time-slicer-upload
-  [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
-  (log/info "handling time-slicer-upload" args)
-  (try
-    (let [;; TODO: parse extension
-          trees-object-key (str user-id "/" id ".trees")
-          trees-file-path  (str tmp-dir "/" trees-object-key)
-          _                (aws-s3/download-file s3 {:bucket    bucket-name
-                                                     :key       trees-object-key
-                                                     :dest-path trees-file-path})
-          parser           (doto (new TimeSlicerParser)
-                             (.setTreesFilePath trees-file-path))
-          attributes       (json/read-str (.parseAttributes parser))]
-      (log/info "Parsed attributes" {:id         id
-                                     :attributes attributes})
-      ;; TODO : in a transaction
-      (time-slicer-model/insert-attributes! db id attributes)
-      (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                            :status         :ATTRIBUTES_PARSED}))
-    (catch Exception e
-      (log/error "Exception when handling time-slicer-upload" {:error e})
-      (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                            :status         :ERROR}))))
 
 (defn parse-time-slicer [{:keys [id user-id db s3 bucket-name progress-handler parser-settings]}]
   (try
@@ -308,86 +271,6 @@
           _      (time-slicer-model/upsert-status! db {:time-slicer-id id
                                                        :status         :SUCCEEDED})]
       (json/read-str output :key-fn keyword))
-    (catch Exception e
-      (log/error "Exception when handling parse-time-slicer" {:error e})
-      (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                            :status         :ERROR}))))
-
-#_(defmethod handler :parse-time-slicer
-    [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
-  (log/info "handling parse-time-slicer" args)
-  (try
-    (let [{:keys
-           [user-id
-            burn-in
-            relaxed-random-walk-rate-attribute-name
-            trait-attribute-name
-            number-of-intervals
-            contouring-grid-size
-            hpd-level
-            timescale-multiplier
-            most-recent-sampling-date
-            mcc-tree-file-url] :as time-slicer}
-          (time-slicer-model/get-time-slicer db {:id id})
-
-          _ (log/info "time slicer" time-slicer)
-
-          ;; TODO: parse extension
-          trees-object-key (str user-id "/" id ".trees")
-          trees-file-path  (str tmp-dir "/" trees-object-key)
-          ;; is it cached on disk?
-          _                (when-not (file-exists? trees-file-path)
-                             (aws-s3/download-file s3 {:bucket    bucket-name
-                                                       :key       trees-object-key
-                                                       :dest-path trees-file-path}))
-
-
-          mcc-tree-file-id    (s3-url->id mcc-tree-file-url user-id)
-          ;; TODO: parse extension
-          mcc-tree-object-key (str user-id "/" mcc-tree-file-id ".tree")
-          mcc-tree-file-path  (str tmp-dir "/" mcc-tree-object-key)
-          ;; is it cached on disk?
-          _                   (when-not (file-exists? mcc-tree-file-path)
-                                (aws-s3/download-file s3 {:bucket    bucket-name
-                                                          :key       mcc-tree-object-key
-                                                          :dest-path mcc-tree-file-path}))
-
-          progress-handler   (new-progress-handler (fn [progress]
-                                                     (let [progress (round 2 progress)]
-                                                       (when (= (mod progress 0.1) 0.0)
-                                                         (log/debug "time-slicer progress" {:id       id
-                                                                                            :progress progress})
-                                                         (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                                                                               :status         :RUNNING
-                                                                                               :progress       progress})))))
-          ;; call all setters
-          parser             (doto (new TimeSlicerParser)
-                               (.setTreesFilePath trees-file-path)
-                               (.setMccTreeFilePath mcc-tree-file-path)
-                               ;; NOTE: this should always hold unless someone switches the usual lat/long convention
-                               (.setXCoordinateAttributeName (str trait-attribute-name "2")) ;; long
-                               (.setYCoordinateAttributeName (str trait-attribute-name "1"));; lat
-                               (.setTraitName trait-attribute-name)
-                               (.setBurnIn burn-in)
-                               (.setRrwRateName relaxed-random-walk-rate-attribute-name)
-                               (.setNumberOfIntervals number-of-intervals)
-                               (.setHpdLevel hpd-level)
-                               (.setGridSize contouring-grid-size)
-                               (.setTimescaleMultiplier timescale-multiplier)
-                               (.setMostRecentSamplingDate most-recent-sampling-date)
-                               (.registerProgressObserver progress-handler))
-          output-object-key  (str user-id "/" id ".json")
-          output-object-path (str tmp-dir "/" output-object-key)
-          _                  (spit output-object-path (.parse parser) :append false)
-          _                  (aws-s3/upload-file s3 {:bucket    bucket-name
-                                                     :key       output-object-key
-                                                     :file-path output-object-path})
-          url                (aws-s3/build-url aws-config bucket-name output-object-key)]
-      ;; TODO : in a transaction
-      (time-slicer-model/update! db {:id              id
-                                     :output-file-url url})
-      (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                            :status         :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-time-slicer" {:error e})
       (time-slicer-model/upsert-status! db {:time-slicer-id id

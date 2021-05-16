@@ -71,9 +71,8 @@
                   :handle-progress (fn [sent total]
                                      (>evt [:continuous-mcc-tree/trees-file-upload-progress (/ sent total)]))}}))
 
-;; TODO : mutation to get the id
 (defn trees-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _] (string/split url "?")
+  (let [[url _]            (string/split url "?")
         continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
     {:dispatch [:graphql/query {:query
                                 "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
@@ -83,10 +82,9 @@
                                                      status
                                                    }
                                                 }"
-                                :variables {:url url
+                                :variables {:url              url
                                             :continuousTreeId continuous-tree-id}}]
-     :db (-> db
-                   ;; (assoc-in [:new-analysis :continuous-mcc-tree :trees-file-url] url)
+     :db       (-> db
                    (assoc-in [:new-analysis :continuous-mcc-tree :trees-file] filename))}))
 
 (defn trees-file-upload-progress [{:keys [db]} [_ progress]]
@@ -97,15 +95,6 @@
   {:db (-> db
            (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file])
            (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file-upload-progress]))})
-
-
-
-
-
-
-
-
-
 
 ;; TODO: clean analysis fields (dissoc)
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate

@@ -25,20 +25,12 @@
     (log/info "continuous-tree->attributes" {:attributes attributes})
     attributes))
 
-;; TODO
 (defn continuous-tree->time-slicer
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->time-slicer" parent)
   (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id tree-id})]
     (log/info "continuous-tree->time-slicer" time-slicer)
     time-slicer))
-
-#_(defn continuous-tree->hpd-levels
-  [{:keys [db]} _ {tree-id :id :as parent}]
-  (log/info "continuous-tree->hpd-levels" parent)
-  (let [levels (map :level (continuous-tree-model/get-hpd-levels db {:tree-id tree-id}))]
-    (log/info "continuous-tree->hpd-levels" {:levels levels})
-    levels))
 
 (defn get-discrete-tree
   [{:keys [db]} {id :id :as args} _]
@@ -51,11 +43,6 @@
   (let [attributes (map :attribute-name (discrete-tree-model/get-attributes db {:tree-id tree-id}))]
     (log/info "discrete-tree->attributes" {:attributes attributes})
     attributes))
-
-#_(defn get-time-slicer
-  [{:keys [db]} {id :id :as args} _]
-  (log/info "get-time-slicer" args)
-  (clj->gql (time-slicer-model/get-time-slicer db {:id id})))
 
 (defn time-slicer->attributes
   [{:keys [db]} _ {time-slicer-id :id :as parent}]
@@ -129,11 +116,3 @@
     (clj->gql {:total-count total-count
                :edges       edges'
                :page-info   page-info})))
-
-#_(defn analysis->maps [_ _ _]
-  #_[{:keys [db]} _ {analysis-id :id :as parent}]
-  ;; TODO: implement this once we have refactored the db and added bounding boxes to the analysis parent table
-  [
-   "http://127.0.0.1:9000/spread-dev-uploads/maps/countries/australiaLow.json"
-   "http://127.0.0.1:9000/spread-dev-uploads/maps/countries/tanzaniaLow.json"
-   "http://127.0.0.1:9000/spread-dev-uploads/maps/world/worldLow.json"])

@@ -207,11 +207,9 @@
         (discrete-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR})))))
 
-;; TODO : return the id to be merged with MCC tree
 (defn upload-time-slicer [{:keys [sqs workers-queue-url authed-user-id db]}
                           {continuous-tree-id     :continuousTreeId
                            trees-file-url         :treesFileUrl
-                           ;; readable-name          :readableName
                            slice-heights-file-url :sliceHeightsFileUrl
                            :as                    args} _]
   (log/info "upload-time-slicer" {:user/id authed-user-id
@@ -221,7 +219,6 @@
     (try
       ;; TODO : in a transaction
       (time-slicer-model/upsert! db {:id                     id
-                                     ;; :readable-name          readable-name
                                      :continuous-tree-id     continuous-tree-id
                                      :created-on             (time/millis (time/now))
                                      :user-id                authed-user-id
@@ -229,10 +226,6 @@
                                      :slice-heights-file-url slice-heights-file-url})
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         status})
-      ;; sends message to the worker to parse attributes
-      #_(aws-sqs/send-message sqs workers-queue-url {:message/type :time-slicer-upload
-                                                     :id           id
-                                                     :user-id      authed-user-id})
       {:id                 id
        :continuous-tree-id continuous-tree-id
        :status             status}
@@ -279,21 +272,6 @@
       (log/error "Exception occured" {:error e})
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         :ERROR}))))
-
-#_(defn start-time-slicer-parser
-  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
-  (log/info "start-time-slicer-parser" args)
-  (let [status :QUEUED]
-    (try
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-time-slicer
-                                                   :id           id})
-      (time-slicer-model/upsert-status! db {:time-slicer-id id :status status})
-      {:id     id
-       :status status}
-      (catch Exception e
-        (log/error "Exception when sending message to worker" {:error e})
-        (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                              :status         :ERROR})))))
 
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
                                     {log-file-url        :logFileUrl
