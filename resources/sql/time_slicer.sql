@@ -70,6 +70,31 @@ FROM time_slicer
 JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id
 WHERE :id = id
 
+-- :name get-time-slicer-by-continuous-tree-id :? :1
+-- :doc Get entity by continuous-tree-id
+SELECT
+id,
+user_id,
+continuous_tree_id,
+created_on,
+trees_file_url,
+slice_heights_file_url,
+readable_name,
+burn_in,
+number_of_intervals,
+trait_attribute_name,
+relaxed_random_walk_rate_attribute_name,
+contouring_grid_size,
+hpd_level,
+timescale_multiplier,
+most_recent_sampling_date,
+output_file_url,
+status,
+progress
+FROM time_slicer
+JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id
+WHERE continuous_tree_id = :continuous-tree-id
+
 -- :name insert-attribute :! :n
 -- :doc Insert an attribute
 

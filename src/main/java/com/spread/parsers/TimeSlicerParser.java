@@ -73,7 +73,6 @@ public class TimeSlicerParser implements IProgressReporter {
                             int gridSize,
                             String mostRecentSamplingDate,
                             double timescaleMultiplier
-
                             ) {
         this.treesFilePath = treesFilePath;
         this.sliceHeightsFilePath = sliceHeightsFilePath;

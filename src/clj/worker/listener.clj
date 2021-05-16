@@ -10,12 +10,13 @@
             [clojure.core.match :refer [match]]
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
-            [shared.utils :refer [file-exists? round]]
+            [shared.utils :refer [file-exists? round longest-common-substring]]
             [taoensso.timbre :as log])
   (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]
            [com.spread.progress IProgressObserver]))
 
 (declare listener)
+(declare parse-time-slicer)
 
 (defonce tmp-dir "/tmp")
 
@@ -138,47 +139,106 @@
                                                 :status  :ERROR}))))
 
 ;; TODO : if time slicer parse it and combineoutput data
-(defmethod handler :parse-continuous-tree
+
+(defmethod handler
+  ;; "This handler will parse the continuous MCC tree and create HPD interval contours around it if a corresponding trees sample is provided"
+  :parse-continuous-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-continuous-tree" args)
   (try
     (let [{:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
-                  hpd-level has-external-annotations timescale-multiplier
-                  most-recent-sampling-date]}
+                  timescale-multiplier most-recent-sampling-date]}
           (continuous-tree-model/get-tree db {:id id})
+
+          {time-slicer-id       :id
+           hpd-level            :hpd-level
+           burn-in              :burn-in
+           number-of-intervals  :number-of-intervals
+           contouring-grid-size :contouring-grid-size
+           relaxed-random-walk-rate-attribute-name :relaxed-random-walk-rate-attribute-name
+           :as                  time-slicer}
+          (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})
+
+          _ (log/debug "TimeSlicer retrieved by continuous tree id" time-slicer)
+
           ;; TODO: parse extension
-          tree-object-key    (str user-id "/" id ".tree")
-          tree-file-path     (str tmp-dir "/" tree-object-key)
+          tree-object-key  (str user-id "/" id ".tree")
+          tree-file-path   (str tmp-dir "/" tree-object-key)
           ;; is it cached on disk?
-          _                  (when-not (file-exists? tree-file-path)
-                               (aws-s3/download-file s3 {:bucket    bucket-name
-                                                         :key       tree-object-key
-                                                         :dest-path tree-file-path}))
-          progress-handler   (new-progress-handler (fn [progress]
-                                                     (let [progress (round 2 progress)]
-                                                       (when (= (mod progress 0.1) 0.0)
-                                                         (log/debug "continuous tree progress" {:id       id
+          _                (when-not (file-exists? tree-file-path)
+                             (aws-s3/download-file s3 {:bucket    bucket-name
+                                                       :key       tree-object-key
+                                                       :dest-path tree-file-path}))
+          progress-handler (new-progress-handler (fn [progress]
+                                                   (let [progress (round 2 progress)]
+                                                     (when (= (mod progress 0.1) 0.0)
+                                                       #_(log/debug "continuous tree progress" {:id       id
                                                                                                 :progress progress})
-                                                         (continuous-tree-model/upsert-status! db {:tree-id  id
-                                                                                                   :status   :RUNNING
-                                                                                                   :progress progress})))))
+                                                       (continuous-tree-model/upsert-status! db {:tree-id  id
+                                                                                                 :status   :RUNNING
+                                                                                                 :progress progress})))))
+
+          ;; TODO : two paths, with or without .trees
+
           ;; call all setters
-          parser             (doto (new ContinuousTreeParser)
-                               (.setTreeFilePath tree-file-path)
-                               (.setXCoordinateAttributeName x-coordinate-attribute-name)
-                               (.setYCoordinateAttributeName y-coordinate-attribute-name)
-                               (.setHpdLevel hpd-level)
-                               (.hasExternalAnnotations has-external-annotations)
-                               (.setTimescaleMultiplier timescale-multiplier)
-                               (.setMostRecentSamplingDate most-recent-sampling-date)
-                               (.registerProgressObserver progress-handler))
+          continuous-tree-parser (doto (new ContinuousTreeParser)
+                                   (.setTreeFilePath tree-file-path)
+                                   (.setXCoordinateAttributeName x-coordinate-attribute-name)
+                                   (.setYCoordinateAttributeName y-coordinate-attribute-name)
+                                   (.setTimescaleMultiplier timescale-multiplier)
+                                   (.setMostRecentSamplingDate most-recent-sampling-date))
+
+          ;; NOTE: if we are not using time slicer let this parser report progress
+          continuous-tree-parser (if time-slicer
+                                   (doto continuous-tree-parser
+                                     (.registerProgressObserver progress-handler))
+                                   continuous-tree-parser)
+
+          {:keys [analysisType timeline
+                  axisAttributes pointAttributes lineAttributes
+                  lines points areas]}
+          (json/read-str (.parse continuous-tree-parser) :key-fn keyword)
+
+          {:keys [areaAttributes areas]}
+          (when time-slicer
+            (parse-time-slicer {:id               time-slicer-id
+                                :user-id          user-id
+                                :db               db
+                                :s3               s3
+                                :bucket-name      bucket-name
+                                :progress-handler progress-handler
+                                :parser-settings  {:trait-attribute-name      (subs x-coordinate-attribute-name
+                                                                                    0
+                                                                                    (longest-common-substring x-coordinate-attribute-name
+                                                                                                              y-coordinate-attribute-name))
+                                                   :burn-in                   (or burn-in 0.1)
+                                                   :number-of-intervals       (or number-of-intervals 10)
+                                                   :contouring-grid-size      (or contouring-grid-size 100)
+                                                   :hpd-level                 (or hpd-level 0.8)
+                                                   :timescale-multiplier      (or timescale-multiplier 1)
+                                                   :most-recent-sampling-date most-recent-sampling-date
+                                                   :relaxed-random-walk-rate-attribute-name
+                                                   relaxed-random-walk-rate-attribute-name}}))
+
           output-object-key  (str user-id "/" id ".json")
           output-object-path (str tmp-dir "/" output-object-key)
-          _                  (spit output-object-path (.parse parser) :append false)
+          data (json/write-str {:analysisType    analysisType
+                                :timeline        timeline
+                                :axisAttributes  axisAttributes
+                                :pointAttributes pointAttributes
+                                :lineAttributes  lineAttributes
+                                :lines           lines
+                                :points          points
+                                :areas           areas})
+          _                  (spit output-object-path data :append false)
+
           _                  (aws-s3/upload-file s3 {:bucket    bucket-name
                                                      :key       output-object-key
                                                      :file-path output-object-path})
           url                (aws-s3/build-url aws-config bucket-name output-object-key)]
+
+      (log/info "Continuous tree output URL" {:url url})
+
       ;; TODO : in a transaction
       (continuous-tree-model/update! db {:id              id
                                          :output-file-url url})
@@ -213,8 +273,48 @@
       (time-slicer-model/upsert-status! db {:time-slicer-id id
                                             :status         :ERROR}))))
 
+(defn parse-time-slicer [{:keys [id user-id db s3 bucket-name progress-handler parser-settings]}]
+  (try
+    (let [trees-object-key (str user-id "/" id ".trees")
+          trees-file-path  (str tmp-dir "/" trees-object-key)
+          ;; is it cached on disk?
+          _                (when-not (file-exists? trees-file-path)
+                             (aws-s3/download-file s3 {:bucket    bucket-name
+                                                       :key       trees-object-key
+                                                       :dest-path trees-file-path}))
+
+          {:keys [trait-attribute-name burn-in
+                  relaxed-random-walk-rate-attribute-name
+                  number-of-intervals hpd-level contouring-grid-size
+                  timescale-multiplier most-recent-sampling-date
+                  most-recent-sampling-date]}
+          parser-settings
+
+          _ (log/info "time-slicer parser settings" parser-settings)
+
+          parser (doto (new TimeSlicerParser)
+                   (.setTreesFilePath trees-file-path)
+                   ;; NOTE: this should always hold unless someone switches the usual lat/long convention
+                   (.setTraitName trait-attribute-name)
+                   (.setBurnIn burn-in)
+                   (.setRrwRateName relaxed-random-walk-rate-attribute-name)
+                   (.setNumberOfIntervals number-of-intervals)
+                   (.setHpdLevel hpd-level)
+                   (.setGridSize contouring-grid-size)
+                   (.setTimescaleMultiplier timescale-multiplier)
+                   (.setMostRecentSamplingDate most-recent-sampling-date)
+                   (.registerProgressObserver progress-handler))
+          output (.parse parser)
+          _      (time-slicer-model/upsert-status! db {:time-slicer-id id
+                                                       :status         :SUCCEEDED})]
+      (json/read-str output :key-fn keyword))
+    (catch Exception e
+      (log/error "Exception when handling parse-time-slicer" {:error e})
+      (time-slicer-model/upsert-status! db {:time-slicer-id id
+                                            :status         :ERROR}))))
+
 #_(defmethod handler :parse-time-slicer
-  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
+    [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
   (log/info "handling parse-time-slicer" args)
   (try
     (let [{:keys

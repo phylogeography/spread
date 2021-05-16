@@ -43,8 +43,7 @@ public class TimeSlicerParserTest {
                                                         hpdLevel,
                                                         100,
                                                         mostRecentSamplingDate,
-                                                        1.0
-                                                        );
+                                                        1.0);
 
         Set<String> expectedAttributes = new HashSet<>(Arrays.asList("rate", "location"));
         Set<String> uniqueAttributes = gson.fromJson(parser.parseAttributes(), new TypeToken<Set<String>>(){}.getType());

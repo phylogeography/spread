@@ -48,5 +48,5 @@
   (let [status (->> status
                     (merge {:tree-id nil :status nil :progress nil})
                     (#(update % :status name)))]
-    (log/debug "upsert-status!" status)
+    #_(log/debug "upsert-status!" status)
     (upsert-status db status)))
