@@ -63,9 +63,9 @@
                                  :progress                 {:type Float}
                                  :attributeNames           {:type    (list String)
                                                             :resolve :resolve/continuous-tree->attributes}
-                                 :timeSlicer {:type     :TimeSlicer
-                                              :resolver :resolve/continuous-tree->time-slicer}
-                                 :outputFileUrl {:type String}}}
+                                 :timeSlicer               {:type     :TimeSlicer
+                                                            :resolver :resolve/continuous-tree->time-slicer}
+                                 :outputFileUrl            {:type String}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
                  :fields      {:id                     {:description "Unique identifier."

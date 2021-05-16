@@ -10,7 +10,6 @@
 
 (use-fixtures :once db-fixture)
 
-;; TODO
 (deftest continuous-tree-with-time-slicer-test
   (let [[trees-url mcc-tree-url] (get-in (run-query {:query
                                                      "mutation GetUploadUrls($files: [File]) {
@@ -34,7 +33,7 @@
                                                      status
                                                    }
                                                 }"
-                            :variables {:name "speciesDiffusion.MCC.tre"
+                            :variables {:name "WNV.tre"
                                         :url  (-> mcc-tree-url
                                                   (string/split  #"\?")
                                                   first)}})
@@ -106,7 +105,7 @@
 
         _ (block-on-status continuous-tree-id :SUCCEEDED)
 
-        {:keys [readableName createdOn status progress outputFileUrl]}
+        {:keys [timeSlicer readableName createdOn status progress outputFileUrl]}
         (get-in (run-query {:query
                             "query GetTree($id: ID!) {
                                      getContinuousTree(id: $id) {
@@ -116,6 +115,10 @@
                                        status
                                        progress
                                        outputFileUrl
+                                       timeSlicer {
+                                         id
+                                         status
+                                       }
                                      }
                                    }"
                             :variables {:id continuous-tree-id}})
@@ -123,29 +126,28 @@
 
 
 
-    ]
-
-    (is false)
+        ]
 
     (log/debug "response" {:id         continuous-tree-id
                            :name       readableName
                            :created-on createdOn
                            :status     status
+                           :timeSlicer timeSlicer
                            })
+
+    ;; TODO: not returned, why?
+    (is (= :SUCCEEDED (:status timeSlicer)))
 
     (is #{"height" "height_95%_HPD" "height_median" "height_range" "length" "length_95%_HPD" "length_median" "length_range" "location_95%HPD_modality" "location1" "location1_95%HPD_1" "location1_95%HPD_10" "location1_95%HPD_11" "location1_95%HPD_12" "location1_95%HPD_13" "location1_95%HPD_14" "location1_95%HPD_15" "location1_95%HPD_16" "location1_95%HPD_17" "location1_95%HPD_18" "location1_95%HPD_19" "location1_95%HPD_2" "location1_95%HPD_20" "location1_95%HPD_21" "location1_95%HPD_22" "location1_95%HPD_23" "location1_95%HPD_24" "location1_95%HPD_25" "location1_95%HPD_26" "location1_95%HPD_27" "location1_95%HPD_28" "location1_95%HPD_3" "location1_95%HPD_4" "location1_95%HPD_5" "location1_95%HPD_6" "location1_95%HPD_7" "location1_95%HPD_8" "location1_95%HPD_9" "location1_median" "location1_range" "location2" "location2_95%HPD_1" "location2_95%HPD_10" "location2_95%HPD_11" "location2_95%HPD_12" "location2_95%HPD_13" "location2_95%HPD_14" "location2_95%HPD_15" "location2_95%HPD_16" "location2_95%HPD_17" "location2_95%HPD_18" "location2_95%HPD_19" "location2_95%HPD_2" "location2_95%HPD_20" "location2_95%HPD_21" "location2_95%HPD_22" "location2_95%HPD_23" "location2_95%HPD_24" "location2_95%HPD_25" "location2_95%HPD_26" "location2_95%HPD_27" "location2_95%HPD_28" "location2_95%HPD_3" "location2_95%HPD_4" "location2_95%HPD_5" "location2_95%HPD_6" "location2_95%HPD_7" "location2_95%HPD_8" "location2_95%HPD_9" "location2_median" "location2_range" "posterior" "rate" "rate_95%_HPD" "rate_median" "rate_range"}
         (set attributeNames))
 
     (is (= :SUCCEEDED (keyword status)))
 
-    ;; (is (= (:dd (time/now))
-    ;;        (:dd (time/from-millis createdOn))))
+    (is (= (:dd (time/now))
+           (:dd (time/from-millis createdOn))))
 
-    ;; (is #{"rate" "location"} (set attributeNames))
+    (is (= 1.0 progress))
 
-
-    ;; (is (= 1.0 progress))
-    ;; (is outputFileUrl)
-
+    (is outputFileUrl)
 
     ))

@@ -30,7 +30,7 @@
   (log/info "continuous-tree->time-slicer" parent)
   (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id tree-id})]
     (log/info "continuous-tree->time-slicer" time-slicer)
-    time-slicer))
+    (clj->gql time-slicer)))
 
 (defn get-discrete-tree
   [{:keys [db]} {id :id :as args} _]
