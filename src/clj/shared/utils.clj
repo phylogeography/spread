@@ -80,6 +80,18 @@
   (let [factor (Math/pow 10 precision)]
     (/ (Math/round (* d factor)) factor)))
 
+(defn longest-common-substring
+  "Finds the Longest Common Substring"
+  [str1 str2]
+  (loop [s1 (seq str1), s2 (seq str2), len 0, maxlen 0]
+    (cond
+      (>= maxlen (count s1))         maxlen
+      (>= maxlen (+ (count s2) len)) (recur (rest s1) (seq str2) 0 maxlen)
+      :else                          (let [a (nth s1 len ""), [b & s2] s2, len (inc len)]
+              (if (= a b)
+                (recur s1 s2 len (if (> len maxlen) len maxlen))
+                (recur s1 s2 0 maxlen))))))
+
 (comment
   (decode-transit (encode-transit {:a 1}))
   (clj->gql {:tree-id "fubar"}))

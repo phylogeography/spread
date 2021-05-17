@@ -26,7 +26,7 @@
   ;; TODO : dispatch graphql mutation to delete from db & S3
   {:db (dissoc-in db [:new-analysis :continuous-mcc-tree])})
 
-(defn s3-upload [_ [_ {:keys [data filename]} response]]
+(defn upload-tree-file [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
     {::s3/upload {:url             url
                   :data            data
@@ -46,27 +46,73 @@
                                      getUploadUrls(files: [ {name: $filename, extension: $extension }])
                                    }"
                                 :variables  {:filename fname :extension "tree"}
-                                :on-success [:continuous-mcc-tree/s3-upload file-with-meta]}]}))
+                                :on-success [:continuous-mcc-tree/upload-tree-file file-with-meta]}]}))
+
+(defn on-trees-file-selected [_ [_ file-with-meta]]
+  (let [{:keys [filename]} file-with-meta
+        splitted           (string/split filename ".")
+        fname              (first splitted)]
+    {:dispatch [:graphql/query {:query
+                                "mutation GetUploadUrls($filename: String!, $extension: String!) {
+                                     getUploadUrls(files: [ {name: $filename, extension: $extension }])
+                                   }"
+                                :variables  {:filename fname :extension "trees"}
+                                :on-success [:continuous-mcc-tree/upload-trees-file file-with-meta]}]}))
+
+
+(defn upload-trees-file [_ [_ {:keys [data filename]} response]]
+  (let [url (-> response :data :getUploadUrls first)]
+    {::s3/upload {:url             url
+                  :data            data
+                  :on-success      #(>evt [:continuous-mcc-tree/trees-file-upload-success {:url      url
+                                                                                           :filename filename}])
+                  ;; TODO : handle error
+                  :on-error        #(prn "ERROR" %)
+                  :handle-progress (fn [sent total]
+                                     (>evt [:continuous-mcc-tree/trees-file-upload-progress (/ sent total)]))}}))
+
+(defn trees-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
+  (let [[url _]            (string/split url "?")
+        continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
+                                                   uploadTimeSlicer(continuousTreeId: $continuousTreeId,
+                                                                    treesFileUrl: $url) {
+                                                     id
+                                                     status
+                                                   }
+                                                }"
+                                :variables {:url              url
+                                            :continuousTreeId continuous-tree-id}}]
+     :db       (-> db
+                   (assoc-in [:new-analysis :continuous-mcc-tree :trees-file] filename))}))
+
+(defn trees-file-upload-progress [{:keys [db]} [_ progress]]
+  {:db (assoc-in db [:new-analysis :continuous-mcc-tree :trees-file-upload-progress] progress)})
+
+(defn delete-trees-file [{:keys [db]}]
+  ;; TODO : dispatch graphql mutation to delete from db & S3
+  {:db (-> db
+           (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file])
+           (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file-upload-progress]))})
 
 ;; TODO: clean analysis fields (dissoc)
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
-                                              hpd-level most-recent-sampling-date time-scale-multiplier]}]]
+                                              most-recent-sampling-date time-scale-multiplier]}]]
   (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
     {:db       (assoc-in db [:continuous-tree-parsers id :readable-name] readable-name)
      :dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
-                                                       $x: String!,
-                                                       $y: String!,
-                                                       $hpd: String!,
-                                                       $mrsd: String!,
-                                                       $name: String!,
-                                                       $multiplier: Float!) {
+                                                      $x: String!,
+                                                      $y: String!,
+                                                      $mrsd: String!,
+                                                      $name: String!,
+                                                      $multiplier: Float!) {
                                                    updateContinuousTree(id: $id,
                                                                         readableName: $name,
                                                                         timescaleMultiplier: $multiplier,
                                                                         xCoordinateAttributeName: $x,
                                                                         yCoordinateAttributeName: $y,
-                                                                        hpdLevel: $hpd,
                                                                         mostRecentSamplingDate: $mrsd) {
                                                      id
                                                      status
@@ -76,7 +122,6 @@
                                             :x          x-coordinate
                                             :y          y-coordinate
                                             :multiplier time-scale-multiplier
-                                            :hpd        hpd-level
                                             :name       readable-name
                                             :mrsd       (time/format most-recent-sampling-date)}}]}))
 

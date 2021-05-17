@@ -59,7 +59,7 @@
                                                                                    first)}})
                                          [:data :uploadDiscreteTree])
 
-        _ (is :UPLOADED (keyword status))
+        _ (is (= :UPLOADED (keyword status)))
 
         _ (block-on-status id :ATTRIBUTES_PARSED)
 
@@ -87,7 +87,7 @@
                                                          :mrsd               "2019/02/12"}})
                                  [:data :updateDiscreteTree])
 
-        _ (is :ARGUMENTS_SET (keyword status))
+        _ (is (= :ARGUMENTS_SET (keyword status)))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
@@ -98,7 +98,7 @@
                                              :variables {:id id}})
                                  [:data :startDiscreteTreeParser])
 
-        _ (is :QUEUED (keyword status))
+        _ (is (= :QUEUED (keyword status)))
 
         _ (block-on-status id :SUCCEEDED)
 

@@ -6,11 +6,9 @@
 (declare upsert-tree)
 (declare update-tree)
 (declare insert-attribute)
-(declare insert-hpd-level)
 (declare get-tree)
 (declare delete-tree)
 (declare get-attributes)
-(declare get-hpd-levels)
 (declare upsert-status)
 (declare get-status)
 
@@ -25,8 +23,7 @@
    :readable-name               nil
    :x-coordinate-attribute-name nil
    :y-coordinate-attribute-name nil
-   :hpd-level                   nil
-   :has-external-annotations    nil
+   :time-slicer-id              nil
    :timescale-multiplier        nil
    :most-recent-sampling-date   nil
    :output-file-url             nil})
@@ -45,13 +42,9 @@
   (doseq [att attributes]
     (insert-attribute db {:tree-id tree-id :attribute-name att})))
 
-(defn insert-hpd-levels! [db tree-id levels]
-  (doseq [lvl levels ]
-    (insert-hpd-level db {:tree-id tree-id :level lvl})))
-
 (defn upsert-status! [db status]
   (let [status (->> status
                     (merge {:tree-id nil :status nil :progress nil})
                     (#(update % :status name)))]
-    (log/debug "upsert-status!" status)
+    #_(log/debug "upsert-status!" status)
     (upsert-status db status)))

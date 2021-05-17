@@ -18,8 +18,6 @@
       <column name="readable_name" type="VARCHAR(200)"/>
       <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="y_coordinate_attribute_name" type="VARCHAR(50)"/>
-      <column name="hpd_level" type="VARCHAR(3)"/>
-      <column name="has_external_annotations" type="${RealBooleanType}"/>
       <column name="timescale_multiplier" type="float"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
       <column name="created_on" type="BIGINT">
@@ -76,34 +74,6 @@
   </changeSet>
 
   <changeSet author="filip" id="2.0-6">
-    <createTable tableName="continuous_tree_hpd_levels">
-      <column name="tree_id" type="VARCHAR(36)">
-        <constraints nullable="false" primaryKey="true"/>
-      </column>
-      <column name="level" type="VARCHAR(3)">
-        <constraints nullable="false" primaryKey="true"/>
-      </column>
-    </createTable>
-  </changeSet>
-
-  <changeSet author="filip" id="2.0-7">
-    <addForeignKeyConstraint constraintName="continuous_tree_hpd_levels_SLASH_continuous_tree_FK"
-                             baseColumnNames="tree_id"
-                             baseTableName="continuous_tree_hpd_levels"
-                             referencedColumnNames="id"
-                             referencedTableName="continuous_tree"
-                             onDelete="CASCADE"
-                             onUpdate="RESTRICT"
-                             deferrable="false"
-                             initiallyDeferred="false"
-                             validate="true"/>
-    <addUniqueConstraint
-        columnNames="tree_id, level"
-        constraintName="unique_tree_hpd_level"
-        tableName="continuous_tree_hpd_levels"/>
-  </changeSet>
-
-  <changeSet author="filip" id="2.0-8">
     <createTable tableName="continuous_tree_status">
       <column name="tree_id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
@@ -115,7 +85,7 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="2.0-9">
+  <changeSet author="filip" id="2.0-7">
     <addForeignKeyConstraint constraintName="continuous_tree_status_SLASH_continuous_tree_FK"
                              baseColumnNames="tree_id"
                              baseTableName="continuous_tree_status"

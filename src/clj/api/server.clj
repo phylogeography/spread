@@ -1,5 +1,5 @@
 (ns api.server
-  (:require [api.auth :as auth]      
+  (:require [api.auth :as auth]
             [api.db :as db]
             [api.mutations :as mutations]
             [api.resolvers :as resolvers]
@@ -17,7 +17,7 @@
             [com.walmartlabs.lacinia.util :as lacinia-util]
             [io.pedestal.http :as http]
             [io.pedestal.interceptor :refer [interceptor]]
-            [mount.core :as mount :refer [defstate]]           
+            [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
 (declare server)
@@ -36,8 +36,8 @@
 
 (defn scalar-map
   []
-  {:scalar/parse-big-int          scalars/parse-big-int
-   :scalar/serialize-big-int      scalars/serialize-big-int})
+  {:scalar/parse-big-int     scalars/parse-big-int
+   :scalar/serialize-big-int scalars/serialize-big-int})
 
 (defn resolver-map []
   {:mutation/googleLogin   mutations/google-login
@@ -45,12 +45,12 @@
 
    :query/getAuthorizedUser (auth-decorator resolvers/get-authorized-user)
 
-   :mutation/uploadContinuousTree       (auth-decorator mutations/upload-continuous-tree)
-   :mutation/updateContinuousTree       (auth-decorator mutations/update-continuous-tree)
-   :query/getContinuousTree             resolvers/get-continuous-tree
-   :resolve/continuous-tree->attributes resolvers/continuous-tree->attributes
-   :resolve/continuous-tree->hpd-levels resolvers/continuous-tree->hpd-levels
-   :mutation/startContinuousTreeParser  (auth-decorator mutations/start-continuous-tree-parser)
+   :mutation/uploadContinuousTree        (auth-decorator mutations/upload-continuous-tree)
+   :mutation/updateContinuousTree        (auth-decorator mutations/update-continuous-tree)
+   :query/getContinuousTree              resolvers/get-continuous-tree
+   :resolve/continuous-tree->attributes  resolvers/continuous-tree->attributes
+   :resolve/continuous-tree->time-slicer resolvers/continuous-tree->time-slicer
+   :mutation/startContinuousTreeParser   (auth-decorator mutations/start-continuous-tree-parser)
 
    :mutation/uploadDiscreteTree       (auth-decorator mutations/upload-discrete-tree)
    :mutation/updateDiscreteTree       (auth-decorator mutations/update-discrete-tree)
@@ -60,9 +60,7 @@
 
    :mutation/uploadTimeSlicer       (auth-decorator mutations/upload-time-slicer)
    :mutation/updateTimeSlicer       (auth-decorator mutations/update-time-slicer)
-   :query/getTimeSlicer             resolvers/get-time-slicer
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
-   :mutation/startTimeSlicerParser  (auth-decorator mutations/start-time-slicer-parser)
 
    :mutation/uploadBayesFactorAnalysis           (auth-decorator mutations/upload-bayes-factor-analysis)
    :mutation/updateBayesFactorAnalysis           (auth-decorator mutations/update-bayes-factor-analysis)
@@ -71,8 +69,6 @@
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
-
-   :resolve/analysis->maps resolvers/analysis->maps
    })
 
 (defn streamer-map []

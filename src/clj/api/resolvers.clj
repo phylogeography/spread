@@ -5,6 +5,7 @@
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
             [clojure.data.json :as json]
+            [com.walmartlabs.lacinia.executor :as executor]
             [shared.utils :refer [clj->gql decode-base64 encode-base64]]
             [taoensso.timbre :as log]))
 
@@ -14,9 +15,11 @@
   (clj->gql (user-model/get-user-by-id db {:id authed-user-id})))
 
 (defn get-continuous-tree
-  [{:keys [db]} {id :id :as args} _]
+  [{:keys [db] :as context} {id :id :as args} _]
   (log/info "get-continuous-tree" args)
-  (clj->gql (continuous-tree-model/get-tree db {:id id})))
+  (clj->gql (merge (continuous-tree-model/get-tree db {:id id})
+                   (when (executor/selects-field? context :ContinuousTree/timeSlicer)
+                     {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})}))))
 
 (defn continuous-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
@@ -25,12 +28,15 @@
     (log/info "continuous-tree->attributes" {:attributes attributes})
     attributes))
 
-(defn continuous-tree->hpd-levels
+;; TODO: this resolver is not being called even if the `timeSlicer` field is present on `getContinuousTree` query
+;; I have no clue why
+;; this is fixed in the get-continuous-tree resolver by appending the field explicitely if the field is present
+(defn continuous-tree->time-slicer
   [{:keys [db]} _ {tree-id :id :as parent}]
-  (log/info "continuous-tree->hpd-levels" parent)
-  (let [levels (map :level (continuous-tree-model/get-hpd-levels db {:tree-id tree-id}))]
-    (log/info "continuous-tree->hpd-levels" {:levels levels})
-    levels))
+  (log/info "continuous-tree->time-slicer" parent)
+  (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id tree-id})]
+    (log/info "continuous-tree->time-slicer" time-slicer)
+    (clj->gql time-slicer)))
 
 (defn get-discrete-tree
   [{:keys [db]} {id :id :as args} _]
@@ -43,11 +49,6 @@
   (let [attributes (map :attribute-name (discrete-tree-model/get-attributes db {:tree-id tree-id}))]
     (log/info "discrete-tree->attributes" {:attributes attributes})
     attributes))
-
-(defn get-time-slicer
-  [{:keys [db]} {id :id :as args} _]
-  (log/info "get-time-slicer" args)
-  (clj->gql (time-slicer-model/get-time-slicer db {:id id})))
 
 (defn time-slicer->attributes
   [{:keys [db]} _ {time-slicer-id :id :as parent}]
@@ -121,11 +122,3 @@
     (clj->gql {:total-count total-count
                :edges       edges'
                :page-info   page-info})))
-
-(defn analysis->maps [_ _ _]
-  #_[{:keys [db]} _ {analysis-id :id :as parent}]
-  ;; TODO: implement this once we have refactored the db and added bounding boxes to the analysis parent table
-  [
-   "http://127.0.0.1:9000/spread-dev-uploads/maps/countries/australiaLow.json"
-   "http://127.0.0.1:9000/spread-dev-uploads/maps/countries/tanzaniaLow.json"
-   "http://127.0.0.1:9000/spread-dev-uploads/maps/world/worldLow.json"])

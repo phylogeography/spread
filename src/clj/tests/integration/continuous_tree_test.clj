@@ -9,7 +9,7 @@
 
 (use-fixtures :once db-fixture)
 
-(defn- block-on-status [id status]
+(defn block-on-status [id status]
   (let [query-status #(-> (get-in (run-query {:query
                                               "query GetStatus($id: ID!) {
                                                  getContinuousTree(id: $id) {
@@ -52,32 +52,29 @@
                                                                       first)}})
                                     [:data :uploadContinuousTree])
 
-        _ (is :UPLOADED (keyword status))
+        _ (is (= :UPLOADED (keyword status)))
 
         _ (block-on-status id :ATTRIBUTES_PARSED)
 
-        {:keys [id attributeNames hpdLevels]} (get-in (run-query {:query
-                                                                  "query GetTree($id: ID!) {
+        {:keys [id attributeNames]} (get-in (run-query {:query
+                                                        "query GetTree($id: ID!) {
                                                                             getContinuousTree(id: $id) {
                                                                               id
                                                                               status
-                                                                              hpdLevels
                                                                               attributeNames
                                                                             }
                                                                           }"
-                                                                  :variables {:id id}})
-                                                      [:data :getContinuousTree])
+                                                        :variables {:id id}})
+                                            [:data :getContinuousTree])
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateTree($id: ID!,
                                                                   $x: String!,
                                                                   $y: String!,
-                                                                  $hpd: String!,
                                                                   $mrsd: String!) {
                                                    updateContinuousTree(id: $id,
                                                                         xCoordinateAttributeName: $x,
                                                                         yCoordinateAttributeName: $y,
-                                                                        hpdLevel: $hpd,
                                                                         mostRecentSamplingDate: $mrsd) {
                                                      status
                                                    }
@@ -85,11 +82,10 @@
                                              :variables {:id   id
                                                          :x    "trait2"
                                                          :y    "trait1"
-                                                         :hpd  "80"
                                                          :mrsd "2019/02/12"}})
                                  [:data :updateContinuousTree])
 
-        _ (is :ARGUMENTS_SET (keyword status))
+        _ (is (= :ARGUMENTS_SET (keyword status)))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
@@ -100,7 +96,7 @@
                                              :variables {:id id}})
                                  [:data :startContinuousTreeParser])
 
-        _ (is :QUEUED (keyword status))
+        _ (is (= :QUEUED (keyword status)))
 
         _ (block-on-status id :SUCCEEDED)
 
@@ -142,8 +138,6 @@
           "trait2_80%HPD_6" "trait2_80%HPD_7" "trait2_80%HPD_8"
           "trait2_80%HPD_9" "trait2_median" "trait2_range"}
         (set attributeNames))
-
-    (is #{"80"} (set hpdLevels))
 
     (is (= 1.0 progress))
 

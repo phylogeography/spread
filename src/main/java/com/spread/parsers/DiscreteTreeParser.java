@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import com.google.gson.GsonBuilder;
 import com.spread.data.Attribute;
 import com.spread.data.AxisAttributes;
-import com.spread.data.Layer;
 import com.spread.data.Location;
 import com.spread.data.SpreadData;
 import com.spread.data.Timeline;
@@ -262,13 +261,10 @@ public class DiscreteTreeParser implements IProgressReporter {
                     Attribute attribute = branchAttributesMap.get(attributeId);
 
                     if (attribute.getScale().equals(Attribute.ORDINAL)) {
-
                         attribute.getDomain().add(attributeValue);
-
                     } else {
 
                         double value = ParsersUtils.round(Double.valueOf(attributeValue.toString()), 100);
-
                         if (value < attribute.getRange()[Attribute.MIN_INDEX]) {
                             attribute.getRange()[Attribute.MIN_INDEX] = value;
                         } // END: min check
@@ -366,19 +362,6 @@ public class DiscreteTreeParser implements IProgressReporter {
 
         // --- LAYERS --- //
 
-        LinkedList<Layer> layersList = new LinkedList<Layer>();
-
-        // Layer countsLayer = new Layer.Builder ().withPoints (countsList).build ();
-        // layersList.add(countsLayer);
-
-        Layer treeLayer = new Layer.Builder ()
-            .withPoints (pointsList)
-            .withLines (linesList)
-            .withCounts (countsList)
-            .build ();
-
-        layersList.add(treeLayer);
-
         LinkedList<Attribute> rangeAttributes = getCoordinateRangeAttributes(locationsList);
         Attribute xCoordinate = rangeAttributes.get(ParsersUtils.X_INDEX);
         Attribute yCoordinate = rangeAttributes.get(ParsersUtils.Y_INDEX);
@@ -395,7 +378,9 @@ public class DiscreteTreeParser implements IProgressReporter {
             .withLineAttributes(uniqueBranchAttributes)
             .withPointAttributes(uniqueNodeAttributes)
             .withLocations(locationsList)
-            .withLayers(layersList)
+            .withPoints (pointsList)
+            .withLines (linesList)
+            .withCounts (countsList)
             .build();
 
         this.updateProgress(1.0);

@@ -145,7 +145,6 @@
                                                         getContinuousTree(id: $id) {
                                                           id
                                                           attributeNames
-                                                          hpdLevels
                                                         }
                                                       }"
                                   :variables {:id id}}]])
@@ -173,6 +172,12 @@
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id] id)
            (assoc-in [:continuous-tree-parsers id :status] status))})
+
+(defmethod handler :upload-time-slicer
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (-> db
+           (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
+           (assoc-in [:time-slicer-parsers id :status] status))})
 
 (defmethod handler :start-continuous-tree-parser
   [{:keys [db]} _ {:keys [id status]}]
@@ -327,7 +332,6 @@
                                                         getContinuousTree(id: $id) {
                                                           id
                                                           attributeNames
-                                                          hpdLevels
                                                         }
                                                       }"
                          :variables {:id "19512998-11cb-468a-9c13-f497a0920737"}}]))

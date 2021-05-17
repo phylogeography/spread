@@ -57,20 +57,14 @@
                                  :treeFileUrl              {:type (non-null String)}
                                  :xCoordinateAttributeName {:type String}
                                  :yCoordinateAttributeName {:type String}
-                                 :hpdLevel                 {:type String}
-                                 :hasExternalAnnotations   {:type Boolean}
                                  :timescaleMultiplier      {:type Float}
                                  :mostRecentSamplingDate   {:type String}
-                                 :status                   {:type :AnalysisStatus}
+                                 :status                   {:type (non-null :AnalysisStatus)}
                                  :progress                 {:type Float}
                                  :attributeNames           {:type    (list String)
                                                             :resolve :resolve/continuous-tree->attributes}
-                                 ;; TODO: are we going to repeat all this common fields in every analysis type
-                                 ;; isn't there a way to abstract it away with union types?
-                                 :maps                     {:type    (list String)
-                                                            :resolve :resolve/analysis->maps}
-                                 :hpdLevels                {:type    (list String)
-                                                            :resolve :resolve/continuous-tree->hpd-levels}
+                                 :timeSlicer               {:type     :TimeSlicer
+                                                            :resolver :resolve/continuous-tree->time-slicer}
                                  :outputFileUrl            {:type String}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
@@ -84,7 +78,7 @@
                                :locationsAttributeName {:type String}
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
-                               :status                 {:type :AnalysisStatus}
+                               :status                 {:type (non-null :AnalysisStatus)}
                                :progress               {:type Float}
                                :attributeNames         {:type    (list String)
                                                         :resolve :resolve/discrete-tree->attributes}
@@ -97,7 +91,6 @@
                              :readableName                       {:type String}
                              :createdOn                          {:type (non-null :BigInt)}
                              :treesFileUrl                       {:type (non-null String)}
-                             :mccTreeFileUrl                     {:type (non-null String)}
                              :sliceHeightsFileUrl                {:type String}
                              :burnIn                             {:type Float}
                              :relaxedRandomWalkRateAttributeName {:type String}
@@ -107,7 +100,7 @@
                              :hpdLevel                           {:type String}
                              :timescaleMultiplier                {:type Float}
                              :mostRecentSamplingDate             {:type String}
-                             :status                             {:type :AnalysisStatus}
+                             :status                             {:type (non-null :AnalysisStatus)}
                              :progress                           {:type Float}
                              :attributeNames                     {:type    (list String)
                                                                   :resolve :resolve/time-slicer->attributes}
@@ -127,7 +120,7 @@
                                       :createdOn        {:type (non-null :BigInt)}
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}
-                                      :status           {:type :AnalysisStatus}
+                                      :status           {:type (non-null :AnalysisStatus)}
                                       :progress         {:type Float}
                                       :burnIn           {:type Float}
                                       :outputFileUrl    {:type String}
@@ -147,11 +140,6 @@
                     :description "Returns a DiscreteTree entity by id."
                     :args        {:id {:type (non-null ID)}}
                     :resolve     :query/getDiscreteTree}
-
-  :getTimeSlicer {:type        :TimeSlicer
-                  :description "Returns a TimeSlicer entity by id."
-                  :args        {:id {:type (non-null ID)}}
-                  :resolve     :query/getTimeSlicer}
 
   :getBayesFactorAnalysis {:type        :BayesFactorAnalysis
                            :description "Returns a BayesFactorAnalysis entity by id."
@@ -214,8 +202,6 @@
                                        :readableName             {:type String}
                                        :xCoordinateAttributeName {:type (non-null String)}
                                        :yCoordinateAttributeName {:type (non-null String)}
-                                       :hpdLevel                 {:type (non-null String)}
-                                       :hasExternalAnnotations   {:type String}
                                        :timescaleMultiplier      {:type Float}
                                        :mostRecentSamplingDate   {:type (non-null String)}}
                          :resolve     :mutation/updateContinuousTree}
@@ -229,8 +215,7 @@
                        :description "Persists discrete tree. Returns a ParserStatus with id."
                        :args        {:readableName     {:type String}
                                      :treeFileUrl      {:type (non-null String)}
-                                     :locationsFileUrl {:type String}
-                                     }
+                                     :locationsFileUrl {:type String}}
                        :resolve     :mutation/uploadDiscreteTree}
 
   :updateDiscreteTree {:type        :ParserStatus
@@ -250,17 +235,14 @@
 
   :uploadTimeSlicer {:type        :ParserStatus
                      :description "Persists continuous trees. Returns a ParserStatus with id."
-                     :args        {:readableName        {:type String}
+                     :args        {:continuousTreeId    {:type (non-null ID)}
                                    :treesFileUrl        {:type (non-null String)}
-                                   :mccTreeFileUrl      {:type String}
                                    :sliceHeightsFileUrl {:type String}}
                      :resolve     :mutation/uploadTimeSlicer}
 
   :updateTimeSlicer {:type        :ParserStatus
                      :description "Updates the entity with settings for parsing."
                      :args        {:id                                 {:type (non-null ID)}
-                                   :readableName                       {:type String}
-                                   :mccTreeFileUrl                     {:type String}
                                    :burnIn                             {:type Float}
                                    :relaxedRandomWalkRateAttributeName {:type (non-null String)}
                                    :traitAttributeName                 {:type (non-null String)}
@@ -270,11 +252,6 @@
                                    :timescaleMultiplier                {:type Float}
                                    :mostRecentSamplingDate             {:type (non-null String)}}
                      :resolve     :mutation/updateTimeSlicer}
-
-  :startTimeSlicerParser {:type        :ParserStatus
-                          :description "Starts executing a parser."
-                          :args        {:id {:type (non-null ID)}}
-                          :resolve     :mutation/startTimeSlicerParser}
 
   :uploadBayesFactorAnalysis {:type        :ParserStatus
                               :description "Persists bayes factor trees. Returns a ParserStatus with id."

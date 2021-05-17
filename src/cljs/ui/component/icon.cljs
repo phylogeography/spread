@@ -1,7 +1,6 @@
 (ns ui.component.icon)
 
-(def icons {:spread       "icons/spread.png"
-            :dropdown     "icons/icn_dropdown.svg"
+(def icons {:dropdown     "icons/icn_dropdown.svg"
             :run-analysis "icons/icn_run_analysis.svg"
             :completed    "icons/icn_previous_analysis.svg"
             :kebab-menu   "icons/icn_kebab menu.svg"
