@@ -22,7 +22,6 @@
    :continuous-tree-id                      nil
    :trees-file-url                          nil
    :slice-heights-file-url                  nil
-   :readable-name                           nil
    :burn-in                                 nil
    :number-of-intervals                     nil
    :relaxed-random-walk-rate-attribute-name nil
