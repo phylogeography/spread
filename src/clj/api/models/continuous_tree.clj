@@ -6,11 +6,9 @@
 (declare upsert-tree)
 (declare update-tree)
 (declare insert-attribute)
-;; (declare insert-hpd-level)
 (declare get-tree)
 (declare delete-tree)
 (declare get-attributes)
-;; (declare get-hpd-levels)
 (declare upsert-status)
 (declare get-status)
 

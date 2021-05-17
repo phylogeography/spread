@@ -11,16 +11,15 @@
       <column name="user_id" type="VARCHAR(36)">
         <constraints nullable="false" />
       </column>
-      <column name="continuous_tree_id" type="VARCHAR(36)"/>            
+      <column name="continuous_tree_id" type="VARCHAR(36)"/>
       <column name="trees_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-      <!-- <column name="mcc_tree_file_url" type="VARCHAR(200)"/> -->
+      <column name="readable_name" type="VARCHAR(200)"/>      
       <column name="slice_heights_file_url" type="VARCHAR(200)"/>
       <column name="burn_in" type="FLOAT"/>
       <column name="number_of_intervals" type="INT"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
-      <!-- <column name="readable_name" type="VARCHAR(200)"/> -->
       <column name="trait_attribute_name" type="VARCHAR(50)"/>
       <column name="relaxed_random_walk_rate_attribute_name" type="VARCHAR(50)"/>
       <column name="hpd_level" type="FLOAT"/>
@@ -64,8 +63,8 @@
                              initiallyDeferred="false"
                              validate="true"/>
   </changeSet>
-  
-  <changeSet author="filip" id="4.0-4">
+
+  <changeSet author="filip" id="2.0-5">
     <createTable tableName="time_slicer_attributes">
       <column name="time_slicer_id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
@@ -76,7 +75,7 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="4.0-5">
+  <changeSet author="filip" id="2.0-6">
     <addForeignKeyConstraint constraintName="time_slicer_attributes_SLASH_timeslicer_FK"
                              baseColumnNames="time_slicer_id"
                              baseTableName="time_slicer_attributes"
@@ -93,7 +92,7 @@
         tableName="time_slicer_attributes"/>
   </changeSet>
 
-  <changeSet author="filip" id="4.0-6">
+  <changeSet author="filip" id="2.0-7">
     <createTable tableName="time_slicer_status">
       <column name="time_slicer_id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
@@ -105,7 +104,7 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="4.0-7">
+  <changeSet author="filip" id="2.0-8">
     <addForeignKeyConstraint constraintName="time_slicer_status_SLASH_time_slicer_FK"
                              baseColumnNames="time_slicer_id"
                              baseTableName="time_slicer_status"

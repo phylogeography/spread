@@ -389,10 +389,6 @@
                        [:span "Continuous"]
                        [:span "MCC tree"]]
 
-                      ;; "continuous-time-slices"
-                      ;; [:div
-                      ;;  [:span "Continuous"]
-                      ;;  [:span "Time slices"]]
                       nil)])
                  ["discrete-mcc-tree" "discrete-rates" "continuous-mcc-tree" "continuous-time-slices"])]
            [:div.panel
@@ -400,5 +396,4 @@
               "discrete-mcc-tree"   [discrete-mcc-tree]
               "discrete-rates"      [discrete-rates]
               "continuous-mcc-tree" [continuous-mcc-tree]
-              ;; "continuous-time-slices" [continuous-time-slices]
               [continuous-mcc-tree])]]]]))))

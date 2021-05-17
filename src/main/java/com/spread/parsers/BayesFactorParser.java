@@ -325,14 +325,6 @@ public class BayesFactorParser implements IProgressReporter {
         uniquePointAttributes.add(xCoordinate);
         uniquePointAttributes.add(yCoordinate);
 
-        // LinkedList<Layer> layersList = new LinkedList<Layer>();
-
-        // Layer bfLayer = new Layer.Builder ()
-
-        //     .build ();
-
-        // layersList.add(bfLayer);
-
         SpreadData spreadData = new SpreadData.Builder()
             .withAnalysisType(ParsersUtils.BAYES_FACTOR)
             .withAxisAttributes(new AxisAttributes(xCoordinate.getId(),
@@ -342,7 +334,6 @@ public class BayesFactorParser implements IProgressReporter {
             .withLocations(locationsList)
             .withPoints (pointsList)
             .withLines (linesList)
-            // .withLayers(layersList)
             .build();
 
         LinkedList<BayesFactor> bayesFactorsData = new LinkedList<BayesFactor>();

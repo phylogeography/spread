@@ -21,6 +21,7 @@
    :user-id                                 nil
    :continuous-tree-id                      nil
    :trees-file-url                          nil
+   :readable-name                           nil
    :slice-heights-file-url                  nil
    :burn-in                                 nil
    :number-of-intervals                     nil
