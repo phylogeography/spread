@@ -173,9 +173,8 @@
            (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id] id)
            (assoc-in [:continuous-tree-parsers id :status] status))})
 
-;; TODO
 (defmethod handler :upload-time-slicer
-  [{:keys [db]} _ {:keys [id continuous-tree-id status] :as arg}]
+  [{:keys [db]} _ {:keys [id status]}]
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
            (assoc-in [:time-slicer-parsers id :status] status))})

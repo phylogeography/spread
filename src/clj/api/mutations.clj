@@ -207,7 +207,7 @@
         (discrete-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR})))))
 
-(defn upload-time-slicer [{:keys [sqs workers-queue-url authed-user-id db]}
+(defn upload-time-slicer [{:keys [authed-user-id db]}
                           {continuous-tree-id     :continuousTreeId
                            trees-file-url         :treesFileUrl
                            slice-heights-file-url :sliceHeightsFileUrl

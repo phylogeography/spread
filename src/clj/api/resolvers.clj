@@ -5,6 +5,7 @@
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
             [clojure.data.json :as json]
+            [com.walmartlabs.lacinia.executor :as executor]
             [shared.utils :refer [clj->gql decode-base64 encode-base64]]
             [taoensso.timbre :as log]))
 
@@ -14,9 +15,11 @@
   (clj->gql (user-model/get-user-by-id db {:id authed-user-id})))
 
 (defn get-continuous-tree
-  [{:keys [db]} {id :id :as args} _]
+  [{:keys [db] :as context} {id :id :as args} _]
   (log/info "get-continuous-tree" args)
-  (clj->gql (continuous-tree-model/get-tree db {:id id})))
+  (clj->gql (merge (continuous-tree-model/get-tree db {:id id})
+                   (when (executor/selects-field? context :ContinuousTree/timeSlicer)
+                     {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})}))))
 
 (defn continuous-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
@@ -25,6 +28,9 @@
     (log/info "continuous-tree->attributes" {:attributes attributes})
     attributes))
 
+;; TODO: this resolver is not being called even if the `timeSlicer` field is present on `getContinuousTree` query
+;; I have no clue why
+;; this is fixed in the get-continuous-tree resolver by appending the field explicitely if the field is present
 (defn continuous-tree->time-slicer
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->time-slicer" parent)

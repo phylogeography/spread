@@ -249,7 +249,7 @@
           {:keys [trait-attribute-name burn-in
                   relaxed-random-walk-rate-attribute-name
                   number-of-intervals hpd-level contouring-grid-size
-                  timescale-multiplier most-recent-sampling-date
+                  timescale-multiplier
                   most-recent-sampling-date]}
           parser-settings
 

@@ -59,7 +59,7 @@
                                  :yCoordinateAttributeName {:type String}
                                  :timescaleMultiplier      {:type Float}
                                  :mostRecentSamplingDate   {:type String}
-                                 :status                   {:type :AnalysisStatus}
+                                 :status                   {:type (non-null :AnalysisStatus)}
                                  :progress                 {:type Float}
                                  :attributeNames           {:type    (list String)
                                                             :resolve :resolve/continuous-tree->attributes}
@@ -78,7 +78,7 @@
                                :locationsAttributeName {:type String}
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
-                               :status                 {:type :AnalysisStatus}
+                               :status                 {:type (non-null :AnalysisStatus)}
                                :progress               {:type Float}
                                :attributeNames         {:type    (list String)
                                                         :resolve :resolve/discrete-tree->attributes}
@@ -100,7 +100,7 @@
                              :hpdLevel                           {:type String}
                              :timescaleMultiplier                {:type Float}
                              :mostRecentSamplingDate             {:type String}
-                             :status                             {:type :AnalysisStatus}
+                             :status                             {:type (non-null :AnalysisStatus)}
                              :progress                           {:type Float}
                              :attributeNames                     {:type    (list String)
                                                                   :resolve :resolve/time-slicer->attributes}
@@ -120,7 +120,7 @@
                                       :createdOn        {:type (non-null :BigInt)}
                                       :logFileUrl       {:type (non-null String)}
                                       :locationsFileUrl {:type String}
-                                      :status           {:type :AnalysisStatus}
+                                      :status           {:type (non-null :AnalysisStatus)}
                                       :progress         {:type Float}
                                       :burnIn           {:type Float}
                                       :outputFileUrl    {:type String}
@@ -202,8 +202,6 @@
                                        :readableName             {:type String}
                                        :xCoordinateAttributeName {:type (non-null String)}
                                        :yCoordinateAttributeName {:type (non-null String)}
-                                       ;; :hpdLevel                 {:type (non-null String)}
-                                       ;; :hasExternalAnnotations   {:type String}
                                        :timescaleMultiplier      {:type Float}
                                        :mostRecentSamplingDate   {:type (non-null String)}}
                          :resolve     :mutation/updateContinuousTree}
@@ -217,8 +215,7 @@
                        :description "Persists discrete tree. Returns a ParserStatus with id."
                        :args        {:readableName     {:type String}
                                      :treeFileUrl      {:type (non-null String)}
-                                     :locationsFileUrl {:type String}
-                                     }
+                                     :locationsFileUrl {:type String}}
                        :resolve     :mutation/uploadDiscreteTree}
 
   :updateDiscreteTree {:type        :ParserStatus
