@@ -52,18 +52,17 @@
        (map (fn [p] [(:id p) p]))
        (into {})))
 
-(defn continuous-tree-output->map-data [{:keys [timeline layers]}]  
-  (let [layer (first layers) ;; current that format only use one layer
-        calc-show-percs (build-show-percentages-calculator timeline)
-        points-index (build-points-index (:points layer))
-        points-objects (->> (:points layer)
+(defn continuous-tree-output->map-data [{:keys [timeline points lines areas]}]  
+  (let [calc-show-percs (build-show-percentages-calculator timeline)
+        points-index (build-points-index points)
+        points-objects (->> points
                             (map (fn [{:keys [coordinate attributes] :as point}]
                                    (merge
                                     {:type :point
                                      :coord (calc-proj-coord coordinate)                                      
                                      :attrs attributes}
                                     (calc-show-percs point)))))
-        arcs-objects (->> (:lines layer)
+        arcs-objects (->> lines
                            (map (fn [{:keys [startPointId endPointId attributes] :as line}]
                                   (let [start-point (get points-index startPointId)
                                         end-point (get points-index endPointId)]
@@ -73,7 +72,7 @@
                                       :to-coord (calc-proj-coord (:coordinate end-point))
                                       :attrs attributes}
                                      (calc-show-percs line))))))
-        area-objects (->> (:areas layer)
+        area-objects (->> areas
                           (map (fn [{:keys [polygon] :as area}]
                                  (merge
                                   {:type :area
@@ -89,10 +88,9 @@
     (println (gstr/format "Continuous tree, got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
     objects))
 
-(defn discrete-tree-output->map-data [{:keys [timeline locations layers]}]
-  (let [[counts-layer tree-layer] layers
-        calc-show-percs (build-show-percentages-calculator timeline)
-        all-points (concat (:points counts-layer) (:points tree-layer))
+(defn discrete-tree-output->map-data [{:keys [timeline locations points lines counts]}]
+  (let [calc-show-percs (build-show-percentages-calculator timeline)
+        all-points (concat points counts)
         locations-index (->> locations
                              (map (fn [l] [(:id l) l]))
                              (into {}))
@@ -112,7 +110,7 @@
                                                :attrs attributes}
                                               (calc-show-percs point))
                                        count-attr (assoc :radius (* 0.05 count-attr)))))))
-        arcs-objects (->> (:lines tree-layer)
+        arcs-objects (->> lines
                           (map (fn [{:keys [startPointId endPointId attributes] :as line}]
                                  (let [start-point (get points-index startPointId)
                                        end-point (get points-index endPointId)]
@@ -129,19 +127,18 @@
     (println (gstr/format "Discrete tree, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
     objects))
 
-(defn bayes-output->map-data [{:keys [locations layers]}]
+(defn bayes-output->map-data [{:keys [locations layers points lines]}]
   (let [layer (first layers)
-        all-points (:points layer)
         locations-index (->> locations
                              (map (fn [l] [(:id l) l]))
                              (into {}))
-        points-index (build-points-index all-points)        
+        points-index (build-points-index points)        
         point-coordinate (fn [point-id]
                            (->> (get points-index point-id)
                                 :locationId
                                 (get locations-index)
                                 :coordinate))
-        points-objects (->> all-points
+        points-objects (->> points
                             (map (fn [{:keys [id attributes]}]
                                    (let [coordinate (point-coordinate id)]
                                      {:type :point
@@ -149,7 +146,7 @@
                                       :show-end 1
                                       :coord (calc-proj-coord coordinate)                                      
                                       :attrs attributes}))))
-        arcs-objects (->> (:lines layer)
+        arcs-objects (->> lines
                           (map (fn [{:keys [startPointId endPointId attributes]}]
                                  (let [start-point (get points-index startPointId)
                                        end-point (get points-index endPointId)]
@@ -163,24 +160,5 @@
                      (map-indexed (fn [idx o]
                                     (assoc o :id idx))))]
     (println (gstr/format "Bayes analysis, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
-    objects))
-
-(defn timeslicer-output->map-data [{:keys [timeline layers]}]
-  (let [layer (first layers)
-        calc-show-percs (build-show-percentages-calculator timeline)
-        area-objects (->> (:areas layer)
-                          (map (fn [{:keys [polygon] :as area}]
-                                 (merge
-                                  {:type :area
-                                   :coords (->> (:coordinates polygon)
-                                                (mapv (fn [poly-point]
-                                                        (calc-proj-coord poly-point))))
-                                   :attrs {}}
-                                  (calc-show-percs area)))))
-        objects (->> area-objects
-                     (map-indexed (fn [idx o]
-                                    (assoc o :id idx))))]
-    (println timeline)
-    (println (gstr/format "Timeslicer, got %d areas" (count area-objects)))
     objects))
 
