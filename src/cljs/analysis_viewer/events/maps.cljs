@@ -54,8 +54,7 @@
         analysis-data (case analysis-type
                         :ContinuousTree (map-emitter/continuous-tree-output->map-data data)
                         :DiscreteTree   (map-emitter/discrete-tree-output->map-data data)
-                        :BayesFactor    (map-emitter/bayes-output->map-data data)
-                        :TimeSlicer     (map-emitter/timeslicer-output->map-data data))
+                        :BayesFactor    (map-emitter/bayes-output->map-data data))
         {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box analysis-data)
         padding 2]
 
