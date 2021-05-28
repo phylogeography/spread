@@ -52,6 +52,13 @@
        (map (fn [p] [(:id p) p]))
        (into {})))
 
+(defn index-objects [objs]
+  (->> objs
+       (map-indexed (fn [idx o]
+                      (let [id (str "object-" idx)]
+                        [id (assoc o :id id)])))
+       (into {})))
+
 (defn continuous-tree-output->map-data [{:keys [timeline points lines areas]}]  
   (let [calc-show-percs (build-show-percentages-calculator timeline)
         points-index (build-points-index points)
@@ -81,12 +88,10 @@
                                                         (calc-proj-coord poly-point))))
                                    :attrs {}}
                                   (calc-show-percs area)))))        
-        objects (->> (concat area-objects arcs-objects points-objects)
-                     (map-indexed (fn [idx o]
-                                    (assoc o :id idx))))]
+        objects (concat area-objects arcs-objects points-objects)]
     (println timeline)
     (println (gstr/format "Continuous tree, got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
-    objects))
+    (index-objects objects)))
 
 (defn discrete-tree-output->map-data [{:keys [timeline locations points lines counts]}]
   (let [calc-show-percs (build-show-percentages-calculator timeline)
@@ -120,12 +125,10 @@
                                      :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
                                      :attrs attributes}
                                     (calc-show-percs line))))))
-        objects (->> (concat arcs-objects points-objects)
-                     (map-indexed (fn [idx o]
-                                    (assoc o :id idx))))]
+        objects (concat arcs-objects points-objects)]
     (println timeline)
     (println (gstr/format "Discrete tree, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
-    objects))
+    (index-objects objects)))
 
 (defn bayes-output->map-data [{:keys [locations layers points lines]}]
   (let [layer (first layers)
@@ -156,9 +159,7 @@
                                     :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
                                     :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
                                     :attrs attributes}))))
-        objects (->> (concat arcs-objects points-objects)
-                     (map-indexed (fn [idx o]
-                                    (assoc o :id idx))))]
+        objects (concat arcs-objects points-objects)]
     (println (gstr/format "Bayes analysis, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
-    objects))
+    (index-objects objects)))
 

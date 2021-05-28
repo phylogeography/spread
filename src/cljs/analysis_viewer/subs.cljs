@@ -56,6 +56,35 @@
    (:analysis/data db)))
 
 (reg-sub
+ :analysis/selected-object-id
+ (fn [db _]
+   (:analysis/selected-object-id db)))
+
+(reg-sub
+ :analysis/possible-objects-ids
+ (fn [db _]
+   (:analysis/possible-objects-ids db)))
+
+(reg-sub
+ :analysis/selected-object
+ :<- [:analysis/data]
+ :<- [:analysis/selected-object-id]
+ (fn [[objects-map sel-obj-id] _]
+   (get objects-map sel-obj-id)))
+
+(reg-sub
+ :analysis/possible-objects
+ :<- [:analysis/data]
+ :<- [:analysis/possible-objects-ids]
+ (fn [[objects-map pos-obj-ids] _]
+   (vals (select-keys objects-map pos-obj-ids))))
+
+(reg-sub
+ :map/popup-coord
+ (fn [db _]
+   (:map/popup-coord db)))
+
+(reg-sub
  :analysis/data-timeline
  :<- [:analysis/data]
  (fn [_ _]

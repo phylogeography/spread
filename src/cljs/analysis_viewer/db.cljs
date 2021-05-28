@@ -20,7 +20,9 @@
 (s/def :map/geo-json any?)
 (s/def :map/data (s/keys :req [:map/url :map/z-index :map/geo-json]))
 (s/def :maps/data (s/coll-of :map/data))
-(s/def :analysis/data any?) ;; TODO: I think this can be specified
+(s/def :analysis.data/object any?) ;; TODO: I think this can be specified
+(s/def :analysis.data.object/id string?)
+(s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object)) 
 
 (s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
 (s/def :ui.switch-buttons/states (s/map-of keyword? boolean?))
@@ -32,14 +34,21 @@
 (s/def :animation/percentage (s/and number? #(<= 0 % 1)))
 (s/def :animation/state #{:stop :play})
 
-(s/def ::db (s/keys :req [:map/state
+(s/def :analysis/selected-object-id :analysis.data.object/id)
+(s/def :analysis/possible-objects-ids (s/coll-of :analysis.data.object/id))
+(s/def :map/popup-coord :cartesian/coord)
+
+(s/def ::db (s/keys :req [:map/state                          
                           :animation/percentage
                           :animation/state
                           :ui.collapsible-tabs/tabs
                           :ui.switch-buttons/states
                           :ui/parameters]
                     :opt [:map/data
-                          :analysis/data]))
+                          :analysis/data
+                          :analysis/selected-object-id
+                          :analysis/possible-objects-ids
+                          :map/popup-coord]))
 
 (defn initial-db []
   {:map/state {:scale 1
