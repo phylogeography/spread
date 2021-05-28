@@ -55,7 +55,7 @@
                         :ContinuousTree (map-emitter/continuous-tree-output->map-data data)
                         :DiscreteTree   (map-emitter/discrete-tree-output->map-data data)
                         :BayesFactor    (map-emitter/bayes-output->map-data data))
-        {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box analysis-data)
+        {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box (vals analysis-data))
         padding 2]
 
     {:db (-> db
@@ -204,3 +204,19 @@
       (assoc-in [:map/state :width] width)
       (assoc-in [:map/state :height] height)))
  
+
+(defn show-object-attributes [db [_ object-id coord]]
+  (assoc db
+         :analysis/selected-object-id object-id
+         :map/popup-coord coord))
+
+(defn hide-object-attributes [db _]
+  (dissoc db :analysis/selected-object-id :map/popup-coord))
+
+(defn show-object-selector [db [_ objects-ids coord]]
+  (assoc db
+         :analysis/possible-objects-ids (into [] objects-ids)
+         :map/popup-coord coord))
+
+(defn hide-object-selector [db _]
+  (dissoc db :analysis/possible-objects-ids :map/popup-coord))

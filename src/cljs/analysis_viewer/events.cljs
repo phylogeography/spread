@@ -34,6 +34,11 @@
 (reg-event-fx :map/zoom-rectangle-release [sc] events.maps/zoom-rectangle-release)
 (reg-event-fx :map/toggle-show-world [sc] events.maps/toggle-show-world)
 
+(reg-event-db :map/show-object-attributes [sc] events.maps/show-object-attributes)
+(reg-event-db :map/hide-object-attributes [sc] events.maps/hide-object-attributes)
+(reg-event-db :map/show-object-selector [sc] events.maps/show-object-selector)
+(reg-event-db :map/hide-object-selector [sc] events.maps/hide-object-selector)
+
 (reg-event-db :collapsible-tabs/toggle [sc] events.ui/toggle-collapsible-tab)
 (reg-event-db :switch-button/toggle [sc] events.ui/toggle-switch-button)
 (reg-event-db :parameters/select [sc] events.ui/parameters-select)

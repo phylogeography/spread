@@ -21,26 +21,32 @@
 ;; as svg elements                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-point-object [{:keys [coord show-start show-end radius]} scale time-perc _]
+(defn svg-point-object [{:keys [coord show-start show-end radius id]} scale time-perc _]
   (let [show? (<= show-start time-perc show-end)
         [x1 y1] coord]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r (or radius 0.1) :opacity 0.2 :fill "#B20707"}]]))
+     [:circle {:id id
+               :cx x1
+               :cy y1
+               :r (or radius 0.1)
+               :opacity 0.2
+               :fill "#B20707"}]]))
 
-(defn svg-area-object [{:keys [coords show-start show-end]} _ time-perc params]
+(defn svg-area-object [{:keys [coords show-start show-end id]} _ time-perc params]
   (let [show? (<= show-start time-perc show-end)]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
      [:polygon
-      {:points (->> coords
+      {:id id
+       :points (->> coords
                     (map (fn [coord] (str/join " " coord)))
                     (str/join ","))
        
        :fill "#9E15E6"
        :opacity (:polygon-opacity params)}]]))
 
-(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end]} scale time-perc _]
+(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id]} scale time-perc _]
   (let [show? (<= show-start time-perc show-end)
         clip-perc (when show?
                     (/ (- time-perc show-start)
@@ -49,7 +55,8 @@
         [x2 y2] to-coord
         {:keys [f1]} (math-utils/quad-curve-focuses x1 y1 x2 y2)
         [f1x f1y] f1
-        curve-path-info {:d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
+        curve-path-info {:id id
+                         :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
                          :stroke "url(#grad)"
                          :stroke-width (/ 0.6 scale)
                          :fill :transparent}
@@ -137,7 +144,7 @@
 
 (defn data-group []
   (let [time @(re-frame/subscribe [:animation/percentage])
-        analysis-data  @(re-frame/subscribe [:analysis/data])
+        analysis-data  (vals @(re-frame/subscribe [:analysis/data]))
         {:keys [scale]} @(re-frame/subscribe [:map/state])
         params @(subscribe [:ui/parameters])]
     (when analysis-data
@@ -150,12 +157,36 @@
          ^{:key (str (:id primitive-object))}
          [map-primitive-object primitive-object scale time params])])))
 
+(defn object-attributes-popup [selected-obj]
+  (let [[x y] @(re-frame/subscribe [:map/popup-coord])]
+    [:div.pop-up.selected-object-popup
+     {:style {:left x
+              :top y}}
+     (when selected-obj
+       (for [[alabel aval] (:attrs selected-obj)]
+         ^{:key (str alabel)}
+         [:div.attr
+          [:label (name alabel)]
+          [:span (str aval)]]))]))
+
+(defn possible-objects-selector-popup [possible-objects]
+  (let [[x y] @(re-frame/subscribe [:map/popup-coord])]
+    [:div.pop-up.possible-objects-popup
+     {:style {:left x
+              :top y}}
+     (when possible-objects       
+       (for [po possible-objects]
+         ^{:key (:id po)}
+         [:div.selectable-object {:on-click #(dispatch [:map/show-object-attributes (:id po) [x y]])}
+          (str (:id po))]))]))
+
 (defn data-map []
   (let [update-after-render (fn [div-cmp]                             
                               (let [dom-node (rdom/dom-node div-cmp)                                   
                                     brect (.getBoundingClientRect dom-node)]                                
                                 (dispatch [:map/set-dimensions {:width (.-width brect)
-                                                                :height (.-height brect)}])))]
+                                                                :height (.-height brect)}])))
+        last-mouse-down-coord (reagent/atom nil)]
    (reagent/create-class
     {:component-did-mount (fn [this] (update-after-render this))
      ;; :component-did-update (fn [this] (update-after-render this))
@@ -183,8 +214,9 @@
 
                                                  ;; wheel button pressed
                                                  (= wheel-button (.-button evt))
-                                                 (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))))
-                           
+                                                 (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))
+                                               (reset! last-mouse-down-coord [x y])))
+                            
                             :on-mouse-move (fn [evt]
                                              (let [x (-> evt .-nativeEvent .-offsetX)
                                                    y (-> evt .-nativeEvent .-offsetY)]
@@ -197,12 +229,47 @@
                             :on-mouse-up (fn [evt]
                                            (.stopPropagation evt)
                                            (.preventDefault evt)
-                                           (cond
-                                             (= left-button (.-button evt))
-                                             (dispatch [:map/grab-release])
+                                           
+                                           (let [x (-> evt .-nativeEvent .-offsetX)
+                                                 y (-> evt .-nativeEvent .-offsetY)]
+                                             (cond
 
-                                             (= wheel-button (.-button evt))
-                                             (dispatch [:map/zoom-rectangle-release])))}
+                                               ;; left button pressed
+                                               (= left-button (.-button evt))                                               
+                                               (do
+                                                 (dispatch [:map/hide-object-attributes])
+                                                 (dispatch [:map/hide-object-selector])
+                                                 (when (= [x y] @last-mouse-down-coord)
+
+                                                   ;; mouse was released without being moved, a click in place
+                                                   ;; so check if we need to show any attributes
+                                                   (let [elements-under-mouse (js/document.elementsFromPoint (-> evt .-nativeEvent .-clientX) (-> evt .-nativeEvent .-clientY))
+                                                         offset-coord [(-> evt .-nativeEvent .-offsetX) (-> evt .-nativeEvent .-offsetY)]
+                                                         ids (keep (fn [e]
+                                                                     (let [eid (.-id e)]
+                                                                       (when (and eid (str/starts-with? eid "object-"))
+                                                                         eid)))
+                                                                   elements-under-mouse)]
+                                                     (cond
+                                                       (= (count ids) 1)                                                     
+                                                       (dispatch [:map/show-object-attributes (first ids) offset-coord])
+                                                       
+                                                       (> (count ids) 1)                                                     
+                                                       (dispatch [:map/show-object-selector ids offset-coord]))))
+
+                                                 (when grab
+                                                   (dispatch [:map/grab-release])))
+                                               
+                                               
+                                               ;; wheel button pressed
+                                               (= wheel-button (.-button evt))
+                                               (dispatch [:map/zoom-rectangle-release]))))}                   
+
+          (when-let [selected-obj @(re-frame/subscribe [:analysis/selected-object])]
+            [object-attributes-popup selected-obj])
+          
+          (when-let [possible-objects @(re-frame/subscribe [:analysis/possible-objects])]
+            [possible-objects-selector-popup possible-objects])
           [:div.zoom-bar-outer
            [:div.zoom-bar-back]
            [slider {:inc-buttons 0.8
@@ -333,6 +400,6 @@
     [:div.main-screen
      [top-bar]
      [controls-side-bar]
-     [:div.animated-data-map
+     [:div.animated-data-map      
       [data-map]
       [animation-controls]]]))

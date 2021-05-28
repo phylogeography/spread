@@ -184,6 +184,7 @@ button {
 .animated-data-map {
 	grid-area: animated-data-map;
 	width: 99%;
+	position: relative;
 }
 
 
@@ -214,6 +215,29 @@ button {
 	border-radius: 10px;
 	opacity: 0.5;
 	z-index: 0;
+}
+
+.pop-up {
+	position: absolute;
+    background-color: white;
+	border: 1px solid #DEDEE8;
+	padding: 5px;
+	max-width: 300px;
+	max-height: 200px;
+	font-size: 10px;
+}
+
+.pop-up label {
+	font-weight: bold;
+	color: #3A3668;
+	margin-right: 3px;
+	
+}
+
+.possible-objects-popup .selectable-object {
+	font-weight: bold;
+	color: #3A3668;
+	cursor: pointer;
 }
 
 /**********************/
