@@ -137,16 +137,14 @@ button {
 
 .collapsible-tabs .tab-body.collapsed {
 	height: 0;
+	padding: 0;
 }
 
 /*****************/
 /* Color chooser */
 /*****************/
-.map-color-chooser {
-    display:flex;
-	justify-content: center;    
-}
-.map-color-chooser .colors {
+
+.colors {
 	display: grid;
 	grid-template-columns: 22px 22px 22px 22px 22px 22px 22px 22px 22px;
 	grid-column-gap: 4px;
@@ -154,7 +152,7 @@ button {
 	margin: 10px;
 }
 
-.map-color-chooser .color {
+.color {
 	cursor: pointer;
 	width: 21px;
 	height: 22px;
@@ -166,15 +164,70 @@ button {
 	margin-top: 4px;
 }
 
-/********************/
-/* Layer visibility */
-/********************/
+/*******************/
+/* Layers settings */
+/*******************/
 
-.layer-visibility {
+.layers-settings {
 	display: grid;
     grid-template-columns: 70% 30%;
     grid-row-gap: 9px;
 	font-size: 14px;
+}
+
+/****************/
+/* Map settings */
+/****************/
+
+.map-settings {
+    display:flex;
+	justify-content: center;    
+}
+
+/********************/
+/* Polygon settings */
+/********************/
+.polygons-settings {
+    display:flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+/********************/
+/* Labels settings */
+/********************/
+.labels-settings {
+    display:flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+/********************/
+/* Circle settings */
+/********************/
+.circles-settings {
+    display:flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+/********************/
+/* Nodes settings */
+/********************/
+.nodes-settings {
+    display:flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+/************************/
+/* Transitions settings */
+/************************/
+
+.transitions-settings {
+    display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 /*****************/

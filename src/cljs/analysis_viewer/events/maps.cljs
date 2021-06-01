@@ -59,7 +59,8 @@
         padding 2]
 
     {:db (-> db
-             (assoc :analysis/data analysis-data))
+             (assoc :analysis/data analysis-data)
+             (assoc :analysis.data/type analysis-type))
      :dispatch [:map/set-view-box {:x1 (- x1 padding) :y1 (- y1 padding)
                                    :x2 (+ x2 padding) :y2 (+ y2 padding)}]}))
 

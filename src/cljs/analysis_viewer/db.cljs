@@ -22,14 +22,36 @@
 (s/def :maps/data (s/coll-of :map/data))
 (s/def :analysis.data/object any?) ;; TODO: I think this can be specified
 (s/def :analysis.data.object/id string?)
+(s/def :analysis.data/type #{:ContinuousTree :DiscreteTree :BayesFactor})
 (s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object)) 
 
 (s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
 (s/def :ui.switch-buttons/states (s/map-of keyword? boolean?))
 (s/def :parameter/border-color string?)
-(s/def :parameter/polygon-opacity (s/and number? #(<= 0 % 1)))
+(s/def :parameter/polygons-opacity (s/and number? #(<= 0 % 1)))
+(s/def :parameter/polygons-color string?)
+(s/def :parameter/transitions-opacity (s/and number? #(<= 0 % 1)))
+(s/def :parameter/transitions-curvature (s/and number? #(<= 0 % 2)))
+(s/def :parameter/transitions-width (s/and number? #(<= 0 % 0.3)))
+(s/def :parameter/circles-raduis number?)
+(s/def :parameter/cirlces-color string?)
+(s/def :parameter/nodes-color string?)
+(s/def :parameter/nodes-size number?)
+(s/def :parameter/labels-color string?)
+(s/def :parameter/labels-size number?)
+
 (s/def :ui/parameters (s/keys :req-un [:parameter/map-borders-color
-                                       :parameter/polygon-opacity]))
+                                       :parameter/polygons-color
+                                       :parameter/polygons-opacity
+                                       :parameter/transitions-color
+                                       :parameter/transitions-curvature
+                                       :parameter/transitions-width
+                                       :parameter/circles-radius
+                                       :parameter/circles-color
+                                       :parameter/nodes-color
+                                       :parameter/nodes-size
+                                       :parameter/labels-color
+                                       :parameter/labels-size]))
 
 (s/def :animation/percentage (s/and number? #(<= 0 % 1)))
 (s/def :animation/state #{:stop :play})
@@ -46,6 +68,7 @@
                           :ui/parameters]
                     :opt [:map/data
                           :analysis/data
+                          :analysis.data/type
                           :analysis/selected-object-id
                           :analysis/possible-objects-ids
                           :map/popup-coord]))
@@ -60,6 +83,22 @@
    :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
                                            :map-color true,
                                            :polygon-opacity true}}
-   :ui.switch-buttons/states {:map-borders true}
+   :ui.switch-buttons/states {:show-map? true
+                              :map-borders? true
+                              :map-labels? true
+                              :transitions? true
+                              :circles? true
+                              :nodes? true
+                              :labels? true}
    :ui/parameters {:map-borders-color "#079DAB"
-                   :polygon-opacity 0.3}})
+                   :polygons-color "#1C58D0"
+                   :polygons-opacity 0.3
+                   :transitions-color "#266C08"
+                   :transitions-curvature 1
+                   :transitions-width 0.1
+                   :circles-radius 1
+                   :circles-color "#EEBE53"
+                   :nodes-color "#B20707"
+                   :nodes-size 0.1
+                   :labels-color "#ECEFF8"
+                   :labels-size 0.5}})
