@@ -107,14 +107,13 @@
                                 :coordinate))
         points-objects (->> all-points
                             (map (fn [{:keys [id attributes] :as point}]
-                                   (let [coordinate (point-coordinate id)
-                                         count-attr (get attributes :count)]
+                                   (let [coordinate (point-coordinate id)]
                                      (cond-> (merge
                                               {:type :point
                                                :coord (calc-proj-coord coordinate)                                      
-                                               :attrs attributes}
-                                              (calc-show-percs point))
-                                       count-attr (assoc :radius (* 0.05 count-attr)))))))
+                                               :attrs attributes
+                                               :count-attr (get attributes :count)}
+                                              (calc-show-percs point)))))))
         arcs-objects (->> lines
                           (map (fn [{:keys [startPointId endPointId attributes] :as line}]
                                  (let [start-point (get points-index startPointId)

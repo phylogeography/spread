@@ -56,6 +56,11 @@
    (:analysis/data db)))
 
 (reg-sub
+ :analysis.data/type
+ (fn [db _]
+   (:analysis.data/type db)))
+
+(reg-sub
  :analysis/selected-object-id
  (fn [db _]
    (:analysis/selected-object-id db)))
@@ -102,14 +107,20 @@
  :<- [:ui/parameters]
  :<- [:switch-buttons/states]
  (fn [[params buttons-states] [_]]
-   {:map-fill-color "#ffffff"
-    :background-color "#ECEFF8"
-    :map-stroke-color (if (get buttons-states :map-borders)
-                        (get params :map-borders-color "#079DAB")
-                        :transparent)
-    :map-text-color (get params :map-borders-color "#079DAB")                     
+   {:poly-fill-color "#ffffff"
+    :poly-stroke-color (if (get buttons-states :map-borders?)
+                         (get params :map-borders-color "#079DAB")
+                         :transparent)
+    :poly-stroke-width "0.02"
     :line-color "#B20707"
-    :data-point-color "#DD0808"}))
+    :line-width "0.1"
+    :text-color (if (get buttons-states :labels?)
+                  (get params :map-borders-color "#079DAB")
+                  :transparent)
+    :text-size (:labels-size params)                         
+    :point-color (:nodes-color params)
+    :point-radius (:nodes-size params)
+    :background-color "#ECEFF8"}))
 
 (reg-sub
  :collapsible-tabs/tabs

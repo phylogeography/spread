@@ -42,7 +42,7 @@
   
   "Calculates nice focuses (positive and negative) for a quadratic curve given its starting and end points"
   
-  [x1 y1 x2 y2]
+  [x1 y1 x2 y2 curvature]
   (let [line-m (/ (- y1 y2)
                   (- x1 x2))
         ;; the line that goes from [x1,y1] to [x2,y2]
@@ -54,8 +54,7 @@
         cy (line cx)
         ;; a line perp to `line` that pass thru its center
         center-perp (fn [x] (- (+ (* perp-m x) cy) (* cx perp-m)))
-        
-        k 1 ;; we can increase/decrease k to make the arc (focus distance) bigger/smaller
+                
         length (sqrt (+ (pow (- x2 x1) 2) (pow (- y2 y1) 2)))
         
         ;; calculates focus x, a point that belongs to `center-perp` line and is at distance `k`
@@ -69,7 +68,7 @@
                 
                 ;; calculates focus-x, which is the point x that belongs to the perpendicular line
                 ;; that goes thru the center, and also is at distance k from cx,cy
-                (/ (sol-fn (+ (* cx (pow perp-m 2)) cx) (sqrt (* (pow k 2) (+ (pow perp-m 2) 1))))
+                (/ (sol-fn (+ (* cx (pow perp-m 2)) cx) (sqrt (* (pow curvature 2) (+ (pow perp-m 2) 1))))
                    (+ (pow perp-m 2) 1)))
         f1x (fx-fn +)
         f2x (fx-fn -)
@@ -131,4 +130,3 @@
     
     {:translate [tx ty]
      :scale     scale}))
-

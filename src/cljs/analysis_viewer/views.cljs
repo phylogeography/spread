@@ -21,20 +21,33 @@
 ;; as svg elements                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-point-object [{:keys [coord show-start show-end radius id]} scale time-perc _]
-  (let [show? (<= show-start time-perc show-end)
+(defn svg-point-object [{:keys [coord show-start show-end count-attr id]} scale time-perc params]
+  (let [{:keys [nodes? circles? nodes-radius nodes-color circles-radius circles-color]} params
+        point-type (if count-attr :circle :node)
+        show? (and (<= show-start time-perc show-end)
+                   (or (and (= point-type :circle) circles?)
+                       (and (= point-type :node) nodes?)))
+        r (case point-type
+            :circle (* circles-radius count-attr)
+            :node (* nodes-radius 0.5))
+        color (case point-type
+                :circle circles-color
+                :node nodes-color)
         [x1 y1] coord]
+    
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
      [:circle {:id id
                :cx x1
                :cy y1
-               :r (or radius 0.1)
+               :r r
                :opacity 0.2
-               :fill "#B20707"}]]))
+               :fill color}]]))
 
 (defn svg-area-object [{:keys [coords show-start show-end id]} _ time-perc params]
-  (let [show? (<= show-start time-perc show-end)]
+  (let [{:keys [polygons? polygons-color polygons-opacity]} params
+        show? (and (<= show-start time-perc show-end)
+                   polygons?)]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
      [:polygon
@@ -43,34 +56,38 @@
                     (map (fn [coord] (str/join " " coord)))
                     (str/join ","))
        
-       :fill "#9E15E6"
-       :opacity (:polygon-opacity params)}]]))
+       :fill polygons-color
+       :opacity polygons-opacity}]]))
 
-(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id]} scale time-perc _]
-  (let [show? (<= show-start time-perc show-end)
+(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id]} scale time-perc params]
+  (let [{:keys [transitions? transitions-color transitions-width transitions-curvature missiles?]} params
+        show? (and (<= show-start time-perc show-end)
+                   transitions?)
         clip-perc (when show?
                     (/ (- time-perc show-start)
                        (- show-end show-start)))        
         [x1 y1] from-coord
         [x2 y2] to-coord
-        {:keys [f1]} (math-utils/quad-curve-focuses x1 y1 x2 y2)
+        {:keys [f1]} (math-utils/quad-curve-focuses x1 y1 x2 y2 transitions-curvature)
         [f1x f1y] f1
         curve-path-info {:id id
                          :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
-                         :stroke "url(#grad)"
-                         :stroke-width (/ 0.6 scale)
+                         :stroke transitions-color
+                         :stroke-width transitions-width
                          :fill :transparent}
-        misile-size 0.3]
+        missile-size 0.3]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r 0.05 #_(/ 0.4 scale)  :fill :blue}] 
-     [:circle {:cx x2 :cy y2 :r 0.05 #_(/ 0.4 scale)  :fill :blue}]
+     [:circle {:cx x1 :cy y1 :r 0.05 :fill transitions-color}] 
+     [:circle {:cx x2 :cy y2 :r 0.05 :fill transitions-color}]
      [:path (if clip-perc
 
               ;; animated dashed curves
               (let [c-length (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2)]
                 (assoc curve-path-info
-                       :stroke-dasharray c-length #_[(* misile-size c-length) (* (- 1 misile-size) c-length)]
+                       :stroke-dasharray (if missiles?
+                                           [(* missile-size c-length) (* (- 1 missile-size) c-length)]
+                                           c-length) 
                        :stroke-dashoffset (- c-length (* c-length clip-perc))))
  
               ;; normal curves
@@ -137,16 +154,20 @@
 
 (defn map-group []
   (let [geo-json-map @(re-frame/subscribe [:map/data])
-        map-options @(re-frame/subscribe [:map/parameters])]    
+        map-options @(re-frame/subscribe [:map/parameters])]
     (when geo-json-map
       [:g {}
-       (svg-renderer/geojson->svg geo-json-map map-options)])))
+       
+       (binding [svg-renderer/*coord-transform-fn* math-utils/map-coord->proj-coord]
+         (svg-renderer/geojson->svg geo-json-map
+                                   map-options))])))
 
 (defn data-group []
   (let [time @(re-frame/subscribe [:animation/percentage])
         analysis-data  (vals @(re-frame/subscribe [:analysis/data]))
         {:keys [scale]} @(re-frame/subscribe [:map/state])
-        params @(subscribe [:ui/parameters])]
+        params (merge @(subscribe [:ui/parameters])
+                      @(subscribe [:switch-buttons/states]))]
     (when analysis-data
       [:g {}
        ;; for debugging the data view-box
@@ -193,6 +214,7 @@
      :reagent-render
      (fn []
        (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [:map/state])
+             show-map? @(re-frame/subscribe [:switch-buttons/on? :show-map?])
              scale (or scale 1)
              [translate-x translate-y] translate]
          [:div.map-wrapper {:on-wheel (fn [evt]
@@ -270,6 +292,7 @@
           
           (when-let [possible-objects @(re-frame/subscribe [:analysis/possible-objects])]
             [possible-objects-selector-popup possible-objects])
+          
           [:div.zoom-bar-outer
            [:div.zoom-bar-back]
            [slider {:inc-buttons 0.8
@@ -305,7 +328,7 @@
                                         (or translate-y 0)
                                         scale scale)}            
             [:svg {:view-box "0 0 360 180" :preserve-aspect-ratio "xMinYMin"}
-             [map-group]
+             (when show-map? [map-group])
              [data-group]]]
 
            (when zoom-rectangle
@@ -336,70 +359,201 @@
       ^{:key (str (:id c))}
       [collapsible-tab id c])]])
 
-(defn layer-visibility []
-  [:div.layer-visibility
-   [:label "Borders"]    [switch-button {:id :map-borders}]
-   [:label "Directions"] [switch-button {:id :directions}]
-   [:label "Radius"]     [switch-button {:id :radius}]])
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Continuous tree settings ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn map-color-chooser []
+(defn continuous-tree-layers-settings []
+  [:div.layers-settings
+   [:label "Map"]         [switch-button {:id :show-map?}]
+   [:label "Map Borders"] [switch-button {:id :map-borders?}]
+   [:label "Map Labels"]  [switch-button {:id :map-labels?}]
+   [:label "Transitions"] [switch-button {:id :transitions?}]
+   [:label "Polygons"]    [switch-button {:id :polygons?}]
+   [:label "Nodes"]       [switch-button {:id :nodes?}]])
+
+(defn color-chooser [{:keys [param-name]}]
   (let [colors ["#079DAB" "#3428CA" "#757295" "#DD0808" "#EEBE53" "#B20707" "#ECEFF8" "#FBFCFE" "#DEDEE9"
                 "#266C08" "#C76503" "#1C58D0" "#A5387B" "#1C58D9" "#3A3668" "#757299" "#DEDEE8" "#3428CB"]
-        selected-color @(subscribe [:parameters/selected :map-borders-color])]
-    [:div.map-color-chooser
-     [:div.colors
-      (for [c colors]
-        ^{:key c}
-        [:div.color {:style {:background-color c}
-                     :on-click (fn [evt]
-                                 (.stopPropagation evt)
-                                 (dispatch [:parameters/select :map-borders-color c]))}
-         (when (= selected-color c)
-           [:i.zmdi.zmdi-check])
-         ])]]))
+        selected-color @(subscribe [:parameters/selected param-name])]
+    [:div.colors
+     (for [c colors]
+       ^{:key c}
+       [:div.color {:style {:background-color c}
+                    :on-click (fn [evt]
+                                (.stopPropagation evt)
+                                (dispatch [:parameters/select param-name c]))}
+        (when (= selected-color c)
+          [:i.zmdi.zmdi-check])])]))
 
-(defn polygon-opacity []
-  [:div.polygon-opacity
+(defn continuous-tree-map-settings []
+  [:div.map-settings
+   [color-chooser {:param-name :map-borders-color}]])
+
+(defn continuous-transitions-settings []
+  [:div.transitions-settings
+   [:div
+    [:label.missile "Missiles"] [switch-button {:id :missiles?}]]
+   
+   [color-chooser {:param-name :transitions-color}]
+
+   [:div
+    [:label "Curvature"]
+    [slider {:inc-buttons 0.1
+             :min-val 0.1
+             :max-val 2
+             :length 140
+             :vertical? false
+             :subs-vec [:ui/parameters :transitions-curvature]
+             :ev-vec [:parameters/select :transitions-curvature]}]]
+
+   [:div
+    [:label "Width"]
+    [slider {:inc-buttons 0.05
+             :min-val 0
+             :max-val 0.3
+             :length 140
+             :vertical? false
+             :subs-vec [:ui/parameters :transitions-width]
+             :ev-vec [:parameters/select :transitions-width]}]]])
+
+(defn continuous-polygons-settings []
+  [:div.polygons-settings
+   [color-chooser {:param-name :polygons-color}]
+   [:label "Opacity"]
    [slider {:inc-buttons 0.1
             :min-val 0
             :max-val 1
             :length 140
             :vertical? false
-            :subs-vec [:ui/parameters :polygon-opacity]
-            :ev-vec [:parameters/select :polygon-opacity]}]
-   ])
+            :subs-vec [:ui/parameters :polygons-opacity]
+            :ev-vec [:parameters/select :polygons-opacity]}]])
 
-(defn controls-side-bar []
-  [:div.side-bar
-   [:div.tabs
-    [collapsible-tabs {:title "Parameters"
-                       :id :parameters
-                       :childs [{:title "Layer visibility"
-                                 :id :layer-visibility
-                                 :child [layer-visibility]}
-                                {:title "Map Color"
-                                 :id :map-color
-                                 :child [map-color-chooser]}
-                                {:title "Polygon opacity"
-                                 :id :polygon-opacity
-                                 :child [polygon-opacity]}]}]
-    [collapsible-tabs {:title "Filters"
-                       :id :filters
-                       :childs [{:title "States prob"
-                                 :id :states-prob
-                                 :child [:div "BALBALBALB"]}
-                                {:title "Node Name"
-                                 :id :node-name
-                                 :child [:div "UUUUUUUUU"]}]}]]
-   [:div.export-panel
-    [:button.export {:on-click #(dispatch [:map/download-current-as-svg])}
-     "Export results"]]])
+(defn continuous-tree-side-bar []
+  [:div.tabs
+   [collapsible-tabs {:title "Settings"
+                      :id :parameters
+                      :childs [{:title "Layers"
+                                :id :continuous-tree-layer-settings
+                                :child [continuous-tree-layers-settings]}
+                               {:title "Map"
+                                :id :continuous-tree-map-settings
+                                :child [continuous-tree-map-settings]}
+                               {:title "Transitions"
+                                :id :transitions
+                                :child [continuous-transitions-settings]}
+                               {:title "Polygons"
+                                :id :polygons
+                                :child [continuous-polygons-settings]}]}]
+   [collapsible-tabs {:title "Filters"
+                      :id :filters
+                      :childs []}]])
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Discrete tree settings ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn discrete-tree-layers-settings []
+  [:div.layers-settings
+   [:label "Map"]         [switch-button {:id :show-map?}]
+   [:label "Map Borders"] [switch-button {:id :map-borders?}]
+   [:label "Map Labels"]  [switch-button {:id :map-labels?}]
+   [:label "Transitions"] [switch-button {:id :transitions?}]
+   [:label "Circles"]     [switch-button {:id :circles?}]
+   [:label "Nodes"]       [switch-button {:id :nodes?}]
+   [:label "Labels"]      [switch-button {:id :labels?}]])
+
+(def discrete-tree-map-settings continuous-tree-map-settings)
+(def discrete-transitions-settings continuous-transitions-settings)
+
+(defn discrete-circles-settings []
+  [:div.circles-settings
+   [color-chooser {:param-name :circles-color}]
+   [:label "Size"]
+   [slider {:inc-buttons 0.1
+            :min-val 0
+            :max-val 1
+            :length 140
+            :vertical? false
+            :subs-vec [:ui/parameters :circles-radius]
+            :ev-vec [:parameters/select :circles-radius]}]])
+
+(defn discrete-nodes-settings []
+  [:div.nodes-settings
+   [color-chooser {:param-name :nodes-color}]
+   [:label "Size"]
+   [slider {:inc-buttons 0.1
+            :min-val 0
+            :max-val 1
+            :length 140
+            :vertical? false
+            :subs-vec [:ui/parameters :nodes-size]
+            :ev-vec [:parameters/select :nodes-size]}]])
+
+(defn discrete-labels-settings []
+  [:div.labels-settings
+   [color-chooser {:param-name :labels-color}]
+   [:label "Size"]
+   [slider {:inc-buttons 0.1
+            :min-val 0
+            :max-val 2
+            :length 140
+            :vertical? false
+            :subs-vec [:ui/parameters :labels-size]
+            :ev-vec [:parameters/select :labels-size]}]])
+
+(defn discrete-tree-side-bar []
+  [:div.tabs
+   [collapsible-tabs {:title "Settings"
+                      :id :parameters
+                      :childs [{:title "Layers"
+                                :id :discrete-tree-layer-settings
+                                :child [discrete-tree-layers-settings]}
+                               {:title "Map"
+                                :id :discrete-tree-map-settings
+                                :child [discrete-tree-map-settings]}
+                               {:title "Transitions"
+                                :id :transitions
+                                :child [discrete-transitions-settings]}
+                               {:title "Circles"
+                                :id :circles
+                                :child [discrete-circles-settings]}
+                               {:title "Nodes"
+                                :id :nodes
+                                :child [discrete-nodes-settings]}
+                               {:title "Labels"
+                                :id :labels
+                                :child [discrete-labels-settings]}]}]
+   [collapsible-tabs {:title "Filters"
+                      :id :filters
+                      :childs []}]])
+
+(defn bayes-factor-side-bar []
+  [:div.tabs
+   [collapsible-tabs {:title "Settings"
+                      :id :parameters
+                      :childs []}]
+   [collapsible-tabs {:title "Filters"
+                      :id :filters
+                      :childs []}]])
+
+(defn controls-side-bar [analysis-type]
+  (if-not analysis-type
+    [:div "Loading..."]
+    [:div.side-bar
+     (case analysis-type
+       :ContinuousTree [continuous-tree-side-bar]
+       :DiscreteTree   [discrete-tree-side-bar]
+       :BayesFactor    [bayes-factor-side-bar])
+     [:div.export-panel
+      [:button.export {:on-click #(dispatch [:map/download-current-as-svg])}
+       "Export results"]]]))
 
 (defn main-screen []
-  (fn []
+  (let [analysis-type @(re-frame/subscribe [:analysis.data/type])]
     [:div.main-screen
-     [top-bar]
-     [controls-side-bar]
+     [top-bar]     
+     [controls-side-bar analysis-type]
      [:div.animated-data-map      
       [data-map]
       [animation-controls]]]))

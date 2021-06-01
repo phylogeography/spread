@@ -3,7 +3,8 @@
   (:require [analysis-viewer.svg-renderer :as svg-renderer]
             [analysis-viewer.views :as views]
             [hiccups.runtime :as hiccupsrt]
-            [re-frame.core :as re-frame]))
+            [re-frame.core :as re-frame]
+            [shared.math-utils :as math-utils]))
 
 (defn data-map [geo-json-map analysis-data time map-opts ui-params]
   [:svg {:xmlns "http://www.w3.org/2000/svg"
@@ -27,8 +28,10 @@
    [:g {}
     [:svg {:view-box "0 0 360 180"}
      ;; map group
-     [:g {}
-      (svg-renderer/geojson->svg geo-json-map map-opts)]
+     [:g {}      
+      (binding [svg-renderer/*coord-transform-fn* math-utils/map-coord->proj-coord]
+        (svg-renderer/geojson->svg geo-json-map 
+                                  map-opts))]
 
      ;; data group
      [:g {}
