@@ -27,7 +27,9 @@
     (fn []
       (let [{:keys [email]} @authed-user]
         [:div.header
-         [icon-with-label {:icon (:spread icons) :label "spread" :on-click #(re-frame/dispatch [:router/navigate :route/home])}]
+         [icon-with-label {:icon (:spread icons)
+                           :label "spread"
+                           :on-click #(re-frame/dispatch [:router/navigate :route/home])}]
          [user-login email]]))))
 
 (defn run-new [{:keys [open?]}]
@@ -37,9 +39,7 @@
                {:main-label "Discrete"          :sub-label "Rates"
                 :target     :route/new-analysis :query     {:tab "discrete-rates"}}
                {:main-label "Continuous"        :sub-label "MCC tree"
-                :target     :route/new-analysis :query     {:tab "continuous-mcc-tree"}}
-               {:main-label "Continuous"        :sub-label "Time slices"
-                :target     :route/new-analysis :query     {:tab "continuous-time-slices"}}]]
+                :target     :route/new-analysis :query     {:tab "continuous-mcc-tree"}}]]
     (fn []
       [:div.run-new {:on-click #(swap! open? not)
                      :class    (when @open? "open")}
@@ -95,7 +95,7 @@
 
                       (>evt [:graphql/query {:query
                                              "query SearchAnalysis($endCursor: String!) {
-                                                searchUserAnalysis(first: 5, after: $endCursor, statuses: [SUCCEEDED]) {
+                                                searchUserAnalysis(first: 3, after: $endCursor, statuses: [SUCCEEDED]) {
                                                 pageInfo {
                                                   hasNextPage
                                                   startCursor
@@ -117,7 +117,7 @@
     (fn []
       (let [{:keys [has-next-page end-cursor]} @page-info]
 
-        (prn "@ next" has-next-page end-cursor (count @edges))
+        (prn "@ page info " has-next-page end-cursor (count @edges))
 
         [:div.completed {:on-click #(swap! open? not)
                          :class    (when @open? "open")}
@@ -129,14 +129,14 @@
                                :on-change   #(reset! search-text (-> % .-target .-value))
                                :type        "text"
                                :placeholder "Search..."}]
-         [:div {:id "scrollableDiv" :style {:height 300 :overflow-y :scroll :overflow-x :hidden}}
-          [:> InfiniteScroll {:dataLength (count @edges)
-                              :hasMore    has-next-page
-                              :next       #(next end-cursor)}
-           (doall
-             (map (fn [{:keys [cursor node]}]
-                    ^{:key cursor} [completed-menu-item node])
-                  @edges))]]]))))
+         [:> InfiniteScroll {:dataLength       (count @edges)
+                             :height           200
+                             :hasMore          has-next-page
+                             :next             #(next end-cursor)}
+          (doall
+            (map (fn [{:keys [cursor node]}]
+                   ^{:key cursor} [completed-menu-item node])
+                 @edges))]]))))
 
 (defn queue-menu-item []
   (let [menu-opened? (reagent/atom false)]
