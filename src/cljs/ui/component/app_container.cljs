@@ -8,8 +8,7 @@
             [ui.format :refer [format-percentage]]
             [ui.component.indicator :refer [busy loading]]
             [ui.subscriptions :as subs]
-            [ui.utils :as ui-utils :refer [>evt]]
-            ["react-infinite-scroll-component" :as InfiniteScroll]))
+            [ui.utils :as ui-utils :refer [>evt]]))
 
 (defn user-login [email]
   [:div.hover-dropdown
@@ -27,8 +26,8 @@
     (fn []
       (let [{:keys [email]} @authed-user]
         [:div.header
-         [icon-with-label {:icon (:spread icons)
-                           :label "spread"
+         [icon-with-label {:icon     (:spread icons)
+                           :label    "spread"
                            :on-click #(re-frame/dispatch [:router/navigate :route/home])}]
          [user-login email]]))))
 
@@ -80,63 +79,27 @@
                            (.stopPropagation event))} "Delete"]]]
         [:div of-type]]])))
 
-;; TODO
-;; https://github.com/ankeetmaini/react-infinite-scroll-component#readme
-;; TODO : searching
 (defn completed [{:keys [open?]}]
-  (let [;; TODO : gql search query by readable-name
-        search-text (reagent/atom "")
-        open?       (reagent/atom open?)
-        edges       (re-frame/subscribe [::subs/user-analysis-edges])
-        page-info   (re-frame/subscribe [::subs/user-analysis-page-info])
-        next        (fn [end-cursor]
-
-                      (prn "@ next" end-cursor)
-
-                      (>evt [:graphql/query {:query
-                                             "query SearchAnalysis($endCursor: String!) {
-                                                searchUserAnalysis(first: 3, after: $endCursor, statuses: [SUCCEEDED]) {
-                                                pageInfo {
-                                                  hasNextPage
-                                                  startCursor
-                                                  endCursor
-                                                }
-                                                edges {
-                                                  cursor
-                                                  node {
-                                                    id
-                                                    readableName
-                                                    ofType
-                                                    status
-                                                    createdOn
-                                                  }
-                                                }
-                                              }
-                                            }"
-                                             :variables {:endCursor end-cursor}}]))]
+  (let [search-term   (re-frame/subscribe [::subs/search-term])
+        open?         (reagent/atom open?)
+        user-analysis (re-frame/subscribe [::subs/user-analysis-search])]
     (fn []
-      (let [{:keys [has-next-page end-cursor]} @page-info]
-
-        (prn "@ page info " has-next-page end-cursor (count @edges))
-
-        [:div.completed {:on-click #(swap! open? not)
-                         :class    (when @open? "open")}
-         [:div
-          [:img {:src (:completed icons)}]
-          [:span "Completed data analysis"]
-          [:img {:src (:dropdown icons)}]]
-         [:input.search-input {:value       @search-text
-                               :on-change   #(reset! search-text (-> % .-target .-value))
-                               :type        "text"
-                               :placeholder "Search..."}]
-         [:> InfiniteScroll {:dataLength       (count @edges)
-                             :height           200
-                             :hasMore          has-next-page
-                             :next             #(next end-cursor)}
-          (doall
-            (map (fn [{:keys [cursor node]}]
-                   ^{:key cursor} [completed-menu-item node])
-                 @edges))]]))))
+      [:div.completed {:on-click #(swap! open? not)
+                       :class    (when @open? "open")}
+       [:div
+        [:img {:src (:completed icons)}]
+        [:span "Completed data analysis"]
+        [:img {:src (:dropdown icons)}]]
+       [:input.search-input {:value       @search-term
+                             :on-change   #(>evt [:general/set-search (-> % .-target .-value)])
+                             :type        "text"
+                             :placeholder "Search..."}]
+       [:div.menu-items.scrollable-area
+        (doall
+          (map (fn [{:keys [id] :as item}]
+                 ^{:key id}
+                 [completed-menu-item item])
+               @user-analysis))]])))
 
 (defn queue-menu-item []
   (let [menu-opened? (reagent/atom false)]

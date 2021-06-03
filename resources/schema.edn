@@ -149,6 +149,10 @@
                            :args        {:id {:type (non-null ID)}}
                            :resolve     :query/getBayesFactorAnalysis}
 
+  :getUserAnalysis {:type        (list :Analysis)
+                    :description "Returns all results for the authenticated user."
+                    :resolve     :query/getUserAnalysis}
+
   :searchUserAnalysis {:type        :AnalysisConnection
                        :description "Returns paginated result with completed analysis for the authenticated user."
                        :args        {:first    {:type Int}

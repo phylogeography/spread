@@ -7,9 +7,13 @@
 (declare get-user-by-email)
 (declare count-user-analysis*)
 (declare search-user-analysis*)
+(declare get-user-analysis*)
 
 (hugsql/def-db-fns "sql/user.sql")
 (hugsql/def-sqlvec-fns "sql/user.sql")
+
+(defn get-user-analysis [db args]
+  (get-user-analysis* db args))
 
 (defn search-user-analysis [db {:keys [statuses user-id readable-name] :as args}]
   (let [statuses      (map name statuses)
@@ -17,4 +21,4 @@
     ;; TODO : wrap in one transaction
     {:total-count (:total-count (count-user-analysis* db {:user-id user-id :statuses statuses :readable-name readable-name}))
      :analysis    (search-user-analysis* db (-> args (assoc :statuses statuses
-                                                            :readable-name readable-name )))}))
+                                                            :readable-name readable-name)))}))

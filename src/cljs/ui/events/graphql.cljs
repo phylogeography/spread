@@ -312,15 +312,9 @@
            (assoc-in [:bayes-factor-parsers id :status] status)
            (assoc-in [:bayes-factor-parsers id :progress] progress))})
 
-;; TODO:
-(defmethod handler :search-user-analysis
-  [{:keys [db]} _ {:keys [page-info edges] :as results}]
-
-  (prn "@ search-user-analysis" results)
-
-  {:db (-> db
-           (assoc-in [:user-analysis :page-info] (select-keys page-info [:has-next-page :end-cursor]))
-           (update-in [:user-analysis :edges] (fn [old new] (concat old new)) edges))})
+(defmethod handler :get-user-analysis
+  [{:keys [db]} _ analysis]
+  {:db (assoc-in db [:user-analysis :analysis] analysis)})
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]

@@ -1,5 +1,6 @@
 (ns ui.subscriptions
-  (:require [re-frame.core :as re-frame]))
+  (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
   ::config
@@ -29,33 +30,46 @@
     (get discrete-tree-parsers id)))
 
 (re-frame/reg-sub
- ::continuous-tree-parsers
- (fn [db _]
-   (get db :continuous-tree-parsers)))
+  ::continuous-tree-parsers
+  (fn [db _]
+    (get db :continuous-tree-parsers)))
 
 (re-frame/reg-sub
- ::continuous-tree-parser
- :<- [::continuous-tree-parsers]
- (fn [continuous-tree-parsers [_ id]]
-   (get continuous-tree-parsers id)))
+  ::continuous-tree-parser
+  :<- [::continuous-tree-parsers]
+  (fn [continuous-tree-parsers [_ id]]
+    (get continuous-tree-parsers id)))
 
 ;; TODO : queued parsers
 
 (re-frame/reg-sub
-  ::user-analysis-edges
+  ::user-analysis
   (fn [db]
-    (-> db :user-analysis :edges)))
+    (-> db :user-analysis :analysis)))
 
 (re-frame/reg-sub
-  ::user-analysis-page-info
+  ::search-term
   (fn [db]
-    (-> db :user-analysis :page-info)))
+    (-> db :user-analysis :search-term)))
 
 (re-frame/reg-sub
- ::active-continuous-tree-parser
- (fn [db _]
-   (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
-     (get (get db :continuous-tree-parsers) id))))
+  ::user-analysis-search
+  :<- [::user-analysis]
+  :<- [::search-term]
+  (fn [[analysis search-term]]
+    (if search-term
+      (filter (fn [elem]
+                (let [readable-name (-> elem :readable-name )]
+                  (when readable-name
+                    (string/includes? (string/lower-case readable-name) search-term))))
+              analysis)
+      analysis)))
+
+(re-frame/reg-sub
+  ::active-continuous-tree-parser
+  (fn [db _]
+    (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
+      (get (get db :continuous-tree-parsers) id))))
 
 (re-frame/reg-sub
   ::continuous-mcc-tree
@@ -68,10 +82,10 @@
     (get-in db [:new-analysis :continuous-mcc-tree :errors])))
 
 (re-frame/reg-sub
- ::active-discrete-tree-parser
- (fn [db _]
-   (let [id (get-in db [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id])]
-     (get (get db :discrete-tree-parsers) id))))
+  ::active-discrete-tree-parser
+  (fn [db _]
+    (let [id (get-in db [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id])]
+      (get (get db :discrete-tree-parsers) id))))
 
 (re-frame/reg-sub
   ::discrete-mcc-tree
@@ -83,17 +97,16 @@
   (fn [db]
     (get-in db [:new-analysis :discrete-mcc-tree :errors])))
 
-
 (re-frame/reg-sub
   ::bayes-factor
   (fn [db]
     (get-in db [:new-analysis :bayes-factor])))
 
 (re-frame/reg-sub
- ::active-bayes-factor-parser
- (fn [db _]
-   (let [id (get-in db [:new-analysis :bayes-factor :bayes-factor-parser-id])]
-     (get (get db :bayes-factor-parsers) id))))
+  ::active-bayes-factor-parser
+  (fn [db _]
+    (let [id (get-in db [:new-analysis :bayes-factor :bayes-factor-parser-id])]
+      (get (get db :bayes-factor-parsers) id))))
 
 (re-frame/reg-sub
   ::bayes-factor-field-errors

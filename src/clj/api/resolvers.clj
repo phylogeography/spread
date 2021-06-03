@@ -70,7 +70,12 @@
     (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
 
-;; TODO: searching by name
+(defn get-user-analysis
+  "Returns a list of all user analysis"
+  [{:keys [db authed-user-id]} args _]
+  (log/info "get-user-analysis" args)
+  (clj->gql (user-model/get-user-analysis db {:user-id authed-user-id})))
+
 (defn search-user-analysis
   "Returns paginated user analysis, following the Relay specification:
   https://relay.dev/graphql/connections.htm.

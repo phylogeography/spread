@@ -26,8 +26,7 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :do-nothing (constantly nil))
-(reg-event-fx :log-error (fn [_ ev]
-                           (js/console.error ev)))
+(reg-event-fx :log-error (fn [_ ev] (js/console.error ev)))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Graphql events ;;
@@ -49,6 +48,7 @@
 (reg-event-fx :general/active-page-changed events.general/active-page-changed)
 (reg-event-fx :general/initialize events.general/initialize)
 (reg-event-fx :general/logout [(re-frame/inject-cofx :localstorage)] events.general/logout)
+(reg-event-fx :general/set-search events.general/set-search)
 
 ;;;;;;;;;;;;;;;;;
 ;; Home events ;;
