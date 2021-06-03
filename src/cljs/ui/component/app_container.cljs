@@ -6,8 +6,10 @@
              [button-with-icon button-with-icon-and-label]]
             [ui.component.icon :refer [icon-with-label icons]]
             [ui.format :refer [format-percentage]]
+            [ui.component.indicator :refer [busy loading]]
             [ui.subscriptions :as subs]
-            [ui.utils :as ui-utils :refer [>evt]]))
+            [ui.utils :as ui-utils :refer [>evt]]
+            ["react-infinite-scroll-component" :as InfiniteScroll]))
 
 (defn user-login [email]
   [:div.hover-dropdown
@@ -55,11 +57,11 @@
 
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type seen?]}]
+    (fn [{:keys [id readable-name of-type]}]
       [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
         [:span readable-name]
-        (when-not seen? [:span "New"])
+        ;; (when-not seen? [:span "New"])
         [:div.click-dropdown
          [button-with-icon {:on-click #(swap! menu-opened? not)
                             :icon     (:kebab-menu icons)}]
@@ -78,41 +80,63 @@
                            (.stopPropagation event))} "Delete"]]]
         [:div of-type]]])))
 
-;; TODO : gql search query : completed by readable-name
+;; TODO
+;; https://github.com/ankeetmaini/react-infinite-scroll-component#readme
+;; TODO : searching
 (defn completed [{:keys [open?]}]
-  (let [search-text  (reagent/atom "")
-        open?        (reagent/atom open?)
-        total-unseen 1
-        data         [{:id            "1"
-                       :readable-name "Relaxed_dollo_AllSingleton_v2"
-                       :seen?         false
-                       :of-type       "Continuous: MCC Tree"}
-                      {:id            "2"
-                       :readable-name "Relaxed_dollo_AllSingleton_v2"
-                       :seen?         true
-                       :of-type       "Continuous: Time slices"}
-                      {:id            "3"
-                       :readable-name "Relaxed_dollo_AllSingleton_v2"
-                       :seen?         true
-                       :of-type       "Discrete: Rates"}]]
+  (let [;; TODO : gql search query by readable-name
+        search-text (reagent/atom "")
+        open?       (reagent/atom open?)
+        edges       (re-frame/subscribe [::subs/user-analysis-edges])
+        page-info   (re-frame/subscribe [::subs/user-analysis-page-info])
+        next        (fn [end-cursor]
+
+                      (prn "@ next" end-cursor)
+
+                      (>evt [:graphql/query {:query
+                                             "query SearchAnalysis($endCursor: String!) {
+                                                searchUserAnalysis(first: 5, after: $endCursor, statuses: [SUCCEEDED]) {
+                                                pageInfo {
+                                                  hasNextPage
+                                                  startCursor
+                                                  endCursor
+                                                }
+                                                edges {
+                                                  cursor
+                                                  node {
+                                                    id
+                                                    readableName
+                                                    ofType
+                                                    status
+                                                    createdOn
+                                                  }
+                                                }
+                                              }
+                                            }"
+                                             :variables {:endCursor end-cursor}}]))]
     (fn []
-      [:div.completed {:on-click #(swap! open? not)
-                       :class    (when @open? "open")}
-       [:div
-        [:img {:src (:completed icons)}]
-        [:span "Completed data analysis"]
-        [:span.notification (str total-unseen " New")]
-        [:img {:src (:dropdown icons)}]]
-       [:input.search-input {:value       @search-text
-                             :on-change   #(reset! search-text (-> % .-target .-value))
-                             :type        "text"
-                             :placeholder "Search..."}]
-       [:ul.menu-items
-        (doall
-          (map (fn [{:keys [id] :as item}]
-                 [:li.menu-item {:key id}
-                  [completed-menu-item item]])
-               data))]])))
+      (let [{:keys [has-next-page end-cursor]} @page-info]
+
+        (prn "@ next" has-next-page end-cursor (count @edges))
+
+        [:div.completed {:on-click #(swap! open? not)
+                         :class    (when @open? "open")}
+         [:div
+          [:img {:src (:completed icons)}]
+          [:span "Completed data analysis"]
+          [:img {:src (:dropdown icons)}]]
+         [:input.search-input {:value       @search-text
+                               :on-change   #(reset! search-text (-> % .-target .-value))
+                               :type        "text"
+                               :placeholder "Search..."}]
+         [:div {:id "scrollableDiv" :style {:height 300 :overflow-y :scroll :overflow-x :hidden}}
+          [:> InfiniteScroll {:dataLength (count @edges)
+                              :hasMore    has-next-page
+                              :next       #(next end-cursor)}
+           (doall
+             (map (fn [{:keys [cursor node]}]
+                    ^{:key cursor} [completed-menu-item node])
+                  @edges))]]]))))
 
 (defn queue-menu-item []
   (let [menu-opened? (reagent/atom false)]

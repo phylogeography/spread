@@ -12,7 +12,14 @@
    [ui.events.router :as events.router]
    [ui.events.splash :as events.splash]
    [ui.events.websocket :as events.websocket]
+   [ui.events.utils :as events.utils]
    ))
+
+;;;;;;;;;;;;;;;;;;
+;; Utils events ;;
+;;;;;;;;;;;;;;;;;;
+
+(reg-event-fx :utils/app-db events.utils/app-db)
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; General events ;;
@@ -146,4 +153,4 @@
 ;; Analysis  ;;
 ;;;;;;;;;;;;;;;
 
-(reg-event-fx :analysis/load-continuous-tree-analysis events.analysis/load-continuous-tree-analysis)
+;; (reg-event-fx :analysis/load-continuous-tree-analysis events.analysis/load-continuous-tree-analysis)

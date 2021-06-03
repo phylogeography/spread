@@ -31,21 +31,21 @@ WHERE email = :email
 -- :doc Return total number of all user analysis
 
 SELECT count(*) AS total_count FROM
-(SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "continuous_tree") AS of_type FROM continuous_tree
+(SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree
 JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id
 WHERE user_id = :user-id AND status IN (:v*:statuses)
 UNION
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "discrete_tree") AS of_type FROM discrete_tree
+SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree
 JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id
 WHERE user_id = :user-id AND status IN (:v*:statuses)
 UNION
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "bayes_factor_analysis") FROM bayes_factor_analysis
+SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") FROM bayes_factor_analysis
 JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id
 WHERE user_id = :user-id AND status IN (:v*:statuses)
-UNION
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "time_slicer") FROM time_slicer
-JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id
-WHERE user_id = :user-id AND status IN (:v*:statuses)
+-- UNION
+-- SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "time_slicer") FROM time_slicer
+-- JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id
+-- WHERE user_id = :user-id AND status IN (:v*:statuses)
 ORDER BY created_on) AS all_user_analysis
 
 -- :name search-user-analysis* :? :*
@@ -53,12 +53,12 @@ ORDER BY created_on) AS all_user_analysis
 
 SELECT * FROM
   (SELECT *, row_number() OVER (ORDER BY created_on) AS row_num FROM
-    (SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "continuous_tree") AS of_type FROM continuous_tree JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses)
+    (SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses)
      UNION
-     SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "discrete_tree") AS of_type FROM discrete_tree JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses)
+     SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses)
      UNION
-     SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "bayes_factor_analysis") FROM bayes_factor_analysis JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id WHERE user_id = :user-id AND status IN (:v*:statuses)
-     UNION
-     SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "time_slicer") FROM time_slicer JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id WHERE user_id = :user-id AND status IN (:v*:statuses)
+     SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") FROM bayes_factor_analysis JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id WHERE user_id = :user-id AND status IN (:v*:statuses)
+     -- UNION
+     -- SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "time_slicer") FROM time_slicer JOIN time_slicer_status ON time_slicer_status.time_slicer_id = time_slicer.id WHERE user_id = :user-id AND status IN (:v*:statuses)
      ) AS q1) AS q2
   WHERE row_num > :lower AND row_num < :upper;

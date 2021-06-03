@@ -3,7 +3,10 @@
            :serialize :scalar/serialize-big-int}}
 
  :enums
- {:AnalysisStatus {:values [:UPLOADED
+ {:AnalysisType   {:values [:CONTINUOUS_TREE
+                            :DISCRETE_TREE
+                            :BAYES_FACTOR_ANALYSIS]}
+  :AnalysisStatus {:values [:UPLOADED
                             :ATTRIBUTES_PARSED
                             :ARGUMENTS_SET
                             :QUEUED
@@ -29,7 +32,7 @@
             :createdOn    {:type (non-null :BigInt)}
             :progress     {:type Float}
             :status       {:type :AnalysisStatus}
-            :ofType       {:type (non-null String)}}}
+            :ofType       {:type (non-null :AnalysisType)}}}
 
   :AnalysisEdge {:fields {:node   {:type :Analysis}
                           :cursor {:type String}}}

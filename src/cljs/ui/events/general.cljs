@@ -30,14 +30,32 @@
                                                :on-connect [:graphql/ws-authorize
                                                             {:on-timeout [:graphql/ws-authorize-failed]}]
                                                :protocols  ["graphql-ws"]}]
-
-                [:graphql/query {:query
-                                 "query {
-                                       getAuthorizedUser {
-                                         id
-                                         email
-                                       }
-                                     }"}]]
+                ;; NOTE : to avoid duplications during dev
+                (when-not (:user-analysis db)
+                  [:graphql/query {:query
+                                   "query SearchAnalysis {
+                                      getAuthorizedUser {
+                                        id
+                                        email
+                                      }
+                                      searchUserAnalysis(first: 5, statuses: [SUCCEEDED]) {
+                                        pageInfo {
+                                          hasNextPage
+                                          startCursor
+                                          endCursor
+                                        }
+                                        edges {
+                                          cursor
+                                          node {
+                                            id
+                                            readableName
+                                            ofType
+                                            status
+                                            createdOn
+                                          }
+                                        }
+                                      }
+                                    }"}])]
    :forward-events {:register    :active-page-changed
                     :events      #{:router/active-page-changed}
                     :dispatch-to [:general/active-page-changed]}})

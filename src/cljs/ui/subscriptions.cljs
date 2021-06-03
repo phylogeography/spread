@@ -41,7 +41,15 @@
 
 ;; TODO : queued parsers
 
-;; TODO : completed parsers
+(re-frame/reg-sub
+  ::user-analysis-edges
+  (fn [db]
+    (-> db :user-analysis :edges)))
+
+(re-frame/reg-sub
+  ::user-analysis-page-info
+  (fn [db]
+    (-> db :user-analysis :page-info)))
 
 (re-frame/reg-sub
  ::active-continuous-tree-parser
