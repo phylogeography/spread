@@ -23,7 +23,7 @@
           [button-with-icon-and-label {:class    "analysis-button"
                                        :icon     (:run-analysis icons)
                                        :label    "Run new analysis"
-                                       :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis])}]
+                                       :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab "continuous-mcc-tree"}])}]
           [:hr.horizontal-divider]
           [:p "Check the documentation for further informations."]
           [button-with-label {:class    "documentation-button"

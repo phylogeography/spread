@@ -174,7 +174,7 @@
      [button-with-icon-and-label {:class    "analysis-button"
                                   :icon     (:run-analysis icons)
                                   :label    "Run new analysis"
-                                  :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis])}]]))
+                                  :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab "continuous-mcc-tree"}])}]]))
 
 (defn app-container []
   (fn [child-page]
