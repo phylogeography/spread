@@ -70,6 +70,7 @@
     (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
 
+;; TODO: searching by name
 (defn search-user-analysis
   "Returns paginated user analysis, following the Relay specification:
   https://relay.dev/graphql/connections.htm.
@@ -79,13 +80,15 @@
                                 last-n        :last
                                 before-cursor :before
                                 statuses      :statuses
+                                readable-name :readable-name
                                 :or           {statuses [:UPLOADED
                                                          :ATTRIBUTES_PARSED
                                                          :ARGUMENTS_SET
                                                          :QUEUED
                                                          :RUNNING
                                                          :SUCCEEDED
-                                                         :ERROR]}
+                                                         :ERROR]
+                                               readable-name ""}
                                 :as           args} _]
   (log/info "search-user-analysis" args)
   (let [after                          (if after-cursor
@@ -104,7 +107,8 @@
 
                                                                                     :else {:lower 0
                                                                                            :upper 0})
-                                                                                  {:user-id  authed-user-id
+                                                                                  {:readable-name readable-name
+                                                                                   :user-id  authed-user-id
                                                                                    :statuses statuses}))
         edges     (map-indexed (fn [index item] {:cursor (inc (+ after index)) ;; NOTE: inc to match SQL which indexes rows from 1
                                                  :node   item})
