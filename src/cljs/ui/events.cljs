@@ -2,7 +2,6 @@
   (:require
    [day8.re-frame.http-fx]
    [re-frame.core :as re-frame :refer [reg-event-fx]]
-   [ui.events.analysis :as events.analysis]
    [ui.events.bayes-factor :as events.bayes-factor]
    [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
    [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
@@ -11,8 +10,8 @@
    [ui.events.home :as events.home]
    [ui.events.router :as events.router]
    [ui.events.splash :as events.splash]
-   [ui.events.websocket :as events.websocket]
    [ui.events.utils :as events.utils]
+   [ui.events.websocket :as events.websocket]
    ))
 
 ;;;;;;;;;;;;;;;;;;
@@ -146,11 +145,4 @@
 (reg-event-fx :router/watch-active-page events.router/interceptors events.router/watch-active-page)
 (reg-event-fx :router/unwatch-active-page events.router/interceptors events.router/unwatch-active-page)
 (reg-event-fx :router/navigate events.router/interceptors events.router/navigate)
-#_(reg-event-fx :router/replace events.router/interceptors events.router/replace)
 (reg-event-fx :router/stop events.router/interceptors events.router/stop)
-
-;;;;;;;;;;;;;;;
-;; Analysis  ;;
-;;;;;;;;;;;;;;;
-
-;; (reg-event-fx :analysis/load-continuous-tree-analysis events.analysis/load-continuous-tree-analysis)

@@ -6,7 +6,6 @@
              [button-with-icon button-with-icon-and-label]]
             [ui.component.icon :refer [icon-with-label icons]]
             [ui.format :refer [format-percentage]]
-            [ui.component.indicator :refer [busy loading]]
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt]]))
 
