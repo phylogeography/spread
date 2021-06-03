@@ -312,6 +312,10 @@
            (assoc-in [:bayes-factor-parsers id :status] status)
            (assoc-in [:bayes-factor-parsers id :progress] progress))})
 
+(defmethod handler :get-user-analysis
+  [{:keys [db]} _ analysis]
+  {:db (assoc-in db [:user-analysis :analysis] analysis)})
+
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
   {:db (-> db
@@ -328,6 +332,7 @@
   )
 
 (comment
+  (>evt [:utils/app-db])
   (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {
                                                           id

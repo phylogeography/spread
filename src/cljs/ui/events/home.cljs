@@ -4,8 +4,6 @@
 
 (def analysis-id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
 
-;; TODO : move to general
-
 (defn initialize-page [_]
   {:forward-events {:register    :websocket-authorized?
                     :events      #{:graphql/ws-authorized}

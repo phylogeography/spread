@@ -78,6 +78,17 @@ body {
   text-transform: uppercase;
 }
 
+.scrollable-area {
+  overflow-x: hidden ;
+  overflow-y: scroll ;
+}
+
+.menu-items {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+}
+
 .run-new-analysis-menu-item {
   display: flex;
   text-align: left;

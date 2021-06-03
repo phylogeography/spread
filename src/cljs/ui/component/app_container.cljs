@@ -25,7 +25,9 @@
     (fn []
       (let [{:keys [email]} @authed-user]
         [:div.header
-         [icon-with-label {:icon (:spread icons) :label "spread" :on-click #(re-frame/dispatch [:router/navigate :route/home])}]
+         [icon-with-label {:icon     (:spread icons)
+                           :label    "spread"
+                           :on-click #(re-frame/dispatch [:router/navigate :route/home])}]
          [user-login email]]))))
 
 (defn run-new [{:keys [open?]}]
@@ -35,9 +37,7 @@
                {:main-label "Discrete"          :sub-label "Rates"
                 :target     :route/new-analysis :query     {:tab "discrete-rates"}}
                {:main-label "Continuous"        :sub-label "MCC tree"
-                :target     :route/new-analysis :query     {:tab "continuous-mcc-tree"}}
-               {:main-label "Continuous"        :sub-label "Time slices"
-                :target     :route/new-analysis :query     {:tab "continuous-time-slices"}}]]
+                :target     :route/new-analysis :query     {:tab "continuous-mcc-tree"}}]]
     (fn []
       [:div.run-new {:on-click #(swap! open? not)
                      :class    (when @open? "open")}
@@ -55,11 +55,11 @@
 
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type seen?]}]
+    (fn [{:keys [id readable-name of-type]}]
       [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
         [:span readable-name]
-        (when-not seen? [:span "New"])
+        ;; (when-not seen? [:span "New"])
         [:div.click-dropdown
          [button-with-icon {:on-click #(swap! menu-opened? not)
                             :icon     (:kebab-menu icons)}]
@@ -78,41 +78,27 @@
                            (.stopPropagation event))} "Delete"]]]
         [:div of-type]]])))
 
-;; TODO : gql search query : completed by readable-name
 (defn completed [{:keys [open?]}]
-  (let [search-text  (reagent/atom "")
-        open?        (reagent/atom open?)
-        total-unseen 1
-        data         [{:id            "1"
-                       :readable-name "Relaxed_dollo_AllSingleton_v2"
-                       :seen?         false
-                       :of-type       "Continuous: MCC Tree"}
-                      {:id            "2"
-                       :readable-name "Relaxed_dollo_AllSingleton_v2"
-                       :seen?         true
-                       :of-type       "Continuous: Time slices"}
-                      {:id            "3"
-                       :readable-name "Relaxed_dollo_AllSingleton_v2"
-                       :seen?         true
-                       :of-type       "Discrete: Rates"}]]
+  (let [search-term   (re-frame/subscribe [::subs/search-term])
+        open?         (reagent/atom open?)
+        user-analysis (re-frame/subscribe [::subs/user-analysis-search])]
     (fn []
       [:div.completed {:on-click #(swap! open? not)
                        :class    (when @open? "open")}
        [:div
         [:img {:src (:completed icons)}]
         [:span "Completed data analysis"]
-        [:span.notification (str total-unseen " New")]
         [:img {:src (:dropdown icons)}]]
-       [:input.search-input {:value       @search-text
-                             :on-change   #(reset! search-text (-> % .-target .-value))
+       [:input.search-input {:value       @search-term
+                             :on-change   #(>evt [:general/set-search (-> % .-target .-value)])
                              :type        "text"
                              :placeholder "Search..."}]
-       [:ul.menu-items
+       [:div.menu-items.scrollable-area
         (doall
           (map (fn [{:keys [id] :as item}]
-                 [:li.menu-item {:key id}
-                  [completed-menu-item item]])
-               data))]])))
+                 ^{:key id}
+                 [completed-menu-item item])
+               @user-analysis))]])))
 
 (defn queue-menu-item []
   (let [menu-opened? (reagent/atom false)]
@@ -188,7 +174,7 @@
      [button-with-icon-and-label {:class    "analysis-button"
                                   :icon     (:run-analysis icons)
                                   :label    "Run new analysis"
-                                  :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis])}]]))
+                                  :on-click #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab "continuous-mcc-tree"}])}]]))
 
 (defn app-container []
   (fn [child-page]

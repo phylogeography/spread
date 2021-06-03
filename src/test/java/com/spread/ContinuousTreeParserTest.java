@@ -82,7 +82,7 @@ public class ContinuousTreeParserTest {
                 .filter(area -> area.getAttributes().get(ParsersUtils.HPD.toUpperCase()).equals("95"))
                 .collect(Collectors.toSet());
 
-        assertEquals("returns correct number of areas with 80% HPD interval", 1832, areasHPD95.size());
+        assertEquals("returns correct number of areas with 95% HPD interval", 1832, areasHPD95.size());
 
         assertEquals("returns correct number of areas", areasHPD80.size() + areasHPD95.size(), data.getAreas().size());
         assertEquals("returns correct number of lines", 1476, data.getLines().size());
