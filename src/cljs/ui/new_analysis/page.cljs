@@ -6,13 +6,15 @@
              [button-file-upload button-with-icon button-with-label]]
             [ui.component.date-picker :refer [date-picker]]
             [ui.component.indicator :refer [busy]]
-            [ui.component.input :refer [amount-input select-input text-input range-input]]
+            [ui.component.input
+             :refer
+             [amount-input range-input select-input text-input]]
             [ui.component.progress :refer [progress-bar]]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
             [ui.time :as time]
-            [ui.utils :as ui-utils :refer [>evt]]))
+            [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
 (defn error-reported [message]
   (when message
@@ -20,17 +22,17 @@
      [:span message]]))
 
 (defn continuous-mcc-tree []
-  (let [continuous-mcc-tree    (re-frame/subscribe [::subs/continuous-mcc-tree])
-        continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])
-        field-errors           (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
+  (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])
+        field-errors        (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [attribute-names]} @continuous-tree-parser
-            {:keys [readable-name
+      (let [{:keys [parser-id
+                    readable-name
                     tree-file tree-file-upload-progress
                     trees-file trees-file-upload-progress
                     y-coordinate x-coordinate
                     most-recent-sampling-date
-                    time-scale-multiplier]
+                    time-scale-multiplier
+                    attribute-names]
              :or   {y-coordinate              (first attribute-names)
                     x-coordinate              (first attribute-names)
                     most-recent-sampling-date (time/now)
@@ -131,11 +133,22 @@
               [button-with-label {:label     "Start analysis"
                                   :class     :button-start-analysis
                                   :disabled? (seq @field-errors)
-                                  :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                                          :y-coordinate              y-coordinate
-                                                                                          :x-coordinate              x-coordinate
-                                                                                          :most-recent-sampling-date most-recent-sampling-date
-                                                                                          :time-scale-multiplier     time-scale-multiplier}])}]
+                                  :on-click  #(dispatch-n [[:continuous-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                                 :y-coordinate              y-coordinate
+                                                                                                 :x-coordinate              x-coordinate
+                                                                                                 :most-recent-sampling-date most-recent-sampling-date
+                                                                                                 :time-scale-multiplier     time-scale-multiplier}]
+                                                           ;; NOTE : normally we have a running subscription already, but in case the user re-starts the analysis here we dispatch it again.
+                                                           ;; it is de-duplicated by the id anyway
+                                                           [:graphql/subscription {:id        parser-id
+                                                                                   :query     "subscription SubscriptionRoot($id: ID!) {
+                                                                                                parserStatus(id: $id) {
+                                                                                                  id
+                                                                                                  status
+                                                                                                  progress
+                                                                                                  ofType
+                                                                                                }}"
+                                                                                   :variables {"id" parser-id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
@@ -143,18 +156,20 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
+;; TODO : refactor flow
 (defn discrete-mcc-tree []
-  (let [discrete-mcc-tree    (re-frame/subscribe [::subs/discrete-mcc-tree])
-        discrete-tree-parser (re-frame/subscribe [::subs/active-discrete-tree-parser])
-        field-errors         (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
+  (let [discrete-mcc-tree (re-frame/subscribe [::subs/discrete-mcc-tree])
+        field-errors      (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [attribute-names]} @discrete-tree-parser
-            {:keys [tree-file tree-file-upload-progress
-                    locations-file locations-file-url locations-file-upload-progress
+      (let [{:keys [parser-id
+                    tree-file tree-file-upload-progress
+                    locations-file locations-file-url
+                    locations-file-upload-progress
                     readable-name
                     locations-attribute
                     most-recent-sampling-date
-                    time-scale-multiplier]
+                    time-scale-multiplier
+                    attribute-names]
              :or   {locations-attribute       (first attribute-names)
                     most-recent-sampling-date (time/now)
                     time-scale-multiplier     1}}
@@ -247,11 +262,20 @@
               [button-with-label {:label     "Start analysis"
                                   :class     :button-start-analysis
                                   :disabled? (seq @field-errors)
-                                  :on-click  #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                                        :locations-attribute-name  locations-attribute
-                                                                                        :locations-file-url        locations-file-url
-                                                                                        :most-recent-sampling-date most-recent-sampling-date
-                                                                                        :time-scale-multiplier     time-scale-multiplier}])}]
+                                  :on-click  #(dispatch-n [[:discrete-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                               :locations-attribute-name  locations-attribute
+                                                                                               :locations-file-url        locations-file-url
+                                                                                               :most-recent-sampling-date most-recent-sampling-date
+                                                                                               :time-scale-multiplier     time-scale-multiplier}]
+                                                           [:graphql/subscription {:id        parser-id
+                                                                                   :query     "subscription SubscriptionRoot($id: ID!) {
+                                                                                                parserStatus(id: $id) {
+                                                                                                  id
+                                                                                                  status
+                                                                                                  progress
+                                                                                                  ofType
+                                                                                                }}"
+                                                                                   :variables {"id" parser-id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
@@ -259,19 +283,20 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
+;; TODO : refactor flow
 (defn discrete-rates []
-  (let [bayes-factor        (re-frame/subscribe [::subs/bayes-factor])
-        bayes-factor-parser (re-frame/subscribe [::subs/active-bayes-factor-parser])
-        field-errors        (re-frame/subscribe [::subs/bayes-factor-field-errors])]
+  (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
+        field-errors (re-frame/subscribe [::subs/bayes-factor-field-errors])]
     (fn []
-      (let [{:keys [status]} @bayes-factor-parser
-            {:keys [log-file
+      (let [{:keys [parser-id
+                    log-file
                     log-file-upload-progress
                     locations-file
                     locations-file-url
                     locations-file-upload-progress
                     readable-name
-                    burn-in]
+                    burn-in
+                    upload-status]
              :or   {burn-in 10}}
             @bayes-factor]
         [:div.bayes-factor
@@ -288,7 +313,9 @@
                                    :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
 
               (not= 1 log-file-upload-progress)
-              [progress-bar {:class "log-file-upload-progress-bar" :progress log-file-upload-progress :label "Uploading. Please wait"}]
+              [progress-bar {:class    "log-file-upload-progress-bar"
+                             :progress log-file-upload-progress
+                             :label    "Uploading. Please wait"}]
 
               :else [:span.log-filename log-file])]
 
@@ -311,7 +338,9 @@
                                    :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
 
               (not= 1 locations-file-upload-progress)
-              [progress-bar {:class "locations-upload-progress-bar" :progress locations-file-upload-progress :label "Uploading. Please wait"}]
+              [progress-bar {:class    "locations-upload-progress-bar"
+                             :progress locations-file-upload-progress
+                             :label    "Uploading. Please wait"}]
 
               :else [:span.locations-filename locations-file])]
 
@@ -323,7 +352,7 @@
                                 :icon     :delete}])]]
 
          [:div.settings
-          (when (= "UPLOADING" status)
+          (when (= "UPLOADING" upload-status)
             [busy])
 
           (when (and (= 1 log-file-upload-progress)
@@ -348,16 +377,24 @@
               [button-with-label {:label     "Start analysis"
                                   :class     :button-start-analysis
                                   :disabled? (seq @field-errors)
-                                  :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name      readable-name
-                                                                                   :burn-in            (/ burn-in 100)
-                                                                                   :locations-file-url locations-file-url}])}]
+                                  :on-click  #(dispatch-n [[:bayes-factor/start-analysis {:readable-name      readable-name
+                                                                                          :burn-in            (/ burn-in 100)
+                                                                                          :locations-file-url locations-file-url}]
+                                                           [:graphql/subscription {:id        parser-id
+                                                                                   :query     "subscription SubscriptionRoot($id: ID!) {
+                                                                                                parserStatus(id: $id) {
+                                                                                                  id
+                                                                                                  status
+                                                                                                  progress
+                                                                                                  ofType
+                                                                                                }}"
+                                                                                   :variables {"id" parser-id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
               [button-with-label {:label    "Reset"
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
-
 
 (defmethod page :route/new-analysis []
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]

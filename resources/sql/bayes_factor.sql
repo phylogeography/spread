@@ -109,6 +109,7 @@ progress = IF(:progress IS NOT NULL, :progress, progress)
 SELECT
 bayes_factor_analysis_id,
 status,
-progress
+progress,
+(SELECT "BAYES_FACTOR_ANALYSIS") AS of_type
 FROM bayes_factor_analysis_status
 WHERE :bayes-factor-analysis-id = bayes_factor_analysis_id

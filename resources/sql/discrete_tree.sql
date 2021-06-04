@@ -103,6 +103,7 @@ progress = IF(:progress IS NOT NULL, :progress, progress)
 SELECT
 tree_id,
 status,
-progress
+progress,
+(SELECT "DISCRETE_TREE") AS of_type
 FROM discrete_tree_status
 WHERE tree_id = :tree-id

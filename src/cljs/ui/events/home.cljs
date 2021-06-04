@@ -2,31 +2,36 @@
   (:require [re-frame.core :as re-frame]
             [taoensso.timbre :as log]))
 
-(def analysis-id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
-
 (defn initialize-page [_]
   {:forward-events {:register    :websocket-authorized?
                     :events      #{:graphql/ws-authorized}
                     :dispatch-to [:home/initial-query]}})
 
-;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
-(defn initial-query [_]
-  {:dispatch
-   [:graphql/subscription {:id        :home-page
-                           :query     "subscription SubscriptionRoot($id: ID!) {
-                                                         discreteTreeParserStatus(id: $id) {
-                                                           id
-                                                           status
-                                                        }
-                                                      }"
-                           :variables {"id" analysis-id}}]})
+;; TODO: this should be probably done on every page
+;; since user can start from a non-home page
+;; perhaps even moved to the initialize flow?
+(defn initial-query
+  "if user opens home page we subscribe to all ongoing analysis"
+  [{:keys [db]}]
+  (let [queued (->> (db :user-analysis :analysis)
+                    (filter #(#{"QUEUED" "RUNNING"} (:status %)))
+                    (#(map :id %)))]
+    {:dispatch-n [(for [id queued]
+                    [:graphql/subscription {:id        id
+                                            :query     "subscription SubscriptionRoot($id: ID!) {
+                                                           parserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                             ofType
+                                                           }}"
+                                            :variables {:id id}}])]}))
 
 (comment
   (re-frame/reg-event-fx
     ::on-message
     (fn [_ [_ message]]
       (log/debug "home/on-message" message)))
-
   (re-frame/dispatch [:websocket/subscribe :default
                       "home-page"
                       {:message
