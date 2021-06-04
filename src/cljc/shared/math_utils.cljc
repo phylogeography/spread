@@ -130,3 +130,28 @@
     
     {:translate [tx ty]
      :scale     scale}))
+
+(defn normalize-color-str [color-str]
+  (let [[_ r g b] (re-find #"#(..)(..)(..)" color-str)
+        norm (fn [hex-str] (/ (js/parseInt hex-str 16) 255))]
+    [(norm r) (norm g) (norm b)]))
+
+(defn to-hex [n]
+  (let [s (.toString n 16)]
+    (if (= 1 (count s))
+      (str "0" s)
+      s)))
+
+(defn denormalize-color [[r g b]]  
+  (str "#"
+       (to-hex (int (* 255 r)))
+       (to-hex (int (* 255 g)))
+       (to-hex (int (* 255 b)))))
+
+(defn calculate-color [start end perc]
+  (let [[rs gs bs] (normalize-color-str start)
+        [re ge be] (normalize-color-str end)
+        color (denormalize-color [(+ (* perc rs) (* (- 1 perc) re))
+                                  (+ (* perc gs) (* (- 1 perc) ge))
+                                  (+ (* perc bs) (* (- 1 perc) be))])] 
+    color))
