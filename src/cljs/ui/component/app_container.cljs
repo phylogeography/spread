@@ -104,12 +104,13 @@
 
 ;; TODO : highlight status = error
 (defn queued-menu-item []
-  (let [;; TODO : with css on-hover
+  (let [;; TODO : use css on-hover
         menu-opened? (reagent/atom false)
         ]
-    (fn [{:keys [id readable-name of-type status progress]
-          :or   {readable-name "Unknown"}
-          :as   args}]
+    (fn [{:keys [id readable-name of-type
+                 #_status
+                 progress]
+          :or   {readable-name "Unknown"}}]
       [:div.queue-menu-item
        {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div

@@ -1,8 +1,8 @@
 (ns ui.events.graphql
   (:require [ajax.core :as ajax]
-            [clojure.core.match :refer [match]]
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
+            [clojure.core.match :refer [match]]
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
@@ -140,7 +140,7 @@
            (assoc-in [:parsers id :status] status))})
 
 (defmethod handler :update-continuous-tree
-  [{:keys [db]} _ {:keys [id status] :as args}]
+  [{:keys [db]} _ {:keys [id status]}]
   (when (= "ARGUMENTS_SET" status)
     (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
                                                   startContinuousTreeParser(id: $id) {
@@ -157,7 +157,7 @@
   {:db (assoc-in db [:parsers id :status] status)})
 
 (defmethod handler :get-continuous-tree
-  [{:keys [db]} _ {:keys [id attribute-names]}]
+  [{:keys [db]} _ {:keys [attribute-names]}]
   {:db (update-in db [:new-analysis :continuous-mcc-tree]
                   assoc :attribute-names attribute-names)})
 
@@ -177,7 +177,7 @@
            (assoc-in [:parsers id :status] status))})
 
 (defmethod handler :get-discrete-tree
-  [{:keys [db]} _ {:keys [id attribute-names]}]
+  [{:keys [db]} _ {:keys [attribute-names]}]
   {:db (update-in db [:new-analysis :discrete-mcc-tree]
                   assoc :attribute-names attribute-names)})
 

@@ -5,8 +5,7 @@
              :refer
              [button-with-icon-and-label button-with-label]]
             [ui.component.icon :refer [icon-with-label icons]]
-            [ui.router.component :refer [page]]
-            [ui.subscriptions :as subs]))
+            [ui.router.component :refer [page]]))
 
 (defmethod page :route/home []
   (fn []
