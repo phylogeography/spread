@@ -1,9 +1,5 @@
 (ns api.subscriptions
-  (:require [api.models.bayes-factor :as bayes-factor-model]
-            [api.models.continuous-tree :as continuous-tree-model]
-            [api.models.discrete-tree :as discrete-tree-model]
-            [api.models.time-slicer :as time-slicer-model]
-            [api.models.parser :as parser-model]
+  (:require [api.models.parser :as parser-model]
             [clojure.core.async :as async :refer [>! go go-loop]]
             [shared.utils :refer [clj->gql]]
             [taoensso.timbre :as log]))
