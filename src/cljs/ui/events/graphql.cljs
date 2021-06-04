@@ -161,8 +161,6 @@
   {:db (update-in db [:new-analysis :continuous-mcc-tree]
                   assoc :attribute-names attribute-names)})
 
-;; TODO -=-=-=-=-=-=-=-=
-
 (defmethod handler :upload-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
   (>evt [:graphql/subscription {:id        id
@@ -199,8 +197,36 @@
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:parsers id :status] status)})
 
+(defmethod handler :upload-bayes-factor-analysis
+  [{:keys [db]} _ {:keys [id status]}]
+  (>evt [:graphql/subscription {:id        id
+                                :query     "subscription SubscriptionRoot($id: ID!) {
+                                                           parserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                             ofType
+                                                           }}"
+                                :variables {:id id}}])
+  {:db (-> db
+           (assoc-in [:new-analysis :bayes-factor :parser-id] id)
+           (assoc-in [:parsers id :status] status))})
 
-;; END: -=-=-=-=-=-=-=-=-=-=- TODO
+(defmethod handler :update-bayes-factor-analysis
+  [{:keys [db]} _ {:keys [id status]}]
+  (when (= "ARGUMENTS_SET" status)
+    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+                                                startBayesFactorParser(id: $id) {
+                                                 id
+                                                 status
+                                                }
+                                              }"
+                                  :variables {:id id}}]]))
+  {:db (assoc-in db [:parsers id :status] status)})
+
+(defmethod handler :start-bayes-factor-parser
+  [{:keys [db]} _ {:keys [id status]}]
+  {:db (assoc-in db [:parsers id :status] status)})
 
 (defmethod handler :parser-status
   [{:keys [db]} _ {:keys [id status of-type] :as parser}]
@@ -218,7 +244,6 @@
                                                       }"
                                 :variables {:id id}}])
 
-         ;; TODO
          ["ATTRIBUTES_PARSED" "DISCRETE_TREE"]
          ;; NOTE: if worker parsed attributes query them
          (>evt [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
@@ -238,42 +263,12 @@
                   merge
                   parser)})
 
+;; TODO : test
 (defmethod handler :upload-time-slicer
   [{:keys [db]} _ {:keys [id status]}]
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
-           (assoc-in [:time-slicer-parsers id :status] status))})
-
-
-(defmethod handler :upload-bayes-factor-analysis
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (-> db
-           (assoc-in [:new-analysis :bayes-factor :bayes-factor-parser-id] id)
-           (assoc-in [:bayes-factor-parsers id :status] status))})
-
-(defmethod handler :update-bayes-factor-analysis
-  [{:keys [db]} _ {:keys [id status]}]
-  (when (= "ARGUMENTS_SET" status)
-    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                startBayesFactorParser(id: $id) {
-                                                 status
-                                                }
-                                              }"
-                                  :variables {:id id}}]
-                 [:graphql/subscription {:id        id
-                                         :query     "subscription BayesFactorParserStatus($id: ID!) {
-                                                           bayesFactorParserStatus(id: $id) {
-                                                             id
-                                                             status
-                                                             progress
-                                                           }
-                                                         }"
-                                         :variables {:id id}}]]))
-  {:db (assoc-in db [:bayes-factor-parsers id :status] status)})
-
-(defmethod handler :start-bayes-factor-parser
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:bayes-factor-parsers id :status] status)})
+           (assoc-in [:parsers id :status] status))})
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
