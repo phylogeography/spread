@@ -23,7 +23,10 @@
 (s/def :analysis.data/object any?) ;; TODO: I think this can be specified
 (s/def :analysis.data.object/id string?)
 (s/def :analysis.data/type #{:ContinuousTree :DiscreteTree :BayesFactor})
-(s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object)) 
+(s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object))
+
+(s/def :analysis.linear-attribute/range (s/tuple number? number?))
+(s/def :analysis/linear-attributes (s/map-of string? :analysis.linear-attribute/range))
 
 (s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
 (s/def :ui.switch-buttons/states (s/map-of keyword? boolean?))
@@ -69,6 +72,7 @@
                     :opt [:map/data
                           :analysis/data
                           :analysis.data/type
+                          :analysis/linear-attributes
                           :analysis/selected-object-id
                           :analysis/possible-objects-ids
                           :map/popup-coord]))
