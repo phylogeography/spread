@@ -45,6 +45,7 @@
 
   :ParserStatus {:description "Return id and status. Mostly used for querying workers progress."
                  :fields      {:id       {:type (non-null ID)}
+                               :ofType   {:type :AnalysisType}
                                :progress {:type (non-null Float)}
                                :status   {:type (non-null :AnalysisStatus)}}}
 
@@ -165,7 +166,13 @@
   }
 
  :subscriptions
- {:continuousTreeParserStatus
+ {:parserStatus
+  {:type   :ParserStatus
+   :description "Returns a subscription to any parser status by it's ID."
+   :args   {:id {:type (non-null ID)}}
+   :stream :subscription/parserStatus}
+
+  :continuousTreeParserStatus
   {:type   :ParserStatus
    :args   {:id {:type (non-null ID)}}
    :stream :subscription/continuousTreeParserStatus}
