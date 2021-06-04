@@ -31,16 +31,17 @@
                                                    :protocols  ["graphql-ws"]}]
                     [:graphql/query {:query
                                      "query SearchAnalysis {
-                                      getAuthorizedUser {
-                                        id
-                                        email
-                                      }
-                                      getUserAnalysis {
-                                        id
-                                        readableName
-                                        ofType
-                                      }
-                                    }"}]]
+                                        getAuthorizedUser {
+                                          id
+                                          email
+                                        }
+                                        getUserAnalysis {
+                                          id
+                                          readableName
+                                          status
+                                          ofType
+                                        }
+                                      }"}]]
    :forward-events {:register    :active-page-changed
                     :events      #{:router/active-page-changed}
                     :dispatch-to [:general/active-page-changed]}})

@@ -20,8 +20,10 @@
         (let [sleep    (async/timeout 1000)
               [_ port] (async/alts! [subscription-closed? sleep])]
           (when-not (= port subscription-closed?)
-            (when-let [{:keys [status progress]} (callback db id)]
+            (when-let [{:keys [status progress readable-name of-type]} (callback db id)]
               (source-stream (clj->gql {:id       id
+                                        :readable-name readable-name
+                                        :of-type of-type
                                         :status   status
                                         :progress (or progress 0)}))
               (recur)))))

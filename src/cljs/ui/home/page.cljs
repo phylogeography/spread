@@ -11,9 +11,9 @@
 (def analysis-id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
 
 (defmethod page :route/home []
-  (let [analysis-status (re-frame/subscribe [::subs/discrete-tree-parser analysis-id])]
+  (let [parser-status (re-frame/subscribe [::subs/discrete-tree-parser analysis-id])]
     (fn []
-      (let [{:keys [status]} @analysis-status]
+      (let [{:keys [status]} @parser-status]
         [app-container
          [:div.home
           [icon-with-label {:icon (:spread icons) :label "spread"}]
