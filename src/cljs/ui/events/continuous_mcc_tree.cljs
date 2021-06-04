@@ -96,7 +96,6 @@
            (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file])
            (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file-upload-progress]))})
 
-;; TODO: clean analysis fields (dissoc)
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
                                               most-recent-sampling-date time-scale-multiplier]}]]
   (let [id (get-in db [:new-analysis :continuous-mcc-tree :parser-id])]

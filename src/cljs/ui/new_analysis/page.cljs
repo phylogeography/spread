@@ -132,13 +132,14 @@
               [button-with-label {:label     "Start analysis"
                                   :class     :button-start-analysis
                                   :disabled? (seq @field-errors)
-                                  ;; TODO : dispatch subscription
                                   :on-click  #(dispatch-n [[:continuous-mcc-tree/start-analysis {:readable-name             readable-name
                                                                                                  :y-coordinate              y-coordinate
                                                                                                  :x-coordinate              x-coordinate
                                                                                                  :most-recent-sampling-date most-recent-sampling-date
                                                                                                  :time-scale-multiplier     time-scale-multiplier}]
-                                                           #_[:graphql/subscription {:id        id
+                                                           ;; NOTE : normally we have a running subscription already, but in case the user re-starts the analysis here we dispatch it again.
+                                                           ;; it is de-duplicated by the id anyway
+                                                           [:graphql/subscription {:id        parser-id
                                                                                    :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
@@ -146,7 +147,7 @@
                                                                                                   progress
                                                                                                   ofType
                                                                                                 }}"
-                                                                                   :variables {"id" id}}]])}]
+                                                                                   :variables {"id" parser-id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
@@ -157,16 +158,17 @@
 ;; TODO : refactor flow
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree    (re-frame/subscribe [::subs/discrete-mcc-tree])
-        discrete-tree-parser (re-frame/subscribe [::subs/active-discrete-tree-parser])
         field-errors         (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [attribute-names]} @discrete-tree-parser
-            {:keys [tree-file tree-file-upload-progress
-                    locations-file locations-file-url locations-file-upload-progress
+      (let [{:keys [parser-id
+                    tree-file tree-file-upload-progress
+                    locations-file locations-file-url
+                    locations-file-upload-progress
                     readable-name
                     locations-attribute
                     most-recent-sampling-date
-                    time-scale-multiplier]
+                    time-scale-multiplier
+                    attribute-names]
              :or   {locations-attribute       (first attribute-names)
                     most-recent-sampling-date (time/now)
                     time-scale-multiplier     1}}
@@ -259,11 +261,20 @@
               [button-with-label {:label     "Start analysis"
                                   :class     :button-start-analysis
                                   :disabled? (seq @field-errors)
-                                  :on-click  #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                                        :locations-attribute-name  locations-attribute
-                                                                                        :locations-file-url        locations-file-url
-                                                                                        :most-recent-sampling-date most-recent-sampling-date
-                                                                                        :time-scale-multiplier     time-scale-multiplier}])}]
+                                  :on-click  #(dispatch-n [[:discrete-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                               :locations-attribute-name  locations-attribute
+                                                                                               :locations-file-url        locations-file-url
+                                                                                               :most-recent-sampling-date most-recent-sampling-date
+                                                                                               :time-scale-multiplier     time-scale-multiplier}]
+                                                           [:graphql/subscription {:id        parser-id
+                                                                                   :query     "subscription SubscriptionRoot($id: ID!) {
+                                                                                                parserStatus(id: $id) {
+                                                                                                  id
+                                                                                                  status
+                                                                                                  progress
+                                                                                                  ofType
+                                                                                                }}"
+                                                                                   :variables {"id" parser-id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
