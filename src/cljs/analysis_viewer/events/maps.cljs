@@ -60,7 +60,12 @@
 
     {:db (-> db
              (assoc :analysis/data analysis-data)
-             (assoc :analysis.data/type analysis-type))
+             (assoc :analysis.data/type analysis-type)
+             (assoc :analysis/linear-attributes (->> (:pointAttributes data)
+                                                     (keep (fn [{:keys [id scale range]}]
+                                                             (when (= scale "linear")
+                                                               [id range])))
+                                                     (into {}))))
      :dispatch [:map/set-view-box {:x1 (- x1 padding) :y1 (- y1 padding)
                                    :x2 (+ x2 padding) :y2 (+ y2 padding)}]}))
 
