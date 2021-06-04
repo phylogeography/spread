@@ -44,11 +44,11 @@
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
   :ParserStatus {:description "Return id and status. Mostly used for querying workers progress."
-                 :fields      {:id            {:type (non-null ID)}
+                 :fields      {:id           {:type (non-null ID)}
                                :readableName {:type String}
-                               :ofType        {:type (non-null :AnalysisType)}
-                               :progress      {:type (non-null Float)}
-                               :status        {:type (non-null :AnalysisStatus)}}}
+                               :ofType       {:type (non-null :AnalysisType)}
+                               :progress     {:type (non-null Float)}
+                               :status       {:type (non-null :AnalysisStatus)}}}
 
   :User {:fields {:id    {:type (non-null ID)}
                   :email {:type (non-null String)}}}
@@ -173,25 +173,28 @@
    :args        {:id {:type (non-null ID)}}
    :stream      :subscription/parserStatus}
 
-  :continuousTreeParserStatus
-  {:type   :ParserStatus
-   :args   {:id {:type (non-null ID)}}
-   :stream :subscription/continuousTreeParserStatus}
+  ;; :continuousTreeParserStatus
+  ;; {:type   :ParserStatus
+  ;;  :args   {:id {:type (non-null ID)}}
+  ;;  :stream :subscription/continuousTreeParserStatus}
 
-  :discreteTreeParserStatus
-  {:type   :ParserStatus
-   :args   {:id {:type (non-null ID)}}
-   :stream :subscription/discreteTreeParserStatus}
+  ;; :discreteTreeParserStatus
+  ;; {:type   :ParserStatus
+  ;;  :args   {:id {:type (non-null ID)}}
+  ;;  :stream :subscription/discreteTreeParserStatus}
 
-  :bayesFactorParserStatus
-  {:type   :ParserStatus
-   :args   {:id {:type (non-null ID)}}
-   :stream :subscription/bayesFactorParserStatus}
+  ;; :bayesFactorParserStatus
+  ;; {:type   :ParserStatus
+  ;;  :args   {:id {:type (non-null ID)}}
+  ;;  :stream :subscription/bayesFactorParserStatus}
 
-  :timeSlicerParserStatus
-  {:type   :ParserStatus
-   :args   {:id {:type (non-null ID)}}
-   :stream :subscription/timeSlicerParserStatus}}
+  ;; :timeSlicerParserStatus
+  ;; {:type   :ParserStatus
+  ;;  :args   {:id {:type (non-null ID)}}
+  ;;  :stream :subscription/timeSlicerParserStatus}
+
+
+  }
 
  :mutations
  {:googleLogin {:type        :JWT

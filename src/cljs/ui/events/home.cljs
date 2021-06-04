@@ -2,24 +2,27 @@
   (:require [re-frame.core :as re-frame]
             [taoensso.timbre :as log]))
 
-(def analysis-id "db6969bc-bf87-4ebe-919b-ff377bfe5992")
-
 (defn initialize-page [_]
   {:forward-events {:register    :websocket-authorized?
                     :events      #{:graphql/ws-authorized}
                     :dispatch-to [:home/initial-query]}})
 
-;; TODO : this is for POC only, subscribe to status=QUEUED/RUNNING analysis only
-(defn initial-query [_]
-  {:dispatch
-   [:graphql/subscription {:id        :home-page
-                           :query     "subscription SubscriptionRoot($id: ID!) {
-                                                         discreteTreeParserStatus(id: $id) {
-                                                           id
-                                                           status
-                                                        }
-                                                      }"
-                           :variables {"id" analysis-id}}]})
+(defn initial-query
+  "if user opens home page we subscribe to all ongoing analysis"
+  [{:keys [db]}]
+  (let [queued (->> (db :user-analysis :analysis)
+                    (filter #(#{"QUEUED" "RUNNING"} (:status %)))
+                    (#(map :id %)))]
+    {:dispatch-n [(for [id queued]
+                    [:graphql/subscription {:id        id
+                                            :query     "subscription SubscriptionRoot($id: ID!) {
+                                                           parserStatus(id: $id) {
+                                                             id
+                                                             status
+                                                             progress
+                                                             ofType
+                                                           }}"
+                                            :variables {:id id}}])]}))
 
 (comment
   (re-frame/reg-event-fx

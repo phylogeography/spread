@@ -53,13 +53,15 @@
                            [:a [:span [:b (str main-label ":")] sub-label]]]])
                        items))]])))
 
+;; TODO : highlight status = error
+;; TODO : handle new?
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type new?]}]
+    (fn [{:keys [id readable-name of-type ]}]
       [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
         [:span (or readable-name "Unknown")]
-        (when new? [:span "New"])
+        ;; (when new? [:span "New"])
         [:div.click-dropdown
          [button-with-icon {:on-click #(swap! menu-opened? not)
                             :icon     (:kebab-menu icons)}]
@@ -81,7 +83,7 @@
 (defn completed [{:keys [open?]}]
   (let [search-term   (re-frame/subscribe [::subs/search-term])
         open?         (reagent/atom open?)
-        user-analysis (re-frame/subscribe [::subs/user-analysis-search])]
+        completed-analysis (re-frame/subscribe [::subs/completed-analysis-search])]
     (fn []
       [:div.completed {:on-click #(swap! open? not)
                        :class    (when @open? "open")}
@@ -98,12 +100,16 @@
           (map (fn [{:keys [id] :as item}]
                  ^{:key id}
                  [completed-menu-item item])
-               @user-analysis))]])))
+               @completed-analysis))]])))
 
-(defn queue-menu-item []
-  (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type progress]
-          :or {readable-name "Unknown"}}]
+;; TODO : highlight status = error
+(defn queued-menu-item []
+  (let [;; TODO : with css on-hover
+        menu-opened? (reagent/atom false)
+        ]
+    (fn [{:keys [id readable-name of-type status progress]
+          :or {readable-name "Unknown"}
+          :as args}]
       [:div.queue-menu-item
        {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
@@ -134,30 +140,23 @@
 
 ;; TODO : subscribe to status updates for all ongoing
 (defn queue [{:keys [open?]}]
-  (let [open?         (reagent/atom open?)
-        total-ongoing 2
-        data          [{:id            "4"
-                        :readable-name "Relaxed_dollo_AllSingleton_v1"
-                        :progress      0.8
-                        :of-type       "Continuous: MCC Tree"}
-                       {:id            "5"
-                        :readable-name "Relaxed_dollo_AllSingleton_v3"
-                        :progress      0.3
-                        :of-type       "Continuous: Time slices"}]]
+  (let [open?  (reagent/atom open?)
+        queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
     (fn []
+      ;; let [data (vals @queued)]
       [:div.queue {:on-click #(swap! open? not)
                    :class    (when @open? "open")}
        [:div
         [:img {:src (:queue icons)}]
         [:span "Queue"]
-        [:span.notification (str total-ongoing " Ongoing")]
+        [:span.notification (str (count @queued-analysis) " Ongoing")]
         [:img {:src (:dropdown icons)}]]
-       [:ul.menu-items
+       [:div.menu-items.scrollable-area
         (doall
           (map (fn [{:keys [id] :as item}]
-                 [:li.menu-item {:key id}
-                  [queue-menu-item item]])
-               data))]])))
+                 ^{:key id}
+                 [queued-menu-item item])
+               @queued-analysis))]])))
 
 ;; TODO : CSS for open / close
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/bfa17d6e-7b48-4547-8af8-b975b452dd35/

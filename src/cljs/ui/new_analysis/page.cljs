@@ -21,16 +21,17 @@
 
 (defn continuous-mcc-tree []
   (let [continuous-mcc-tree    (re-frame/subscribe [::subs/continuous-mcc-tree])
-        continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])
         field-errors           (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [id attribute-names]} @continuous-tree-parser
-            {:keys [readable-name
+      (let [;;{:keys [id attribute-names]} @continuous-tree-parser
+            {:keys [parser-id
+                    readable-name
                     tree-file tree-file-upload-progress
                     trees-file trees-file-upload-progress
                     y-coordinate x-coordinate
                     most-recent-sampling-date
-                    time-scale-multiplier]
+                    time-scale-multiplier
+                    attribute-names]
              :or   {y-coordinate              (first attribute-names)
                     x-coordinate              (first attribute-names)
                     most-recent-sampling-date (time/now)
@@ -153,6 +154,7 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
+;; TODO : refactor flow
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree    (re-frame/subscribe [::subs/discrete-mcc-tree])
         discrete-tree-parser (re-frame/subscribe [::subs/active-discrete-tree-parser])
@@ -269,6 +271,7 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
+;; TODO : refactor flow
 (defn discrete-rates []
   (let [bayes-factor        (re-frame/subscribe [::subs/bayes-factor])
         bayes-factor-parser (re-frame/subscribe [::subs/active-bayes-factor-parser])

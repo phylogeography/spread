@@ -18,31 +18,41 @@
   (fn [db _]
     (-> db :users :authorized-user)))
 
+#_(re-frame/reg-sub
+    ::discrete-tree-parsers
+    (fn [db _]
+      (get db :discrete-tree-parsers)))
+
+#_(re-frame/reg-sub
+    ::discrete-tree-parser
+    :<- [::discrete-tree-parsers]
+    (fn [discrete-tree-parsers [_ id]]
+      (get discrete-tree-parsers id)))
+
+#_(re-frame/reg-sub
+    ::continuous-tree-parsers
+    (fn [db _]
+      (get db :continuous-tree-parsers)))
+
+#_(re-frame/reg-sub
+    ::continuous-tree-parser
+    :<- [::continuous-tree-parsers]
+    (fn [continuous-tree-parsers [_ id]]
+      (get continuous-tree-parsers id)))
+
+;; TODO
 (re-frame/reg-sub
-  ::discrete-tree-parsers
-  (fn [db _]
-    (get db :discrete-tree-parsers)))
+  ::parsers
+  (fn [db]
+    (-> db :parsers vals)))
 
 (re-frame/reg-sub
-  ::discrete-tree-parser
-  :<- [::discrete-tree-parsers]
-  (fn [discrete-tree-parsers [_ id]]
-    (get discrete-tree-parsers id)))
-
-(re-frame/reg-sub
-  ::continuous-tree-parsers
-  (fn [db _]
-    (get db :continuous-tree-parsers)))
-
-(re-frame/reg-sub
-  ::continuous-tree-parser
-  :<- [::continuous-tree-parsers]
-  (fn [continuous-tree-parsers [_ id]]
-    (get continuous-tree-parsers id)))
-
-;; TODO : queued
-
-
+  ::queued-analysis
+  :<- [::parsers]
+  (fn [parsers]
+    (reverse
+      (filter #(#{"QUEUED" "RUNNING" "SUCCEEDED" "ERROR"} (:status %))
+              parsers))))
 
 (re-frame/reg-sub
   ::user-analysis
@@ -50,11 +60,11 @@
     (-> db :user-analysis :analysis)))
 
 (re-frame/reg-sub
-  ::user-succeeded-analysis
+  ::completed-analysis
   :<- [::user-analysis]
   (fn [analysis]
     (filter (fn [elem]
-              (#{:SUCCEEDED "SUCCEEDED"} (:status elem)))
+              (#{"ERROR" "SUCCEEDED"} (:status elem)))
             analysis)))
 
 (re-frame/reg-sub
@@ -63,23 +73,17 @@
     (-> db :user-analysis :search-term)))
 
 (re-frame/reg-sub
-  ::user-analysis-search
-  :<- [::user-succeeded-analysis]
+  ::completed-analysis-search
+  :<- [::completed-analysis]
   :<- [::search-term]
-  (fn [[succeeded-analysis search-term]]
+  (fn [[completed-analysis search-term]]
     (if search-term
       (filter (fn [elem]
-                (let [readable-name (-> elem :readable-name )]
+                (let [readable-name (-> elem :readable-name)]
                   (when readable-name
                     (string/includes? (string/lower-case readable-name) search-term))))
-              succeeded-analysis)
-      succeeded-analysis)))
-
-(re-frame/reg-sub
-  ::active-continuous-tree-parser
-  (fn [db _]
-    (let [id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
-      (get (get db :continuous-tree-parsers) id))))
+              completed-analysis)
+      completed-analysis)))
 
 (re-frame/reg-sub
   ::continuous-mcc-tree
@@ -90,12 +94,6 @@
   ::continuous-mcc-tree-field-errors
   (fn [db]
     (get-in db [:new-analysis :continuous-mcc-tree :errors])))
-
-(re-frame/reg-sub
-  ::active-discrete-tree-parser
-  (fn [db _]
-    (let [id (get-in db [:new-analysis :discrete-mcc-tree :discrete-tree-parser-id])]
-      (get (get db :discrete-tree-parsers) id))))
 
 (re-frame/reg-sub
   ::discrete-mcc-tree
@@ -111,12 +109,6 @@
   ::bayes-factor
   (fn [db]
     (get-in db [:new-analysis :bayes-factor])))
-
-(re-frame/reg-sub
-  ::active-bayes-factor-parser
-  (fn [db _]
-    (let [id (get-in db [:new-analysis :bayes-factor :bayes-factor-parser-id])]
-      (get (get db :bayes-factor-parsers) id))))
 
 (re-frame/reg-sub
   ::bayes-factor-field-errors
