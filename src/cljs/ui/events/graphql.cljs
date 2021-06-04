@@ -130,6 +130,7 @@
                                 :query     "subscription SubscriptionRoot($id: ID!) {
                                                            parserStatus(id: $id) {
                                                              id
+                                                             readableName
                                                              status
                                                              progress
                                                              ofType
@@ -269,6 +270,30 @@
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
            (assoc-in [:parsers id :status] status))})
+
+;; TODO
+#_(defmethod handler :parser-status
+  [{:keys [db]} _ {:keys [id status] :as parser-status}]
+
+  (log/debug "@@@ parser-status" parser-status)
+
+  (prn parser-status)
+
+  ;; case status
+  ;; "SUCCEEDED"
+  ;; {
+  ;;  ;; NOTE : add to the front of user analysis
+  ;;  :db       (update-in db [:user-analysis :analysis] (fn [old _] (concat [(merge parser-status {:new? true})] old)) )
+  ;;  :dispatch [:graphql/unsubscribe {:id id}]
+  ;;  }
+
+  ;; :else
+  {:db (assoc-in db [:queued id] parser-status)}
+
+
+
+
+  )
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
