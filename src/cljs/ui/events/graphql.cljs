@@ -1,5 +1,6 @@
 (ns ui.events.graphql
   (:require [ajax.core :as ajax]
+            [clojure.core.match :refer [match]]
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
             [clojure.core.match :refer [match]]
@@ -130,7 +131,6 @@
                                 :query     "subscription SubscriptionRoot($id: ID!) {
                                                            parserStatus(id: $id) {
                                                              id
-                                                             readableName
                                                              status
                                                              progress
                                                              ofType
@@ -141,7 +141,7 @@
            (assoc-in [:parsers id :status] status))})
 
 (defmethod handler :update-continuous-tree
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [id status] :as args}]
   (when (= "ARGUMENTS_SET" status)
     (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
                                                   startContinuousTreeParser(id: $id) {
@@ -270,30 +270,6 @@
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
            (assoc-in [:parsers id :status] status))})
-
-;; TODO
-#_(defmethod handler :parser-status
-  [{:keys [db]} _ {:keys [id status] :as parser-status}]
-
-  (log/debug "@@@ parser-status" parser-status)
-
-  (prn parser-status)
-
-  ;; case status
-  ;; "SUCCEEDED"
-  ;; {
-  ;;  ;; NOTE : add to the front of user analysis
-  ;;  :db       (update-in db [:user-analysis :analysis] (fn [old _] (concat [(merge parser-status {:new? true})] old)) )
-  ;;  :dispatch [:graphql/unsubscribe {:id id}]
-  ;;  }
-
-  ;; :else
-  {:db (assoc-in db [:queued id] parser-status)}
-
-
-
-
-  )
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
