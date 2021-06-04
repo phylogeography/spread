@@ -40,12 +40,22 @@
   (fn [continuous-tree-parsers [_ id]]
     (get continuous-tree-parsers id)))
 
-;; TODO : queued parsers
+;; TODO : queued
+
+
 
 (re-frame/reg-sub
   ::user-analysis
   (fn [db]
     (-> db :user-analysis :analysis)))
+
+(re-frame/reg-sub
+  ::user-succeeded-analysis
+  :<- [::user-analysis]
+  (fn [analysis]
+    (filter (fn [elem]
+              (#{:SUCCEEDED "SUCCEEDED"} (:status elem)))
+            analysis)))
 
 (re-frame/reg-sub
   ::search-term
@@ -54,16 +64,16 @@
 
 (re-frame/reg-sub
   ::user-analysis-search
-  :<- [::user-analysis]
+  :<- [::user-succeeded-analysis]
   :<- [::search-term]
-  (fn [[analysis search-term]]
+  (fn [[succeeded-analysis search-term]]
     (if search-term
       (filter (fn [elem]
                 (let [readable-name (-> elem :readable-name )]
                   (when readable-name
                     (string/includes? (string/lower-case readable-name) search-term))))
-              analysis)
-      analysis)))
+              succeeded-analysis)
+      succeeded-analysis)))
 
 (re-frame/reg-sub
   ::active-continuous-tree-parser

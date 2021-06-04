@@ -55,11 +55,11 @@
 
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type]}]
+    (fn [{:keys [id readable-name of-type new?]}]
       [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
-        [:span readable-name]
-        ;; (when-not seen? [:span "New"])
+        [:span (or readable-name "Unknown")]
+        (when new? [:span "New"])
         [:div.click-dropdown
          [button-with-icon {:on-click #(swap! menu-opened? not)
                             :icon     (:kebab-menu icons)}]
@@ -102,7 +102,8 @@
 
 (defn queue-menu-item []
   (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type progress]}]
+    (fn [{:keys [id readable-name of-type progress]
+          :or {readable-name "Unknown"}}]
       [:div.queue-menu-item
        {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div

@@ -134,12 +134,34 @@
                   merge
                   continuous-tree-parser)})
 
+(defmethod handler :upload-continuous-tree
+  [{:keys [db]} _ {:keys [id status]}]
+  ;; start the status subscription for an ongoing analysis
+  (>evt [:graphql/subscription {:id        id
+                                :query     "subscription ContinuousTreeParserStatus($id: ID!) {
+                                                           continuousTreeParserStatus(id: $id) {
+                                                             id
+                                                             readableName
+                                                             status
+                                                             progress
+                                                             ofType
+                                                           }
+                                                         }"
+                                :variables {:id id}}])
+  {:db (-> db
+           (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id] id)
+           (assoc-in [:continuous-tree-parsers id :status] status))})
+
+;; TODO : handle queued subs state here
 (defmethod handler :continuous-tree-parser-status
-  [{:keys [db]} _ {:keys [id status progress]}]
-  (case status
+  [{:keys [db]} _ {:keys [id status progress] :as parser}]
+
+  (log/debug "@@@ continuous-tree-parser-status" status parser )
+
+  (cond
     ;; when worker has parsed the attributes
     ;; stop the ongoing subscription and query the attributes
-    "ATTRIBUTES_PARSED"
+    (= "ATTRIBUTES_PARSED" status)
     (dispatch-n [[:graphql/unsubscribe {:id id}]
                  [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {
@@ -149,29 +171,17 @@
                                                       }"
                                   :variables {:id id}}]])
 
-    "SUCCEEDED"
+    (#{"SUCCEEDED" "ERROR"} status)
+    ;; remove from queued (dissoc)
     (>evt [:graphql/unsubscribe {:id id}])
-    nil)
 
-  {:db (-> db
-           (assoc-in [:continuous-tree-parsers id :status] status)
-           (assoc-in [:continuous-tree-parsers id :progress] progress))})
+    :default nil)
 
-(defmethod handler :upload-continuous-tree
-  [{:keys [db]} _ {:keys [id status]}]
-  ;; start the status subscription for an ongoing analysis
-  (>evt [:graphql/subscription {:id        id
-                                :query     "subscription ContinuousTreeParserStatus($id: ID!) {
-                                                           continuousTreeParserStatus(id: $id) {
-                                                             id
-                                                             status
-                                                             progress
-                                                           }
-                                                         }"
-                                :variables {:id id}}])
-  {:db (-> db
-           (assoc-in [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id] id)
-           (assoc-in [:continuous-tree-parsers id :status] status))})
+  {:db (cond-> db
+         (#{"QUEUED" "RUNNING" "ERROR"} status) (assoc-in [:queued id] parser)
+         (= "SUCCEEDED" status)         (update :queued dissoc id)
+         true                           (assoc-in [:continuous-tree-parsers id :status] status)
+         true                           (assoc-in [:continuous-tree-parsers id :progress] progress))})
 
 (defmethod handler :upload-time-slicer
   [{:keys [db]} _ {:keys [id status]}]
@@ -234,8 +244,8 @@
                                                       }"
                                   :variables {:id id}}]])
 
-    "SUCCEEDED"
-    (>evt [:graphql/unsubscribe {:id id}])
+    ;; "SUCCEEDED"
+    ;; (>evt [:graphql/unsubscribe {:id id}])
     nil)
 
   {:db (-> db
@@ -305,12 +315,35 @@
 
 (defmethod handler :bayes-factor-parser-status
   [{:keys [db]} _ {:keys [id status progress]}]
-  (when status
-    "SUCCEEDED"
-    (>evt [:graphql/unsubscribe {:id id}]))
+  ;; (when (= "SUCCEEDED" status)
+  ;;   (>evt [:graphql/unsubscribe {:id id}]))
   {:db (-> db
            (assoc-in [:bayes-factor-parsers id :status] status)
            (assoc-in [:bayes-factor-parsers id :progress] progress))})
+
+;; TODO
+#_(defmethod handler :parser-status
+  [{:keys [db]} _ {:keys [id status] :as parser-status}]
+
+  (log/debug "@@@ parser-status" parser-status)
+
+  (prn parser-status)
+
+  ;; case status
+  ;; "SUCCEEDED"
+  ;; {
+  ;;  ;; NOTE : add to the front of user analysis
+  ;;  :db       (update-in db [:user-analysis :analysis] (fn [old _] (concat [(merge parser-status {:new? true})] old)) )
+  ;;  :dispatch [:graphql/unsubscribe {:id id}]
+  ;;  }
+
+  ;; :else
+  {:db (assoc-in db [:queued id] parser-status)}
+
+
+
+
+  )
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]

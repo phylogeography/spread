@@ -26,7 +26,6 @@
     ::on-message
     (fn [_ [_ message]]
       (log/debug "home/on-message" message)))
-
   (re-frame/dispatch [:websocket/subscribe :default
                       "home-page"
                       {:message

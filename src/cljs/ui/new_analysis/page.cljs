@@ -12,7 +12,7 @@
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
             [ui.time :as time]
-            [ui.utils :as ui-utils :refer [>evt]]))
+            [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
 (defn error-reported [message]
   (when message
@@ -24,7 +24,7 @@
         continuous-tree-parser (re-frame/subscribe [::subs/active-continuous-tree-parser])
         field-errors           (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [attribute-names]} @continuous-tree-parser
+      (let [{:keys [id attribute-names]} @continuous-tree-parser
             {:keys [readable-name
                     tree-file tree-file-upload-progress
                     trees-file trees-file-upload-progress
@@ -131,11 +131,21 @@
               [button-with-label {:label     "Start analysis"
                                   :class     :button-start-analysis
                                   :disabled? (seq @field-errors)
-                                  :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                                          :y-coordinate              y-coordinate
-                                                                                          :x-coordinate              x-coordinate
-                                                                                          :most-recent-sampling-date most-recent-sampling-date
-                                                                                          :time-scale-multiplier     time-scale-multiplier}])}]
+                                  ;; TODO : dispatch subscription
+                                  :on-click  #(dispatch-n [[:continuous-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                                 :y-coordinate              y-coordinate
+                                                                                                 :x-coordinate              x-coordinate
+                                                                                                 :most-recent-sampling-date most-recent-sampling-date
+                                                                                                 :time-scale-multiplier     time-scale-multiplier}]
+                                                           #_[:graphql/subscription {:id        id
+                                                                                   :query     "subscription SubscriptionRoot($id: ID!) {
+                                                                                                parserStatus(id: $id) {
+                                                                                                  id
+                                                                                                  status
+                                                                                                  progress
+                                                                                                  ofType
+                                                                                                }}"
+                                                                                   :variables {"id" id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
