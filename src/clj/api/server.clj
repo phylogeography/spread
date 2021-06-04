@@ -73,12 +73,7 @@
    })
 
 (defn streamer-map []
-  {:subscription/parserStatus               (auth-decorator (subscriptions/create-parser-status-sub))
-   ;; :subscription/continuousTreeParserStatus (auth-decorator (subscriptions/create-continuous-tree-parser-status-sub))
-   ;; :subscription/discreteTreeParserStatus   (auth-decorator (subscriptions/create-discrete-tree-parser-status-sub))
-   ;; :subscription/bayesFactorParserStatus    (auth-decorator (subscriptions/create-bayes-factor-parser-status-sub))
-   ;; :subscription/timeSlicerParserStatus     (auth-decorator (subscriptions/create-time-slicer-parser-status-sub))
-   })
+  {:subscription/parserStatus (auth-decorator (subscriptions/create-parser-status-sub))})
 
 (defn- context-interceptor
   [extra-context]

@@ -162,39 +162,14 @@
                                      :last     {:type Int}
                                      :before   {:type String}
                                      :statuses {:type (list :AnalysisStatus)}}
-                       :resolve     :query/searchUserAnalysis}
-
-  }
+                       :resolve     :query/searchUserAnalysis}}
 
  :subscriptions
  {:parserStatus
   {:type        :ParserStatus
    :description "Returns a subscription to any parser status by it's ID."
    :args        {:id {:type (non-null ID)}}
-   :stream      :subscription/parserStatus}
-
-  ;; :continuousTreeParserStatus
-  ;; {:type   :ParserStatus
-  ;;  :args   {:id {:type (non-null ID)}}
-  ;;  :stream :subscription/continuousTreeParserStatus}
-
-  ;; :discreteTreeParserStatus
-  ;; {:type   :ParserStatus
-  ;;  :args   {:id {:type (non-null ID)}}
-  ;;  :stream :subscription/discreteTreeParserStatus}
-
-  ;; :bayesFactorParserStatus
-  ;; {:type   :ParserStatus
-  ;;  :args   {:id {:type (non-null ID)}}
-  ;;  :stream :subscription/bayesFactorParserStatus}
-
-  ;; :timeSlicerParserStatus
-  ;; {:type   :ParserStatus
-  ;;  :args   {:id {:type (non-null ID)}}
-  ;;  :stream :subscription/timeSlicerParserStatus}
-
-
-  }
+   :stream      :subscription/parserStatus}}
 
  :mutations
  {:googleLogin {:type        :JWT
@@ -292,8 +267,4 @@
   :startBayesFactorParser {:type        :ParserStatus
                            :description "Starts executing a parser. Returns a ParserStatus with id."
                            :args        {:id {:type (non-null ID)}}
-                           :resolve     :mutation/startBayesFactorParser}
-
-  }
-
- }
+                           :resolve     :mutation/startBayesFactorParser}}}

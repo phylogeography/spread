@@ -22,7 +22,6 @@
           (when-not (= port subscription-closed?)
             (when-let [{:keys [status progress of-type]} (callback db id)]
               (source-stream (clj->gql {:id            id
-                                        ;; :readable-name readable-name
                                         :of-type       of-type
                                         :status        status
                                         :progress      (or progress 0)}))
@@ -38,19 +37,3 @@
 (defn create-parser-status-sub []
   (create-status-subscription "parser" (fn [db id]
                                          (parser-model/get-status db {:parser-id id}))))
-
-;; (defn create-continuous-tree-parser-status-sub []
-;;   (create-status-subscription "continuous-tree" (fn [db id]
-;;                                                   (continuous-tree-model/get-status db {:tree-id id}))))
-
-;; (defn create-discrete-tree-parser-status-sub []
-;;   (create-status-subscription "discrete-tree" (fn [db id]
-;;                                                 (discrete-tree-model/get-status db {:tree-id id}))))
-
-;; (defn create-bayes-factor-parser-status-sub []
-;;   (create-status-subscription "bayes-factor" (fn [db id]
-;;                                                (bayes-factor-model/get-status db {:bayes-factor-analysis-id id}))))
-
-;; (defn create-time-slicer-parser-status-sub []
-;;   (create-status-subscription "time-slicer" (fn [db id]
-;;                                               (time-slicer-model/get-status db {:time-slicer-id id}))))

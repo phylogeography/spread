@@ -236,45 +236,40 @@
       (continuous-tree-model/upsert-status! db {:tree-id id
                                                 :status  :ERROR}))))
 
-(defn parse-time-slicer [{:keys [id user-id db s3 bucket-name progress-handler parser-settings]}]
-  (try
-    (let [trees-object-key (str user-id "/" id ".trees")
-          trees-file-path  (str tmp-dir "/" trees-object-key)
-          ;; is it cached on disk?
-          _                (when-not (file-exists? trees-file-path)
-                             (aws-s3/download-file s3 {:bucket    bucket-name
-                                                       :key       trees-object-key
-                                                       :dest-path trees-file-path}))
+(defn- parse-time-slicer [{:keys [id user-id db s3 bucket-name progress-handler parser-settings]}]
+  (let [trees-object-key (str user-id "/" id ".trees")
+        trees-file-path  (str tmp-dir "/" trees-object-key)
+        ;; is it cached on disk?
+        _                (when-not (file-exists? trees-file-path)
+                           (aws-s3/download-file s3 {:bucket    bucket-name
+                                                     :key       trees-object-key
+                                                     :dest-path trees-file-path}))
 
-          {:keys [trait-attribute-name burn-in
-                  relaxed-random-walk-rate-attribute-name
-                  number-of-intervals hpd-level contouring-grid-size
-                  timescale-multiplier
-                  most-recent-sampling-date]}
-          parser-settings
+        {:keys [trait-attribute-name burn-in
+                relaxed-random-walk-rate-attribute-name
+                number-of-intervals hpd-level contouring-grid-size
+                timescale-multiplier
+                most-recent-sampling-date]}
+        parser-settings
 
-          _ (log/info "time-slicer parser settings" parser-settings)
+        _ (log/info "time-slicer parser settings" parser-settings)
 
-          parser (doto (new TimeSlicerParser)
-                   (.setTreesFilePath trees-file-path)
-                   ;; NOTE: this should always hold unless someone switches the usual lat/long convention
-                   (.setTraitName trait-attribute-name)
-                   (.setBurnIn burn-in)
-                   (.setRrwRateName relaxed-random-walk-rate-attribute-name)
-                   (.setNumberOfIntervals number-of-intervals)
-                   (.setHpdLevel hpd-level)
-                   (.setGridSize contouring-grid-size)
-                   (.setTimescaleMultiplier timescale-multiplier)
-                   (.setMostRecentSamplingDate most-recent-sampling-date)
-                   (.registerProgressObserver progress-handler))
-          output (.parse parser)
-          _      (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                                       :status         :SUCCEEDED})]
-      (json/read-str output :key-fn keyword))
-    (catch Exception e
-      (log/error "Exception when handling parse-time-slicer" {:error e})
-      (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                            :status         :ERROR}))))
+        parser (doto (new TimeSlicerParser)
+                 (.setTreesFilePath trees-file-path)
+                 ;; NOTE: this should always hold unless someone switches the usual lat/long convention
+                 (.setTraitName trait-attribute-name)
+                 (.setBurnIn burn-in)
+                 (.setRrwRateName relaxed-random-walk-rate-attribute-name)
+                 (.setNumberOfIntervals number-of-intervals)
+                 (.setHpdLevel hpd-level)
+                 (.setGridSize contouring-grid-size)
+                 (.setTimescaleMultiplier timescale-multiplier)
+                 (.setMostRecentSamplingDate most-recent-sampling-date)
+                 (.registerProgressObserver progress-handler))
+        output (.parse parser)
+        _      (time-slicer-model/upsert-status! db {:time-slicer-id id
+                                                     :status         :SUCCEEDED})]
+    (json/read-str output :key-fn keyword)))
 
 (defmethod handler :parse-bayes-factors
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]

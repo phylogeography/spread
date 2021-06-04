@@ -59,7 +59,6 @@
                                 :variables  {:filename fname :extension "trees"}
                                 :on-success [:continuous-mcc-tree/upload-trees-file file-with-meta]}]}))
 
-
 (defn upload-trees-file [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
     {::s3/upload {:url             url
@@ -73,7 +72,7 @@
 
 (defn trees-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _]            (string/split url "?")
-        continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :continuous-tree-parser-id])]
+        continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :parser-id])]
     {:dispatch [:graphql/query {:query
                                 "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
                                                    uploadTimeSlicer(continuousTreeId: $continuousTreeId,

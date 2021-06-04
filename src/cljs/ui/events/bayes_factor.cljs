@@ -16,7 +16,7 @@
 
 (defn s3-log-file-upload [{:keys [db]} [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
-    {:db (assoc-in db [:new-analysis :bayes-factor :upload-status] "UPLOADING")
+    {:db         (assoc-in db [:new-analysis :bayes-factor :upload-status] "UPLOADING")
      ::s3/upload {:url             url
                   :data            data
                   :on-success      #(>evt [:bayes-factor/log-file-upload-success {:url      url
@@ -96,9 +96,6 @@
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
   (let [id (get-in db [:new-analysis :bayes-factor :parser-id])]
-
-    (prn "@@@@@@@@@@@@@ BF/start" id)
-
     {:db       (assoc-in db [:parsers id :readable-name] readable-name)
      :dispatch [:graphql/query {:query
                                 "mutation UpdateBayesFactor($id: ID!,

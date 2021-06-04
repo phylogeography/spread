@@ -81,8 +81,8 @@
         [:div of-type]]])))
 
 (defn completed [{:keys [open?]}]
-  (let [search-term   (re-frame/subscribe [::subs/search-term])
-        open?         (reagent/atom open?)
+  (let [search-term        (re-frame/subscribe [::subs/search-term])
+        open?              (reagent/atom open?)
         completed-analysis (re-frame/subscribe [::subs/completed-analysis-search])]
     (fn []
       [:div.completed {:on-click #(swap! open? not)
@@ -108,8 +108,8 @@
         menu-opened? (reagent/atom false)
         ]
     (fn [{:keys [id readable-name of-type status progress]
-          :or {readable-name "Unknown"}
-          :as args}]
+          :or   {readable-name "Unknown"}
+          :as   args}]
       [:div.queue-menu-item
        {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
        [:div
@@ -140,7 +140,7 @@
 
 ;; TODO : subscribe to status updates for all ongoing
 (defn queue [{:keys [open?]}]
-  (let [open?  (reagent/atom open?)
+  (let [open?           (reagent/atom open?)
         queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
     (fn []
       ;; let [data (vals @queued)]

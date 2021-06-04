@@ -7,6 +7,9 @@
                     :events      #{:graphql/ws-authorized}
                     :dispatch-to [:home/initial-query]}})
 
+;; TODO: this should be probably done on every page
+;; since user can start from a non-home page
+;; perhaps even moved to the initialize flow?
 (defn initial-query
   "if user opens home page we subscribe to all ongoing analysis"
   [{:keys [db]}]

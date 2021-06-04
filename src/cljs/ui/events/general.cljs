@@ -16,11 +16,6 @@
   {:localstorage (dissoc localstorage :access-token)
    :dispatch     [:router/navigate :route/splash]})
 
-;; TODO : initial graphql queries to fill the data in left pane menu:
-;; - RUNNING analysis query
-;; - create subscriptions to RUNNING analysis statuses
-;; - close subscriptions when status changes
-
 (defn initialize [{:keys [db]} [_ config]]
   {:db             (assoc db :config config)
    ;; TODO : only if there is token in localstorage, else it will result in an auth error
