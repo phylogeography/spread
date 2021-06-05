@@ -14,9 +14,6 @@
   [{:keys [db]}]
   (let [id                             (-> db :ui.router :active-page :query :id)
         {:keys [of-type] :as analysis} (get-in db [:analysis id])]
-
-    (prn "initial-query" analysis)
-
     (when of-type
       {:dispatch [:graphql/query {:query (case (keyword of-type)
                                            ;; TODO : define all neccesary fields

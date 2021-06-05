@@ -44,4 +44,4 @@
                     :dispatch-to [:general/active-page-changed]}})
 
 (defn set-search [{:keys [db]} [_ text]]
-  {:db (assoc db :search-term text)})
+  {:db (assoc db :search text)})

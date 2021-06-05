@@ -80,7 +80,6 @@
                            (.stopPropagation event))} "Delete"]]]
         [:div of-type]]])))
 
-;; TODO
 ;; TODO : handle new?
 ;; TODO : highlight status = error
 (defn completed [{:keys [open?]}]
