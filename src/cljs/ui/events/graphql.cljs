@@ -225,6 +225,11 @@
                                   :variables {:id id}}]]))
   {:db (assoc-in db [:analysis id :status] status)})
 
+(defmethod handler :get-bayes-factor-analysis
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (-> db
+           (assoc-in [:analysis id] analysis))})
+
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:analysis id :status] status)})
