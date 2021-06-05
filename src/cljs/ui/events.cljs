@@ -7,6 +7,7 @@
    [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
    [ui.events.general :as events.general]
    [ui.events.graphql :as events.graphql]
+   [ui.events.analysis-results :as events.analysis-results]
    [ui.events.home :as events.home]
    [ui.events.router :as events.router]
    [ui.events.splash :as events.splash]
@@ -63,6 +64,11 @@
 (reg-event-fx :splash/initialize-page [(re-frame/inject-cofx :localstorage)] events.splash/initialize-page)
 (reg-event-fx :splash/send-google-verification-code events.splash/send-google-verification-code)
 (reg-event-fx :splash/login-success [(re-frame/inject-cofx :localstorage)] events.splash/login-success)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; analysis results events ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(re-frame/reg-event-fx :analysis-results/initialize-page events.analysis-results/initialize-page)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;

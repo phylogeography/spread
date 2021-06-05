@@ -13,19 +13,20 @@
 (defn initial-query
   "if user opens home page we subscribe to all ongoing analysis"
   [{:keys [db]}]
-  (let [queued (->> (db :user-analysis :analysis)
+  (let [queued (->> (:analysis db)
+                    vals
                     (filter #(#{"QUEUED" "RUNNING"} (:status %)))
                     (#(map :id %)))]
-    {:dispatch-n [(for [id queued]
-                    [:graphql/subscription {:id        id
-                                            :query     "subscription SubscriptionRoot($id: ID!) {
+    {:dispatch-n (for [id queued]
+                   [:graphql/subscription {:id        id
+                                           :query     "subscription SubscriptionRoot($id: ID!) {
                                                            parserStatus(id: $id) {
                                                              id
                                                              status
                                                              progress
                                                              ofType
                                                            }}"
-                                            :variables {:id id}}])]}))
+                                           :variables {:id id}}])}))
 
 (comment
   (re-frame/reg-event-fx
