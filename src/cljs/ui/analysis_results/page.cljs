@@ -7,7 +7,7 @@
 ;; NOTE : just the results tab
 ;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed3112972c3f62905120
 
-;; TODO : data+ error tab
+;; TODO : data + error tab
 ;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed305a09c542e790702f
 
 (defmethod page :route/analysis-results []

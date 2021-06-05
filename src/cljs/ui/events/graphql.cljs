@@ -159,8 +159,7 @@
   [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :attribute-names] attribute-names)
-           ;; TODO : merge-in
-           (assoc-in [:analysis id :attribute-names] attribute-names))})
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :upload-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
@@ -181,9 +180,7 @@
   [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
   {:db (-> db
            (assoc-in [:new-analysis :discrete-mcc-tree :attribute-names] attribute-names)
-
-           ;; TODO : merge-in
-           (assoc-in [:analysis id :attribute-names] attribute-names))})
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :update-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
@@ -231,8 +228,7 @@
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id] :as analysis}]
   {:db (-> db
-           ;; TODO : merge-in
-           (assoc-in [:analysis id] analysis))})
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id status]}]
