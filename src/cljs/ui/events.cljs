@@ -2,12 +2,12 @@
   (:require
    [day8.re-frame.http-fx]
    [re-frame.core :as re-frame :refer [reg-event-fx]]
+   [ui.events.analysis-results :as events.analysis-results]
    [ui.events.bayes-factor :as events.bayes-factor]
    [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
    [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
    [ui.events.general :as events.general]
    [ui.events.graphql :as events.graphql]
-   [ui.events.analysis-results :as events.analysis-results]
    [ui.events.home :as events.home]
    [ui.events.router :as events.router]
    [ui.events.splash :as events.splash]

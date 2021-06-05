@@ -156,7 +156,6 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
-;; TODO : refactor flow
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree (re-frame/subscribe [::subs/discrete-mcc-tree])
         field-errors      (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
@@ -283,7 +282,6 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
-;; TODO : refactor flow
 (defn discrete-rates []
   (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
         field-errors (re-frame/subscribe [::subs/bayes-factor-field-errors])]
