@@ -95,8 +95,8 @@
   {:db (assoc-in db [:new-analysis :bayes-factor :burn-in] burn-in)})
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
-  (let [id (get-in db [:new-analysis :bayes-factor :parser-id])]
-    {:db       (assoc-in db [:parsers id :readable-name] readable-name)
+  (let [id (get-in db [:new-analysis :bayes-factor :id])]
+    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
      :dispatch [:graphql/query {:query
                                 "mutation UpdateBayesFactor($id: ID!,
                                                             $name: String!,

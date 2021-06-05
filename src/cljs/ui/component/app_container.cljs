@@ -80,8 +80,11 @@
                            (.stopPropagation event))} "Delete"]]]
         [:div of-type]]])))
 
+;; TODO
+;; TODO : handle new?
+;; TODO : highlight status = error
 (defn completed [{:keys [open?]}]
-  (let [search-term        (re-frame/subscribe [::subs/search-term])
+  (let [search-term        (re-frame/subscribe [::subs/search])
         open?              (reagent/atom open?)
         completed-analysis (re-frame/subscribe [::subs/completed-analysis-search])]
     (fn []
@@ -139,12 +142,10 @@
                             :icon     (:delete icons)}]]
         [:span (str (format-percentage progress 1.0) " finished")]]])))
 
-;; TODO : subscribe to status updates for all ongoing
 (defn queue [{:keys [open?]}]
   (let [open?           (reagent/atom open?)
         queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
     (fn []
-      ;; let [data (vals @queued)]
       [:div.queue {:on-click #(swap! open? not)
                    :class    (when @open? "open")}
        [:div

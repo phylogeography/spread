@@ -32,6 +32,7 @@
                                         }
                                         getUserAnalysis {
                                           id
+                                          createdOn
                                           readableName
                                           status
                                           ofType
@@ -42,4 +43,4 @@
                     :dispatch-to [:general/active-page-changed]}})
 
 (defn set-search [{:keys [db]} [_ text]]
-  {:db (assoc-in db [:user-analysis :search-term] text)})
+  {:db (assoc db :search-term text)})

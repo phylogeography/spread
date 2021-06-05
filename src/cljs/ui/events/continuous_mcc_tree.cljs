@@ -97,8 +97,8 @@
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
                                               most-recent-sampling-date time-scale-multiplier]}]]
-  (let [id (get-in db [:new-analysis :continuous-mcc-tree :parser-id])]
-    {:db       (assoc-in db [:parsers id :readable-name] readable-name)
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
      :dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
                                                      $x: String!,
