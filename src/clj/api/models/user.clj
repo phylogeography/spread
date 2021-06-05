@@ -7,12 +7,12 @@
 (declare get-user-by-email)
 (declare count-user-analysis*)
 (declare search-user-analysis*)
-(declare get-user-analysis*)
+(declare get-user-analysis)
 
 (hugsql/def-db-fns "sql/user.sql")
 (hugsql/def-sqlvec-fns "sql/user.sql")
 
-(defn get-user-analysis [db args]
+#_(defn get-user-analysis [db args]
   (get-user-analysis* db args))
 
 (defn search-user-analysis [db {:keys [statuses user-id readable-name] :as args}]

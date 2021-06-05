@@ -26,6 +26,7 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :do-nothing (constantly nil))
+(reg-event-fx :user-analysis-loaded (constantly nil))
 (reg-event-fx :log-error (fn [_ ev] (js/console.error ev)))
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -66,9 +67,10 @@
 (reg-event-fx :splash/login-success [(re-frame/inject-cofx :localstorage)] events.splash/login-success)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; analysis results events ;;
+;; Analysis results events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (re-frame/reg-event-fx :analysis-results/initialize-page events.analysis-results/initialize-page)
+(re-frame/reg-event-fx :analysis-results/initial-query events.analysis-results/initial-query)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;

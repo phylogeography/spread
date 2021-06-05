@@ -156,9 +156,10 @@
   {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :get-continuous-tree
-  [{:keys [db]} _ {:keys [id attribute-names]}]
+  [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :attribute-names] attribute-names)
+           ;; TODO : merge-in
            (assoc-in [:analysis id :attribute-names] attribute-names))})
 
 (defmethod handler :upload-discrete-tree
@@ -177,9 +178,11 @@
            (assoc-in [:analysis id :status] status))})
 
 (defmethod handler :get-discrete-tree
-  [{:keys [db]} _ {:keys [id attribute-names]}]
+  [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
   {:db (-> db
            (assoc-in [:new-analysis :discrete-mcc-tree :attribute-names] attribute-names)
+
+           ;; TODO : merge-in
            (assoc-in [:analysis id :attribute-names] attribute-names))})
 
 (defmethod handler :update-discrete-tree
@@ -228,6 +231,7 @@
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id] :as analysis}]
   {:db (-> db
+           ;; TODO : merge-in
            (assoc-in [:analysis id] analysis))})
 
 (defmethod handler :start-bayes-factor-parser
@@ -237,11 +241,10 @@
 (defmethod handler :parser-status
   [{:keys [db]} _ {:keys [id status of-type] :as parser}]
   (log/debug "parser-status handler" parser)
+  ;; NOTE: if worker parsed attributes query them
+  ;; if analysis ended stop the subscription
   (match [status of-type]
-
-         ;; TODO : handle other types
          ["ATTRIBUTES_PARSED" "CONTINUOUS_TREE"]
-         ;; NOTE: if worker parsed attributes query them
          (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {
                                                           id
@@ -275,11 +278,10 @@
            (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
            (assoc-in [:analysis id :status] status))})
 
-;; TODO
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
-  {:db (assoc db :analysis (zipmap (map :id analysis) analysis))}
-  #_{:db (assoc-in db [:user-analysis :analysis] analysis)})
+  (>evt [:user-analysis-loaded])
+  {:db (assoc db :analysis (zipmap (map :id analysis) analysis))})
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
