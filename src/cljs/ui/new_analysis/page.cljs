@@ -25,7 +25,7 @@
   (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])
         field-errors        (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [parser-id
+      (let [{:keys [id
                     readable-name
                     tree-file tree-file-upload-progress
                     trees-file trees-file-upload-progress
@@ -140,7 +140,7 @@
                                                                                                  :time-scale-multiplier     time-scale-multiplier}]
                                                            ;; NOTE : normally we have a running subscription already, but in case the user re-starts the analysis here we dispatch it again.
                                                            ;; it is de-duplicated by the id anyway
-                                                           [:graphql/subscription {:id        parser-id
+                                                           [:graphql/subscription {:id        id
                                                                                    :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
@@ -148,7 +148,7 @@
                                                                                                   progress
                                                                                                   ofType
                                                                                                 }}"
-                                                                                   :variables {"id" parser-id}}]])}]
+                                                                                   :variables {"id" id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
@@ -156,12 +156,11 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
-;; TODO : refactor flow
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree (re-frame/subscribe [::subs/discrete-mcc-tree])
         field-errors      (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [parser-id
+      (let [{:keys [id
                     tree-file tree-file-upload-progress
                     locations-file locations-file-url
                     locations-file-upload-progress
@@ -267,7 +266,7 @@
                                                                                                :locations-file-url        locations-file-url
                                                                                                :most-recent-sampling-date most-recent-sampling-date
                                                                                                :time-scale-multiplier     time-scale-multiplier}]
-                                                           [:graphql/subscription {:id        parser-id
+                                                           [:graphql/subscription {:id        id
                                                                                    :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
@@ -275,7 +274,7 @@
                                                                                                   progress
                                                                                                   ofType
                                                                                                 }}"
-                                                                                   :variables {"id" parser-id}}]])}]
+                                                                                   :variables {"id" id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]
@@ -283,12 +282,11 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
-;; TODO : refactor flow
 (defn discrete-rates []
   (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
         field-errors (re-frame/subscribe [::subs/bayes-factor-field-errors])]
     (fn []
-      (let [{:keys [parser-id
+      (let [{:keys [id
                     log-file
                     log-file-upload-progress
                     locations-file
@@ -380,7 +378,7 @@
                                   :on-click  #(dispatch-n [[:bayes-factor/start-analysis {:readable-name      readable-name
                                                                                           :burn-in            (/ burn-in 100)
                                                                                           :locations-file-url locations-file-url}]
-                                                           [:graphql/subscription {:id        parser-id
+                                                           [:graphql/subscription {:id        id
                                                                                    :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
@@ -388,7 +386,7 @@
                                                                                                   progress
                                                                                                   ofType
                                                                                                 }}"
-                                                                                   :variables {"id" parser-id}}]])}]
+                                                                                   :variables {"id" id}}]])}]
               [button-with-label {:label    "Paste settings"
                                   :class    :button-paste-settings
                                   :on-click #(prn "TODO : paste settings")}]

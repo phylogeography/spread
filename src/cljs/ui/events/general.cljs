@@ -8,8 +8,9 @@
   (let [{:keys [name] :as active-page} (router-queries/active-page db)]
     (log/info "Active page changed" active-page)
     (case name
-      :route/splash {:dispatch [:splash/initialize-page]}
-      :route/home   {:dispatch [:home/initialize-page]}
+      :route/splash           {:dispatch [:splash/initialize-page]}
+      :route/home             {:dispatch [:home/initialize-page]}
+      :route/analysis-results {:dispatch [:analysis-results/initialize-page]}
       nil)))
 
 (defn logout [{:keys [localstorage]}]
@@ -32,6 +33,7 @@
                                         }
                                         getUserAnalysis {
                                           id
+                                          createdOn
                                           readableName
                                           status
                                           ofType
@@ -42,4 +44,4 @@
                     :dispatch-to [:general/active-page-changed]}})
 
 (defn set-search [{:keys [db]} [_ text]]
-  {:db (assoc-in db [:user-analysis :search-term] text)})
+  {:db (assoc db :search text)})

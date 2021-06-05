@@ -18,64 +18,41 @@
   (fn [db _]
     (-> db :users :authorized-user)))
 
-#_(re-frame/reg-sub
-    ::discrete-tree-parsers
-    (fn [db _]
-      (get db :discrete-tree-parsers)))
+(re-frame/reg-sub
+  ::search
+  (fn [db]
+    (:search db)))
 
-#_(re-frame/reg-sub
-    ::discrete-tree-parser
-    :<- [::discrete-tree-parsers]
-    (fn [discrete-tree-parsers [_ id]]
-      (get discrete-tree-parsers id)))
+(re-frame/reg-sub
+  ::analysis
+  (fn [db]
+    (-> db :analysis)))
 
-#_(re-frame/reg-sub
-    ::continuous-tree-parsers
-    (fn [db _]
-      (get db :continuous-tree-parsers)))
-
-#_(re-frame/reg-sub
-    ::continuous-tree-parser
-    :<- [::continuous-tree-parsers]
-    (fn [continuous-tree-parsers [_ id]]
-      (get continuous-tree-parsers id)))
+(re-frame/reg-sub
+  ::sorted-analysis
+  :<- [::analysis]
+  (fn [analysis]
+    (sort-by :created-on (-> analysis vals vec))))
 
 ;; TODO
 (re-frame/reg-sub
-  ::parsers
-  (fn [db]
-    (-> db :parsers vals)))
-
-(re-frame/reg-sub
-  ::queued-analysis
-  :<- [::parsers]
-  (fn [parsers]
-    (reverse
-      (filter #(#{"QUEUED" "RUNNING" "SUCCEEDED" "ERROR"} (:status %))
-              parsers))))
-
-(re-frame/reg-sub
-  ::user-analysis
-  (fn [db]
-    (-> db :user-analysis :analysis)))
+  ::analysis-results
+  :<- [::analysis]
+  (fn [analysis [_ id]]
+    (get analysis id)))
 
 (re-frame/reg-sub
   ::completed-analysis
-  :<- [::user-analysis]
+  :<- [::sorted-analysis]
   (fn [analysis]
     (filter (fn [elem]
               (#{"ERROR" "SUCCEEDED"} (:status elem)))
             analysis)))
 
 (re-frame/reg-sub
-  ::search-term
-  (fn [db]
-    (-> db :user-analysis :search-term)))
-
-(re-frame/reg-sub
   ::completed-analysis-search
   :<- [::completed-analysis]
-  :<- [::search-term]
+  :<- [::search]
   (fn [[completed-analysis search-term]]
     (if search-term
       (filter (fn [elem]
@@ -84,6 +61,14 @@
                     (string/includes? (string/lower-case readable-name) search-term))))
               completed-analysis)
       completed-analysis)))
+
+(re-frame/reg-sub
+  ::queued-analysis
+  :<- [::sorted-analysis]
+  (fn [analysis]
+    (filter (fn [elem]
+              (#{"QUEUED""RUNNING"} (:status elem)))
+            analysis)))
 
 (re-frame/reg-sub
   ::continuous-mcc-tree

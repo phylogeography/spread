@@ -2,6 +2,7 @@
   (:require
    [day8.re-frame.http-fx]
    [re-frame.core :as re-frame :refer [reg-event-fx]]
+   [ui.events.analysis-results :as events.analysis-results]
    [ui.events.bayes-factor :as events.bayes-factor]
    [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
    [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
@@ -25,6 +26,7 @@
 ;;;;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :do-nothing (constantly nil))
+(reg-event-fx :user-analysis-loaded (constantly nil))
 (reg-event-fx :log-error (fn [_ ev] (js/console.error ev)))
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -63,6 +65,12 @@
 (reg-event-fx :splash/initialize-page [(re-frame/inject-cofx :localstorage)] events.splash/initialize-page)
 (reg-event-fx :splash/send-google-verification-code events.splash/send-google-verification-code)
 (reg-event-fx :splash/login-success [(re-frame/inject-cofx :localstorage)] events.splash/login-success)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Analysis results events ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(re-frame/reg-event-fx :analysis-results/initialize-page events.analysis-results/initialize-page)
+(re-frame/reg-event-fx :analysis-results/initial-query events.analysis-results/initial-query)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;

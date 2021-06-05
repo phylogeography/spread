@@ -136,8 +136,8 @@
                                                            }}"
                                 :variables {:id id}}])
   {:db (-> db
-           (assoc-in [:new-analysis :continuous-mcc-tree :parser-id] id)
-           (assoc-in [:parsers id :status] status))})
+           (assoc-in [:new-analysis :continuous-mcc-tree :id] id)
+           (assoc-in [:analysis id :status] status))})
 
 (defmethod handler :update-continuous-tree
   [{:keys [db]} _ {:keys [id status]}]
@@ -146,20 +146,20 @@
                                                   startContinuousTreeParser(id: $id) {
                                                     id
                                                     status
-                                                }
-                                              }"
+                                                }}"
                                   :variables {:id id}}]]))
 
-  {:db (assoc-in db [:parsers id :status] status)})
+  {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :start-continuous-tree-parser
   [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:parsers id :status] status)})
+  {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :get-continuous-tree
-  [{:keys [db]} _ {:keys [attribute-names]}]
-  {:db (update-in db [:new-analysis :continuous-mcc-tree]
-                  assoc :attribute-names attribute-names)})
+  [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
+  {:db (-> db
+           (assoc-in [:new-analysis :continuous-mcc-tree :attribute-names] attribute-names)
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :upload-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
@@ -173,13 +173,14 @@
                                                            }}"
                                 :variables {:id id}}])
   {:db (-> db
-           (assoc-in [:new-analysis :discrete-mcc-tree :parser-id] id)
-           (assoc-in [:parsers id :status] status))})
+           (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
+           (assoc-in [:analysis id :status] status))})
 
 (defmethod handler :get-discrete-tree
-  [{:keys [db]} _ {:keys [attribute-names]}]
-  {:db (update-in db [:new-analysis :discrete-mcc-tree]
-                  assoc :attribute-names attribute-names)})
+  [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
+  {:db (-> db
+           (assoc-in [:new-analysis :discrete-mcc-tree :attribute-names] attribute-names)
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :update-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
@@ -191,11 +192,11 @@
                                                 }
                                               }"
                                   :variables {:id id}}]]))
-  {:db (assoc-in db [:parsers id :status] status)})
+  {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :start-discrete-tree-parser
   [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:parsers id :status] status)})
+  {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :upload-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id status]}]
@@ -209,8 +210,8 @@
                                                            }}"
                                 :variables {:id id}}])
   {:db (-> db
-           (assoc-in [:new-analysis :bayes-factor :parser-id] id)
-           (assoc-in [:parsers id :status] status))})
+           (assoc-in [:new-analysis :bayes-factor :id] id)
+           (assoc-in [:analysis id :status] status))})
 
 (defmethod handler :update-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id status]}]
@@ -222,20 +223,24 @@
                                                 }
                                               }"
                                   :variables {:id id}}]]))
-  {:db (assoc-in db [:parsers id :status] status)})
+  {:db (assoc-in db [:analysis id :status] status)})
+
+(defmethod handler :get-bayes-factor-analysis
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (-> db
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:parsers id :status] status)})
+  {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :parser-status
   [{:keys [db]} _ {:keys [id status of-type] :as parser}]
   (log/debug "parser-status handler" parser)
+  ;; NOTE: if worker parsed attributes query them
+  ;; if analysis ended stop the subscription
   (match [status of-type]
-
-         ;; TODO : handle other types
          ["ATTRIBUTES_PARSED" "CONTINUOUS_TREE"]
-         ;; NOTE: if worker parsed attributes query them
          (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {
                                                           id
@@ -259,20 +264,20 @@
 
          :else nil)
 
-  {:db (update-in db [:parsers id]
+  {:db (update-in db [:analysis id]
                   merge
                   parser)})
 
-;; TODO : test
 (defmethod handler :upload-time-slicer
   [{:keys [db]} _ {:keys [id status]}]
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
-           (assoc-in [:parsers id :status] status))})
+           (assoc-in [:analysis id :status] status))})
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
-  {:db (assoc-in db [:user-analysis :analysis] analysis)})
+  (>evt [:user-analysis-loaded])
+  {:db (assoc db :analysis (zipmap (map :id analysis) analysis))})
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]

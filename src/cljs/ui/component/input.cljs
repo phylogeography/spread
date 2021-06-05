@@ -1,13 +1,15 @@
 (ns ui.component.input)
 
 (defn text-input
-  [{:keys [on-change value class]}]
+  [{:keys [on-change value class read-only?]}]
   [:input {:type      :text
+           :readOnly  read-only?
            :class     class
            :value     value
            :on-change (fn [^js event]
-                        (let [value (-> event .-target .-value)]
-                          (on-change value)))}])
+                        (when on-change
+                          (let [value (-> event .-target .-value)]
+                            (on-change value))))}])
 
 (defn amount-input [{:keys [class value on-change]}]
   [:input {:type      :text
@@ -44,8 +46,8 @@
   [:input {:type      :range
            :class     class
            :value     value
-           :min min
-           :max max
+           :min       min
+           :max       max
            :on-change (fn [^js event]
                         (let [value (-> event .-target .-value)]
                           (on-change value)))}])
