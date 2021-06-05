@@ -26,11 +26,24 @@
 (re-frame/reg-sub
   ::analysis
   (fn [db]
-    (sort-by :created-on (-> db :analysis vals vec))))
+    (-> db :analysis)))
+
+(re-frame/reg-sub
+  ::sorted-analysis
+  :<- [::analysis]
+  (fn [analysis]
+    (sort-by :created-on (-> analysis vals vec))))
+
+;; TODO
+(re-frame/reg-sub
+  ::analysis-results
+  :<- [::analysis]
+  (fn [analysis [_ id]]
+    (get analysis id)))
 
 (re-frame/reg-sub
   ::completed-analysis
-  :<- [::analysis]
+  :<- [::sorted-analysis]
   (fn [analysis]
     (filter (fn [elem]
               (#{"ERROR" "SUCCEEDED"} (:status elem)))
@@ -51,7 +64,7 @@
 
 (re-frame/reg-sub
   ::queued-analysis
-  :<- [::analysis]
+  :<- [::sorted-analysis]
   (fn [analysis]
     (filter (fn [elem]
               (#{"QUEUED""RUNNING"} (:status elem)))
