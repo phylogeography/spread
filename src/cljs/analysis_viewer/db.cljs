@@ -1,5 +1,8 @@
 (ns analysis-viewer.db
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as str]))
+
+(s/def :html/color (s/and string? #(str/starts-with? % "#")))
 
 (s/def :cartesian/coord (s/tuple number? number?))
 
@@ -26,6 +29,7 @@
 (s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object))
 
 (s/def :analysis.linear-attribute/range (s/tuple number? number?))
+(s/def :analysis.linear-attribute/color-range (s/tuple :html/color :html/color))
 (s/def :analysis/linear-attributes (s/map-of string? :analysis.linear-attribute/range))
 
 (s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
@@ -43,6 +47,13 @@
 (s/def :parameter/labels-color string?)
 (s/def :parameter/labels-size number?)
 
+(s/def :parameter/linear-attribute (s/tuple string?
+                                            :analysis.linear-attribute/range
+                                            :analysis.linear-attribute/color-range))
+(s/def :parameter/transitions-attribute :parameter/linear-attribute)
+(s/def :parameter/circles-attribute :parameter/linear-attribute)
+(s/def :parameter/nodes-attribute :parameter/linear-attribute)
+
 (s/def :ui/parameters (s/keys :req-un [:parameter/map-borders-color
                                        :parameter/polygons-color
                                        :parameter/polygons-opacity
@@ -54,7 +65,10 @@
                                        :parameter/nodes-color
                                        :parameter/nodes-size
                                        :parameter/labels-color
-                                       :parameter/labels-size]))
+                                       :parameter/labels-size]
+                              :opt-un [:parameter/transitions-attribute
+                                       :parameter/circles-attribute
+                                       :parameter/nodes-attribute]))
 
 (s/def :animation/percentage (s/and number? #(<= 0 % 1)))
 (s/def :animation/state #{:stop :play})

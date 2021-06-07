@@ -1,6 +1,7 @@
 (ns analysis-viewer.subs
   (:require [analysis-viewer.svg-renderer :as svg-renderer]
-            [re-frame.core :refer [reg-sub]]))
+            [re-frame.core :refer [reg-sub]]
+            [shared.math-utils :as math-utils]))
 
 (defn geo-json-data-map [db-maps]
   (let [maps {:type "FeatureCollection"
@@ -55,6 +56,32 @@
  (fn [db _]
    (:analysis/data db)))
 
+(defn color-object [obj [attr-key [from to] [color-from color-to]]]
+  (let [obj-attr-val (get (:attrs obj) (keyword attr-key))
+        perc (/ (- obj-attr-val from)  (- to from))
+        color (math-utils/calculate-color color-from color-to perc)]
+    (assoc obj :attr-color color)))
+
+(defn color-data-objects [data obj-type attr]
+  (->> data
+       (mapv (fn [[obj-id obj]]               
+               (if (= (:type obj) obj-type)
+                 [obj-id (color-object obj attr)]
+                 [obj-id obj])))
+       (into {})))
+
+(reg-sub
+ :analysis/colored-data
+ :<- [:analysis/data]
+ :<- [:ui/parameters]
+ (fn [[data params] _]
+   (cond
+     (:transitions-attribute params) (color-data-objects data :arc (get params :transitions-attribute))
+     ;; TODO: fix after creating circle type
+     (:circles-attribute params)     (color-data-objects data :point (get params :transitions-attribute))
+     (:nodes-attribute params)       (color-data-objects data :point (get params :transitions-attribute))
+     :else data)))
+
 (reg-sub
  :analysis.data/type
  (fn [db _]
@@ -83,6 +110,11 @@
  :<- [:analysis/possible-objects-ids]
  (fn [[objects-map pos-obj-ids] _]
    (vals (select-keys objects-map pos-obj-ids))))
+
+(reg-sub
+ :analysis/linear-attributes
+ (fn [db _]
+   (:analysis/linear-attributes db)))
 
 (reg-sub
  :map/popup-coord

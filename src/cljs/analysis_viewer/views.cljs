@@ -59,7 +59,7 @@
        :fill polygons-color
        :opacity polygons-opacity}]]))
 
-(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id]} scale time-perc params]
+(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id attr-color]} scale time-perc params]
   (let [{:keys [transitions? transitions-color transitions-width transitions-curvature missiles?]} params
         show? (and (<= show-start time-perc show-end)
                    transitions?)
@@ -70,16 +70,17 @@
         [x2 y2] to-coord
         {:keys [f1]} (math-utils/quad-curve-focuses x1 y1 x2 y2 transitions-curvature)
         [f1x f1y] f1
+        effective-color (or attr-color transitions-color) ;; attribute color takes precedence over transitions color
         curve-path-info {:id id
                          :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
-                         :stroke transitions-color
+                         :stroke effective-color
                          :stroke-width transitions-width
                          :fill :transparent}
         missile-size 0.3]
     ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r 0.05 :fill transitions-color}] 
-     [:circle {:cx x2 :cy y2 :r 0.05 :fill transitions-color}]
+     [:circle {:cx x1 :cy y1 :r 0.05 :fill effective-color}] 
+     [:circle {:cx x2 :cy y2 :r 0.05 :fill effective-color}]
      [:path (if clip-perc
 
               ;; animated dashed curves
@@ -164,7 +165,7 @@
 
 (defn data-group []
   (let [time @(re-frame/subscribe [:animation/percentage])
-        analysis-data  (vals @(re-frame/subscribe [:analysis/data]))
+        analysis-data  (vals @(re-frame/subscribe [:analysis/colored-data]))
         {:keys [scale]} @(re-frame/subscribe [:map/state])
         params (merge @(subscribe [:ui/parameters])
                       @(subscribe [:switch-buttons/states]))]
@@ -386,6 +387,31 @@
         (when (= selected-color c)
           [:i.zmdi.zmdi-check])])]))
 
+(defn attribute-color-chooser [key]
+  (let [attributes @(subscribe [:analysis/linear-attributes])
+        [attr-key attr-range color-range] @(subscribe [:ui/parameters key])
+        [color-from color-to] (or color-range ["#ffffff" "#ffffff"])]
+    [:div.attribute-color-chooser
+     [:select.attribute {:on-change #(let [sel-attr-key (-> % .-target .-value)]
+                                       (dispatch [:parameters/select key [sel-attr-key
+                                                                          (get attributes sel-attr-key)
+                                                                          [color-from color-to]]]))
+                         :value (or attr-key (ffirst attributes))}
+      (for [a (keys attributes)]
+        ^{:key (str a)}
+        [:option {:value a} a])]
+     [:div
+      [:input (cond-> {:type :color
+                       :on-change #(dispatch [:parameters/select key [attr-key
+                                                                      attr-range
+                                                                      [(-> % .-target .-value) color-to]]])}
+                color-from (assoc :value color-from))]
+      [:input (cond-> {:type :color
+                       :on-change #(dispatch [:parameters/select key [attr-key
+                                                                      attr-range
+                                                                      [color-from (-> % .-target .-value)]]])}
+                color-to (assoc :value color-to))]]]))
+
 (defn continuous-tree-map-settings []
   [:div.map-settings
    [color-chooser {:param-name :map-borders-color}]])
@@ -396,6 +422,8 @@
     [:label.missile "Missiles"] [switch-button {:id :missiles?}]]
    
    [color-chooser {:param-name :transitions-color}]
+
+   [attribute-color-chooser :transitions-attribute]
 
    [:div
     [:label "Curvature"]
