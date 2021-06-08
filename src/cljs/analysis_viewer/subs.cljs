@@ -138,25 +138,28 @@
           (map-indexed (fn [idx tick]
                          (assoc tick :x (+ (* idx tick-gap) ticks-x-base))))))))
 
+(defn build-map-parameters [ui-params switch-buttons-states]
+  {:poly-fill-color "#ffffff"
+   :poly-stroke-color (if (get switch-buttons-states :map-borders?)
+                        (get ui-params :map-borders-color "#079DAB")
+                        :transparent)
+   :poly-stroke-width "0.02"
+   :line-color "#B20707"
+   :line-width "0.1"
+   :text-color (if (get switch-buttons-states :labels?)
+                 (get ui-params :map-borders-color "#079DAB")
+                 :transparent)
+   :text-size (:labels-size ui-params)                         
+   :point-color (:nodes-color ui-params)
+   :point-radius (:nodes-size ui-params)
+   :background-color "#ECEFF8"})
+
 (reg-sub
  :map/parameters
  :<- [:ui/parameters]
  :<- [:switch-buttons/states]
  (fn [[params buttons-states] [_]]
-   {:poly-fill-color "#ffffff"
-    :poly-stroke-color (if (get buttons-states :map-borders?)
-                         (get params :map-borders-color "#079DAB")
-                         :transparent)
-    :poly-stroke-width "0.02"
-    :line-color "#B20707"
-    :line-width "0.1"
-    :text-color (if (get buttons-states :labels?)
-                  (get params :map-borders-color "#079DAB")
-                  :transparent)
-    :text-size (:labels-size params)                         
-    :point-color (:nodes-color params)
-    :point-radius (:nodes-size params)
-    :background-color "#ECEFF8"}))
+   (build-map-parameters params buttons-states)))
 
 (reg-sub
  :collapsible-tabs/tabs

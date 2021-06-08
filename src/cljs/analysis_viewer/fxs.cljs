@@ -43,10 +43,8 @@
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg
- (fn [{:keys [geo-json-map analysis-data time]}]
-   (let [params @(re-frame/subscribe [:ui/parameters])
-         map-options @(re-frame/subscribe [:map/parameters])
-         svg-text (html (data-map geo-json-map analysis-data time map-options params))
+ (fn [{:keys [geo-json-map analysis-data time map-params ui-params]}]
+   (let [svg-text (html (data-map geo-json-map analysis-data time map-params ui-params))
          download-anchor (js/document.createElement "a")]
 
      (.setAttribute download-anchor "href" (str "data:image/svg+xml;charset=utf-8," (js/encodeURIComponent svg-text)))
