@@ -164,6 +164,12 @@ button {
 	margin-top: 4px;
 }
 
+.attribute-color-chooser {
+	display: flex;
+	width: 100%;
+	justify-content: space-between;
+}
+
 /*******************/
 /* Layers settings */
 /*******************/
@@ -211,6 +217,10 @@ button {
 	flex-direction: column;
 }
 
+.circles-settings .attribute-color-chooser {
+	margin-bottom:12px;
+}
+
 /********************/
 /* Nodes settings */
 /********************/
@@ -219,6 +229,10 @@ button {
 	align-items: center;
 	flex-direction: column;
 }
+.nodes-settings .attribute-color-chooser {
+	margin-bottom:12px;
+}
+
 
 /************************/
 /* Transitions settings */
@@ -230,6 +244,9 @@ button {
 	align-items: center;
 }
 
+.transitions-settings .attribute-color-chooser {
+	margin-bottom:12px;
+}
 /*****************/
 /* Animated map  */
 /*****************/
@@ -321,3 +338,4 @@ button {
 .animation-controls .inner .buttons i.zmdi-play{
 	font-size: 40px;    
 }
+
