@@ -129,9 +129,8 @@
     (println (gstr/format "Discrete tree, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
     (index-objects objects)))
 
-(defn bayes-output->map-data [{:keys [locations layers points lines]}]
-  (let [layer (first layers)
-        locations-index (->> locations
+(defn bayes-output->map-data [{:keys [locations points lines]}]
+  (let [locations-index (->> locations
                              (map (fn [l] [(:id l) l]))
                              (into {}))
         points-index (build-points-index points)        
