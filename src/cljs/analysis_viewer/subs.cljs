@@ -57,10 +57,14 @@
    (:analysis/data db)))
 
 (defn color-object [obj [attr-key [from to] [color-from color-to]]]
-  (let [obj-attr-val (get (:attrs obj) (keyword attr-key))
-        perc (/ (- obj-attr-val from)  (- to from))
-        color (math-utils/calculate-color color-from color-to perc)]
-    (assoc obj :attr-color color)))
+  
+  (if-let [obj-attr-val (get (:attrs obj) (keyword attr-key))]
+    (let [perc (/ (- obj-attr-val from)  (- to from))
+          color (math-utils/calculate-color color-from color-to perc)]
+      (assoc obj :attr-color color))
+    (do
+      (println "The object " obj "doesn't contain attr " attr-key)
+     obj)))
 
 (defn color-data-objects [data obj-type attr]
   (->> data

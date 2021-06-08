@@ -400,17 +400,16 @@
       (for [a (keys attributes)]
         ^{:key (str a)}
         [:option {:value a} a])]
-     [:div
-      [:input (cond-> {:type :color
-                       :on-change #(dispatch [:parameters/select key [attr-key
-                                                                      attr-range
-                                                                      [(-> % .-target .-value) color-to]]])}
-                color-from (assoc :value color-from))]
-      [:input (cond-> {:type :color
-                       :on-change #(dispatch [:parameters/select key [attr-key
-                                                                      attr-range
-                                                                      [color-from (-> % .-target .-value)]]])}
-                color-to (assoc :value color-to))]]]))
+     [:input (cond-> {:type :color
+                      :on-change #(dispatch [:parameters/select key [attr-key
+                                                                     attr-range
+                                                                     [(-> % .-target .-value) color-to]]])}
+               color-from (assoc :value color-from))]
+     [:input (cond-> {:type :color
+                      :on-change #(dispatch [:parameters/select key [attr-key
+                                                                     attr-range
+                                                                     [color-from (-> % .-target .-value)]]])}
+               color-to (assoc :value color-to))]]))
 
 (defn continuous-tree-map-settings []
   [:div.map-settings
@@ -425,25 +424,23 @@
 
    [attribute-color-chooser :transitions-attribute]
 
-   [:div
-    [:label "Curvature"]
-    [slider {:inc-buttons 0.1
-             :min-val 0.1
-             :max-val 2
-             :length 140
-             :vertical? false
-             :subs-vec [:ui/parameters :transitions-curvature]
-             :ev-vec [:parameters/select :transitions-curvature]}]]
+   [:label "Curvature"]
+   [slider {:inc-buttons 0.1
+            :min-val 0.1
+            :max-val 2
+            :length 140
+            :vertical? false
+            :subs-vec [:ui/parameters :transitions-curvature]
+            :ev-vec [:parameters/select :transitions-curvature]}]
 
-   [:div
-    [:label "Width"]
-    [slider {:inc-buttons 0.05
-             :min-val 0
-             :max-val 0.3
-             :length 140
-             :vertical? false
-             :subs-vec [:ui/parameters :transitions-width]
-             :ev-vec [:parameters/select :transitions-width]}]]])
+   [:label "Width"]
+   [slider {:inc-buttons 0.05
+            :min-val 0
+            :max-val 0.3
+            :length 140
+            :vertical? false
+            :subs-vec [:ui/parameters :transitions-width]
+            :ev-vec [:parameters/select :transitions-width]}]])
 
 (defn continuous-polygons-settings []
   [:div.polygons-settings
@@ -497,6 +494,7 @@
 (defn discrete-circles-settings []
   [:div.circles-settings
    [color-chooser {:param-name :circles-color}]
+   [attribute-color-chooser :circles-attribute]
    [:label "Size"]
    [slider {:inc-buttons 0.1
             :min-val 0
@@ -509,6 +507,7 @@
 (defn discrete-nodes-settings []
   [:div.nodes-settings
    [color-chooser {:param-name :nodes-color}]
+   [attribute-color-chooser :nodes-attribute]
    [:label "Size"]
    [slider {:inc-buttons 0.1
             :min-val 0
