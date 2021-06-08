@@ -173,10 +173,14 @@
 (defn toggle-show-world [{:keys [db]} _]
   {:db (update-in db [:map/state :show-world?] not)})
 
-(defn download-current-as-svg [{:keys [db]} [_ ]]
-  {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps/data db))
-                                        :analysis-data (:analysis/data db)
-                                        :time (:animation/percentage db)}})
+(defn download-current-as-svg [{:keys [db]} [_ ]]  
+  (let [ui-params (:ui/parameters db)
+        map-params (subs/build-map-parameters (:ui/parameters db) (:switch-buttons/states db))]
+    {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps/data db))
+                                          :analysis-data (:analysis/data db)
+                                          :time (:animation/percentage db)
+                                          :ui-params ui-params
+                                          :map-params map-params}}))
 
 (def tick-step 0.000750188)
 (defn ticker-tick [{:keys [db]} _]
