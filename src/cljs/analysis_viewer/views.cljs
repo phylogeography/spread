@@ -21,7 +21,7 @@
 ;; as svg elements                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-point-object [{:keys [coord show-start show-end count-attr id]} scale time-perc params]
+(defn svg-point-object [{:keys [coord show-start show-end count-attr id]} _ time-perc params]
   (let [{:keys [nodes? circles? nodes-radius nodes-color circles-radius circles-color]} params
         point-type (if count-attr :circle :node)
         show? (and (<= show-start time-perc show-end)
@@ -59,7 +59,7 @@
        :fill polygons-color
        :opacity polygons-opacity}]]))
 
-(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id attr-color]} scale time-perc params]
+(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id attr-color]} _ time-perc params]
   (let [{:keys [transitions? transitions-color transitions-width transitions-curvature missiles?]} params
         show? (and (<= show-start time-perc show-end)
                    transitions?)

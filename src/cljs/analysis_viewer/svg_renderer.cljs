@@ -4,9 +4,8 @@
   Api :
   - geojson->svg
   "
-  (:require [clojure.string :as str]
-            [shared.math-utils :as math-utils]
-            [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [clojure.string :as str]))
 
 (def ^:dynamic *coord-transform-fn* identity)
 
