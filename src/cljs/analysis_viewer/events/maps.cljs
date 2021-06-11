@@ -40,9 +40,10 @@
   (let [all-coords (->> objects
                         (mapcat (fn [o]
                                   (case (:type o)
-                                    :arc [(:from-coord o) (:to-coord o)]
-                                    :point [(:coord o)]
-                                    :area (:coords o)))))]
+                                    :transition [(:from-coord o) (:to-coord o)]
+                                    :node [(:coord o)]
+                                    :circle [(:coord o)]
+                                    :polygon (:coords o)))))]
     {:x1 (apply min (map first all-coords))
      :y1 (apply min (map second all-coords))
      :x2 (apply max (map first all-coords))
