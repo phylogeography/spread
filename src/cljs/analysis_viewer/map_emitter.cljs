@@ -4,20 +4,29 @@
   analysis output formats for (continuouse-tree, discrete-tree, bayes and timeslicer)
   and emit a data format suitable for the animated map component.
 
+  It also renames some concepts :
+
+  Output format - Analysis viewer
+
+  Points        -> Nodes
+  Counts        -> Circles
+  Lines         -> Transitions
+  Areas         -> Polygons 
+  
   Emited data is in the form of :
 
-  [{:type :arc
+  [{:type :transition
     :from-coord [10 100]
     :to-coord [115 20]
     :attrs {}
     :show-start 0.2
     :show-end 0.3}
-   {:type :point
+   {:type :node
     :coord [123 170]
     :attrs {}
     :show-start 0.2
     :show-end 0.3}
-   {:type :area
+   {:type :polygon
     :coords [[10 30] [40 80] [100 100]]
     :attrs {}
     :show-start 0.2
@@ -62,71 +71,84 @@
 (defn continuous-tree-output->map-data [{:keys [timeline points lines areas]}]  
   (let [calc-show-percs (build-show-percentages-calculator timeline)
         points-index (build-points-index points)
-        points-objects (->> points
-                            (map (fn [{:keys [coordinate attributes] :as point}]
-                                   (merge
-                                    {:type :point
-                                     :coord (calc-proj-coord coordinate)                                      
-                                     :attrs attributes}
-                                    (calc-show-percs point)))))
-        arcs-objects (->> lines
-                           (map (fn [{:keys [startPointId endPointId attributes] :as line}]
-                                  (let [start-point (get points-index startPointId)
-                                        end-point (get points-index endPointId)]
-                                    (merge
-                                     {:type :arc
-                                      :from-coord (calc-proj-coord (:coordinate start-point))
-                                      :to-coord (calc-proj-coord (:coordinate end-point))
-                                      :attrs attributes}
-                                     (calc-show-percs line))))))
-        area-objects (->> areas
-                          (map (fn [{:keys [polygon] :as area}]
-                                 (merge
-                                  {:type :area
-                                   :coords (->> (:coordinates polygon)
-                                                (mapv (fn [poly-point]
-                                                        (calc-proj-coord poly-point))))
-                                   :attrs {}}
-                                  (calc-show-percs area)))))        
-        objects (concat area-objects arcs-objects points-objects)]
+        nodes-objects (->> points
+                           (map (fn [{:keys [coordinate attributes] :as point}]
+                                  (merge
+                                   {:type :node
+                                    :coord (calc-proj-coord coordinate)                                      
+                                    :attrs attributes}
+                                   (calc-show-percs point)))))
+        transitions-objects (->> lines
+                                 (map (fn [{:keys [startPointId endPointId attributes] :as line}]
+                                        (let [start-point (get points-index startPointId)
+                                              end-point (get points-index endPointId)]
+                                          (merge
+                                           {:type :transition
+                                            :from-coord (calc-proj-coord (:coordinate start-point))
+                                            :to-coord (calc-proj-coord (:coordinate end-point))
+                                            :attrs attributes}
+                                           (calc-show-percs line))))))
+        polygons-objects (->> areas
+                              (map (fn [{:keys [polygon] :as area}]
+                                     (merge
+                                      {:type :polygon
+                                       :coords (->> (:coordinates polygon)
+                                                    (mapv (fn [poly-point]
+                                                            (calc-proj-coord poly-point))))
+                                       :attrs {}}
+                                      (calc-show-percs area)))))        
+        objects (concat polygons-objects transitions-objects nodes-objects)]
     (println timeline)
-    (println (gstr/format "Continuous tree, got %d points, %d arcs, %d areas" (count points-objects) (count arcs-objects) (count area-objects)))
+    (println (gstr/format "Continuous tree, got %d nodes, %d transitions, %d polygons"
+                          (count nodes-objects)
+                          (count transitions-objects)
+                          (count polygons-objects)))
     (index-objects objects)))
 
 (defn discrete-tree-output->map-data [{:keys [timeline locations points lines counts]}]
-  (let [calc-show-percs (build-show-percentages-calculator timeline)
-        all-points (concat points counts)
+  (let [calc-show-percs (build-show-percentages-calculator timeline)         
         locations-index (->> locations
                              (map (fn [l] [(:id l) l]))
                              (into {}))
-        points-index (build-points-index all-points)        
+        points-index (build-points-index (concat points counts))        
         point-coordinate (fn [point-id]
                            (->> (get points-index point-id)
                                 :locationId
                                 (get locations-index)
                                 :coordinate))
-        points-objects (->> all-points
-                            (map (fn [{:keys [id attributes] :as point}]
-                                   (let [coordinate (point-coordinate id)]
-                                     (cond-> (merge
-                                              {:type :point
-                                               :coord (calc-proj-coord coordinate)                                      
-                                               :attrs attributes
-                                               :count-attr (get attributes :count)}
-                                              (calc-show-percs point)))))))
-        arcs-objects (->> lines
-                          (map (fn [{:keys [startPointId endPointId attributes] :as line}]
-                                 (let [start-point (get points-index startPointId)
-                                       end-point (get points-index endPointId)]
-                                   (merge
-                                    {:type :arc
-                                     :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
-                                     :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
-                                     :attrs attributes}
-                                    (calc-show-percs line))))))
-        objects (concat arcs-objects points-objects)]
+        nodes-objects (->> points                           
+                           (map (fn [{:keys [id attributes] :as point}]
+                                  (let [coordinate (point-coordinate id)]
+                                    (cond-> (merge
+                                             {:type :node
+                                              :coord (calc-proj-coord coordinate)                                      
+                                              :attrs attributes}
+                                             (calc-show-percs point)))))))
+        circles-objects (->> counts
+                             (map (fn [{:keys [id attributes] :as point}]
+                                    (let [coordinate (point-coordinate id)]
+                                      (cond-> (merge
+                                               {:type :circle
+                                                :coord (calc-proj-coord coordinate)                                      
+                                                :attrs attributes
+                                                :count-attr (get attributes :count)}
+                                               (calc-show-percs point))))))) 
+        transitions-objects (->> lines
+                                 (map (fn [{:keys [startPointId endPointId attributes] :as line}]
+                                        (let [start-point (get points-index startPointId)
+                                              end-point (get points-index endPointId)]
+                                          (merge
+                                           {:type :transition
+                                            :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
+                                            :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
+                                            :attrs attributes}
+                                           (calc-show-percs line))))))
+        objects (concat transitions-objects nodes-objects circles-objects)]
     (println timeline)
-    (println (gstr/format "Discrete tree, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
+    (println (gstr/format "Discrete tree, got %d nodes, %d transitions, %d circles"
+                          (count nodes-objects)
+                          (count transitions-objects)
+                          (count circles-objects)))
     (index-objects objects)))
 
 (defn bayes-output->map-data [{:keys [locations points lines]}]
@@ -139,25 +161,27 @@
                                 :locationId
                                 (get locations-index)
                                 :coordinate))
-        points-objects (->> points
-                            (map (fn [{:keys [id attributes]}]
-                                   (let [coordinate (point-coordinate id)]
-                                     {:type :point
-                                      :show-start 0
-                                      :show-end 1
-                                      :coord (calc-proj-coord coordinate)                                      
-                                      :attrs attributes}))))
-        arcs-objects (->> lines
-                          (map (fn [{:keys [startPointId endPointId attributes]}]
-                                 (let [start-point (get points-index startPointId)
-                                       end-point (get points-index endPointId)]
-                                   {:type :arc
-                                    :show-start 0
-                                    :show-end 1
-                                    :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
-                                    :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
-                                    :attrs attributes}))))
-        objects (concat arcs-objects points-objects)]
-    (println (gstr/format "Bayes analysis, got %d points, %d arcs" (count points-objects) (count arcs-objects)))
+        nodes-objects (->> points
+                           (map (fn [{:keys [id attributes]}]
+                                  (let [coordinate (point-coordinate id)]
+                                    {:type :node
+                                     :show-start 0
+                                     :show-end 1
+                                     :coord (calc-proj-coord coordinate)                                      
+                                     :attrs attributes}))))
+        transitions-objects (->> lines
+                                 (map (fn [{:keys [startPointId endPointId attributes]}]
+                                        (let [start-point (get points-index startPointId)
+                                              end-point (get points-index endPointId)]
+                                          {:type :transition
+                                           :show-start 0
+                                           :show-end 1
+                                           :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
+                                           :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
+                                           :attrs attributes}))))
+        objects (concat transitions-objects nodes-objects)]
+    (println (gstr/format "Bayes analysis, got %d nodes, %d transitions"
+                          (count nodes-objects)
+                          (count transitions-objects)))
     (index-objects objects)))
 

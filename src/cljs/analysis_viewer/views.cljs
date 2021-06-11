@@ -16,39 +16,39 @@
   5)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; The next three functions render primitive analysis output objects (points, arcs and areas) ;;
-;; as svg elements                                                                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn svg-point-object [{:keys [coord show-start show-end count-attr id]} _ time-perc params]
-  (let [{:keys [nodes? circles? nodes-radius nodes-color circles-radius circles-color]} params
-        point-type (if count-attr :circle :node)
+(defn svg-node-object [{:keys [coord show-start show-end id]} _ time-perc params]
+  (let [{:keys [nodes? nodes-radius nodes-color]} params
         show? (and (<= show-start time-perc show-end)
-                   (or (and (= point-type :circle) circles?)
-                       (and (= point-type :node) nodes?)))
-        r (case point-type
-            :circle (* circles-radius count-attr)
-            :node (* nodes-radius 0.5))
-        color (case point-type
-                :circle circles-color
-                :node nodes-color)
+                   nodes?)
         [x1 y1] coord]
     
-    ;; TODO: add attrs
     [:g {:style {:display (if show? :block :none)}}
      [:circle {:id id
                :cx x1
                :cy y1
-               :r r
+               :r (* nodes-radius 0.5)
                :opacity 0.2
-               :fill color}]]))
+               :fill nodes-color}]]))
 
-(defn svg-area-object [{:keys [coords show-start show-end id]} _ time-perc params]
+(defn svg-circle-object [{:keys [coord show-start show-end count-attr id]} _ time-perc params]
+  (let [{:keys [circles? circles-radius circles-color]} params
+        show? (and (<= show-start time-perc show-end)
+                   circles?)
+        [x1 y1] coord]
+    
+    [:g {:style {:display (if show? :block :none)}}
+     [:circle {:id id
+               :cx x1
+               :cy y1
+               :r (* circles-radius count-attr)
+               :opacity 0.2
+               :fill circles-color}]]))
+
+(defn svg-polygon-object [{:keys [coords show-start show-end id]} _ time-perc params]
   (let [{:keys [polygons? polygons-color polygons-opacity]} params
         show? (and (<= show-start time-perc show-end)
                    polygons?)]
-    ;; TODO: add attrs
+    
     [:g {:style {:display (if show? :block :none)}}
      [:polygon
       {:id id
@@ -59,7 +59,7 @@
        :fill polygons-color
        :opacity polygons-opacity}]]))
 
-(defn svg-quad-curve-object [{:keys [from-coord to-coord show-start show-end id attr-color]} _ time-perc params]
+(defn svg-transition-object [{:keys [from-coord to-coord show-start show-end id attr-color]} _ time-perc params]
   (let [{:keys [transitions? transitions-color transitions-width transitions-curvature missiles?]} params
         show? (and (<= show-start time-perc show-end)
                    transitions?)
@@ -77,7 +77,7 @@
                          :stroke-width transitions-width
                          :fill :transparent}
         missile-size 0.3]
-    ;; TODO: add attrs
+    
     [:g {:style {:display (if show? :block :none)}}
      [:circle {:cx x1 :cy y1 :r 0.05 :fill effective-color}] 
      [:circle {:cx x2 :cy y2 :r 0.05 :fill effective-color}]
@@ -96,9 +96,10 @@
 
 (defn map-primitive-object [{:keys [type] :as primitive-object} scale time params]
   (case type
-    :arc   (svg-quad-curve-object primitive-object scale time params)
-    :point (svg-point-object primitive-object scale time params)
-    :area  (svg-area-object primitive-object scale time params)))
+    :transition (svg-transition-object primitive-object scale time params)
+    :node (svg-node-object primitive-object scale time params)
+    :circle (svg-circle-object primitive-object scale time params)
+    :polygon (svg-polygon-object primitive-object scale time params)))
 
 (def left-button  0)
 (def wheel-button 1)

@@ -80,10 +80,9 @@
  :<- [:ui/parameters]
  (fn [[data params] _]
    (cond
-     (:transitions-attribute params) (color-data-objects data :arc (get params :transitions-attribute))
-     ;; TODO: fix after creating circle type
-     (:circles-attribute params)     (color-data-objects data :point (get params :transitions-attribute))
-     (:nodes-attribute params)       (color-data-objects data :point (get params :transitions-attribute))
+     (:transitions-attribute params) (color-data-objects data :transition (get params :transitions-attribute))
+     (:circles-attribute params)     (color-data-objects data :circle (get params :circles-attribute))
+     (:nodes-attribute params)       (color-data-objects data :node (get params :nodes-attribute))
      :else data)))
 
 (reg-sub
