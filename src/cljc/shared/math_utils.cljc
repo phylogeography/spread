@@ -155,3 +155,14 @@
                                   (+ (* perc gs) (* (- 1 perc) ge))
                                   (+ (* perc bs) (* (- 1 perc) be))])] 
     color))
+
+(defn calc-perc [from to x]
+  (/ (- x from) (- to from)))
+
+(defn build-scaler
+  "Builds a function that given a number in [orig-from...orig-to] range will
+  yield a proportional number in the [dest-from...dest-to] range."
+  [orig-from orig-to dest-from dest-to]
+  (fn [x]
+    (let [p (calc-perc orig-from orig-to x)]
+      (+ (* p (- dest-to dest-from)) dest-from))))

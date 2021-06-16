@@ -111,14 +111,24 @@
 
 
 (defn animation-controls []
-  (let [time @(subscribe [:animation/percentage])
+  (let [frame-timestamp @(subscribe [:animation/frame-timestamp])
+        [date-from-millis date-to-millis] @(subscribe [:analysis/date-range])
+        [crop-low-millis crop-high-millis] @(subscribe [:animation/crop])
+        crop-length (- crop-high-millis crop-low-millis)
         playing? (= :play @(subscribe [:animation/state]))
         ticks-data @(subscribe [:analysis/data-timeline])
+        full-length-px (apply max (map :x ticks-data))
+        date-range->px-rescale (math-utils/build-scaler date-from-millis date-to-millis 0 full-length-px)        
+        crop-sides 20
         ticks-y-base 80
         ticks-bars-y-base (- ticks-y-base 11)
-        ticks-bars-full 50                
-        full-length (apply max (map :x ticks-data))
-        play-line-x (* time full-length)]
+        ticks-bars-full 50
+        timeline-start crop-sides
+        crop-left (date-range->px-rescale crop-low-millis)
+        crop-width (+ (- (date-range->px-rescale crop-high-millis) (date-range->px-rescale crop-low-millis))
+                      (* 2 timeline-start)
+                      (- 7))
+        frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
     [:div.animation-controls
      [slider {:inc-buttons 0.8
               :min-val events.maps/min-scale
@@ -127,32 +137,43 @@
               :vertical? true
               :subs-vec [:map/scale]
               :ev-vec [:map/zoom 100 100]}]
-     [:div.inner
-      [:div.buttons
-       [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/prev])} ""]    
-       [:i.zmdi {:on-click #(dispatch [:animation/toggle-play-stop])
-                           :class (if playing? "zmdi-pause" "zmdi-play")}]
-       [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/next])} ""]]
-      [:div.timeline {:width "100%" :height "100%"}
-       [:svg {:width "100%" :height "100px"}
-        [:g
-         [:line {:x1 play-line-x :y1 0 
-                 :x2 play-line-x :y2 100
-                 :stroke "#EEBE53"
-                 :stroke-width 2}]
-         (for [{:keys [label x type perc]} ticks-data]
-           ^{:key (str x)}
-           [:g
-            [:line {:x1 x :y1 ticks-y-base
-                    :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
-                    :stroke "#3A3668"}]
-            (when (pos? perc)
-              [:line {:x1 x :y1 ticks-bars-y-base
-                    :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
-                      :stroke "red"}])
-            (when label
-              [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
-               label])])]]]]]))
+     (if (zero? frame-timestamp)
+       [:div.loading "Loading..."]
+       [:div.inner      
+        [:div.buttons
+         [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/prev])} ""]    
+         [:i.zmdi {:on-click #(dispatch [:animation/toggle-play-stop])
+                   :class (if playing? "zmdi-pause" "zmdi-play")}]
+         [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/next])} ""]]
+        [:div.timeline {:width "100%" :height "100%"}
+         ;; TODO: make this less hacky
+         [:div.crop-box {:style {:left crop-left 
+                                 :width crop-width}}
+          [:i.left.zmdi.zmdi-chevron-left   {:style {:width (str crop-sides "px")}}]        
+          [:i.right.zmdi.zmdi-chevron-right {:style {:width (str crop-sides "px")}}]]
+         [:svg {:width "100%" :height "110px"}
+          [:g
+           [:line {:x1 frame-line-x :y1 0 
+                   :x2 frame-line-x :y2 120
+                   :stroke "#EEBE53"
+                   :stroke-width 2}]
+           (for [{:keys [label x type]} ticks-data]             
+             (let [x (+ x timeline-start)]
+              ^{:key (str x)}
+              [:g
+               [:line {:x1 x :y1 ticks-y-base
+                       :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
+                       :stroke "#3A3668"}]
+               
+               ;; TODO: are we going to keep this red lines? for DT?
+               #_(when (pos? perc)
+                   [:line {:x1 x :y1 ticks-bars-y-base
+                           :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
+                           :stroke "red"}])
+               
+               (when label
+                 [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
+                  label])]))]]]])]))
 
 (defn map-group []
   (let [geo-json-map @(re-frame/subscribe [:map/data])
@@ -455,6 +476,38 @@
             :subs-vec [:ui/parameters :polygons-opacity]
             :ev-vec [:parameters/select :polygons-opacity]}]])
 
+(defn continuous-animation-settings []  
+  (let [[from-millis to-millis] @(subscribe [:analysis/date-range])
+        [crop-from-millis crop-to-millis] @(subscribe [:animation/crop])
+        df (js/Date. from-millis)
+        dt (js/Date. to-millis)
+        cf (js/Date. crop-from-millis)
+        ct (js/Date. crop-to-millis)
+        min-date-str      (gstr/format "%d-%02d-%02d" (.getUTCFullYear df) (inc (.getUTCMonth df)) (.getUTCDate df))
+        max-date-str      (gstr/format "%d-%02d-%02d" (.getUTCFullYear dt) (inc (.getUTCMonth dt)) (.getUTCDate dt))
+        crop-min-date-str (gstr/format "%d-%02d-%02d" (.getUTCFullYear cf) (inc (.getUTCMonth cf)) (.getUTCDate cf))
+        crop-max-date-str (gstr/format "%d-%02d-%02d" (.getUTCFullYear ct) (inc (.getUTCMonth ct)) (.getUTCDate ct))
+        set-new-crop (fn [crop]
+                       (dispatch [:animation/set-crop crop]))]
+    
+    [:div.animation-settings
+     [:label "From:"]
+     [:input {:type :date
+              :on-change (fn [evt]
+                           (set-new-crop [(js/Date.parse (.-value (.-target evt)))
+                                          crop-to-millis]))
+              :min min-date-str
+              :max max-date-str
+              :value crop-min-date-str}]
+     [:label "To:"]
+     [:input {:type :date
+              :on-change (fn [evt]
+                           (set-new-crop [crop-from-millis
+                                          (js/Date.parse (.-value (.-target evt)))]))
+              :min min-date-str
+              :max max-date-str
+              :value crop-max-date-str}]]))
+
 (defn continuous-tree-side-bar []
   [:div.tabs
    [collapsible-tabs {:title "Settings"
@@ -470,7 +523,10 @@
                                 :child [continuous-transitions-settings]}
                                {:title "Polygons"
                                 :id :polygons
-                                :child [continuous-polygons-settings]}]}]
+                                :child [continuous-polygons-settings]}
+                               {:title "Animation"
+                                :id :animation-settings
+                                :child [continuous-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
                       :childs []}]])
@@ -491,6 +547,7 @@
 
 (def discrete-tree-map-settings continuous-tree-map-settings)
 (def discrete-transitions-settings continuous-transitions-settings)
+(def discrete-animation-settings continuous-animation-settings)
 
 (defn discrete-circles-settings []
   [:div.circles-settings
@@ -551,7 +608,10 @@
                                 :child [discrete-nodes-settings]}
                                {:title "Labels"
                                 :id :labels
-                                :child [discrete-labels-settings]}]}]
+                                :child [discrete-labels-settings]}
+                               {:title "Animation"
+                                :id :animation-settings
+                                :child [discrete-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
                       :childs []}]])

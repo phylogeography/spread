@@ -15,23 +15,24 @@
   
   Emited data is in the form of :
 
-  [{:type :transition
-    :from-coord [10 100]
-    :to-coord [115 20]
-    :attrs {}
-    :show-start 0.2
-    :show-end 0.3}
-   {:type :node
-    :coord [123 170]
-    :attrs {}
-    :show-start 0.2
-    :show-end 0.3}
-   {:type :polygon
-    :coords [[10 30] [40 80] [100 100]]
-    :attrs {}
-    :show-start 0.2
-    :show-end 0.3}
-   ...]
+  {1 {:type :transition
+      :from-coord [10 100]
+      :to-coord [115 20]
+      :attrs {}
+      :show-start 0.2
+      :show-end 0.3}
+   2 {:type :node
+      :coord [123 170]
+      :attrs {}
+      :show-start 0.2
+      :show-end 0.3}
+   3 {:type :polygon
+      :coords [[10 30] [40 80] [100 100]]
+      :attrs {}
+      :show-start 0.2
+      :show-end 0.3}
+    ...}
+  
 
   all coordinates are in proj-coord [x y] where 0 <= x  <= 360, 0 <= y <= 180
   "

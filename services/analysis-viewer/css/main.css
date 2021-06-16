@@ -247,6 +247,17 @@ button {
 .transitions-settings .attribute-color-chooser {
 	margin-bottom:12px;
 }
+
+/**********************/
+/* Animation settings */
+/**********************/
+
+.animation-settings {
+	display: grid;
+	grid-template-columns: 30% 70%;
+    grid-row-gap: 9px;
+	font-size: 14px;
+}
 /*****************/
 /* Animated map  */
 /*****************/
@@ -327,6 +338,7 @@ button {
 	height: 164px;
 	width: 100%;
     text-align: center;
+    
 }
 
 .animation-controls .inner .buttons i{
@@ -338,4 +350,27 @@ button {
 .animation-controls .inner .buttons i.zmdi-play{
 	font-size: 40px;    
 }
+
+.animation-controls .timeline {
+	position: relative;
+}
+
+.animation-controls .crop-box {
+	display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+	position: absolute;
+	top: 0;
+	border: 5px solid #EEBE53;
+	border-radius: 10px;
+    height: 103px;    
+}
+
+.animation-controls .crop-box i{
+	background-color: #EEBE53;
+	font-size: 50px;
+	display: flex;
+    align-items: center;    
+}
+
 

@@ -21,9 +21,26 @@
    (:map/state db)))
 
 (reg-sub
- :animation/percentage
+ :animation/frame-timestamp
  (fn [db _]
-   (:animation/percentage db)))
+   (:animation/frame-timestamp db)))
+
+(reg-sub
+ :animation/percentage
+ :<- [:animation/frame-timestamp]
+ :<- [:analysis/date-range]
+ (fn [[ts [df dt]] _]
+   (math-utils/calc-perc df dt ts)))
+
+(reg-sub
+ :animation/crop
+ (fn [db _]
+   (:animation/crop db)))
+
+(reg-sub
+ :analysis/date-range
+ (fn [db _]
+   (:analysis/date-range db)))
 
 (reg-sub
  :animation/state
@@ -126,16 +143,20 @@
 
 (reg-sub
  :analysis/data-timeline
- :<- [:analysis/data]
- (fn [_ _]
-   (let [tick-gap 10
-         ticks-x-base 10]
-     (->> (range 2011 2020)
+ :<- [:analysis/date-range]
+ (fn [[from-millis to-millis] _]
+   (let [tick-gap 7
+         start-date (js/Date. from-millis)
+         start-month (.getUTCMonth start-date)
+         start-year (.getUTCFullYear start-date)
+         end-year   (.getUTCFullYear (js/Date. to-millis))]
+     (->> (range start-year end-year)
           (mapcat (fn [year]
-                    (-> (repeatedly 11 (fn [] {:label nil :type :short :perc (rand-int 100)}))
-                        (into [{:label (str year) :type :long :perc (rand-int 100)}]))))
+                    (-> (repeatedly 11 (fn [] {:label nil :type :short}))
+                        (into [{:label (str year) :type :long}]))))
+          (drop start-month) ;; discard start-month ticks from the biggining since they contain no data
           (map-indexed (fn [idx tick]
-                         (assoc tick :x (+ (* idx tick-gap) ticks-x-base))))))))
+                         (assoc tick :x (* idx tick-gap))))))))
 
 (defn build-map-parameters [ui-params switch-buttons-states]
   {:poly-fill-color "#ffffff"
