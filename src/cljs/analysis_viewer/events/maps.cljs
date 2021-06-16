@@ -189,39 +189,52 @@
                                           :ui-params ui-params
                                           :map-params map-params}}))
 
-(def tick-step (* 24 60 60 1000)) ;; advance one day per tick call
+(def tick-duration 50) ;; milliseconds
+
+(defn advance-frame-timestamp [timestamp speed plus-or-minus]
+  (let [day-in-millis (* 24 60 60 1000)
+        delta (/ (* speed day-in-millis) (/ 1000 tick-duration))]
+    (plus-or-minus timestamp delta)))
+
 (defn ticker-tick [{:keys [db]} _]
-  (let [{:keys [animation/frame-timestamp animation/crop]} db
-        [crop-low crop-high] crop]    
-    (if (>= (+ frame-timestamp tick-step) crop-high)
+  (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
+        [crop-low crop-high] crop
+        next-ts (advance-frame-timestamp frame-timestamp speed +)]
+    
+    (if (>= next-ts crop-high)
       {:db (assoc db :animation/frame-timestamp crop-high)
        :ticker/stop nil}
       
-      {:db (update db :animation/frame-timestamp #(+ % tick-step))})))
+      {:db (assoc db :animation/frame-timestamp next-ts)})))
 
-(defn animation-prev [{:keys [animation/frame-timestamp animation/crop] :as db} _]  
-  (let [[crop-low _] crop]
-    (if (<= (- frame-timestamp tick-step) crop-low)
+(defn animation-prev [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]  
+  (let [[crop-low _] crop
+        next-ts (advance-frame-timestamp frame-timestamp speed -)]
+    (if (<= next-ts crop-low)
       (assoc db :animation/frame-timestamp crop-low)
-      (update db :animation/frame-timestamp #(- % tick-step)))))
+      (assoc db :animation/frame-timestamp next-ts))))
 
-(defn animation-next [{:keys [animation/frame-timestamp animation/crop] :as db} _]  
-  (let [[_ crop-high] crop]
-    (if (>= (- frame-timestamp tick-step) crop-high)
+(defn animation-next [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]  
+  (let [[_ crop-high] crop
+        next-ts (advance-frame-timestamp frame-timestamp speed +)]
+    (if (>= next-ts crop-high)
       (assoc db :animation/frame-timestamp crop-high)
-      (update db :animation/frame-timestamp #(+ % tick-step)))))
+      (assoc db :animation/frame-timestamp next-ts))))
 
 (defn animation-toggle-play-stop [{:keys [db]} _]
   (if (= (:animation/state db) :play)
     {:db (assoc db :animation/state :stop)
      :ticker/stop nil}
     {:db (assoc db :animation/state :play)
-     :ticker/start {:millis 50}}))
+     :ticker/start {:millis tick-duration}}))
 
 (defn animation-set-crop [db [_ [crop-low-millis crop-high-millis]]]  
   (-> db
       (assoc :animation/crop [crop-low-millis crop-high-millis])
       (assoc :animation/frame-timestamp crop-low-millis)))
+
+(defn animation-set-speed [db [_ new-speed]]
+  (assoc db :animation/speed new-speed))
 
 (defn set-dimensions [db [_ {:keys [width height]}]]
   (println "Reseting map dimensions to " width "x" height)

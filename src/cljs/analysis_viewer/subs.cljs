@@ -38,6 +38,11 @@
    (:animation/crop db)))
 
 (reg-sub
+ :animation/speed
+ (fn [db _]
+   (:animation/speed db)))
+
+(reg-sub
  :analysis/date-range
  (fn [db _]
    (:analysis/date-range db)))
