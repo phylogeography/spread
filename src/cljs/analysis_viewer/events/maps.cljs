@@ -198,7 +198,7 @@
 
 (defn ticker-tick [{:keys [db]} _]
   (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
-        [crop-low crop-high] crop
+        [_ crop-high] crop
         next-ts (advance-frame-timestamp frame-timestamp speed +)]
     
     (if (>= next-ts crop-high)
@@ -256,5 +256,11 @@
          :analysis/possible-objects-ids (into [] objects-ids)
          :map/popup-coord coord))
 
-(defn hide-object-selector [db _]
-  (dissoc db :analysis/possible-objects-ids :map/popup-coord))
+(defn hide-object-selector [db _]  
+  (dissoc db
+          :analysis/possible-objects-ids
+          :map/popup-coord
+          :analysis/highlighted-object-id))
+
+(defn highlight-object [db [_ object-id]]
+  (assoc db :analysis/highlighted-object-id object-id))
