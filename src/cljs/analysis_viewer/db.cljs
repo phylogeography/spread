@@ -24,6 +24,7 @@
 (s/def :map/data (s/keys :req [:map/url :map/z-index :map/geo-json]))
 (s/def :maps/data (s/coll-of :map/data))
 (s/def :analysis.data/object any?) ;; TODO: I think this can be specified
+(s/def :analysis/date-range (s/tuple number? number?)) ;; dates in millis since epoch
 (s/def :analysis.data.object/id string?)
 (s/def :analysis.data/type #{:ContinuousTree :DiscreteTree :BayesFactor})
 (s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object))
@@ -70,16 +71,18 @@
                                        :parameter/circles-attribute
                                        :parameter/nodes-attribute]))
 
-(s/def :animation/percentage (s/and number? #(<= 0 % 1)))
+(s/def :animation/frame-timestamp number?)
 (s/def :animation/state #{:stop :play})
+(s/def :animation/crop (s/tuple number? number?))
 
 (s/def :analysis/selected-object-id :analysis.data.object/id)
 (s/def :analysis/possible-objects-ids (s/coll-of :analysis.data.object/id))
 (s/def :map/popup-coord :cartesian/coord)
 
 (s/def ::db (s/keys :req [:map/state                          
-                          :animation/percentage
+                          :animation/frame-timestamp
                           :animation/state
+                          :animation/crop
                           :ui.collapsible-tabs/tabs
                           :ui.switch-buttons/states
                           :ui/parameters]
@@ -89,6 +92,7 @@
                           :analysis/linear-attributes
                           :analysis/selected-object-id
                           :analysis/possible-objects-ids
+                          :analysis/date-range
                           :map/popup-coord]))
 
 (defn initial-db []
@@ -96,7 +100,8 @@
                :translate [0 0]
                :width nil
                :height nil}
-   :animation/percentage 0
+   :animation/frame-timestamp 0
+   :animation/crop [0 1]
    :animation/state :stop
    :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
                                            :map-color true,
