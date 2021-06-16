@@ -76,6 +76,7 @@
 (s/def :animation/crop (s/tuple number? number?))
 (s/def :animation/speed (s/and number? #(<= 1 % 200)))  ;; days/second
 (s/def :analysis/selected-object-id :analysis.data.object/id)
+(s/def :analysis/highlighted-object-id (s/nilable :analysis.data.object/id))
 (s/def :analysis/possible-objects-ids (s/coll-of :analysis.data.object/id))
 (s/def :map/popup-coord :cartesian/coord)
 
@@ -94,6 +95,7 @@
                           :analysis/selected-object-id
                           :analysis/possible-objects-ids
                           :analysis/date-range
+                          :analysis/highlighted-object-id
                           :map/popup-coord]))
 
 (defn initial-db []

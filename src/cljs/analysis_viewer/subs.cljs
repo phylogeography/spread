@@ -48,6 +48,11 @@
    (:analysis/date-range db)))
 
 (reg-sub
+ :analysis/highlighted-object-id
+ (fn [db _]
+   (:analysis/highlighted-object-id db)))
+
+(reg-sub
  :animation/state
  (fn [db _]
    (:animation/state db)))

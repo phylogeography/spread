@@ -15,8 +15,9 @@
   "The padding around the databox in the final render."
   5)
 
+(def hl-color "yellow")
 
-(defn svg-node-object [{:keys [coord show-start show-end id]} _ time-perc params]
+(defn svg-node-object [{:keys [coord show-start show-end id hl?]} _ time-perc params]
   (let [{:keys [nodes? nodes-radius nodes-color]} params
         show? (and (<= show-start time-perc show-end)
                    nodes?)
@@ -28,9 +29,11 @@
                :cy y1
                :r (* nodes-radius 0.5)
                :opacity 0.2
-               :fill nodes-color}]]))
+               :fill (if hl?
+                       hl-color
+                       nodes-color)}]]))
 
-(defn svg-circle-object [{:keys [coord show-start show-end count-attr id]} _ time-perc params]
+(defn svg-circle-object [{:keys [coord show-start show-end count-attr id hl?]} _ time-perc params]
   (let [{:keys [circles? circles-radius circles-color]} params
         show? (and (<= show-start time-perc show-end)
                    circles?)
@@ -42,9 +45,11 @@
                :cy y1
                :r (* circles-radius count-attr)
                :opacity 0.2
-               :fill circles-color}]]))
+               :fill (if hl?
+                       hl-color
+                       circles-color)}]]))
 
-(defn svg-polygon-object [{:keys [coords show-start show-end id]} _ time-perc params]
+(defn svg-polygon-object [{:keys [coords show-start show-end id hl?]} _ time-perc params]
   (let [{:keys [polygons? polygons-color polygons-opacity]} params
         show? (and (<= show-start time-perc show-end)
                    polygons?)]
@@ -56,10 +61,12 @@
                     (map (fn [coord] (str/join " " coord)))
                     (str/join ","))
        
-       :fill polygons-color
+       :fill (if hl?
+               hl-color
+               polygons-color)
        :opacity polygons-opacity}]]))
 
-(defn svg-transition-object [{:keys [from-coord to-coord show-start show-end id attr-color]} _ time-perc params]
+(defn svg-transition-object [{:keys [from-coord to-coord show-start show-end id attr-color hl?]} _ time-perc params]
   (let [{:keys [transitions? transitions-color transitions-width transitions-curvature missiles?]} params
         show? (and (<= show-start time-perc show-end)
                    transitions?)
@@ -73,7 +80,9 @@
         effective-color (or attr-color transitions-color) ;; attribute color takes precedence over transitions color
         curve-path-info {:id id
                          :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
-                         :stroke effective-color
+                         :stroke (if hl?
+                                   hl-color
+                                   effective-color)
                          :stroke-width transitions-width
                          :fill :transparent}
         missile-size 0.3]
@@ -115,15 +124,12 @@
         speed @(subscribe [:animation/speed])
         [date-from-millis date-to-millis] @(subscribe [:analysis/date-range])
         [crop-low-millis crop-high-millis] @(subscribe [:animation/crop])
-        crop-length (- crop-high-millis crop-low-millis)
         playing? (= :play @(subscribe [:animation/state]))
         ticks-data @(subscribe [:analysis/data-timeline])
         full-length-px (apply max (map :x ticks-data))
         date-range->px-rescale (math-utils/build-scaler date-from-millis date-to-millis 0 full-length-px)        
         crop-sides 20
         ticks-y-base 80
-        ticks-bars-y-base (- ticks-y-base 11)
-        ticks-bars-full 50
         timeline-start crop-sides
         crop-left (date-range->px-rescale crop-low-millis)
         crop-width (+ (- (date-range->px-rescale crop-high-millis) (date-range->px-rescale crop-low-millis))
@@ -192,7 +198,9 @@
         analysis-data  (vals @(re-frame/subscribe [:analysis/colored-data]))
         {:keys [scale]} @(re-frame/subscribe [:map/state])
         params (merge @(subscribe [:ui/parameters])
-                      @(subscribe [:switch-buttons/states]))]
+                      @(subscribe [:switch-buttons/states]))
+        hl-object-id @(subscribe [:analysis/highlighted-object-id])]
+    
     (when analysis-data
       [:g {}
        ;; for debugging the data view-box
@@ -201,7 +209,11 @@
        
        (for [primitive-object analysis-data]
          ^{:key (str (:id primitive-object))}
-         [map-primitive-object primitive-object scale time params])])))
+         [map-primitive-object
+          (assoc primitive-object :hl? (= (:id primitive-object) hl-object-id))
+          scale
+          time
+          params])])))
 
 (defn object-attributes-popup [selected-obj]
   (let [[x y] @(re-frame/subscribe [:map/popup-coord])]
@@ -223,7 +235,9 @@
      (when possible-objects       
        (for [po possible-objects]
          ^{:key (:id po)}
-         [:div.selectable-object {:on-click #(dispatch [:map/show-object-attributes (:id po) [x y]])}
+         [:div.selectable-object {:on-click #(dispatch [:map/show-object-attributes (:id po) [x y]])
+                                  :on-mouse-enter #(dispatch [:map/highlight-object (:id po)])
+                                  :on-mouse-leave #(dispatch [:map/highlight-object nil])}
           (str (:id po))]))]))
 
 (defn data-map []
