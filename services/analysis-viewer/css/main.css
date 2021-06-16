@@ -326,13 +326,14 @@ button {
 /**********************/
 
 .animation-controls {
-	width: 100%;
+    width: 100%;
 	height: 204px;
 	display: flex;
 	align-items: center;
 }
 
 .animation-controls .inner {
+	position: relative;
 	background-color: #DEDEE8;
 	border-radius: 10px;
 	height: 164px;
@@ -371,6 +372,14 @@ button {
 	font-size: 50px;
 	display: flex;
     align-items: center;    
+}
+
+.animation-controls .speed {
+	position: absolute;
+	color: #3A3668;
+	font-size: 11px;
+	top: 20px;
+	left: 10px;
 }
 
 

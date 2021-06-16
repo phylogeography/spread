@@ -112,6 +112,7 @@
 
 (defn animation-controls []
   (let [frame-timestamp @(subscribe [:animation/frame-timestamp])
+        speed @(subscribe [:animation/speed])
         [date-from-millis date-to-millis] @(subscribe [:analysis/date-range])
         [crop-low-millis crop-high-millis] @(subscribe [:animation/crop])
         crop-length (- crop-high-millis crop-low-millis)
@@ -129,24 +130,25 @@
                       (* 2 timeline-start)
                       (- 7))
         frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
+    
     [:div.animation-controls
      [slider {:inc-buttons 0.8
-              :min-val events.maps/min-scale
-              :max-val events.maps/max-scale
+              :min-val 1
+              :max-val 200
               :length 100
               :vertical? true
-              :subs-vec [:map/scale]
-              :ev-vec [:map/zoom 100 100]}]
+              :subs-vec [:animation/speed]
+              :ev-vec [:animation/set-speed]}]
      (if (zero? frame-timestamp)
        [:div.loading "Loading..."]
-       [:div.inner      
+       [:div.inner
+        [:div.speed (gstr/format "Speed: %d days/sec" speed)]
         [:div.buttons
          [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/prev])} ""]    
          [:i.zmdi {:on-click #(dispatch [:animation/toggle-play-stop])
                    :class (if playing? "zmdi-pause" "zmdi-play")}]
          [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/next])} ""]]
         [:div.timeline {:width "100%" :height "100%"}
-         ;; TODO: make this less hacky
          [:div.crop-box {:style {:left crop-left 
                                  :width crop-width}}
           [:i.left.zmdi.zmdi-chevron-left   {:style {:width (str crop-sides "px")}}]        

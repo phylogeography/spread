@@ -74,7 +74,7 @@
 (s/def :animation/frame-timestamp number?)
 (s/def :animation/state #{:stop :play})
 (s/def :animation/crop (s/tuple number? number?))
-
+(s/def :animation/speed (s/and number? #(<= 1 % 200)))  ;; days/second
 (s/def :analysis/selected-object-id :analysis.data.object/id)
 (s/def :analysis/possible-objects-ids (s/coll-of :analysis.data.object/id))
 (s/def :map/popup-coord :cartesian/coord)
@@ -82,6 +82,7 @@
 (s/def ::db (s/keys :req [:map/state                          
                           :animation/frame-timestamp
                           :animation/state
+                          :animation/speed 
                           :animation/crop
                           :ui.collapsible-tabs/tabs
                           :ui.switch-buttons/states
@@ -102,6 +103,7 @@
                :height nil}
    :animation/frame-timestamp 0
    :animation/crop [0 1]
+   :animation/speed 100
    :animation/state :stop
    :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
                                            :map-color true,
