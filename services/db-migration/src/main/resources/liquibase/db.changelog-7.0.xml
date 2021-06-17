@@ -3,33 +3,23 @@
 
   <property name="RealBooleanType" value="TINYINT(1)" dbms="mysql"/>
 
-  <changeSet author="filip" id="2.0-1">
-    <createTable tableName="analysis">
+  <changeSet author="filip" id="7.0-1">
+    <createTable tableName="error">
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="user_id" type="VARCHAR(36)">
+      <column name="error" type="TEXT">
         <constraints nullable="false" />
       </column>
-      <column name="readable_name" type="VARCHAR(200)"/>
-      <column name="created_on" type="BIGINT">
-        <constraints nullable="false"/>
-      </column>
-      <column name="status" type="VARCHAR(50)">
-        <constraints nullable="false" />
-      </column>
-      <column name="progress" type="float" defaultValueNumeric="0"/>
-      <column name="of_type" type="VARCHAR(21)"/>
     </createTable>
-    <sql>ALTER TABLE analysis ADD CONSTRAINT check_of_type CHECK (of_type = 'CONTINUOUS_TREE' OR of_type = 'DISCRETE_TREE' OR of_type = 'BAYES_FACTOR_ANALYSIS' OR of_type = 'TIME_SLICER')</sql>
   </changeSet>
 
-  <changeSet author="filip" id="2.0-2">
-    <addForeignKeyConstraint constraintName="analysis_SLASH_user_FK"
-                             baseColumnNames="user_id"
-                             baseTableName="analysis"
+  <changeSet author="filip" id="7.0-2">
+    <addForeignKeyConstraint constraintName="error_SLASH_analysis_FK"
+                             baseColumnNames="id"
+                             baseTableName="error"
                              referencedColumnNames="id"
-                             referencedTableName="user"
+                             referencedTableName="analysis"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"
@@ -37,4 +27,4 @@
                              validate="true"/>
   </changeSet>
 
-</databaseChangeLog>
+</databaseChangeLog>  

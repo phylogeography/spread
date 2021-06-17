@@ -3,54 +3,57 @@
 
 INSERT INTO discrete_tree(
 id,
-user_id,
 tree_file_url,
 locations_file_url,
-readable_name,
-created_on
+locations_attribute_name,
+timescale_multiplier,
+most_recent_sampling_date,
+output_file_url
 )
 VALUES (
 :id,
-:user-id,
 :tree-file-url,
 :locations-file-url,
-:readable-name,
-:created-on
+:locations-attribute-name,
+:timescale-multiplier,
+:most-recent-sampling-date,
+:output-file-url
 )
 ON DUPLICATE KEY UPDATE
-user_id = user_id,
-created_on = created_on,
 tree_file_url = IF(:tree-file-url IS NOT NULL, :tree-file-url, tree_file_url),
-locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
-readable_name = :readable-name
-
--- :name update-tree :! :n
--- :doc Updates a continuous tree
-
-UPDATE discrete_tree
-SET
-readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
 locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
 locations_attribute_name = IF(:locations-attribute-name IS NOT NULL, :locations-attribute-name, locations_attribute_name),
 timescale_multiplier = IF(:timescale-multiplier IS NOT NULL, :timescale-multiplier, timescale_multiplier),
 most_recent_sampling_date = IF(:most-recent-sampling-date IS NOT NULL, :most-recent-sampling-date, most_recent_sampling_date),
 output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)
-WHERE id = :id
 
--- :name delete-tree :! :n
--- :doc Delete a tree by id
+-- -- :name update-tree :! :n
+-- -- :doc Updates a continuous tree
 
-DELETE
-FROM discrete_tree
-WHERE id = :id
+-- UPDATE discrete_tree
+-- SET
+-- readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
+-- locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
+-- locations_attribute_name = IF(:locations-attribute-name IS NOT NULL, :locations-attribute-name, locations_attribute_name),
+-- timescale_multiplier = IF(:timescale-multiplier IS NOT NULL, :timescale-multiplier, timescale_multiplier),
+-- most_recent_sampling_date = IF(:most-recent-sampling-date IS NOT NULL, :most-recent-sampling-date, most_recent_sampling_date),
+-- output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)
+-- WHERE id = :id
+
+-- -- :name delete-tree :! :n
+-- -- :doc Delete a tree by id
+
+-- DELETE
+-- FROM discrete_tree
+-- WHERE id = :id
 
 -- :name insert-attribute :! :n
 -- :doc Insert an attribute
 
-INSERT INTO discrete_tree_attributes (tree_id, attribute_name)
-VALUES (:tree-id, :attribute-name)
+INSERT INTO discrete_tree_attributes (id, attribute_name)
+VALUES (:id, :attribute-name)
 ON DUPLICATE KEY UPDATE
-tree_id = :tree-id,
+id = :id,
 attribute_name = :attribute-name
 
 -- :name get-attributes :? :*
@@ -58,7 +61,7 @@ attribute_name = :attribute-name
 
 SELECT attribute_name
 FROM discrete_tree_attributes
-WHERE :tree-id = tree_id
+WHERE :id = id
 
 -- :name get-tree :? :1
 -- :doc Get entity by id

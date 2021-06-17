@@ -29,7 +29,7 @@
     attributes))
 
 ;; TODO: this resolver is not being called even if the `timeSlicer` field is present on `getContinuousTree` query
-;; I have no clue why
+;; I have no clue WTF
 ;; this is fixed in the get-continuous-tree resolver by appending the field explicitely if the field is present
 (defn continuous-tree->time-slicer
   [{:keys [db]} _ {tree-id :id :as parent}]
@@ -76,6 +76,7 @@
   (log/info "get-user-analysis" {:user/id authed-user-id})
   (clj->gql (user-model/get-user-analysis db {:user-id authed-user-id})))
 
+;; NOTE: not used atm
 (defn search-user-analysis
   "Returns paginated user analysis, following the Relay specification:
   https://relay.dev/graphql/connections.htm.

@@ -16,7 +16,6 @@
         {:keys [of-type]} (get-in db [:analysis id])]
     (when of-type
       {:dispatch [:graphql/query {:query (case (keyword of-type)
-                                           ;; TODO : define all neccesary fields
                                            :CONTINUOUS_TREE
                                            "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {

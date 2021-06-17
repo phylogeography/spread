@@ -3,34 +3,26 @@
 
   <property name="RealBooleanType" value="TINYINT(1)" dbms="mysql"/>
 
-  <changeSet author="filip" id="4.0-1">
-    <createTable tableName="time_slicer">
+  <changeSet author="filip" id="6.0-1">
+    <createTable tableName="discrete_tree">
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="continuous_tree_id" type="VARCHAR(36)"/>
-      <column name="trees_file_url" type="VARCHAR(200)">
+      <column name="tree_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-      <column name="slice_heights_file_url" type="VARCHAR(200)"/>
-      <column name="burn_in" type="FLOAT"/>
-      <column name="number_of_intervals" type="INT"/>
+      <column name="locations_file_url" type="VARCHAR(200)"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
-      <column name="trait_attribute_name" type="VARCHAR(50)"/>
-      <column name="relaxed_random_walk_rate_attribute_name" type="VARCHAR(50)"/>
-      <column name="hpd_level" type="FLOAT"/>
-      <column name="contouring_grid_size" type="INT"/>
-      <column name="timescale_multiplier" type="FLOAT"/>
-      <column name="most_recent_sampling_date" type="VARCHAR(20)">
-        <constraints nullable="false"/>
-      </column>
+      <column name="locations_attribute_name" type="VARCHAR(50)"/>
+      <column name="timescale_multiplier" type="float"/>
+      <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="4.0-2">
-    <addForeignKeyConstraint constraintName="time_slicer_SLASH_analysis_FK"
+  <changeSet author="filip" id="6.0-2">
+    <addForeignKeyConstraint constraintName="discrete_tree_id_SLASH_analysis_id_FK"
                              baseColumnNames="id"
-                             baseTableName="time_slicer"
+                             baseTableName="discrete_tree"
                              referencedColumnNames="id"
                              referencedTableName="analysis"
                              onDelete="CASCADE"
@@ -40,21 +32,8 @@
                              validate="true"/>
   </changeSet>
 
-  <changeSet author="filip" id="4.0-3">
-    <addForeignKeyConstraint constraintName="time_slicer_SLASH_continuous_tree_FK"
-                             baseColumnNames="continuous_tree_id"
-                             baseTableName="time_slicer"
-                             referencedColumnNames="id"
-                             referencedTableName="continuous_tree"
-                             onDelete="CASCADE"
-                             onUpdate="RESTRICT"
-                             deferrable="false"
-                             initiallyDeferred="false"
-                             validate="true"/>
-  </changeSet>
-
-  <changeSet author="filip" id="4.0-4">
-    <createTable tableName="time_slicer_attributes">
+  <changeSet author="filip" id="6.0-3">
+    <createTable tableName="discrete_tree_attributes">
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
@@ -64,12 +43,12 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="4.0-5">
-    <addForeignKeyConstraint constraintName="time_slicer_attributes_SLASH_timeslicer_FK"
+  <changeSet author="filip" id="6.0-4">
+    <addForeignKeyConstraint constraintName="discrete_tree_attributes_SLASH_discrete_tree_FK"
                              baseColumnNames="id"
-                             baseTableName="time_slicer_attributes"
+                             baseTableName="discrete_tree_attributes"
                              referencedColumnNames="id"
-                             referencedTableName="time_slicer"
+                             referencedTableName="discrete_tree"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"
@@ -77,8 +56,8 @@
                              validate="true"/>
     <addUniqueConstraint
         columnNames="id, attribute_name"
-        constraintName="unique_time_slicer_attribute_names"
-        tableName="time_slicer_attributes"/>
+        constraintName="unique_tree_attribute_names"
+        tableName="discrete_tree_attributes"/>
   </changeSet>
 
 </databaseChangeLog>

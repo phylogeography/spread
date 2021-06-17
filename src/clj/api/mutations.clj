@@ -4,6 +4,8 @@
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [api.models.analysis :as analysis-model]
+            [api.models.error :as error-model]
             [api.models.user :as user-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
@@ -64,14 +66,14 @@
         status :UPLOADED]
     (try
       ;; TODO : in a transaction
+      (analysis-model/upsert! db {:id            id
+                                  :user-id       authed-user-id
+                                  :readable-name readable-name
+                                  :created-on    (time/millis (time/now))
+                                  :status        status})
       (continuous-tree-model/upsert! db {:id            id
-                                         :readable-name readable-name
-                                         :created-on    (time/millis (time/now))
-                                         :user-id       authed-user-id
                                          :tree-file-url tree-file-url})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  status})
-      ;; sends message to worker to parse hpd levels and attributes
+      ;; sends message to the worker queue to parse hpd levels and attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
                                                    :id           id
                                                    :user-id      authed-user-id})
@@ -79,8 +81,13 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (continuous-tree-model/upsert-status! db {:tree-id id
-                                                  :status  :ERROR})))))
+
+        ;; TODO : in a transaction
+        (analysis-model/upsert! db {:id     id
+                                    :status :ERROR})
+        (error-model/insert! {:id    id
+                              ;; TODO : do sth for human consumable errors
+                              :error (str e)})))))
 
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id                          :id
@@ -99,22 +106,26 @@
   (try
     (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
-      (continuous-tree-model/update! db {:id                          id
-                                         :readable-name               readable-name
+      (continuous-tree-model/upsert! db {:id                          id
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
                                          :hpd-level                   hpd-level
                                          :has-external-annotations    has-external-annotations
                                          :timescale-multiplier        timescale-multiplier
                                          :most-recent-sampling-date   most-recent-sampling-date})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  status})
+      (analysis-model/upsert! db {:id            id
+                                  :readable-name readable-name
+                                  :status        status})
       {:id     id
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  :ERROR}))))
+        ;; TODO : in a transaction
+        (analysis-model/upsert! db {:id     id
+                                    :status :ERROR})
+        (error-model/insert! {:id    id
+                              ;; TODO : do sth for human consumable errors
+                              :error (str e)}))))
 
 (defn start-continuous-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -123,14 +134,18 @@
     (try
       (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
                                                    :id           id})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  status})
+      (continuous-tree-model/upsert! db {:id     id
+                                         :status status})
       {:id     id
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (continuous-tree-model/upsert-status! db {:tree-id id
-                                                  :status  :ERROR})))))
+        ;; TODO : in a transaction
+        (analysis-model/upsert! db {:id     id
+                                    :status :ERROR})
+        (error-model/insert! {:id    id
+                              ;; TODO : do sth for human consumable errors
+                              :error (str e)})))))
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url      :treeFileUrl

@@ -4,40 +4,29 @@
   <property name="RealBooleanType" value="TINYINT(1)" dbms="mysql"/>
 
   <changeSet author="filip" id="3.0-1">
-    <createTable tableName="discrete_tree">
+    <createTable tableName="continuous_tree">
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
-      </column>
-      <column name="user_id" type="VARCHAR(36)">
-        <constraints nullable="false" />
       </column>
       <column name="tree_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-      <column name="locations_file_url" type="VARCHAR(200)"/>
-      <column name="output_file_url" type="VARCHAR(200)"/>
-      <column name="readable_name" type="VARCHAR(200)"/>
-      <column name="locations_attribute_name" type="VARCHAR(50)"/>
-      <column name="timescale_multiplier" type="float"/>
-      <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
-      <column name="created_on" type="BIGINT">
+      <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
+      <column name="y_coordinate_attribute_name" type="VARCHAR(50)"/>
+      <column name="most_recent_sampling_date" type="VARCHAR(20)">
         <constraints nullable="false"/>
-      </column>
+      </column>        
+      <column name="timescale_multiplier" type="float"/>
+      <column name="output_file_url" type="VARCHAR(200)"/>
     </createTable>
   </changeSet>
 
   <changeSet author="filip" id="3.0-2">
-    <createIndex indexName="discrete_tree_SLASH_user_id_INDEX" tableName="discrete_tree">
-      <column name="user_id"/>
-    </createIndex>
-  </changeSet>
-
-  <changeSet author="filip" id="3.0-3">
-    <addForeignKeyConstraint constraintName="discrete_tree_SLASH_user_id_FK"
-                             baseColumnNames="user_id"
-                             baseTableName="discrete_tree"
+    <addForeignKeyConstraint constraintName="continuous_tree_SLASH_analysis_FK"
+                             baseColumnNames="id"
+                             baseTableName="continuous_tree"
                              referencedColumnNames="id"
-                             referencedTableName="user"
+                             referencedTableName="analysis"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"
@@ -45,9 +34,9 @@
                              validate="true"/>
   </changeSet>
 
-  <changeSet author="filip" id="3.0-4">
-    <createTable tableName="discrete_tree_attributes">
-      <column name="tree_id" type="VARCHAR(36)">
+  <changeSet author="filip" id="3.0-3">
+    <createTable tableName="continuous_tree_attributes">
+      <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="attribute_name" type="VARCHAR(200)">
@@ -56,46 +45,21 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="3.0-5">
-    <addForeignKeyConstraint constraintName="discrete_tree_attributes_SLASH_discrete_tree_FK"
-                             baseColumnNames="tree_id"
-                             baseTableName="discrete_tree_attributes"
+  <changeSet author="filip" id="3.0-4">
+    <addForeignKeyConstraint constraintName="continuous_tree_attributes_SLASH_continuous_tree_FK"
+                             baseColumnNames="id"
+                             baseTableName="continuous_tree_attributes"
                              referencedColumnNames="id"
-                             referencedTableName="discrete_tree"
+                             referencedTableName="continuous_tree"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"
                              initiallyDeferred="false"
                              validate="true"/>
     <addUniqueConstraint
-        columnNames="tree_id, attribute_name"
+        columnNames="id, attribute_name"
         constraintName="unique_tree_attribute_names"
-        tableName="discrete_tree_attributes"/>
-  </changeSet>
-
-  <changeSet author="filip" id="3.0-6">
-    <createTable tableName="discrete_tree_status">
-      <column name="tree_id" type="VARCHAR(36)">
-        <constraints nullable="false" primaryKey="true"/>
-      </column>
-      <column name="status" type="VARCHAR(50)">
-        <constraints nullable="false" />
-      </column>
-      <column name="progress" type="float" defaultValueNumeric="0"/>
-    </createTable>
-  </changeSet>
-
-  <changeSet author="filip" id="3.0-7">
-    <addForeignKeyConstraint constraintName="discrete_tree_status_SLASH_discrete_tree_FK"
-                             baseColumnNames="tree_id"
-                             baseTableName="discrete_tree_status"
-                             referencedColumnNames="id"
-                             referencedTableName="discrete_tree"
-                             onDelete="CASCADE"
-                             onUpdate="RESTRICT"
-                             deferrable="false"
-                             initiallyDeferred="false"
-                             validate="true"/>
+        tableName="continuous_tree_attributes"/>
   </changeSet>
 
 </databaseChangeLog>

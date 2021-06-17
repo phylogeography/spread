@@ -43,6 +43,7 @@
   (start))
 
 (comment
+  (re-frame/dispatch [:utils/app-db])
   @(re-frame/subscribe [::websocket/status :default])
   (re-frame/dispatch [:graphql/ws-authorize])
   @(re-frame/subscribe [::websocket/open-subscriptions :default])
