@@ -17,21 +17,22 @@ VALUES (
 :output-file-url
 )
 ON DUPLICATE KEY UPDATE
-log_file_url = IF(:log-file-url IS NOT NULL, :log-file-url, log_file_url),
-locations_file_url = IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
+log_file_url =        IF(:log-file-url IS NOT NULL, :log-file-url, log_file_url),
+locations_file_url =  IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
 number_of_locations = IF(:number-of-locations IS NOT NULL, :number-of-locations, number_of_locations),
-burn_in = IF(:burn-in IS NOT NULL, :burn-in, burn_in),
-output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)
+burn_in =             IF(:burn-in IS NOT NULL, :burn-in, burn_in),
+output_file_url =     IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)
 
 -- :name get-bayes-factor-analysis :? :1
 -- :doc Get entity by id
 
 SELECT
-id,
+analysis.id,
 user_id,
 created_on,
 log_file_url,
 locations_file_url,
+number_of_locations,
 burn_in,
 status,
 progress,
@@ -41,7 +42,7 @@ status,
 progress
 FROM bayes_factor_analysis
 JOIN analysis ON analysis.id = bayes_factor_analysis.id
-WHERE id = :id
+WHERE analysis.id = :id
 
 -- :name insert-bayes-factors :! :n
 -- :doc Insert bayes factors

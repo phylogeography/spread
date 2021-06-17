@@ -20,7 +20,9 @@
    :burn-in             nil
    :output-file-url     nil})
 
-(defn upsert! [db analysis]
-  (let [analysis (merge nil-bayes-factor-analysis analysis)]
+(defn upsert! [db {:keys [id] :as analysis}]
+  (let [prev     (or (get-bayes-factor-analysis db {:id id})
+                     nil-bayes-factor-analysis)
+        analysis (merge prev analysis)]
     (log/debug "upsert!" analysis)
     (upsert-bayes-factor-analysis db analysis)))

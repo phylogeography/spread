@@ -66,7 +66,7 @@
 (defn bayes-factor-analysis->bayes-factors
   [{:keys [db]} _ {bayes-factor-analysis-id :id :as parent}]
   (log/info "bayes-factor-analysis->bayes-factors" parent)
-  (let [{:keys [bayes-factors]} (bayes-factor-model/get-bayes-factors db {:bayes-factor-analysis-id bayes-factor-analysis-id})
+  (let [{:keys [bayes-factors]} (bayes-factor-model/get-bayes-factors db {:id bayes-factor-analysis-id})
         bayes-factors           (json/read-str bayes-factors)]
     (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
