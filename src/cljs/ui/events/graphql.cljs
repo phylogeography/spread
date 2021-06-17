@@ -63,8 +63,10 @@
                         (handler fxs k v))
                       response))
 
-(defn response [cofx [_ response]]
-  (reduce-handlers cofx (gql->clj (:data response))))
+(defn response [cofx [_ {:keys [data errors] :as response}]]
+  (when errors
+    (log/error "Error in graphql response" {:error errors}))
+  (reduce-handlers cofx (gql->clj data)))
 
 (defn query
   [{:keys [db localstorage]} [_ {:keys [query variables on-success]
@@ -276,6 +278,9 @@
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
+
+  (prn "@ get-user-analysis" analysis)
+
   (>evt [:user-analysis-loaded])
   {:db (assoc db :analysis (zipmap (map :id analysis) analysis))})
 

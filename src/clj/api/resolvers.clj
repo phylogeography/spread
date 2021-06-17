@@ -75,7 +75,9 @@
   "Returns a list of all user analysis"
   [{:keys [db authed-user-id]} _ _]
   (log/info "get-user-analysis" {:user/id authed-user-id})
-  (clj->gql (analysis-model/get-user-analysis db {:user-id authed-user-id})))
+  (let [analysis (analysis-model/get-user-analysis db {:user-id authed-user-id})]
+    (log/info "get-user-analysis results" analysis)
+    (clj->gql analysis)))
 
 ;; NOTE: not used atm
 #_(defn search-user-analysis

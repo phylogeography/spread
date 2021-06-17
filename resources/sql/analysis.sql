@@ -53,6 +53,7 @@ WHERE id = :id
 
 SELECT
 id,
+created_on,
 of_type,
 readable_name,
 status,
