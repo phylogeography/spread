@@ -19,12 +19,12 @@
   (log/info "get-continuous-tree" args)
   (clj->gql (merge (continuous-tree-model/get-tree db {:id id})
                    (when (executor/selects-field? context :ContinuousTree/timeSlicer)
-                     {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})}))))
+                     {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:id id})}))))
 
 (defn continuous-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->attributes" parent)
-  (let [attributes (map :attribute-name (continuous-tree-model/get-attributes db {:tree-id tree-id}))]
+  (let [attributes (map :attribute-name (continuous-tree-model/get-attributes db {:id tree-id}))]
     (log/info "continuous-tree->attributes" {:attributes attributes})
     attributes))
 
@@ -34,7 +34,7 @@
 (defn continuous-tree->time-slicer
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->time-slicer" parent)
-  (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id tree-id})]
+  (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:id tree-id})]
     (log/info "continuous-tree->time-slicer" time-slicer)
     (clj->gql time-slicer)))
 
@@ -46,14 +46,14 @@
 (defn discrete-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "discrete-tree->attributes" parent)
-  (let [attributes (map :attribute-name (discrete-tree-model/get-attributes db {:tree-id tree-id}))]
+  (let [attributes (map :attribute-name (discrete-tree-model/get-attributes db {:id tree-id}))]
     (log/info "discrete-tree->attributes" {:attributes attributes})
     attributes))
 
 (defn time-slicer->attributes
   [{:keys [db]} _ {time-slicer-id :id :as parent}]
   (log/info "time-slicer->attributes" parent)
-  (let [attributes (map :attribute-name (time-slicer-model/get-attributes db {:time-slicer-id time-slicer-id}))]
+  (let [attributes (map :attribute-name (time-slicer-model/get-attributes db {:id time-slicer-id}))]
     (log/info "time-slicer->attributes" {:attributes attributes})
     attributes))
 
@@ -77,58 +77,58 @@
   (clj->gql (user-model/get-user-analysis db {:user-id authed-user-id})))
 
 ;; NOTE: not used atm
-(defn search-user-analysis
-  "Returns paginated user analysis, following the Relay specification:
+#_(defn search-user-analysis
+    "Returns paginated user analysis, following the Relay specification:
   https://relay.dev/graphql/connections.htm.
   Clients can ask for the next page using an opaque cursor."
-  [{:keys [db authed-user-id]} {first-n       :first
-                                after-cursor  :after
-                                last-n        :last
-                                before-cursor :before
-                                statuses      :statuses
-                                readable-name :readable-name
-                                :or           {statuses [:UPLOADED
-                                                         :ATTRIBUTES_PARSED
-                                                         :ARGUMENTS_SET
-                                                         :QUEUED
-                                                         :RUNNING
-                                                         :SUCCEEDED
-                                                         :ERROR]
-                                               readable-name ""}
-                                :as           args} _]
-  (log/info "search-user-analysis" args)
-  (let [after                          (if after-cursor
-                                         (-> after-cursor decode-base64 Integer/parseInt)
-                                         0)
-        before                         (when before-cursor
-                                         (-> before-cursor decode-base64 Integer/parseInt))
-        {:keys [total-count analysis]} (user-model/search-user-analysis db (merge (cond
-                                                                                    (or first (and first after-cursor))
-                                                                                    {:lower after
-                                                                                     :upper (inc (+ after first-n))}
+    [{:keys [db authed-user-id]} {first-n       :first
+                                  after-cursor  :after
+                                  last-n        :last
+                                  before-cursor :before
+                                  statuses      :statuses
+                                  readable-name :readable-name
+                                  :or           {statuses      [:UPLOADED
+                                                           :ATTRIBUTES_PARSED
+                                                           :ARGUMENTS_SET
+                                                           :QUEUED
+                                                           :RUNNING
+                                                           :SUCCEEDED
+                                                           :ERROR]
+                                                 readable-name ""}
+                                  :as           args} _]
+    (log/info "search-user-analysis" args)
+    (let [after                          (if after-cursor
+                                           (-> after-cursor decode-base64 Integer/parseInt)
+                                           0)
+          before                         (when before-cursor
+                                           (-> before-cursor decode-base64 Integer/parseInt))
+          {:keys [total-count analysis]} (user-model/search-user-analysis db (merge (cond
+                                                                                      (or first (and first after-cursor))
+                                                                                      {:lower after
+                                                                                       :upper (inc (+ after first-n))}
 
-                                                                                    (and last before-cursor)
-                                                                                    {:lower (dec (+ before last-n))
-                                                                                     :upper before}
+                                                                                      (and last before-cursor)
+                                                                                      {:lower (dec (+ before last-n))
+                                                                                       :upper before}
 
-                                                                                    :else {:lower 0
-                                                                                           :upper 0})
-                                                                                  {:readable-name readable-name
-                                                                                   :user-id  authed-user-id
-                                                                                   :statuses statuses}))
-        edges     (map-indexed (fn [index item] {:cursor (inc (+ after index)) ;; NOTE: inc to match SQL which indexes rows from 1
-                                                 :node   item})
-                               analysis)
-        edges'    (map (fn [item] (update item :cursor (comp encode-base64 str)))
-                       edges)
-        page-info {:has-next-page     (if-not (empty? edges)
-                                        (< (-> edges last :cursor) total-count)
-                                        false)
-                   :has-previous-page (if-not (empty? edges)
-                                        (< 1 (-> edges first :cursor))
-                                        false)
-                   :start-cursor      (-> edges' first :cursor)
-                   :end-cursor        (-> edges' last :cursor)}]
-    (clj->gql {:total-count total-count
-               :edges       edges'
-               :page-info   page-info})))
+                                                                                      :else {:lower 0
+                                                                                             :upper 0})
+                                                                                    {:readable-name readable-name
+                                                                                     :user-id       authed-user-id
+                                                                                     :statuses      statuses}))
+          edges     (map-indexed (fn [index item] {:cursor (inc (+ after index)) ;; NOTE: inc to match SQL which indexes rows from 1
+                                                   :node   item})
+                                 analysis)
+          edges'    (map (fn [item] (update item :cursor (comp encode-base64 str)))
+                         edges)
+          page-info {:has-next-page     (if-not (empty? edges)
+                                          (< (-> edges last :cursor) total-count)
+                                          false)
+                     :has-previous-page (if-not (empty? edges)
+                                          (< 1 (-> edges first :cursor))
+                                          false)
+                     :start-cursor      (-> edges' first :cursor)
+                     :end-cursor        (-> edges' last :cursor)}]
+      (clj->gql {:total-count total-count
+                 :edges       edges'
+                 :page-info   page-info})))

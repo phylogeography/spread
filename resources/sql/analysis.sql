@@ -34,19 +34,15 @@ DELETE
 FROM analysis
 WHERE id = :id
 
--- -- :name upsert-status :! :n
--- -- :doc Upsert analysis status
 
--- INSERT INTO analysis(
--- id,
--- status,
--- progress
--- )
--- VALUES (
--- :id,
--- :status,
--- :progress
--- )
--- ON DUPLICATE KEY UPDATE
--- status = IF(:status IS NOT NULL, :status, status),
--- progress = IF(:progress IS NOT NULL, :progress, progress)
+-- :name get-bayes-factor-analysis :? :1
+-- :doc Get entity by id
+
+SELECT
+id,
+of_type,
+readable_name,
+status,
+progress
+FROM analysis
+WHERE id = :id

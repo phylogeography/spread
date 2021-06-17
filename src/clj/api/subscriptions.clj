@@ -1,5 +1,5 @@
 (ns api.subscriptions
-  (:require [api.models.parser :as parser-model]
+  (:require [api.models.analysis :as analysis-model]
             [clojure.core.async :as async :refer [>! go go-loop]]
             [shared.utils :refer [clj->gql]]
             [taoensso.timbre :as log]))
@@ -16,8 +16,9 @@
         (let [sleep    (async/timeout 1000)
               [_ port] (async/alts! [subscription-closed? sleep])]
           (when-not (= port subscription-closed?)
-            (when-let [{:keys [status progress of-type]} (callback db id)]
+            (when-let [{:keys [status progress of-type readable-name]} (callback db id)]
               (source-stream (clj->gql {:id            id
+                                        :readable-name readable-name
                                         :of-type       of-type
                                         :status        status
                                         :progress      (or progress 0)}))
@@ -30,6 +31,6 @@
                                             :analysis/id id})
           (>! subscription-closed? true))))))
 
-(defn create-parser-status-sub []
-  (create-status-subscription "parser" (fn [db id]
-                                         (parser-model/get-status db {:parser-id id}))))
+(defn create-analysis-status-sub []
+  (create-status-subscription "analysis" (fn [db id]
+                                           (parser-model/get-status db {:parser-id id}))))

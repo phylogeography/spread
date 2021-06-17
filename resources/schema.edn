@@ -25,16 +25,6 @@
   ;;                     :startCursor     {:type String}
   ;;                     :endCursor       {:type String}}}
 
-  :Analysis
-  {:fields {:id           {:type (non-null ID)}
-            :userId       {:type (non-null ID)}
-            :readableName {:description "Human-readable name. Usually file name."
-                           :type        String}
-            :createdOn    {:type (non-null :BigInt)}
-            :progress     {:type Float}
-            :status       {:type :AnalysisStatus}
-            :ofType       {:type (non-null :AnalysisType)}}}
-
   ;; :AnalysisEdge {:fields {:node   {:type :Analysis}
   ;;                         :cursor {:type String}}}
 
@@ -44,11 +34,22 @@
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
-  :ParserStatus {:description "Return id and status. Mostly used for querying workers progress."
+  :Analysis
+  {:description "Represents common fields of a parser. Returned by mutations and used in susbscriptions for querying worker progress"
+   :fields {:id           {:type (non-null ID)}
+            :userId       {:type (non-null ID)}
+            :readableName {:description "Human-readable name. Usually file name."
+                           :type        String}
+            :createdOn    {:type (non-null :BigInt)}
+            :progress     {:type Float}
+            :status       {:type (non-null :AnalysisStatus)}
+            :ofType       {:type (non-null :AnalysisType)}}}
+
+  :ParserStatus {:description "Return analysis id, status and some optional fields. Mostly used for querying workers progress."
                  :fields      {:id           {:type (non-null ID)}
                                :readableName {:type String}
-                               :ofType       {:type (non-null :AnalysisType)}
-                               :progress     {:type (non-null Float)}
+                               :ofType       {:type :AnalysisType}
+                               :progress     {:type Float}
                                :status       {:type (non-null :AnalysisStatus)}}}
 
   :User {:fields {:id    {:type (non-null ID)}
