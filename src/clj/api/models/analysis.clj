@@ -20,6 +20,6 @@
 
 (defn upsert! [db analysis]
   (let [analysis (-> (merge nil-analysis analysis)
-                     (update % :status name))]
+                     (update :status name))]
     (log/debug "upsert-analysis" analysis)
     (upsert-analysis db analysis)))

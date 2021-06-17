@@ -55,7 +55,7 @@
                                   :status :ATTRIBUTES_PARSED}))
     (catch Exception e
       (log/error "Exception when handling discrete-tree-upload" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defmethod handler :parse-discrete-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
@@ -111,7 +111,7 @@
                                   :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-discrete-tree" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defmethod handler :continuous-tree-upload
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
@@ -135,7 +135,7 @@
                                   :status :ATTRIBUTES_PARSED}))
     (catch Exception e
       (log/error "Exception when handling continuous-tree-upload" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defmethod handler
   ;; "This handler will parse the continuous MCC tree and create HPD interval contours around it if a corresponding trees sample is provided"
@@ -232,7 +232,7 @@
                                   :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defn- parse-time-slicer [{:keys [id user-id db s3 bucket-name progress-handler parser-settings]}]
   (let [trees-object-key (str user-id "/" id ".trees")
@@ -349,7 +349,7 @@
                                   :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-bayes-factors" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws

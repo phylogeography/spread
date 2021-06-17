@@ -3,7 +3,7 @@
             [api.models.analysis :as analysis-model]
             [api.models.error :as error-model]))
 
-(defn handle-analysis-error [id error]
+(defn handle-analysis-error! [db id error]
   ;; TODO : in a transaction
   (analysis-model/upsert! db {:id     id
                               :status :ERROR})

@@ -82,7 +82,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! id e)))))
+        (errors/handle-analysis-error! db id e)))))
 
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id                          :id
@@ -115,7 +115,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defn start-continuous-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -130,7 +130,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (errors/handle-analysis-error! id e)))))
+        (errors/handle-analysis-error! db id e)))))
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url      :treeFileUrl
@@ -161,7 +161,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! id e)))))
+        (errors/handle-analysis-error! db id e)))))
 
 (defn update-discrete-tree
   [{:keys [authed-user-id db]} {id                        :id
@@ -189,7 +189,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defn start-discrete-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -204,7 +204,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (errors/handle-analysis-error! id e)))))
+        (errors/handle-analysis-error! db id e)))))
 
 (defn upload-time-slicer [{:keys [authed-user-id db]}
                           {continuous-tree-id     :continuousTreeId
@@ -228,7 +228,7 @@
        :status             status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! id e)))))
+        (errors/handle-analysis-error! db id e)))))
 
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
@@ -266,7 +266,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
                                     {log-file-url        :logFileUrl
@@ -298,7 +298,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! id e)))))
+        (errors/handle-analysis-error! db id e)))))
 
 (defn update-bayes-factor-analysis
   [{:keys [authed-user-id db]} {id                  :id
@@ -324,7 +324,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! id e))))
+      (errors/handle-analysis-error! db id e))))
 
 (defn start-bayes-factor-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -339,4 +339,4 @@
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (errors/handle-analysis-error! id e)))))
+        (errors/handle-analysis-error! db id e)))))
