@@ -21,11 +21,14 @@
    :most-recent-sampling-date nil
    :output-file-url           nil})
 
-(defn upsert! [db tree]
-  (let [tree (merge nil-tree tree)]
-    (log/debug "upsert!" tree)
+(defn upsert! [db {:keys [id] :as tree}]
+  (let [prev (or (get-tree db {:id id})
+                 nil-tree)
+        tree (merge prev tree)]
+    (log/debug "upsert discrete tree!" tree)
     (upsert-tree db tree)))
 
-(defn insert-attributes! [db tree-id attributes]
+(defn insert-attributes! [db id attributes]
+  (log/debug "insert-attributes!" id attributes)
   (doseq [att attributes]
-    (insert-attribute db {:tree-id tree-id :attribute-name att})))
+    (insert-attribute db {:id id :attribute-name att})))

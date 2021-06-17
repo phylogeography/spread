@@ -25,7 +25,7 @@
   (let [prev (or (get-tree db {:id id})
                  nil-tree)
         tree (merge prev tree)]
-    (log/debug "upsert-tree!" tree)
+    (log/debug "upsert continuous tree" tree)
     (upsert-tree db tree)))
 
 (defn insert-attributes! [db id attributes]
