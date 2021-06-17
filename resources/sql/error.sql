@@ -3,7 +3,7 @@
 
 INSERT INTO error(
 id,
-error,
+error
 )
 VALUES (
 :id,

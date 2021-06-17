@@ -18,6 +18,9 @@
 (defn get-continuous-tree
   [{:keys [db] :as context} {id :id :as args} _]
   (log/info "get-continuous-tree" args)
+
+  (log/debug "@@@ get-continuous-tree" (continuous-tree-model/get-tree db {:id id}))
+
   (clj->gql (merge (continuous-tree-model/get-tree db {:id id})
                    (when (executor/selects-field? context :ContinuousTree/timeSlicer)
                      {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:id id})}))))

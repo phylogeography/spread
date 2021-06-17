@@ -21,11 +21,14 @@
    :timescale-multiplier        nil
    :output-file-url             nil})
 
-(defn upsert! [db tree]
-  (let [tree (merge nil-tree tree)]
+(defn upsert! [db {:keys [id] :as tree}]
+  (let [prev (or (get-tree db {:id id})
+                 nil-tree)
+        tree (merge prev tree)]
     (log/debug "upsert-tree!" tree)
     (upsert-tree db tree)))
 
 (defn insert-attributes! [db id attributes]
+  (log/debug "insert-attributes!" id attributes)
   (doseq [att attributes]
     (insert-attribute db {:id id :attribute-name att})))

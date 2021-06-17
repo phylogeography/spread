@@ -12,7 +12,7 @@ progress
 )
 VALUES (
 :id,
-:of-type
+:of-type,
 :user-id,
 :readable-name,
 :created-on,
@@ -20,12 +20,12 @@ VALUES (
 :progress
 )
 ON DUPLICATE KEY UPDATE
-user_id = user_id,
+of_type       = IF(:of-type IS NOT NULL, :of-type, of_type),
+user_id       = IF(:user-id IS NOT NULL, :user-id, user_id),
 readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
-created_on = created_on,
-status = IF(:status IS NOT NULL, :status, status),
-of_type = of_type,
-progress = IF(:progress IS NOT NULL, :progress, progress)
+created_on    = IF(:created-on IS NOT NULL, :created-on, created_on),
+status        = IF(:status IS NOT NULL, :status, status),
+progress      = IF(:progress IS NOT NULL, :progress, progress)
 
 -- :name delete-analysis :! :n
 -- :doc Delete an analysis by id
@@ -40,7 +40,9 @@ WHERE id = :id
 SELECT
 id,
 of_type,
+user_id,
 readable_name,
+created_on,
 status,
 progress
 FROM analysis

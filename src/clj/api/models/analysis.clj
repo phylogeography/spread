@@ -12,14 +12,18 @@
 ;; TODO: remove this when we figure out https://github.com/layerware/hugsql/issues/116
 (def ^:private nil-analysis
   {:id            nil
+   :of-type       nil
    :user-id       nil
    :readable-name nil
    :created-on    nil
    :status        nil
-   :of-type       nil})
+   :progress      nil})
 
-(defn upsert! [db analysis]
-  (let [analysis (-> (merge nil-analysis analysis)
-                     (update :status name))]
+(defn upsert! [db {:keys [id status of-type] :as analysis}]
+  (let [prev     (or (get-analysis db {:id id})
+                     nil-analysis)
+        analysis (cond-> (merge prev analysis)
+                         status                   (update :status name)
+                         of-type                  (update :of-type name))]
     (log/debug "upsert-analysis" analysis)
     (upsert-analysis db analysis)))

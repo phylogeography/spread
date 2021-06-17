@@ -71,7 +71,8 @@
                                   :user-id       authed-user-id
                                   :readable-name readable-name
                                   :created-on    (time/millis (time/now))
-                                  :status        status})
+                                  :status        status
+                                  :of-type       :CONTINUOUS_TREE})
       (continuous-tree-model/upsert! db {:id            id
                                          :tree-file-url tree-file-url})
       ;; sends message to the worker queue to parse hpd levels and attributes
@@ -149,7 +150,8 @@
                                   :user-id       authed-user-id
                                   :readable-name readable-name
                                   :created-on    (time/millis (time/now))
-                                  :status        status})
+                                  :status        status
+                                  :of-type       :DISCRETE_TREE})
       (discrete-tree-model/upsert! db {:id                 id
                                        :tree-file-url      tree-file-url
                                        :locations-file-url locations-file-url})
@@ -217,12 +219,13 @@
         status :UPLOADED]
     (try
       ;; TODO : in a transaction
+      (analysis-model/upsert! db {:id      id
+                                  :status  status
+                                  :of-type :TIME_SLICER})
       (time-slicer-model/upsert! db {:id                     id
                                      :continuous-tree-id     continuous-tree-id
                                      :trees-file-url         trees-file-url
                                      :slice-heights-file-url slice-heights-file-url})
-      (analysis-model/upsert! db {:id     id
-                                  :status status})
       {:id                 id
        :continuous-tree-id continuous-tree-id
        :status             status}
@@ -286,7 +289,8 @@
                                   :user-id       authed-user-id
                                   :readable-name readable-name
                                   :created-on    (time/millis (time/now))
-                                  :status        status})
+                                  :status        status
+                                  :of-type       :BAYES_FACTOR_ANALYSIS})
       (bayes-factor-model/upsert! db {:id                  id
                                       :log-file-url        log-file-url
                                       :locations-file-url  locations-file-url

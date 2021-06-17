@@ -21,9 +21,7 @@
       <column name="hpd_level" type="FLOAT"/>
       <column name="contouring_grid_size" type="INT"/>
       <column name="timescale_multiplier" type="FLOAT"/>
-      <column name="most_recent_sampling_date" type="VARCHAR(20)">
-        <constraints nullable="false"/>
-      </column>
+      <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
     </createTable>
   </changeSet>
 

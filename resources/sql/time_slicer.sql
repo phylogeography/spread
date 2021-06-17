@@ -74,7 +74,7 @@ WHERE :id = id
 -- :name get-time-slicer-by-continuous-tree-id :? :1
 -- :doc Get entity by continuous-tree-id
 SELECT
-id,
+analysis.id,
 user_id,
 continuous_tree_id,
 created_on,

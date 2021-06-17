@@ -130,7 +130,6 @@
                                                     :attributes attributes})
       ;; TODO : in a transaction
       (continuous-tree-model/insert-attributes! db id attributes)
-      ;; (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
       (analysis-model/upsert! db {:id     id
                                   :status :ATTRIBUTES_PARSED}))
     (catch Exception e
@@ -144,8 +143,11 @@
   (log/info "handling parse-continuous-tree" args)
   (try
     (let [{:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
-                  timescale-multiplier most-recent-sampling-date]}
+                  timescale-multiplier most-recent-sampling-date]
+           :as continuous-tree}
           (continuous-tree-model/get-tree db {:id id})
+
+          _ (log/info "ContinuousTree retrieved by id" continuous-tree)
 
           {time-slicer-id                          :id
            hpd-level                               :hpd-level
@@ -171,7 +173,7 @@
                                                      (when (= (mod progress 0.1) 0.0)
                                                        #_(log/debug "continuous tree progress" {:id       id
                                                                                                 :progress progress})
-                                                       (analysis-model/upsert! db {:tree-id  id
+                                                       (analysis-model/upsert! db {:id  id
                                                                                    :status   :RUNNING
                                                                                    :progress progress})))))
 

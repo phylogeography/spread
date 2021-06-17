@@ -13,9 +13,7 @@
       </column>
       <column name="x_coordinate_attribute_name" type="VARCHAR(50)"/>
       <column name="y_coordinate_attribute_name" type="VARCHAR(50)"/>
-      <column name="most_recent_sampling_date" type="VARCHAR(20)">
-        <constraints nullable="false"/>
-      </column>        
+      <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
       <column name="timescale_multiplier" type="float"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
     </createTable>

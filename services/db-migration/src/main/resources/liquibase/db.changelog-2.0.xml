@@ -19,7 +19,9 @@
         <constraints nullable="false" />
       </column>
       <column name="progress" type="float" defaultValueNumeric="0"/>
-      <column name="of_type" type="VARCHAR(21)"/>
+      <column name="of_type" type="VARCHAR(21)">
+        <constraints nullable="false"/>
+      </column>        
     </createTable>
     <sql>ALTER TABLE analysis ADD CONSTRAINT check_of_type CHECK (of_type = 'CONTINUOUS_TREE' OR of_type = 'DISCRETE_TREE' OR of_type = 'BAYES_FACTOR_ANALYSIS' OR of_type = 'TIME_SLICER')</sql>
   </changeSet>
