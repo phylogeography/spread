@@ -5,6 +5,7 @@
 ;; These are just not to upset clj-kondo
 (declare upsert-analysis)
 (declare get-analysis)
+(declare get-user-analysis)
 
 (hugsql/def-db-fns "sql/analysis.sql")
 (hugsql/def-sqlvec-fns "sql/analysis.sql")

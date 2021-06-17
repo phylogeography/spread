@@ -1,21 +1,21 @@
 (ns worker.listener
   (:require [api.db :as db]
+            [api.models.analysis :as analysis-model]
             [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
-            [api.models.analysis :as analysis-model]
-            [shared.errors :as errors]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
             [clojure.core.match :refer [match]]
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
-            [shared.utils :refer [file-exists? round longest-common-substring]]
+            [shared.errors :as errors]
+            [shared.utils :refer [file-exists? longest-common-substring round]]
             [taoensso.timbre :as log])
   (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]
-           [com.spread.progress IProgressObserver]))
+           com.spread.progress.IProgressObserver))
 
 (declare listener)
 (declare parse-time-slicer)

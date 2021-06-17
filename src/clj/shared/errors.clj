@@ -1,6 +1,5 @@
 (ns shared.errors
-  (:require [api.auth :as auth]
-            [api.models.analysis :as analysis-model]
+  (:require [api.models.analysis :as analysis-model]
             [api.models.error :as error-model]))
 
 (defn handle-analysis-error! [db id error]
