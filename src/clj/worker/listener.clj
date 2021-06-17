@@ -4,6 +4,8 @@
             [api.models.continuous-tree :as continuous-tree-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
+            [api.models.analysis :as analysis-model]
+            [shared.errors :as errors]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -49,12 +51,11 @@
       (log/info "Parsed attributes" {:id         id
                                      :attributes attributes})
       (discrete-tree-model/insert-attributes! db id attributes)
-      (discrete-tree-model/upsert-status! db {:tree-id id
-                                              :status  :ATTRIBUTES_PARSED}))
+      (analysis-model/upsert! db {:id     id
+                                  :status :ATTRIBUTES_PARSED}))
     (catch Exception e
       (log/error "Exception when handling discrete-tree-upload" {:error e})
-      (discrete-tree-model/upsert-status! db {:tree-id id
-                                              :status  :ERROR}))))
+      (errors/handle-analysis-error! id e))))
 
 (defmethod handler :parse-discrete-tree
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
@@ -86,9 +87,9 @@
                                                          (when (= (mod progress 0.1) 0.0)
                                                            (log/debug "discrete tree progress" {:id       id
                                                                                                 :progress progress})
-                                                           (discrete-tree-model/upsert-status! db {:tree-id  id
-                                                                                                   :status   :RUNNING
-                                                                                                   :progress progress})))))
+                                                           (analysis-model/upsert! db {:id       id
+                                                                                       :status   :RUNNING
+                                                                                       :progress progress})))))
           parser               (doto (new DiscreteTreeParser)
                                  (.setTreeFilePath tree-file-path)
                                  (.setLocationsFilePath locations-file-path)
@@ -104,14 +105,13 @@
                                                        :file-path output-object-path})
           url                  (aws-s3/build-url aws-config bucket-name output-object-key)]
       ;; TODO : in a transaction
-      (discrete-tree-model/update! db {:id              id
+      (discrete-tree-model/upsert! db {:id              id
                                        :output-file-url url})
-      (discrete-tree-model/upsert-status! db {:tree-id id
-                                              :status  :SUCCEEDED}))
+      (analysis-model/upsert! db {:id     id
+                                  :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-discrete-tree" {:error e})
-      (discrete-tree-model/upsert-status! db {:tree-id id
-                                              :status  :ERROR}))))
+      (errors/handle-analysis-error! id e))))
 
 (defmethod handler :continuous-tree-upload
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
@@ -131,12 +131,11 @@
       ;; TODO : in a transaction
       (continuous-tree-model/insert-attributes! db id attributes)
       ;; (continuous-tree-model/insert-hpd-levels! db id hpd-levels)
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  :ATTRIBUTES_PARSED}))
+      (analysis-model/upsert! db {:id     id
+                                  :status :ATTRIBUTES_PARSED}))
     (catch Exception e
       (log/error "Exception when handling continuous-tree-upload" {:error e})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  :ERROR}))))
+      (errors/handle-analysis-error! id e))))
 
 (defmethod handler
   ;; "This handler will parse the continuous MCC tree and create HPD interval contours around it if a corresponding trees sample is provided"
@@ -172,9 +171,9 @@
                                                      (when (= (mod progress 0.1) 0.0)
                                                        #_(log/debug "continuous tree progress" {:id       id
                                                                                                 :progress progress})
-                                                       (continuous-tree-model/upsert-status! db {:tree-id  id
-                                                                                                 :status   :RUNNING
-                                                                                                 :progress progress})))))
+                                                       (analysis-model/upsert! db {:tree-id  id
+                                                                                   :status   :RUNNING
+                                                                                   :progress progress})))))
 
           ;; call all setters
           continuous-tree-parser (doto (new ContinuousTreeParser)
@@ -227,14 +226,13 @@
           url                (aws-s3/build-url aws-config bucket-name output-object-key)
           _                  (log/info "Continuous tree output URL" {:url url})]
       ;; TODO : in a transaction
-      (continuous-tree-model/update! db {:id              id
+      (continuous-tree-model/upsert! db {:id              id
                                          :output-file-url url})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  :SUCCEEDED}))
+      (analysis-model/upsert! db {:id     id
+                                  :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
-      (continuous-tree-model/upsert-status! db {:tree-id id
-                                                :status  :ERROR}))))
+      (errors/handle-analysis-error! id e))))
 
 (defn- parse-time-slicer [{:keys [id user-id db s3 bucket-name progress-handler parser-settings]}]
   (let [trees-object-key (str user-id "/" id ".trees")
@@ -266,9 +264,9 @@
                  (.setTimescaleMultiplier timescale-multiplier)
                  (.setMostRecentSamplingDate most-recent-sampling-date)
                  (.registerProgressObserver progress-handler))
-        output (.parse parser)
-        _      (time-slicer-model/upsert-status! db {:time-slicer-id id
-                                                     :status         :SUCCEEDED})]
+        output (.parse parser)]
+    (analysis-model/upsert! db {:id     id
+                                :status :SUCCEEDED})
     (json/read-str output :key-fn keyword)))
 
 (defmethod handler :parse-bayes-factors
@@ -276,8 +274,8 @@
   (log/info "handling parse-bayes-factors" args)
   (try
     (let [_
-          (bayes-factor-model/update! db {:id     id
-                                          :status :RUNNING})
+          (analysis-model/upsert! db {:id     id
+                                      :status :RUNNING})
           {:keys [user-id
                   locations-file-url
                   number-of-locations
@@ -296,9 +294,9 @@
                                                      (when (= (mod progress 0.1) 0.0)
                                                        (log/debug "bayes factor progress" {:id       id
                                                                                            :progress progress})
-                                                       (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
-                                                                                              :status                   :RUNNING
-                                                                                              :progress                 progress})))))
+                                                       (analysis-model/upsert! db {:id       id
+                                                                                   :status   :RUNNING
+                                                                                   :progress progress})))))
           parser
           (match [(nil? locations-file-url) (nil? number-of-locations)]
 
@@ -343,16 +341,15 @@
                                                                     :file-path output-object-path})
           url                               (aws-s3/build-url aws-config bucket-name output-object-key)]
       ;; TODO : in a transaction
-      (bayes-factor-model/insert-bayes-factors db {:bayes-factor-analysis-id id
-                                                   :bayes-factors            (json/write-str bayesFactors)})
-      (bayes-factor-model/update! db {:id              id
+      (bayes-factor-model/insert-bayes-factors db {:id            id
+                                                   :bayes-factors (json/write-str bayesFactors)})
+      (bayes-factor-model/upsert! db {:id              id
                                       :output-file-url url})
-      (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
-                                             :status                   :SUCCEEDED}))
+      (analysis-model/upsert! db {:id     id
+                                  :status :SUCCEEDED}))
     (catch Exception e
       (log/error "Exception when handling parse-bayes-factors" {:error e})
-      (bayes-factor-model/upsert-status! db {:bayes-factor-analysis-id id
-                                             :status                   :ERROR}))))
+      (errors/handle-analysis-error! id e))))
 
 (defn start [{:keys [aws db] :as config}]
   (let [{:keys [workers-queue-url bucket-name]} aws

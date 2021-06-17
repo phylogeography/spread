@@ -69,7 +69,7 @@
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    :query/getUserAnalysis    (auth-decorator resolvers/get-user-analysis)
-   :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
+   ;; :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
    })
 
 (defn streamer-map []

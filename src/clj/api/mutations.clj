@@ -5,7 +5,8 @@
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.analysis :as analysis-model]
-            [api.models.error :as error-model]
+            ;; [api.models.error :as error-model]
+            [shared.errors :as errors]
             [api.models.user :as user-model]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
@@ -81,12 +82,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        ;; TODO : in a transaction
-        (analysis-model/upsert! db {:id     id
-                                    :status :ERROR})
-        (error-model/insert! {:id    id
-                              ;; TODO : do sth for human consumable errors
-                              :error (str e)})))))
+        (errors/handle-analysis-error! id e)))))
 
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id                          :id
@@ -119,12 +115,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id     id
-                                  :status :ERROR})
-      (error-model/insert! {:id    id
-                            ;; TODO : do sth for human consumable errors
-                            :error (str e)}))))
+      (errors/handle-analysis-error! id e))))
 
 (defn start-continuous-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -139,12 +130,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        ;; TODO : in a transaction
-        (analysis-model/upsert! db {:id     id
-                                    :status :ERROR})
-        (error-model/insert! {:id    id
-                              ;; TODO : do sth for human consumable errors
-                              :error (str e)})))))
+        (errors/handle-analysis-error! id e)))))
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url      :treeFileUrl
@@ -175,12 +161,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        ;; TODO : in a transaction
-        (analysis-model/upsert! db {:id     id
-                                    :status :ERROR})
-        (error-model/insert! {:id    id
-                              ;; TODO : do sth for human consumable errors
-                              :error (str e)})))))
+        (errors/handle-analysis-error! id e)))))
 
 (defn update-discrete-tree
   [{:keys [authed-user-id db]} {id                        :id
@@ -208,12 +189,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id     id
-                                  :status :ERROR})
-      (error-model/insert! {:id    id
-                            ;; TODO : do sth for human consumable errors
-                            :error (str e)}))))
+      (errors/handle-analysis-error! id e))))
 
 (defn start-discrete-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -228,12 +204,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        ;; TODO : transaction
-        (analysis-model/upsert! db {:id     id
-                                    :status :ERROR})
-        (error-model/insert! {:id    id
-                              ;; TODO : do sth for human consumable errors
-                              :error (str e)})))))
+        (errors/handle-analysis-error! id e)))))
 
 (defn upload-time-slicer [{:keys [authed-user-id db]}
                           {continuous-tree-id     :continuousTreeId
@@ -257,12 +228,7 @@
        :status             status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        ;; TODO : transaction
-        (analysis-model/upsert! db {:id     id
-                                    :status :ERROR})
-        (error-model/insert! {:id    id
-                              ;; TODO : do sth for human consumable errors
-                              :error (str e)})))))
+        (errors/handle-analysis-error! id e)))))
 
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
@@ -300,12 +266,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id     id
-                                  :status :ERROR})
-      (error-model/insert! {:id    id
-                            ;; TODO : do sth for human consumable errors
-                            :error (str e)}))))
+      (errors/handle-analysis-error! id e))))
 
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
                                     {log-file-url        :logFileUrl
@@ -337,12 +298,7 @@
        :status status}
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        ;; TODO : in a transaction
-        (analysis-model/upsert! db {:id     id
-                                    :status :ERROR})
-        (error-model/insert! {:id    id
-                              ;; TODO : do sth for human consumable errors
-                              :error (str e)})))))
+        (errors/handle-analysis-error! id e)))))
 
 (defn update-bayes-factor-analysis
   [{:keys [authed-user-id db]} {id                  :id
@@ -368,12 +324,7 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id     id
-                                  :status :ERROR})
-      (error-model/insert! {:id    id
-                            ;; TODO : do sth for human consumable errors
-                            :error (str e)}))))
+      (errors/handle-analysis-error! id e))))
 
 (defn start-bayes-factor-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
@@ -388,9 +339,4 @@
        :status status}
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        ;; TODO : in a transaction
-        (analysis-model/upsert! db {:id     id
-                                    :status :ERROR})
-        (error-model/insert! {:id    id
-                              ;; TODO : do sth for human consumable errors
-                              :error (str e)})))))
+        (errors/handle-analysis-error! id e)))))
