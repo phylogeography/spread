@@ -49,7 +49,7 @@ output_file_url = IF(:output-file-url IS NOT NULL, :output-file-url, output_file
 -- :doc Get entity by id
 
 SELECT
-id,
+analysis.id,
 user_id,
 continuous_tree_id,
 created_on,
@@ -69,10 +69,11 @@ status,
 progress
 FROM time_slicer
 JOIN analysis ON analysis.id = time_slicer.id
-WHERE :id = id
+WHERE :id = analysis.id
 
 -- :name get-time-slicer-by-continuous-tree-id :? :1
 -- :doc Get entity by continuous-tree-id
+
 SELECT
 analysis.id,
 user_id,

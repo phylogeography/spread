@@ -28,9 +28,10 @@
    :most-recent-sampling-date               nil
    :output-file-url                         nil})
 
-(defn upsert! [db time-slicer]
-  (let [time-slicer (->> time-slicer
-                         (merge nil-time-slicer))]
+(defn upsert! [db {:keys [id] :as time-slicer}]
+  (let [prev (or (get-time-slicer db {:id id})
+                 nil-time-slicer)
+        time-slicer (merge prev time-slicer)]
     (log/debug "upsert-time-slicer!" time-slicer)
     (upsert-time-slicer db time-slicer)))
 

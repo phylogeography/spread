@@ -18,12 +18,9 @@
 (defn get-continuous-tree
   [{:keys [db] :as context} {id :id :as args} _]
   (log/info "get-continuous-tree" args)
-
-  (log/debug "@@@ get-continuous-tree" (continuous-tree-model/get-tree db {:id id}))
-
   (clj->gql (merge (continuous-tree-model/get-tree db {:id id})
                    (when (executor/selects-field? context :ContinuousTree/timeSlicer)
-                     {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:id id})}))))
+                     {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})}))))
 
 (defn continuous-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
@@ -38,7 +35,7 @@
 (defn continuous-tree->time-slicer
   [{:keys [db]} _ {tree-id :id :as parent}]
   (log/info "continuous-tree->time-slicer" parent)
-  (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:id tree-id})]
+  (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id tree-id})]
     (log/info "continuous-tree->time-slicer" time-slicer)
     (clj->gql time-slicer)))
 
@@ -92,12 +89,12 @@
                                   statuses      :statuses
                                   readable-name :readable-name
                                   :or           {statuses      [:UPLOADED
-                                                           :ATTRIBUTES_PARSED
-                                                           :ARGUMENTS_SET
-                                                           :QUEUED
-                                                           :RUNNING
-                                                           :SUCCEEDED
-                                                           :ERROR]
+                                                                :ATTRIBUTES_PARSED
+                                                                :ARGUMENTS_SET
+                                                                :QUEUED
+                                                                :RUNNING
+                                                                :SUCCEEDED
+                                                                :ERROR]
                                                  readable-name ""}
                                   :as           args} _]
     (log/info "search-user-analysis" args)

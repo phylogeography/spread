@@ -220,8 +220,10 @@
     (try
       ;; TODO : in a transaction
       (analysis-model/upsert! db {:id      id
-                                  :status  status
-                                  :of-type :TIME_SLICER})
+                                  :user-id authed-user-id
+                                  :created-on (time/millis (time/now))
+                                  :status     status
+                                  :of-type    :TIME_SLICER})
       (time-slicer-model/upsert! db {:id                     id
                                      :continuous-tree-id     continuous-tree-id
                                      :trees-file-url         trees-file-url
