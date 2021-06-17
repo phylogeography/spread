@@ -73,7 +73,7 @@
    })
 
 (defn streamer-map []
-  {:subscription/parserStatus (auth-decorator (subscriptions/create-parser-status-sub))})
+  {:subscription/parserStatus (auth-decorator (subscriptions/create-analysis-status-sub))})
 
 (defn- context-interceptor
   [extra-context]

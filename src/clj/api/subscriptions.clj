@@ -33,4 +33,4 @@
 
 (defn create-analysis-status-sub []
   (create-status-subscription "analysis" (fn [db id]
-                                           (parser-model/get-status db {:parser-id id}))))
+                                           (analysis-model/get-analysis db {:id id}))))

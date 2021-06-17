@@ -34,9 +34,8 @@ DELETE
 FROM analysis
 WHERE id = :id
 
-
--- :name get-bayes-factor-analysis :? :1
--- :doc Get entity by id
+-- :name get-analysis :? :1
+-- :doc Return a analysis by id
 
 SELECT
 id,
@@ -46,3 +45,15 @@ status,
 progress
 FROM analysis
 WHERE id = :id
+
+-- :name get-user-analysis :? :*
+-- :doc Return a list of all user analysis
+
+SELECT
+id,
+of_type,
+readable_name,
+status,
+progress
+FROM analysis
+WHERE user_id = :user-id

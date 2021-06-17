@@ -4,6 +4,7 @@
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
+            [api.models.analysis :as analysis-model]
             [clojure.data.json :as json]
             [com.walmartlabs.lacinia.executor :as executor]
             [shared.utils :refer [clj->gql decode-base64 encode-base64]]
@@ -74,7 +75,7 @@
   "Returns a list of all user analysis"
   [{:keys [db authed-user-id]} _ _]
   (log/info "get-user-analysis" {:user/id authed-user-id})
-  (clj->gql (user-model/get-user-analysis db {:user-id authed-user-id})))
+  (clj->gql (analysis-model/get-user-analysis db {:user-id authed-user-id})))
 
 ;; NOTE: not used atm
 #_(defn search-user-analysis

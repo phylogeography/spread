@@ -27,42 +27,42 @@ email
 FROM user
 WHERE email = :email
 
--- :name count-user-analysis* :? :1
--- :doc Return total number of all user analysis
+-- -- :name count-user-analysis* :? :1
+-- -- :doc Return total number of all user analysis
 
-SELECT count(*) AS total_count FROM
-(SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree
-JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id
-WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
-UNION
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree
-JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id
-WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
-UNION
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") FROM bayes_factor_analysis
-JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id
-WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
-ORDER BY created_on) AS all_user_analysis
+-- SELECT count(*) AS total_count FROM
+-- (SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree
+-- JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id
+-- WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
+-- UNION
+-- SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree
+-- JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id
+-- WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
+-- UNION
+-- SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") FROM bayes_factor_analysis
+-- JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id
+-- WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
+-- ORDER BY created_on) AS all_user_analysis
 
--- :name search-user-analysis* :? :*
--- :doc Return paginated list of user analysis
+-- -- :name search-user-analysis* :? :*
+-- -- :doc Return paginated list of user analysis
 
-SELECT * FROM
-  (SELECT *, row_number() OVER (ORDER BY created_on) AS row_num FROM
-    (SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
-     UNION
-     SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
-     UNION
-     SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") AS of_type FROM bayes_factor_analysis JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
-     ) AS q1) AS q2
-  WHERE row_num > :lower AND row_num < :upper;
+-- SELECT * FROM
+--   (SELECT *, row_number() OVER (ORDER BY created_on) AS row_num FROM
+--     (SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
+--      UNION
+--      SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
+--      UNION
+--      SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") AS of_type FROM bayes_factor_analysis JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id WHERE user_id = :user-id AND status IN (:v*:statuses) AND readable_name LIKE :readable-name
+--      ) AS q1) AS q2
+--   WHERE row_num > :lower AND row_num < :upper;
 
--- :name get-user-analysis :? :*
--- :doc Return a list of all user analysis
+-- -- :name get-user-analysis :? :*
+-- -- :doc Return a list of all user analysis
 
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id WHERE user_id = :user-id
-UNION
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id WHERE user_id = :user-id
-UNION
-SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") AS of_type FROM bayes_factor_analysis JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id WHERE user_id = :user-id
-ORDER BY created_on DESC;
+-- SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "CONTINUOUS_TREE") AS of_type FROM continuous_tree JOIN continuous_tree_status ON continuous_tree_status.tree_id = continuous_tree.id WHERE user_id = :user-id
+-- UNION
+-- SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "DISCRETE_TREE") AS of_type FROM discrete_tree JOIN discrete_tree_status ON discrete_tree_status.tree_id = discrete_tree.id WHERE user_id = :user-id
+-- UNION
+-- SELECT id, user_id, readable_name, created_on, progress, status, (SELECT "BAYES_FACTOR_ANALYSIS") AS of_type FROM bayes_factor_analysis JOIN bayes_factor_analysis_status ON bayes_factor_analysis_status.bayes_factor_analysis_id = bayes_factor_analysis.id WHERE user_id = :user-id
+-- ORDER BY created_on DESC;

@@ -4,7 +4,7 @@
 
 ;; These are just not to upset clj-kondo
 (declare upsert-analysis)
-(declare get-status)
+(declare get-analysis)
 
 (hugsql/def-db-fns "sql/analysis.sql")
 (hugsql/def-sqlvec-fns "sql/analysis.sql")

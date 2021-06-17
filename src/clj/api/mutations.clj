@@ -232,7 +232,6 @@
 
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
-                                ;; readable-name                           :readableName
                                 burn-in                                 :burnIn
                                 relaxed-random-walk-rate-attribute-name :relaxedRandomWalkRateAttributeName
                                 trait-attribute-name                    :traitAttributeName
@@ -250,7 +249,7 @@
   (try
     (let [status :ARGUMENTS_SET]
       ;; TODO : in a transaction
-      (time-slicer-model/update! db {:id                                      id
+      (time-slicer-model/upsert! db {:id                                      id
                                      :burn-in                                 burn-in
                                      :number-of-intervals                     number-of-intervals
                                      :relaxed-random-walk-rate-attribute-name relaxed-random-walk-rate-attribute-name
@@ -260,7 +259,6 @@
                                      :timescale-multiplier                    timescale-multiplier
                                      :most-recent-sampling-date               most-recent-sampling-date})
       (analysis-model/upsert! db {:id     id
-                                  ;; :readable-name readable-name
                                   :status status})
       {:id     id
        :status status})

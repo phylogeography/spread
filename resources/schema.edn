@@ -34,18 +34,17 @@
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
-  :Analysis
-  {:description "Represents common fields of a parser. Returned by mutations and used in susbscriptions for querying worker progress"
-   :fields {:id           {:type (non-null ID)}
-            :userId       {:type (non-null ID)}
-            :readableName {:description "Human-readable name. Usually file name."
-                           :type        String}
-            :createdOn    {:type (non-null :BigInt)}
-            :progress     {:type Float}
-            :status       {:type (non-null :AnalysisStatus)}
-            :ofType       {:type (non-null :AnalysisType)}}}
+  :Analysis {:description "Represents common fields of a parser. Returned by queries."
+             :fields      {:id           {:type (non-null ID)}
+                           :userId       {:type (non-null ID)}
+                           :readableName {:description "Human-readable name. Usually file name."
+                                          :type        String}
+                           :createdOn    {:type (non-null :BigInt)}
+                           :progress     {:type Float}
+                           :status       {:type (non-null :AnalysisStatus)}
+                           :ofType       {:type (non-null :AnalysisType)}}}
 
-  :ParserStatus {:description "Return analysis id, status and some optional fields. Mostly used for querying workers progress."
+  :ParserStatus {:description "Return analysis id, status and some optional fields. Returned by mutations and used for subscriptions to the workers progress."
                  :fields      {:id           {:type (non-null ID)}
                                :readableName {:type String}
                                :ofType       {:type :AnalysisType}
@@ -169,11 +168,10 @@
   }
 
  :subscriptions
- {:parserStatus
-  {:type        :ParserStatus
-   :description "Returns a subscription to any parser status by it's ID."
-   :args        {:id {:type (non-null ID)}}
-   :stream      :subscription/parserStatus}}
+ {:parserStatus {:type        :ParserStatus
+                 :description "Returns a subscription to any parser status by it's ID."
+                 :args        {:id {:type (non-null ID)}}
+                 :stream      :subscription/parserStatus}}
 
  :mutations
  {:googleLogin {:type        :JWT
