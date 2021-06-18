@@ -64,7 +64,7 @@
                         (handler fxs k v))
                       response))
 
-(defn response [cofx [_ {:keys [data errors] :as response}]]
+(defn response [cofx [_ {:keys [data errors]}]]
   (when errors
     (log/error "Error in graphql response" {:error errors}))
   (reduce-handlers cofx (gql->clj data)))
@@ -302,7 +302,7 @@
            (assoc-in [:users id] user))})
 
 (defmethod handler :touch-analysis
-  [{:keys [db]} _ {:keys [id is-new] :as analysis}]
+  [{:keys [db]} _ {:keys [id is-new]}]
   {:db (assoc-in db [:analysis id :new?] is-new)})
 
 (defmethod handler :google-login

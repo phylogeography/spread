@@ -55,7 +55,7 @@
 
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type status new?] :as args}]
+    (fn [{:keys [id readable-name of-type status new?]}]
       (let [error? (= "ERROR" status)]
         ;; TODO dispatch touch mutation
         [:div.completed-menu-item {:on-click #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
