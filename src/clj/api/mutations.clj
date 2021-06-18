@@ -343,3 +343,15 @@
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))
+
+(defn touch-analysis
+  [{:keys [authed-user-id db]} {id :id :as args} _]
+  (log/info "touch-analysis" {:user/id authed-user-id
+                              :args    args})
+  (try
+    (analysis-model/touch-analysis db {:id id})
+    {:id    id
+     :isNew false}
+    (catch Exception e
+      (log/error "Exception occured when marking analysis as touched" {:analysis/id id
+                                                                       :error       e}))))

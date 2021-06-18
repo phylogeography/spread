@@ -3,6 +3,7 @@
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
             [clojure.core.match :refer [match]]
+            [clojure.set :refer [rename-keys]]
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
@@ -290,14 +291,19 @@
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
-  (>evt [:user-analysis-loaded])
-  {:db (assoc db :analysis (zipmap (map :id analysis) analysis))})
+  (let [analysis (map #(rename-keys % {:is-new :new?}) analysis)]
+    (>evt [:user-analysis-loaded])
+    {:db (assoc db :analysis (zipmap (map :id analysis) analysis))}))
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
   {:db (-> db
            (assoc-in [:users :authorized-user] user)
            (assoc-in [:users id] user))})
+
+(defmethod handler :touch-analysis
+  [{:keys [db]} _ {:keys [id is-new] :as analysis}]
+  {:db (assoc-in db [:analysis id :new?] is-new)})
 
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]

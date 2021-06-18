@@ -62,3 +62,11 @@ progress,
 is_new
 FROM analysis
 WHERE user_id = :user-id
+
+-- :name touch-analysis :! :n
+-- :doc Mark analysis as seen by the user
+
+UPDATE analysis
+SET
+is_new = FALSE
+WHERE id = :id

@@ -70,6 +70,8 @@
 
    :query/getUserAnalysis   (auth-decorator resolvers/get-user-analysis)
    :resolve/analysis->error resolvers/analysis->error
+   :mutation/touchAnalysis  (auth-decorator mutations/touch-analysis)
+
    ;; :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
    })
 

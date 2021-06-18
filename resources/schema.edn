@@ -34,6 +34,10 @@
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
+  :TouchAnalysisReturnType {:description "Returned by touch analysis mutation"
+                            :fields      {:id    {:type (non-null ID)}
+                                          :isNew {:type (non-null Boolean)}}}
+
   :Analysis {:description "Represents common fields of a parser. Returned by queries."
              :fields      {:id           {:type (non-null ID)}
                            :userId       {:type (non-null ID)}
@@ -273,4 +277,9 @@
   :startBayesFactorParser {:type        :ParserStatus
                            :description "Starts executing a parser. Returns a ParserStatus with id."
                            :args        {:id {:type (non-null ID)}}
-                           :resolve     :mutation/startBayesFactorParser}}}
+                           :resolve     :mutation/startBayesFactorParser}
+
+  :touchAnalysis {:type        :TouchAnalysisReturnType
+                  :description "Marks analysis as viewed"
+                  :args        {:id {:type (non-null ID)}}
+                  :resolve     :mutation/touchAnalysis}}}

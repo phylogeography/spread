@@ -13,21 +13,21 @@
 
 (defn get-authorized-user
   [{:keys [authed-user-id db]} _ _]
-  (log/info "get-authorized-user" {:authed-user-id authed-user-id})
+  (log/info "get-authorized-user query" {:authed-user-id authed-user-id})
   (clj->gql (user-model/get-user-by-id db {:id authed-user-id})))
 
 (defn get-continuous-tree
   [{:keys [db] :as context} {id :id :as args} _]
-  (log/info "get-continuous-tree" args)
+  (log/info "get-continuous-tree query" args)
   (clj->gql (merge (continuous-tree-model/get-tree db {:id id})
                    (when (executor/selects-field? context :ContinuousTree/timeSlicer)
                      {:timeSlicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})}))))
 
 (defn continuous-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
-  (log/info "continuous-tree->attributes" parent)
+  (log/info "continuous-tree->attributes query" parent)
   (let [attributes (map :attribute-name (continuous-tree-model/get-attributes db {:id tree-id}))]
-    (log/info "continuous-tree->attributes" {:attributes attributes})
+    (log/info "continuous-tree->attributes results" {:attributes attributes})
     attributes))
 
 ;; TODO: this resolver is not being called even if the `timeSlicer` field is present on `getContinuousTree` query
@@ -35,9 +35,9 @@
 ;; this is fixed in the get-continuous-tree resolver by appending the field explicitely if the field is present
 (defn continuous-tree->time-slicer
   [{:keys [db]} _ {tree-id :id :as parent}]
-  (log/info "continuous-tree->time-slicer" parent)
+  (log/info "continuous-tree->time-slicer query" parent)
   (let [time-slicer (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id tree-id})]
-    (log/info "continuous-tree->time-slicer" time-slicer)
+    (log/info "continuous-tree->time-slicer results" time-slicer)
     (clj->gql time-slicer)))
 
 (defn get-discrete-tree
@@ -47,44 +47,44 @@
 
 (defn discrete-tree->attributes
   [{:keys [db]} _ {tree-id :id :as parent}]
-  (log/info "discrete-tree->attributes" parent)
+  (log/info "discrete-tree->attributes query" parent)
   (let [attributes (map :attribute-name (discrete-tree-model/get-attributes db {:id tree-id}))]
-    (log/info "discrete-tree->attributes" {:attributes attributes})
+    (log/info "discrete-tree->attributes results" {:attributes attributes})
     attributes))
 
 (defn time-slicer->attributes
   [{:keys [db]} _ {time-slicer-id :id :as parent}]
-  (log/info "time-slicer->attributes" parent)
+  (log/info "time-slicer->attributes query" parent)
   (let [attributes (map :attribute-name (time-slicer-model/get-attributes db {:id time-slicer-id}))]
-    (log/info "time-slicer->attributes" {:attributes attributes})
+    (log/info "time-slicer->attributes results" {:attributes attributes})
     attributes))
 
 (defn get-bayes-factor-analysis
   [{:keys [db]} {id :id :as args} _]
-  (log/info "get-bayes-factor-analysis" args)
+  (log/info "get-bayes-factor-analysis query" args)
   (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
 
 (defn bayes-factor-analysis->bayes-factors
   [{:keys [db]} _ {bayes-factor-analysis-id :id :as parent}]
-  (log/info "bayes-factor-analysis->bayes-factors" parent)
+  (log/info "bayes-factor-analysis->bayes-factors query" parent)
   (let [{:keys [bayes-factors]} (bayes-factor-model/get-bayes-factors db {:id bayes-factor-analysis-id})
         bayes-factors           (json/read-str bayes-factors)]
-    (log/info "bayes-factor-analysis->bayes-factors" {:bayes-factors bayes-factors})
+    (log/info "bayes-factor-analysis->bayes-factors result" {:bayes-factors bayes-factors})
     (clj->gql bayes-factors)))
 
 (defn get-user-analysis
   "Returns a list of all user analysis"
   [{:keys [db authed-user-id]} _ _]
-  (log/info "get-user-analysis" {:user/id authed-user-id})
+  (log/info "get-user-analysis query" {:user/id authed-user-id})
   (let [analysis (analysis-model/get-user-analysis db {:user-id authed-user-id})]
     (log/info "get-user-analysis results" analysis)
     (clj->gql analysis)))
 
 (defn analysis->error
   [{:keys [db]} _ {analysis-id :id :as parent}]
-  (log/info "analysis->error" parent)
+  (log/info "analysis->error query" parent)
   (let [error (error-model/get-error db {:id analysis-id})]
-    (log/info "analysis->error")
+    (log/info "analysis->error result" error)
     (:error error)))
 
 ;; NOTE: not used atm

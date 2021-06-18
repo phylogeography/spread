@@ -33,11 +33,12 @@
                                         }
                                         getUserAnalysis {
                                           id
-                                          createdOn
+                                          ofType
                                           readableName
                                           status
                                           error
-                                          ofType
+                                          isNew
+                                          createdOn
                                         }
                                       }"}]]
    :forward-events {:register    :active-page-changed
