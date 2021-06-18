@@ -36,6 +36,7 @@
                                           createdOn
                                           readableName
                                           status
+                                          error
                                           ofType
                                         }
                                       }"}]]

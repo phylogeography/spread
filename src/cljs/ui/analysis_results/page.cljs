@@ -9,16 +9,13 @@
             [ui.time :as time]
             [ui.utils :refer [<sub >evt]]))
 
-;; TODO : data + error tab
-;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed305a09c542e790702f
-
-(defn data [{:keys [of-type status] :as analysis}]
-
+(defn data [{:keys [of-type status error] :as analysis}]
   [:div.data
-   (when = "ERROR" status
-         [:div.error
-          "ERROR"
-          ])
+   (when (= "ERROR" status)
+     [:div.error
+      [:span "Error occured while running analysis"]
+      [:span "Check full report"]
+      [:p error]])
 
    [:div.settings-section
     (case of-type

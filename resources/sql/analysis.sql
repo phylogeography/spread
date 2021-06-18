@@ -44,7 +44,8 @@ user_id,
 readable_name,
 created_on,
 status,
-progress
+progress,
+is_new
 FROM analysis
 WHERE id = :id
 
@@ -57,6 +58,7 @@ created_on,
 of_type,
 readable_name,
 status,
-progress
+progress,
+is_new
 FROM analysis
 WHERE user_id = :user-id

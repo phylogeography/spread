@@ -42,6 +42,8 @@
                            :createdOn    {:type (non-null :BigInt)}
                            :progress     {:type Float}
                            :status       {:type (non-null :AnalysisStatus)}
+                           :isNew        {:description "Has this analysis been viewed?"
+                                          :type        (non-null Boolean)}
                            :error        {:type    String
                                           :resolve :resolve/analysis->error}
                            :ofType       {:type (non-null :AnalysisType)}}}
