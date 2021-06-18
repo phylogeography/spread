@@ -227,19 +227,18 @@
 (defmethod handler :update-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id status]}]
   (when (= "ARGUMENTS_SET" status)
-    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+    (>evt [:graphql/query {:query     "mutation QueueJob($id: ID!) {
                                                 startBayesFactorParser(id: $id) {
                                                  id
                                                  status
                                                 }
                                               }"
-                                  :variables {:id id}}]]))
+                           :variables {:id id}}]))
   {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id] :as analysis}]
-  {:db (-> db
-           (update-in [:analysis id] merge analysis))})
+  {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id status]}]
@@ -280,8 +279,10 @@
          :else nil)
 
   {:db (update-in db [:analysis id]
-                  merge
-                  parser)})
+                    merge
+                    ;; NOTE we can optimistically assume analysis is new
+                    ;; since there is an ongoing subscription for it
+                    (assoc parser :new? true))})
 
 (defmethod handler :upload-time-slicer
   [{:keys [db]} _ {:keys [id status]}]

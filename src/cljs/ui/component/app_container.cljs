@@ -59,14 +59,15 @@
       (let [error? (= "ERROR" status)]
         ;; TODO dispatch touch mutation
         [:div.completed-menu-item {:on-click #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
-                                                           [:graphql/query {:query
-                                                                            "mutation TouchAnalysisMutation($analysisId: ID!) {
+                                                           (when new?
+                                                             [:graphql/query {:query
+                                                                              "mutation TouchAnalysisMutation($analysisId: ID!) {
                                                                                         touchAnalysis(id: $analysisId) {
                                                                                           id
                                                                                           isNew
                                                                                         }
                                                                                       }"
-                                                                            :variables {:analysisId id}}]])}
+                                                                              :variables {:analysisId id}}])])}
          [:div
           [:span (or readable-name "Unknown")]
           (when new? [:span "New"])
