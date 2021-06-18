@@ -15,8 +15,9 @@
   "The padding around the databox in the final render."
   5)
 
+(def hl-color "yellow")
 
-(defn svg-node-object [{:keys [coord show-start show-end id]} _ time-perc params]
+(defn svg-node-object [{:keys [coord show-start show-end id hl?]} _ time-perc params]
   (let [{:keys [nodes? nodes-radius nodes-color]} params
         show? (and (<= show-start time-perc show-end)
                    nodes?)
@@ -28,9 +29,11 @@
                :cy y1
                :r (* nodes-radius 0.5)
                :opacity 0.2
-               :fill nodes-color}]]))
+               :fill (if hl?
+                       hl-color
+                       nodes-color)}]]))
 
-(defn svg-circle-object [{:keys [coord show-start show-end count-attr id]} _ time-perc params]
+(defn svg-circle-object [{:keys [coord show-start show-end count-attr id hl?]} _ time-perc params]
   (let [{:keys [circles? circles-radius circles-color]} params
         show? (and (<= show-start time-perc show-end)
                    circles?)
@@ -42,9 +45,11 @@
                :cy y1
                :r (* circles-radius count-attr)
                :opacity 0.2
-               :fill circles-color}]]))
+               :fill (if hl?
+                       hl-color
+                       circles-color)}]]))
 
-(defn svg-polygon-object [{:keys [coords show-start show-end id]} _ time-perc params]
+(defn svg-polygon-object [{:keys [coords show-start show-end id hl?]} _ time-perc params]
   (let [{:keys [polygons? polygons-color polygons-opacity]} params
         show? (and (<= show-start time-perc show-end)
                    polygons?)]
@@ -56,10 +61,12 @@
                     (map (fn [coord] (str/join " " coord)))
                     (str/join ","))
        
-       :fill polygons-color
+       :fill (if hl?
+               hl-color
+               polygons-color)
        :opacity polygons-opacity}]]))
 
-(defn svg-transition-object [{:keys [from-coord to-coord show-start show-end id attr-color]} _ time-perc params]
+(defn svg-transition-object [{:keys [from-coord to-coord show-start show-end id attr-color hl?]} _ time-perc params]
   (let [{:keys [transitions? transitions-color transitions-width transitions-curvature missiles?]} params
         show? (and (<= show-start time-perc show-end)
                    transitions?)
@@ -73,7 +80,9 @@
         effective-color (or attr-color transitions-color) ;; attribute color takes precedence over transitions color
         curve-path-info {:id id
                          :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
-                         :stroke effective-color
+                         :stroke (if hl?
+                                   hl-color
+                                   effective-color)
                          :stroke-width transitions-width
                          :fill :transparent}
         missile-size 0.3]
@@ -111,48 +120,68 @@
 
 
 (defn animation-controls []
-  (let [time @(subscribe [:animation/percentage])
+  (let [frame-timestamp @(subscribe [:animation/frame-timestamp])
+        speed @(subscribe [:animation/speed])
+        [date-from-millis date-to-millis] @(subscribe [:analysis/date-range])
+        [crop-low-millis crop-high-millis] @(subscribe [:animation/crop])
         playing? (= :play @(subscribe [:animation/state]))
         ticks-data @(subscribe [:analysis/data-timeline])
+        full-length-px (apply max (map :x ticks-data))
+        date-range->px-rescale (math-utils/build-scaler date-from-millis date-to-millis 0 full-length-px)        
+        crop-sides 20
         ticks-y-base 80
-        ticks-bars-y-base (- ticks-y-base 11)
-        ticks-bars-full 50                
-        full-length (apply max (map :x ticks-data))
-        play-line-x (* time full-length)]
+        timeline-start crop-sides
+        crop-left (date-range->px-rescale crop-low-millis)
+        crop-width (+ (- (date-range->px-rescale crop-high-millis) (date-range->px-rescale crop-low-millis))
+                      (* 2 timeline-start)
+                      (- 7))
+        frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
+    
     [:div.animation-controls
      [slider {:inc-buttons 0.8
-              :min-val events.maps/min-scale
-              :max-val events.maps/max-scale
+              :min-val 1
+              :max-val 200
               :length 100
               :vertical? true
-              :subs-vec [:map/scale]
-              :ev-vec [:map/zoom 100 100]}]
-     [:div.inner
-      [:div.buttons
-       [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/prev])} ""]    
-       [:i.zmdi {:on-click #(dispatch [:animation/toggle-play-stop])
-                           :class (if playing? "zmdi-pause" "zmdi-play")}]
-       [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/next])} ""]]
-      [:div.timeline {:width "100%" :height "100%"}
-       [:svg {:width "100%" :height "100px"}
-        [:g
-         [:line {:x1 play-line-x :y1 0 
-                 :x2 play-line-x :y2 100
-                 :stroke "#EEBE53"
-                 :stroke-width 2}]
-         (for [{:keys [label x type perc]} ticks-data]
-           ^{:key (str x)}
-           [:g
-            [:line {:x1 x :y1 ticks-y-base
-                    :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
-                    :stroke "#3A3668"}]
-            (when (pos? perc)
-              [:line {:x1 x :y1 ticks-bars-y-base
-                    :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
-                      :stroke "red"}])
-            (when label
-              [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
-               label])])]]]]]))
+              :subs-vec [:animation/speed]
+              :ev-vec [:animation/set-speed]}]
+     (if (zero? frame-timestamp)
+       [:div.loading "Loading..."]
+       [:div.inner
+        [:div.speed (gstr/format "Speed: %d days/sec" speed)]
+        [:div.buttons
+         [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/prev])} ""]    
+         [:i.zmdi {:on-click #(dispatch [:animation/toggle-play-stop])
+                   :class (if playing? "zmdi-pause" "zmdi-play")}]
+         [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/next])} ""]]
+        [:div.timeline {:width "100%" :height "100%"}
+         [:div.crop-box {:style {:left crop-left 
+                                 :width crop-width}}
+          [:i.left.zmdi.zmdi-chevron-left   {:style {:width (str crop-sides "px")}}]        
+          [:i.right.zmdi.zmdi-chevron-right {:style {:width (str crop-sides "px")}}]]
+         [:svg {:width "100%" :height "110px"}
+          [:g
+           [:line {:x1 frame-line-x :y1 0 
+                   :x2 frame-line-x :y2 120
+                   :stroke "#EEBE53"
+                   :stroke-width 2}]
+           (for [{:keys [label x type]} ticks-data]             
+             (let [x (+ x timeline-start)]
+              ^{:key (str x)}
+              [:g
+               [:line {:x1 x :y1 ticks-y-base
+                       :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
+                       :stroke "#3A3668"}]
+               
+               ;; TODO: are we going to keep this red lines? for DT?
+               #_(when (pos? perc)
+                   [:line {:x1 x :y1 ticks-bars-y-base
+                           :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
+                           :stroke "red"}])
+               
+               (when label
+                 [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
+                  label])]))]]]])]))
 
 (defn map-group []
   (let [geo-json-map @(re-frame/subscribe [:map/data])
@@ -169,7 +198,9 @@
         analysis-data  (vals @(re-frame/subscribe [:analysis/colored-data]))
         {:keys [scale]} @(re-frame/subscribe [:map/state])
         params (merge @(subscribe [:ui/parameters])
-                      @(subscribe [:switch-buttons/states]))]
+                      @(subscribe [:switch-buttons/states]))
+        hl-object-id @(subscribe [:analysis/highlighted-object-id])]
+    
     (when analysis-data
       [:g {}
        ;; for debugging the data view-box
@@ -178,7 +209,11 @@
        
        (for [primitive-object analysis-data]
          ^{:key (str (:id primitive-object))}
-         [map-primitive-object primitive-object scale time params])])))
+         [map-primitive-object
+          (assoc primitive-object :hl? (= (:id primitive-object) hl-object-id))
+          scale
+          time
+          params])])))
 
 (defn object-attributes-popup [selected-obj]
   (let [[x y] @(re-frame/subscribe [:map/popup-coord])]
@@ -200,7 +235,9 @@
      (when possible-objects       
        (for [po possible-objects]
          ^{:key (:id po)}
-         [:div.selectable-object {:on-click #(dispatch [:map/show-object-attributes (:id po) [x y]])}
+         [:div.selectable-object {:on-click #(dispatch [:map/show-object-attributes (:id po) [x y]])
+                                  :on-mouse-enter #(dispatch [:map/highlight-object (:id po)])
+                                  :on-mouse-leave #(dispatch [:map/highlight-object nil])}
           (str (:id po))]))]))
 
 (defn data-map []
@@ -455,6 +492,38 @@
             :subs-vec [:ui/parameters :polygons-opacity]
             :ev-vec [:parameters/select :polygons-opacity]}]])
 
+(defn continuous-animation-settings []  
+  (let [[from-millis to-millis] @(subscribe [:analysis/date-range])
+        [crop-from-millis crop-to-millis] @(subscribe [:animation/crop])
+        df (js/Date. from-millis)
+        dt (js/Date. to-millis)
+        cf (js/Date. crop-from-millis)
+        ct (js/Date. crop-to-millis)
+        min-date-str      (gstr/format "%d-%02d-%02d" (.getUTCFullYear df) (inc (.getUTCMonth df)) (.getUTCDate df))
+        max-date-str      (gstr/format "%d-%02d-%02d" (.getUTCFullYear dt) (inc (.getUTCMonth dt)) (.getUTCDate dt))
+        crop-min-date-str (gstr/format "%d-%02d-%02d" (.getUTCFullYear cf) (inc (.getUTCMonth cf)) (.getUTCDate cf))
+        crop-max-date-str (gstr/format "%d-%02d-%02d" (.getUTCFullYear ct) (inc (.getUTCMonth ct)) (.getUTCDate ct))
+        set-new-crop (fn [crop]
+                       (dispatch [:animation/set-crop crop]))]
+    
+    [:div.animation-settings
+     [:label "From:"]
+     [:input {:type :date
+              :on-change (fn [evt]
+                           (set-new-crop [(js/Date.parse (.-value (.-target evt)))
+                                          crop-to-millis]))
+              :min min-date-str
+              :max max-date-str
+              :value crop-min-date-str}]
+     [:label "To:"]
+     [:input {:type :date
+              :on-change (fn [evt]
+                           (set-new-crop [crop-from-millis
+                                          (js/Date.parse (.-value (.-target evt)))]))
+              :min min-date-str
+              :max max-date-str
+              :value crop-max-date-str}]]))
+
 (defn continuous-tree-side-bar []
   [:div.tabs
    [collapsible-tabs {:title "Settings"
@@ -470,7 +539,10 @@
                                 :child [continuous-transitions-settings]}
                                {:title "Polygons"
                                 :id :polygons
-                                :child [continuous-polygons-settings]}]}]
+                                :child [continuous-polygons-settings]}
+                               {:title "Animation"
+                                :id :animation-settings
+                                :child [continuous-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
                       :childs []}]])
@@ -491,6 +563,7 @@
 
 (def discrete-tree-map-settings continuous-tree-map-settings)
 (def discrete-transitions-settings continuous-transitions-settings)
+(def discrete-animation-settings continuous-animation-settings)
 
 (defn discrete-circles-settings []
   [:div.circles-settings
@@ -551,7 +624,10 @@
                                 :child [discrete-nodes-settings]}
                                {:title "Labels"
                                 :id :labels
-                                :child [discrete-labels-settings]}]}]
+                                :child [discrete-labels-settings]}
+                               {:title "Animation"
+                                :id :animation-settings
+                                :child [discrete-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
                       :childs []}]])

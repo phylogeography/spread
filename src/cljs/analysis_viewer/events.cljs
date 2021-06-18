@@ -38,6 +38,7 @@
 (reg-event-db :map/hide-object-attributes [sc] events.maps/hide-object-attributes)
 (reg-event-db :map/show-object-selector [sc] events.maps/show-object-selector)
 (reg-event-db :map/hide-object-selector [sc] events.maps/hide-object-selector)
+(reg-event-db :map/highlight-object [sc] events.maps/highlight-object)
 
 (reg-event-db :collapsible-tabs/toggle [sc] events.ui/toggle-collapsible-tab)
 (reg-event-db :switch-button/toggle [sc] events.ui/toggle-switch-button)
@@ -46,6 +47,8 @@
 (reg-event-db :animation/prev [sc] events.maps/animation-prev)
 (reg-event-db :animation/next [sc] events.maps/animation-next)
 (reg-event-fx :animation/toggle-play-stop [sc] events.maps/animation-toggle-play-stop)
+(reg-event-db :animation/set-crop [sc] events.maps/animation-set-crop)
+(reg-event-db :animation/set-speed [sc] events.maps/animation-set-speed)
 
 (reg-event-fx :ticker/tick [] events.maps/ticker-tick)
 

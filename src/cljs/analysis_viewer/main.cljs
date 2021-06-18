@@ -15,11 +15,11 @@
 
 ;; google-chrome --allow-file-access-from-files file:///home/jmonetta/non-rep-software/spread-d3/language_D3/renderers/d3/d3renderer/index.html
 
-;; [CT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/dab13811-8c99-454b-9fc4-b31d6dfcae9e.json&maps=
-;; [B]  http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/ba47f735-0a97-40b1-b761-860b1a914e28.json
-;; [TS] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/8d7b6ea9-b4f7-4387-9b35-042e5ed89981.json
+;; [CT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/5e55d631-99f8-4324-9ec9-386c9c4442d9.json&maps=
+;; [CT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3e18cc4c-6be8-46b7-b039-ec286f9e8e0d.json&maps=
+;; [DT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/37f2cc7a-b3fc-4054-87d8-fd596cea22e2.json&maps=
+;; [BF] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/e4d05649-98d8-41af-a0e5-a0f1e5f63c26.json&maps=
 
-;; [DT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/893367d9-7224-4587-b492-8344e45e6e83.json&maps=
 (defn parse-url-qstring [qstring]
   (->> (str/split qstring #"&")
        (map (fn [s]
@@ -33,7 +33,7 @@
   (fsa/trace-ref re-frame.db/app-db {:ref-name "re-frame-db"
                                      :ignore-keys [:maps/data ;; this one is super big
                                                    :map/state ;; this one changes a lot when zooming, dragging, etc
-                                                   :animation/percentage ;; this one changes a lot
+                                                   :animation/frame-timestamp ;; this one changes a lot
                                                    ]}) 
   (let [{:keys [maps output]} (parse-url-qstring (subs js/window.location.search 1))]
     (re-frame/dispatch-sync [:map/initialize
@@ -44,4 +44,3 @@
 
 (defn ^:export init []
   (start))
-

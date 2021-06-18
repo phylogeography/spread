@@ -52,6 +52,9 @@
 (defn data-loaded [{:keys [db]} [_ data]]
   (println "Loaded analysis of type " (:analysisType data) "with keys:" (keys data))
   (let [analysis-type (keyword (:analysisType data))
+        {:keys [startTime endTime]} (:timeline data)
+        timeline-start (when startTime (.getTime (js/Date. startTime)))
+        timeline-end   (when endTime (.getTime (js/Date. endTime)))
         analysis-data (case analysis-type
                         :ContinuousTree (map-emitter/continuous-tree-output->map-data data)
                         :DiscreteTree   (map-emitter/discrete-tree-output->map-data data)
@@ -59,14 +62,17 @@
         {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box (vals analysis-data))
         padding 2]
 
-    {:db (-> db
-             (assoc :analysis/data analysis-data)
-             (assoc :analysis.data/type analysis-type)
-             (assoc :analysis/linear-attributes (->> (:pointAttributes data)
-                                                     (keep (fn [{:keys [id scale range]}]
-                                                             (when (= scale "linear")
-                                                               [id range])))
-                                                     (into {}))))
+    {:db (cond-> db
+           true (assoc :analysis/data analysis-data)
+           true (assoc :analysis.data/type analysis-type)
+           true (assoc :analysis/linear-attributes (->> (:pointAttributes data)
+                                                        (keep (fn [{:keys [id scale range]}]
+                                                                (when (= scale "linear")
+                                                                  [id range])))
+                                                        (into {})))
+           timeline-start (assoc :analysis/date-range [timeline-start timeline-end])
+           timeline-start (assoc :animation/frame-timestamp timeline-start)
+           timeline-start (assoc :animation/crop [timeline-start timeline-end]))
      :dispatch [:map/set-view-box {:x1 (- x1 padding) :y1 (- y1 padding)
                                    :x2 (+ x2 padding) :y2 (+ y2 padding)}]}))
 
@@ -183,31 +189,52 @@
                                           :ui-params ui-params
                                           :map-params map-params}}))
 
-(def tick-step 0.000750188)
+(def tick-duration 50) ;; milliseconds
+
+(defn advance-frame-timestamp [timestamp speed plus-or-minus]
+  (let [day-in-millis (* 24 60 60 1000)
+        delta (/ (* speed day-in-millis) (/ 1000 tick-duration))]
+    (plus-or-minus timestamp delta)))
+
 (defn ticker-tick [{:keys [db]} _]
-  (let [{:keys [animation/percentage]} db]    
-    (if (>= (+ percentage tick-step) 1)
-      {:db (assoc db :animation/percentage 1)
+  (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
+        [_ crop-high] crop
+        next-ts (advance-frame-timestamp frame-timestamp speed +)]
+    
+    (if (>= next-ts crop-high)
+      {:db (assoc db :animation/frame-timestamp crop-high)
        :ticker/stop nil}
       
-      {:db (update db :animation/percentage #(+ % tick-step))})))
+      {:db (assoc db :animation/frame-timestamp next-ts)})))
 
-(defn animation-prev [{:keys [animation/percentage] :as db} _]
-  (if (<= (- percentage tick-step) 0)
-    (assoc db :animation/percentage 0)
-    (update db :animation/percentage #(- % tick-step))))
+(defn animation-prev [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]  
+  (let [[crop-low _] crop
+        next-ts (advance-frame-timestamp frame-timestamp speed -)]
+    (if (<= next-ts crop-low)
+      (assoc db :animation/frame-timestamp crop-low)
+      (assoc db :animation/frame-timestamp next-ts))))
 
-(defn animation-next [{:keys [animation/percentage] :as db} _]
-  (if (>= (- percentage tick-step) 1)
-    (assoc db :animation/percentage 1)
-    (update db :animation/percentage #(+ % tick-step))))
+(defn animation-next [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]  
+  (let [[_ crop-high] crop
+        next-ts (advance-frame-timestamp frame-timestamp speed +)]
+    (if (>= next-ts crop-high)
+      (assoc db :animation/frame-timestamp crop-high)
+      (assoc db :animation/frame-timestamp next-ts))))
 
 (defn animation-toggle-play-stop [{:keys [db]} _]
   (if (= (:animation/state db) :play)
     {:db (assoc db :animation/state :stop)
      :ticker/stop nil}
     {:db (assoc db :animation/state :play)
-     :ticker/start {:millis 50}}))
+     :ticker/start {:millis tick-duration}}))
+
+(defn animation-set-crop [db [_ [crop-low-millis crop-high-millis]]]  
+  (-> db
+      (assoc :animation/crop [crop-low-millis crop-high-millis])
+      (assoc :animation/frame-timestamp crop-low-millis)))
+
+(defn animation-set-speed [db [_ new-speed]]
+  (assoc db :animation/speed new-speed))
 
 (defn set-dimensions [db [_ {:keys [width height]}]]
   (println "Reseting map dimensions to " width "x" height)
@@ -229,5 +256,11 @@
          :analysis/possible-objects-ids (into [] objects-ids)
          :map/popup-coord coord))
 
-(defn hide-object-selector [db _]
-  (dissoc db :analysis/possible-objects-ids :map/popup-coord))
+(defn hide-object-selector [db _]  
+  (dissoc db
+          :analysis/possible-objects-ids
+          :map/popup-coord
+          :analysis/highlighted-object-id))
+
+(defn highlight-object [db [_ object-id]]
+  (assoc db :analysis/highlighted-object-id object-id))
