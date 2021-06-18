@@ -38,6 +38,9 @@
                     most-recent-sampling-date (time/now)
                     time-scale-multiplier     1}}
             @continuous-mcc-tree]
+
+        (prn "@continuous-mcc-tree" @continuous-mcc-tree)
+
         [:div.continuous-mcc-tree
          [:div.upload
           [:span "Load tree file"]
