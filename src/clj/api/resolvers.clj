@@ -2,6 +2,7 @@
   (:require [api.models.analysis :as analysis-model]
             [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
+            [api.models.error :as error-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
@@ -78,6 +79,13 @@
   (let [analysis (analysis-model/get-user-analysis db {:user-id authed-user-id})]
     (log/info "get-user-analysis results" analysis)
     (clj->gql analysis)))
+
+(defn analysis->error
+  [{:keys [db]} _ {analysis-id :id :as parent}]
+  (log/info "analysis->error" parent)
+  (let [error (error-model/get-error db {:id analysis-id})]
+    (log/info "analysis->error")
+    (:error error)))
 
 ;; NOTE: not used atm
 #_(defn search-user-analysis

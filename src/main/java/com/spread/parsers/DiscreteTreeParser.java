@@ -452,16 +452,18 @@ public class DiscreteTreeParser implements IProgressReporter {
     }// END: createSliceHeights
 
     private String getNodeState(Node node, String locationTraitAttributeName) throws SpreadException {
-
-        String nodeState = (String) ParsersUtils.getObjectNodeAttribute(node, locationTraitAttributeName);
-        if (nodeState.contains("+")) {
-            String message = "Found tied state " + nodeState;
-            nodeState = ParsersUtils.breakTiesRandomly(nodeState);
-            message += (" randomly choosing " + nodeState);
-            System.out.println(message);
-        } // END: tie check
-
-        return nodeState;
+        try {
+            String nodeState = (String) ParsersUtils.getObjectNodeAttribute(node, locationTraitAttributeName);
+            if (nodeState.contains("+")) {
+                String message = "Found tied state " + nodeState;
+                nodeState = ParsersUtils.breakTiesRandomly(nodeState);
+                message += (" randomly choosing " + nodeState);
+                System.out.println(message);
+            }
+            return nodeState;
+        } catch (Exception e) {
+            throw new SpreadException("Can't get a discrete node state for attribute name " + locationTraitAttributeName);
+        }
     }
 
     private Point createPoint(Node node, Location location, RootedTree rootedTree, TimeParser timeParser) throws SpreadException {

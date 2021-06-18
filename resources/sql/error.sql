@@ -9,3 +9,12 @@ VALUES (
 :id,
 :error
 )
+
+-- :name get-error :? :1
+-- :doc Returns error by analysis id
+
+SELECT
+id,
+error
+FROM error
+WHERE id = :id

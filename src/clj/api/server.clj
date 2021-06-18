@@ -68,7 +68,8 @@
    :query/getBayesFactorAnalysis                 resolvers/get-bayes-factor-analysis
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
-   :query/getUserAnalysis    (auth-decorator resolvers/get-user-analysis)
+   :query/getUserAnalysis   (auth-decorator resolvers/get-user-analysis)
+   :resolve/analysis->error resolvers/analysis->error
    ;; :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
    })
 

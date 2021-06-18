@@ -12,79 +12,86 @@
 ;; TODO : data + error tab
 ;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed305a09c542e790702f
 
-(defn data [{:keys [of-type] :as analysis}]
+(defn data [{:keys [of-type status] :as analysis}]
+
   [:div.data
-   (case of-type
-     "CONTINUOUS_TREE"
-     (let [{:keys [readable-name x-coordinate-attribute-name y-coordinate-attribute-name
-                   most-recent-sampling-date
-                   timescale-multiplier]}
-           analysis]
-       [:div.settings
-        [:fieldset
-         [:legend "name"]
-         [text-input {:value readable-name :read-only? true}]]
+   (when = "ERROR" status
+         [:div.error
+          "ERROR"
+          ])
 
-        [:div.row
-         [:div.column
-          [:span "y coordinate"]
-          [:fieldset
-           [:legend "Latitude"]
-           [text-input {:value y-coordinate-attribute-name :read-only? true}]]]
-         [:div.column
-          [:span "x coordinate"]
-          [:fieldset
-           [:legend "Longitude"]
-           [text-input {:value x-coordinate-attribute-name :read-only? true}]]]]
+   [:div.settings-section
+    (case of-type
+      "CONTINUOUS_TREE"
+      (let [{:keys [readable-name x-coordinate-attribute-name y-coordinate-attribute-name
+                    most-recent-sampling-date
+                    timescale-multiplier]}
+            analysis]
+        [:div.settings
+         [:fieldset
+          [:legend "name"]
+          [text-input {:value readable-name :read-only? true}]]
 
-        [:div.row
-         [:div.column
-          [:span "Most recent sampling date"]
-          [text-input {:value most-recent-sampling-date :read-only? true}]]
-         [:div.column
-          [:span "Time scale multiplier"]
-          [text-input {:value timescale-multiplier :read-only? true}]]]])
+         [:div.row
+          [:div.column
+           [:span "y coordinate"]
+           [:fieldset
+            [:legend "Latitude"]
+            [text-input {:value y-coordinate-attribute-name :read-only? true}]]]
+          [:div.column
+           [:span "x coordinate"]
+           [:fieldset
+            [:legend "Longitude"]
+            [text-input {:value x-coordinate-attribute-name :read-only? true}]]]]
 
-     "DISCRETE_TREE"
-     (let [{:keys [readable-name locations-attribute-name
-                   most-recent-sampling-date timescale-multiplier]} analysis]
-       [:div.settings
-        [:fieldset
-         [:legend "name"]
-         [text-input {:value readable-name :read-only? true}]]
+         [:div.row
+          [:div.column
+           [:span "Most recent sampling date"]
+           [text-input {:value most-recent-sampling-date :read-only? true}]]
+          [:div.column
+           [:span "Time scale multiplier"]
+           [text-input {:value timescale-multiplier :read-only? true}]]]])
 
-        [:div.row
-         [:div.column
-          [:span "locations attribute"]
-          [:fieldset
-           [:legend "Locations"]
-           [text-input {:value locations-attribute-name :read-only? true}]]]
-         [:div.column
-          [:span "Most recent sampling date"]
-          [text-input {:value most-recent-sampling-date :read-only? true}]]]
+      "DISCRETE_TREE"
+      (let [{:keys [readable-name locations-attribute-name
+                    most-recent-sampling-date timescale-multiplier]} analysis]
+        [:div.settings
+         [:fieldset
+          [:legend "name"]
+          [text-input {:value readable-name :read-only? true}]]
 
-        [:div.row
-         [:div.column
-          [:span "Time scale"]
-          [:fieldset
-           [:legend "Multiplier"]
-           [text-input {:value timescale-multiplier :read-only? true}]]]]])
+         [:div.row
+          [:div.column
+           [:span "locations attribute"]
+           [:fieldset
+            [:legend "Locations"]
+            [text-input {:value locations-attribute-name :read-only? true}]]]
+          [:div.column
+           [:span "Most recent sampling date"]
+           [text-input {:value most-recent-sampling-date :read-only? true}]]]
 
-     "BAYES_FACTOR_ANALYSIS"
-     (let [{:keys [readable-name burn-in]} analysis]
-       [:div.settings
-        [:fieldset
-         [:legend "name"]
-         [text-input {:value readable-name :read-only? true}]]
+         [:div.row
+          [:div.column
+           [:span "Time scale"]
+           [:fieldset
+            [:legend "Multiplier"]
+            [text-input {:value timescale-multiplier :read-only? true}]]]]])
 
-        [:div.row
-         [:div.column
-          [:span "Select burn-in"]
-          [:fieldset
-           [:legend "Burn-in"]
-           [text-input {:value burn-in :read-only? true}]]]]])
+      "BAYES_FACTOR_ANALYSIS"
+      (let [{:keys [readable-name burn-in]} analysis]
+        [:div.settings
+         [:fieldset
+          [:legend "name"]
+          [text-input {:value readable-name :read-only? true}]]
 
-     nil)
+         [:div.row
+          [:div.column
+           [:span "Select burn-in"]
+           [:fieldset
+            [:legend "Burn-in"]
+            [text-input {:value burn-in :read-only? true}]]]]])
+
+      nil)]
 
    [:div.buttons-section
     [button-with-label {:label    "Edit"

@@ -42,9 +42,11 @@
                            :createdOn    {:type (non-null :BigInt)}
                            :progress     {:type Float}
                            :status       {:type (non-null :AnalysisStatus)}
+                           :error        {:type    String
+                                          :resolve :resolve/analysis->error}
                            :ofType       {:type (non-null :AnalysisType)}}}
 
-  :ParserStatus {:description "Return analysis id, status and some optional fields. Returned by mutations and used for subscriptions to the workers progress."
+  :ParserStatus {:description "Analysis status, progress and some optional fields. Returned by mutations and used for subscriptions to the workers progress."
                  :fields      {:id           {:type (non-null ID)}
                                :readableName {:type String}
                                :ofType       {:type :AnalysisType}

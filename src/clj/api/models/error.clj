@@ -4,6 +4,7 @@
 
 ;; These are just not to upset clj-kondo
 (declare insert-error)
+(declare get-error)
 
 (hugsql/def-db-fns "sql/error.sql")
 (hugsql/def-sqlvec-fns "sql/error.sql")
