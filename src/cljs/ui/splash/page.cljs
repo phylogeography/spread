@@ -76,7 +76,8 @@
                      :avatar     (reagent/as-element [avatar {:alt     "spread"
                                                               :variant "square"
                                                               :src     (arg->icon (:spread icons))}])
-                     :title      (reagent/as-element [typography {:class-name (:typography classes)} "Spread"])}]]
+                     :title      (reagent/as-element [typography {:class-name (:typography classes)}
+                                                      "Spread"])}]]
       [divider {:variant "fullWidth"}]
       [card-content {:class-name (:centered classes)}
        [:div {:class-name (:middle classes)}

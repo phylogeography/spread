@@ -40,63 +40,59 @@
             [ui.component.fixed-size-list :refer [fixed-size-list]]
             ))
 
-
-
-
-
 #_(defn queued-menu-item []
-  (let [;; TODO : use css on-hover (or get rid of it entirely)
-        menu-opened? (reagent/atom false)
-        ]
-    (fn [{:keys [id readable-name of-type
-                 #_status
-                 progress]
-          :or   {readable-name "Unknown"}}]
-      [:div.queue-menu-item
-       {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
-       [:div
-        [:span readable-name]
-        [:div.click-dropdown
-         [button-with-icon {:on-click #(swap! menu-opened? not)
-                            :icon     (:kebab-menu icons)}]
-         [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Edit")
-                           (.stopPropagation event))} "Edit"]
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Load")
-                           (.stopPropagation event))} "Load different file"]
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Copy")
-                           (.stopPropagation event))} "Copy settings"]
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Show delete modal")
-                           (.stopPropagation event))} "Delete"]]]
-        [:div of-type]]
-       [:div
-        [:div
-         [:progress {:max 1 :value progress}]
-         [button-with-icon {:on-click #(prn "TODO: delete ongoing analysis")
-                            :icon     (:delete icons)}]]
-        [:span (str (format-percentage progress 1.0) " finished")]]])))
+    (let [;; TODO : use css on-hover (or get rid of it entirely)
+          menu-opened? (reagent/atom false)
+          ]
+      (fn [{:keys [id readable-name of-type
+                   #_status
+                   progress]
+            :or   {readable-name "Unknown"}}]
+        [:div.queue-menu-item
+         {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
+         [:div
+          [:span readable-name]
+          [:div.click-dropdown
+           [button-with-icon {:on-click #(swap! menu-opened? not)
+                              :icon     (:kebab-menu icons)}]
+           [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Edit")
+                             (.stopPropagation event))} "Edit"]
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Load")
+                             (.stopPropagation event))} "Load different file"]
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Copy")
+                             (.stopPropagation event))} "Copy settings"]
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Show delete modal")
+                             (.stopPropagation event))} "Delete"]]]
+          [:div of-type]]
+         [:div
+          [:div
+           [:progress {:max 1 :value progress}]
+           [button-with-icon {:on-click #(prn "TODO: delete ongoing analysis")
+                              :icon     (:delete icons)}]]
+          [:span (str (format-percentage progress 1.0) " finished")]]])))
 
 #_(defn queue [{:keys [open?]}]
-  (let [open?           (reagent/atom open?)
-        queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
-    (fn []
-      [:div.queue {:on-click #(swap! open? not)
-                   :class    (when @open? "open")}
-       [:div
-        [:img {:src (:queue icons)}]
-        [:span "Queue"]
-        [:span.notification (str (count @queued-analysis) " Ongoing")]
-        [:img {:src (:dropdown icons)}]]
-       [:div.menu-items.scrollable-area
-        (doall
-          (map (fn [{:keys [id] :as item}]
-                 ^{:key id}
-                 [queued-menu-item item])
-               @queued-analysis))]])))
+    (let [open?           (reagent/atom open?)
+          queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
+      (fn []
+        [:div.queue {:on-click #(swap! open? not)
+                     :class    (when @open? "open")}
+         [:div
+          [:img {:src (:queue icons)}]
+          [:span "Queue"]
+          [:span.notification (str (count @queued-analysis) " Ongoing")]
+          [:img {:src (:dropdown icons)}]]
+         [:div.menu-items.scrollable-area
+          (doall
+            (map (fn [{:keys [id] :as item}]
+                   ^{:key id}
+                   [queued-menu-item item])
+                 @queued-analysis))]])))
 
 (def use-styles (styles/make-styles (fn [theme]
                                       {
@@ -114,27 +110,27 @@
                                                   :flex-direction  "row"
                                                   :justify-content "center"}
 
-                                       :email {:font "normal normal medium 16px/19px Roboto"
+                                       :email {:font           "normal normal medium 16px/19px Roboto"
                                                :letter-spacing "0px"
-                                               :color "#3A3668"
+                                               :color          "#3A3668"
                                                }
 
                                        :app-bar {
-                                                 :background "#FFFFFF 0% 0% no-repeat padding-box"
+                                                 :background    "#FFFFFF 0% 0% no-repeat padding-box"
                                                  ;; :border     "none"
-                                                 :box-shadow :none
-                                                 :border-bottom     "1px solid #DEDEE7"
+                                                 :box-shadow    :none
+                                                 :border-bottom "1px solid #DEDEE7"
                                                  :margin-bottom 30
                                                  }
 
-                                       :header {:display "flex"
-                                                :flex-direction "row"
+                                       :header {:display         "flex"
+                                                :flex-direction  "row"
                                                 :justify-content "space-between"
                                                 ;; :align-items "center"
                                                 }
 
                                        :title {
-                                               :flexGrow 1
+                                               :flexGrow       1
                                                :text-align     "left"
                                                :font           "normal normal 900 30px/35px Roboto"
                                                :letter-spacing "3.9px"
@@ -143,121 +139,101 @@
                                                }
 
                                        :heading {
-                                                 :text-align "left"
-                                                 :font "normal normal medium 16px/19px Roboto"
+                                                 :text-align     "left"
+                                                 :font           "normal normal medium 16px/19px Roboto"
                                                  :letter-spacing "0px"
-                                                 :color "#3A3668"
-                                                 :font-weight :bold
+                                                 :color          "#3A3668"
+                                                 :font-weight    :bold
                                                  }
 
-                                       :box {:padding-right 5
-                                             :text-align "left"
-                                             :font "normal normal medium 16px/19px Roboto"
-                                             :font-weight :bold
+                                       :box {:padding-right  5
+                                             :text-align     "left"
+                                             :font           "normal normal medium 16px/19px Roboto"
+                                             :font-weight    :bold
                                              :letter-spacing "0px"
-                                             :color "#3A3668"}
+                                             :color          "#3A3668"}
 
                                        :list-item-text {:color "#757295"}
 
                                        :button {:textTransform  "none"
-                                                :font "normal normal medium 16px/19px Roboto"
+                                                :font           "normal normal medium 16px/19px Roboto"
                                                 :letter-spacing "0px"
-                                                :background "#3428CA 0% 0% no-repeat padding-box"
-                                                :color "#ECEFF8"}
+                                                :background     "#3428CA 0% 0% no-repeat padding-box"
+                                                :color          "#ECEFF8"}
 
                                        })))
 
-
-(defn completed-menu-item []
-  #_(let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type status new?]}]
-      (let [error? (= "ERROR" status)]
-        ;; TODO dispatch touch mutation
-        [:div.completed-menu-item {:on-click #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
-                                                           (when new?
-                                                             [:graphql/query {:query
-                                                                              "mutation TouchAnalysisMutation($analysisId: ID!) {
+(defn completed-menu-item [{:keys [id readable-name of-type status new?] :as item}]
+  (let [[anchorElement setAnchorElement] (react/useState nil)
+        handle-close                     #(setAnchorElement nil)
+        open?                            (not (nil? anchorElement))]
+    [list-item {:key    id
+                :button true
+                :on-click
+                #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
+                              (when new?
+                                [:graphql/query {:query
+                                                 "mutation TouchAnalysisMutation($analysisId: ID!) {
                                                                                         touchAnalysis(id: $analysisId) {
                                                                                           id
                                                                                           isNew
                                                                                         }
                                                                                       }"
-                                                                              :variables {:analysisId id}}])])}
-         [:div
-          [:span (or readable-name "Unknown")]
-          (when new? [:span "New"])
-          (when error? [:span "Error"])
-          [:div.click-dropdown
-           [button-with-icon {:on-click #(swap! menu-opened? not)
-                              :icon     (:kebab-menu icons)}]
-           ;; TODO : with css on-hover
-           [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
-            [:a {:on-click (fn [event]
-                             (prn "TODO: Edit")
-                             (.stopPropagation event))} "Edit"]
-            [:a {:on-click (fn [event]
-                             (prn "TODO: Load")
-                             (.stopPropagation event))} "Load different file"]
-            [:a {:on-click (fn [event]
-                             (prn "TODO: Copy")
-                             (.stopPropagation event))} "Copy settings"]
-            [:a {:on-click (fn [event]
-                             (prn "TODO: Show delete modal")
-                             (.stopPropagation event))} "Delete"]]]
-          [:div of-type]]]))))
+                                                 :variables {:analysisId id}}])])}
+     [list-item-text {:primary   (or readable-name "Unknown")
+                      :secondary (case of-type
+                                   "CONTINUOUS_TREE"
+                                   "Continuous: MCC tree"
 
-;; https://material-ui.com/components/lists/#virtualized-list
+                                   "DISCRETE_TREE"
+                                   "Discrete: MCC tree"
+
+                                   "BAYES_FACTOR_ANALYSIS"
+                                   "Discrete: Bayes Factor Rates"
+                                   nil)}]
+     [:div
+      [icon-button {:aria-label    "analysis kebab menu"
+                    :aria-controls "menu-kebab"
+                    :aria-haspopup true
+                    :color         "inherit"
+                    :on-click      (fn [event]
+                                     (setAnchorElement (.-currentTarget event))
+                                     (.stopPropagation event))}
+       [:img {:src (:kebab-menu icons)}]]
+      [menu {:id               "menu-kebab"
+             :anchorEl         anchorElement
+             :anchorOrigin     {:vertical   "top"
+                                :horizontal "right"}
+             :transform-origin {:vertical   "top"
+                                :horizontal "right"}
+             :keep-mounted     true
+             :open             open?
+             :on-close         handle-close}
+       [menu-item {:on-click (fn []
+                               (prn "TODO"))} "Edit"]
+       [menu-item {:on-click (fn []
+                               (prn "TODO"))} "Load different file"]
+       [menu-item {:on-click (fn []
+                               (prn "TODO"))} "Copy settings"]
+       [menu-item {:on-click (fn []
+                               (prn "TODO"))} "Delete"]]]]))
+
 (defn completed [classes]
   (let [search-term        (re-frame/subscribe [::subs/search])
         completed-analysis (re-frame/subscribe [::subs/completed-analysis-search])]
     (fn []
       (let [items @completed-analysis]
-
-        ;; (prn "@ Items" items)
-
         [accordion {:defaultExpanded true}
-         [accordion-summary {:expand-icon   (reagent/as-element [:img {:src (:dropdown icons)}])}
+         [accordion-summary {:expand-icon (reagent/as-element [:img {:src (:dropdown icons)}])}
           [:img {:src (:completed icons)}]
           [typography {:class-name (:heading classes)} "Completed data analysis"]]
          [divider {:variant "fullWidth"}]
          [accordion-details
           [list
            (doall
-             (map-indexed (fn [index {:keys [id readable-name of-type status new?] :as item}]
-                            [list-item {:key      index
-                                        :button   false #_true
-                                        :on-click
-                                        #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
-                                                      (when new?
-                                                        [:graphql/query {:query
-                                                                         "mutation TouchAnalysisMutation($analysisId: ID!) {
-                                                                                        touchAnalysis(id: $analysisId) {
-                                                                                          id
-                                                                                          isNew
-                                                                                        }
-                                                                                      }"
-                                                                         :variables {:analysisId id}}])])}
-
-                             [list-item-text {:primary (or readable-name "Unknown") :secondary of-type}]
-                             ;; list-item-avatar
-                             ;;avatar
-                             [:img {:src (:kebab-menu icons)}]
-
-      ;; <ListItem>
-      ;;   <ListItemAvatar>
-      ;;     <Avatar>
-      ;;       <ImageIcon />
-      ;;     </Avatar>
-      ;;   </ListItemAvatar>
-      ;;   <ListItemText primary="Photos" secondary="Jan 9, 2014" />
-      ;; </ListItem>
-
-                             ;; [:div id]
-                             ;; TODO
-
-
-                             ])
-                          items))]]]))))
+             (map (fn [{:keys [id readable-name of-type status new?] :as item}]
+                    ^{:key id} [completed-menu-item item])
+                  items))]]]))))
 
 (defn run-new [classes]
   (let [items [{:main-label "Discrete:"         :sub-label "MCC tree"
@@ -353,19 +329,19 @@
 (defn app-container []
   (let [classes (use-styles)]
     (fn [child-page]
-      [grid {:class-name  (:root classes)
-             :container true
-             :direction "column"}
+      [grid {:class-name (:root classes)
+             :container  true
+             :direction  "column"}
        [header classes]
        [grid {:container true
               :spacing   2}
         [grid {:item true :xs false :sm 2 } #_"left gutter"]
         [grid {:item true :xs 2 :sm 2}
          [card {:class-name (:card classes)}
-          [card-content #_{:styles {:padding 0
-                                  "&:last-child" {
-                                    :paddingBottom 0}
-                                  }}
+          [card-content #_{:styles {:padding       0
+                                    "&:last-child" {
+                                                    :paddingBottom 0}
+                                    }}
            [main-menu classes]]]]
         [grid {:item true :xs 6 :sm 6}
          [card {:class-name (:card classes)}
