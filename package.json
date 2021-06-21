@@ -11,6 +11,9 @@
     "shadow-cljs": "2.11.15"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.4",
+    "@material-ui/icons": "^4.11.2",
+    "@material-ui/styles": "^4.11.4",
     "@sentry/browser": "6.1.0",
     "axios": "0.21.1",
     "js-joda": "^1.11.0",

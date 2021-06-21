@@ -17,6 +17,7 @@
             [ui.splash.page]
             [ui.storage]
             [ui.utils]
+            [reagent-material-ui.core.css-baseline :refer [css-baseline]]
             [ui.websocket-fx :as websocket]))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
@@ -35,7 +36,9 @@
         (as-> $ (log/info "Started" {:components $
                                      :config     config})))
     (re-frame/dispatch-sync [:general/initialize config])
-    (rdom/render [router]
+    (rdom/render [:<>
+                  [css-baseline]
+                  [router]]
                  (.getElementById js/document "app")
                  functional-compiler)))
 

@@ -16,7 +16,6 @@
   buddy/buddy-sign                {:mvn/version "3.3.0"}
   org.bouncycastle/bcpkix-jdk15on {:mvn/version "1.68"}
 
-
   ;; LOGGING
   com.taoensso/timbre {:mvn/version "5.1.2"}
 

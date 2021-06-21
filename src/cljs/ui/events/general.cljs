@@ -17,16 +17,17 @@
   {:localstorage (dissoc localstorage :access-token)
    :dispatch     [:router/navigate :route/splash]})
 
-(defn initialize [{:keys [db]} [_ config]]
+(defn initialize [{:keys [localstorage db]} [_ config]]
   {:db             (assoc db :config config)
-   ;; TODO : only if there is token in localstorage, else it will result in an auth error
-   :dispatch-n     [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
-                                                   :format     :json
-                                                   :on-connect [:graphql/ws-authorize
-                                                                {:on-timeout [:graphql/ws-authorize-failed]}]
-                                                   :protocols  ["graphql-ws"]}]
-                    [:graphql/query {:query
-                                     "query SearchAnalysis {
+   ;; NOTE : only if there is token in localstorage, else it will result in an auth error
+   :dispatch-n     (if (:access-token localstorage)
+                     [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
+                                                     :format     :json
+                                                     :on-connect [:graphql/ws-authorize
+                                                                  {:on-timeout [:graphql/ws-authorize-failed]}]
+                                                     :protocols  ["graphql-ws"]}]
+                      [:graphql/query {:query
+                                       "query SearchAnalysis {
                                         getAuthorizedUser {
                                           id
                                           email
@@ -41,6 +42,7 @@
                                           createdOn
                                         }
                                       }"}]]
+                     [[:router/navigate :route/splash]])
    :forward-events {:register    :active-page-changed
                     :events      #{:router/active-page-changed}
                     :dispatch-to [:general/active-page-changed]}})
