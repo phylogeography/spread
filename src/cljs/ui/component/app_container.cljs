@@ -252,88 +252,41 @@
 
     )
 
-;; https://codesandbox.io/s/yr7fc?file=/demo.js
 (defn user-login [classes]
-  (let [{:keys [email]} @(re-frame/subscribe [::subs/authorized-user])
+  (let [{:keys [email]}                  @(re-frame/subscribe [::subs/authorized-user])
         [anchorElement setAnchorElement] (react/useState nil)
-        handle-close (fn []
-
-                       (prn "@ handel-close" {:anchorElement anchorElement
-                                              :setAnchorElement setAnchorElement})
-
-                       (setAnchorElement nil))
-        open? (not (nil? anchorElement))]
-
-    (prn "@ render" {:anchorElement    anchorElement
-                     :setAnchorElement setAnchorElement
-                     :open?            open?})
-
-    ;; <div>
-    ;;    <IconButton
-    ;;      aria-label="account of current user"
-    ;;      aria-controls="menu-appbar"
-    ;;      aria-haspopup="true"
-    ;;      onClick={handleMenu}
-    ;;      color="inherit"
-    ;;    >
-    ;;      <AccountCircle />
-    ;;    </IconButton>
-    ;;    <Menu
-    ;;      id="menu-appbar"
-    ;;      anchorEl={anchorEl}
-    ;;      anchorOrigin={{
-    ;;        vertical: 'top',
-    ;;        horizontal: 'right',
-    ;;      }}
-    ;;      keepMounted
-    ;;      transformOrigin={{
-    ;;        vertical: 'top',
-    ;;        horizontal: 'right',
-    ;;      }}
-    ;;      open={open}
-    ;;      onClose={handleClose}
-    ;;    >
-    ;;      <MenuItem onClick={handleClose}>Profile</MenuItem>
-    ;;      <MenuItem onClick={handleClose}>My account</MenuItem>
-    ;;    </Menu>
-    ;;  </div>
-
+        handle-close                     #(setAnchorElement nil)
+        open?                            (not (nil? anchorElement))]
     [:div
-     [icon-button {
-                   :aria-label    "authed user menu"
+     [icon-button {:aria-label    "authed user menu"
                    :aria-controls "menu-appbar"
                    :aria-haspopup true
                    :color         "inherit"
                    :onClick       (fn [^js event]
-                                    (prn "click!" (.-currentTarget event))
                                     (setAnchorElement (.-currentTarget event)))}
       [typography {:class-name (:email classes)} email]
       [:img {:src (:user icons)}]
       [:img {:src (:dropdown icons)}]]
-
-     [menu {:id           "menu-appbar"
-            :anchorEl     anchorElement
-            :anchorOrigin {:vertical   "top"
-                           :horizontal "right"}
+     [menu {:id               "menu-appbar"
+            :anchorEl         anchorElement
+            :anchorOrigin     {:vertical   "top"
+                               :horizontal "right"}
             :keep-mounted     true
             :transform-origin {:vertical   "top"
                                :horizontal "right"}
-            :open         open?
-            :on-close     handle-close
-            }
-
+            :open             open?
+            :on-close         handle-close}
       [menu-item {:on-click (fn []
                               (handle-close)
-                              #_(>evt [:general/logout]))} "Log out"]
+                              (>evt [:general/logout]))} "Log out"]
       [menu-item {:on-click (fn []
-                              (handle-close))} "Clear data"]
+                              (prn "TODO")
+                              (handle-close))}
+       "Clear data"]
       [menu-item {:on-click (fn []
-                              (handle-close))} "Delete account"]
-
-      ]
-     ]
-
-    ))
+                              (prn "TODO")
+                              (handle-close))}
+       "Delete account"]]]))
 
 (defn header [classes]
   [app-bar {:position   "static"
@@ -346,7 +299,7 @@
       [icon-button {:class-name (:menu-button classes) :edge "start" :color "inherit" :aria-label "menu"}
        [avatar {:alt "spread" :variant "square" :src (arg->icon (:spread icons))}]]
       [typography {:class-name (:title classes) :variant "h6" } "Spread"]
-      [:f> user-login classes]]]
+      [user-login classes]]]
     [grid {:item true :xs false :sm 2 } #_"right gutter"]]])
 
 (defn app-container []
