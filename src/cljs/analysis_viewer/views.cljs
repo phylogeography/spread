@@ -524,6 +524,9 @@
               :max max-date-str
               :value crop-max-date-str}]]))
 
+(defn continuous-attributes-range-filter []
+  [:div.attribute-range-filters "Range filters"])
+
 (defn continuous-tree-side-bar []
   [:div.tabs
    [collapsible-tabs {:title "Settings"
@@ -545,7 +548,9 @@
                                 :child [continuous-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
-                      :childs []}]])
+                      :childs [{:title "Attributes range"
+                                :id :attributes-range-filters
+                                :child [continuous-attributes-range-filter]}]}]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Discrete tree settings ;;

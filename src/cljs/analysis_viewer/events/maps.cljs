@@ -49,6 +49,19 @@
      :x2 (apply max (map first all-coords))
      :y2 (apply max (map second all-coords))}))
 
+(defn build-attributes [all-attributes]
+  (->> all-attributes
+       (map (fn [{:keys [scale id] :as attr}]              
+              [id
+               (case scale
+                 "linear" {:id id
+                           :attribute/type :linear
+                           :range (:range attr)}
+                 "ordinal" {:id id
+                            :attribute/type :ordinal
+                            :domain (:domain attr)})]))
+       (into {})))
+
 (defn data-loaded [{:keys [db]} [_ data]]
   (println "Loaded analysis of type " (:analysisType data) "with keys:" (keys data))
   (let [analysis-type (keyword (:analysisType data))
@@ -65,11 +78,8 @@
     {:db (cond-> db
            true (assoc :analysis/data analysis-data)
            true (assoc :analysis.data/type analysis-type)
-           true (assoc :analysis/linear-attributes (->> (:pointAttributes data)
-                                                        (keep (fn [{:keys [id scale range]}]
-                                                                (when (= scale "linear")
-                                                                  [id range])))
-                                                        (into {})))
+           true (assoc :analysis/attributes (build-attributes (into (:pointAttributes data)
+                                                                    (:lineAttributes data))))
            timeline-start (assoc :analysis/date-range [timeline-start timeline-end])
            timeline-start (assoc :animation/frame-timestamp timeline-start)
            timeline-start (assoc :animation/crop [timeline-start timeline-end]))
