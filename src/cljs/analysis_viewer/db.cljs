@@ -29,9 +29,32 @@
 (s/def :analysis.data/type #{:ContinuousTree :DiscreteTree :BayesFactor})
 (s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object))
 
+(s/def :attribute/id string?)
+
 (s/def :analysis.linear-attribute/range (s/tuple number? number?))
 (s/def :analysis.linear-attribute/color-range (s/tuple :html/color :html/color))
-(s/def :analysis/linear-attributes (s/map-of string? :analysis.linear-attribute/range))
+
+(s/def :range/from number?)
+(s/def :range/to number?)
+
+(s/def :attribute.ordinal/domain (s/coll-of string?))
+
+(s/def :attribute/type #{:linear :ordinal})
+
+(defmulti attribute-type :attribute/type)
+
+(defmethod attribute-type :linear [_]
+  (s/keys :req [:attribute/type]
+          :req-un [:attribute/id                   
+                   :analysis.linear-attribute/range]))
+
+(defmethod attribute-type :ordinal [_]
+  (s/keys :req [:attribute/type]
+          :req-un [:attribute.ordinal/domain]))
+
+(s/def :analysis/attribute (s/multi-spec attribute-type :attribute/type))
+
+(s/def :analysis/attributes (s/map-of :attribute/id :analysis/attribute))
 
 (s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
 (s/def :ui.switch-buttons/states (s/map-of keyword? boolean?))
@@ -91,7 +114,7 @@
                     :opt [:map/data
                           :analysis/data
                           :analysis.data/type
-                          :analysis/linear-attributes
+                          :analysis/attributes
                           :analysis/selected-object-id
                           :analysis/possible-objects-ids
                           :analysis/date-range

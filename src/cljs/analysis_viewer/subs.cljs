@@ -142,9 +142,19 @@
    (vals (select-keys objects-map pos-obj-ids))))
 
 (reg-sub
- :analysis/linear-attributes
+ :analysis/attributes
  (fn [db _]
-   (:analysis/linear-attributes db)))
+   (:analysis/attributes db)))
+
+(reg-sub
+ :analysis/linear-attributes
+ :<- [:analysis/attributes]
+ (fn [attributes _]
+   (->> (vals attributes)
+        (filter #(= :linear (:attribute/type %)))
+        (map (fn [{:keys [id range]}]
+               [id range]))
+        (into {}))))
 
 (reg-sub
  :map/popup-coord
