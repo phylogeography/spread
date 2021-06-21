@@ -10,7 +10,10 @@
 (defmethod page :route/home []
   (fn []
     [app-container
-     [:div.home
+
+     [:div [:span "HOME"]]
+
+     #_[:div.home
       [icon-with-label {:icon (:spread icons) :label "spread"}]
       [:b "Welcome to Spread"]
       [:p "System for visualizing phylogeographic reconstructions."]

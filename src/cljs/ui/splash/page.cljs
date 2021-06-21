@@ -24,10 +24,8 @@
                                        :card       {
                                                     ;; :width         "720px"
                                                     ;; :height        "580px"
-
                                                     :width         "720px"
                                                     :height        "300px"
-
                                                     :box-shadow    "0px 30px 60px #313B5833"
                                                     :border-radius "20px"
                                                     :opacity       1}
@@ -41,10 +39,10 @@
                                        :centered   {:display         "flex"
                                                     :flex-direction  "row"
                                                     :justify-content "center"}
-                                       :middle {:position "absolute"
-                                                :top "50%"
-                                                :left "50%"
-                                                :transform "translate(-50%, -50%)"}
+                                       :middle     {:position  "absolute"
+                                                    :top       "50%"
+                                                    :left      "50%"
+                                                    :transform "translate(-50%, -50%)"}
                                        :button     {:width          "324px"
                                                     :height         "48px"
                                                     :background     "#F0F0F0 0% 0% no-repeat padding-box"
@@ -85,10 +83,9 @@
         [button {:class-name (:button classes)
                  :variant    "contained"
                  :start-icon (reagent/as-element [:img {:src (arg->icon (:google icons))}])
-                 :href
-                 (str "https://accounts.google.com/o/oauth2/v2/auth"
-                      "?client_id=" client-id
-                      "&scope=email%20profile"
-                      "&response_type=code"
-                      "&redirect_uri=" (utils/url-encode redirect-uri))}
+                 :href       (str "https://accounts.google.com/o/oauth2/v2/auth"
+                            "?client_id=" client-id
+                            "&scope=email%20profile"
+                            "&response_type=code"
+                            "&redirect_uri=" (utils/url-encode redirect-uri))}
          "Continue with Google"]]]]]))
