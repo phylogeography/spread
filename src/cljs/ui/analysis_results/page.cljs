@@ -138,9 +138,15 @@
   (let [{{:keys [id tab]} :query} (<sub [::router.subs/active-page])
         analysis                  (re-frame/subscribe [::subs/analysis-results id])]
     (fn []
+
+
+
       (let [{:keys [readable-name of-type created-on]} @analysis]
         [app-container
-         [:div.analysis-results
+
+         [:div (str "RESULTS for ") id]
+
+         #_[:div.analysis-results
           [:div.header
            [:span readable-name]
            [:div.sub-header
