@@ -3,6 +3,7 @@
             [camel-snake-kebab.core :as camel-snake]
             [camel-snake-kebab.extras :as camel-snake-extras]
             [clojure.core.match :refer [match]]
+            [clojure.set :refer [rename-keys]]
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
@@ -63,8 +64,10 @@
                         (handler fxs k v))
                       response))
 
-(defn response [cofx [_ response]]
-  (reduce-handlers cofx (gql->clj (:data response))))
+(defn response [cofx [_ {:keys [data errors]}]]
+  (when errors
+    (log/error "Error in graphql response" {:error errors}))
+  (reduce-handlers cofx (gql->clj data)))
 
 (defn query
   [{:keys [db localstorage]} [_ {:keys [query variables on-success]
@@ -156,10 +159,14 @@
   {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :get-continuous-tree
-  [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
-  {:db (-> db
+  [{:keys [db]} _ {:keys [id attribute-names] :as tree}]
+  (let [active-analysis-id (-> db :new-analysis :continuous-mcc-tree :id)]
+    {:db (cond-> db
+           (= id active-analysis-id)
            (assoc-in [:new-analysis :continuous-mcc-tree :attribute-names] attribute-names)
-           (update-in [:analysis id] merge analysis))})
+
+           true
+           (update-in [:analysis id] merge tree))}))
 
 (defmethod handler :upload-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
@@ -178,9 +185,13 @@
 
 (defmethod handler :get-discrete-tree
   [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
-  {:db (-> db
+  (let [active-analysis-id (-> db :new-analysis :discrete-mcc-tree :id)]
+    {:db (cond-> db
+           (= id active-analysis-id)
            (assoc-in [:new-analysis :discrete-mcc-tree :attribute-names] attribute-names)
-           (update-in [:analysis id] merge analysis))})
+
+           true
+           (update-in [:analysis id] merge analysis))}))
 
 (defmethod handler :update-discrete-tree
   [{:keys [db]} _ {:keys [id status]}]
@@ -216,19 +227,18 @@
 (defmethod handler :update-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id status]}]
   (when (= "ARGUMENTS_SET" status)
-    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+    (>evt [:graphql/query {:query     "mutation QueueJob($id: ID!) {
                                                 startBayesFactorParser(id: $id) {
                                                  id
                                                  status
                                                 }
                                               }"
-                                  :variables {:id id}}]]))
+                           :variables {:id id}}]))
   {:db (assoc-in db [:analysis id :status] status)})
 
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id] :as analysis}]
-  {:db (-> db
-           (update-in [:analysis id] merge analysis))})
+  {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id status]}]
@@ -237,36 +247,42 @@
 (defmethod handler :parser-status
   [{:keys [db]} _ {:keys [id status of-type] :as parser}]
   (log/debug "parser-status handler" parser)
-  ;; NOTE: if worker parsed attributes query them
-  ;; if analysis ended stop the subscription
   (match [status of-type]
          ["ATTRIBUTES_PARSED" "CONTINUOUS_TREE"]
-         (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
+         ;; if worker parsed attributes query them
+         ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
+         (when-not (-> db :new-analysis :continuous-mcc-tree :attribute-names)
+           (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
                                                         getContinuousTree(id: $id) {
                                                           id
                                                           attributeNames
                                                         }
                                                       }"
-                                :variables {:id id}}])
+                                  :variables {:id id}}]))
 
          ["ATTRIBUTES_PARSED" "DISCRETE_TREE"]
-         ;; NOTE: if worker parsed attributes query them
-         (>evt [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
+         ;; if worker parsed attributes query them
+         ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
+         (when-not (-> db :new-analysis :discrete-mcc-tree :attribute-names)
+           (>evt [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
                                                         getDiscreteTree(id: $id) {
                                                           id
                                                           attributeNames
                                                         }
                                                       }"
-                                :variables {:id id}}])
+                                  :variables {:id id}}]))
 
          [(:or "SUCCEEDED" "ERROR") _]
+         ;; if analysis ended stop the subscription
          (>evt [:graphql/unsubscribe {:id id}])
 
          :else nil)
 
   {:db (update-in db [:analysis id]
-                  merge
-                  parser)})
+                    merge
+                    ;; NOTE we can optimistically assume analysis is new
+                    ;; since there is an ongoing subscription for it
+                    (assoc parser :new? true))})
 
 (defmethod handler :upload-time-slicer
   [{:keys [db]} _ {:keys [id status]}]
@@ -276,14 +292,19 @@
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
-  (>evt [:user-analysis-loaded])
-  {:db (assoc db :analysis (zipmap (map :id analysis) analysis))})
+  (let [analysis (map #(rename-keys % {:is-new :new?}) analysis)]
+    (>evt [:user-analysis-loaded])
+    {:db (assoc db :analysis (zipmap (map :id analysis) analysis))}))
 
 (defmethod handler :get-authorized-user
   [{:keys [db]} _ {:keys [id] :as user}]
   {:db (-> db
            (assoc-in [:users :authorized-user] user)
            (assoc-in [:users id] user))})
+
+(defmethod handler :touch-analysis
+  [{:keys [db]} _ {:keys [id is-new]}]
+  {:db (assoc-in db [:analysis id :new?] is-new)})
 
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]

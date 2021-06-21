@@ -7,7 +7,7 @@
             [ui.component.icon :refer [icon-with-label icons]]
             [ui.format :refer [format-percentage]]
             [ui.subscriptions :as subs]
-            [ui.utils :as ui-utils :refer [>evt]]))
+            [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
 (defn user-login [email]
   [:div.hover-dropdown
@@ -53,37 +53,47 @@
                            [:a [:span [:b (str main-label ":")] sub-label]]]])
                        items))]])))
 
-;; TODO : highlight status = error
-;; TODO : handle new?
 (defn completed-menu-item []
   (let [menu-opened? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type ]}]
-      [:div.completed-menu-item {:on-click #(re-frame/dispatch [:router/navigate :route/analysis-results nil {:id id}])}
-       [:div
-        [:span (or readable-name "Unknown")]
-        ;; (when new? [:span "New"])
-        [:div.click-dropdown
-         [button-with-icon {:on-click #(swap! menu-opened? not)
-                            :icon     (:kebab-menu icons)}]
-         [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Edit")
-                           (.stopPropagation event))} "Edit"]
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Load")
-                           (.stopPropagation event))} "Load different file"]
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Copy")
-                           (.stopPropagation event))} "Copy settings"]
-          [:a {:on-click (fn [event]
-                           (prn "TODO: Show delete modal")
-                           (.stopPropagation event))} "Delete"]]]
-        [:div of-type]]])))
+    (fn [{:keys [id readable-name of-type status new?]}]
+      (let [error? (= "ERROR" status)]
+        ;; TODO dispatch touch mutation
+        [:div.completed-menu-item {:on-click #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
+                                                           (when new?
+                                                             [:graphql/query {:query
+                                                                              "mutation TouchAnalysisMutation($analysisId: ID!) {
+                                                                                        touchAnalysis(id: $analysisId) {
+                                                                                          id
+                                                                                          isNew
+                                                                                        }
+                                                                                      }"
+                                                                              :variables {:analysisId id}}])])}
+         [:div
+          [:span (or readable-name "Unknown")]
+          (when new? [:span "New"])
+          (when error? [:span "Error"])
+          [:div.click-dropdown
+           [button-with-icon {:on-click #(swap! menu-opened? not)
+                              :icon     (:kebab-menu icons)}]
+           ;; TODO : with css on-hover
+           [:div.dropdown-content {:class (when @menu-opened? "dropdown-menu-opened")}
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Edit")
+                             (.stopPropagation event))} "Edit"]
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Load")
+                             (.stopPropagation event))} "Load different file"]
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Copy")
+                             (.stopPropagation event))} "Copy settings"]
+            [:a {:on-click (fn [event]
+                             (prn "TODO: Show delete modal")
+                             (.stopPropagation event))} "Delete"]]]
+          [:div of-type]]]))))
 
-;; TODO : handle new?
-;; TODO : highlight status = error
 (defn completed [{:keys [open?]}]
   (let [search-term        (re-frame/subscribe [::subs/search])
+        ;; TODO : achieve it with CSS
         open?              (reagent/atom open?)
         completed-analysis (re-frame/subscribe [::subs/completed-analysis-search])]
     (fn []
@@ -104,9 +114,8 @@
                  [completed-menu-item item])
                @completed-analysis))]])))
 
-;; TODO : highlight status = error
 (defn queued-menu-item []
-  (let [;; TODO : use css on-hover
+  (let [;; TODO : use css on-hover (or get rid of it entirely)
         menu-opened? (reagent/atom false)
         ]
     (fn [{:keys [id readable-name of-type

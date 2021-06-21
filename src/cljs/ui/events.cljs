@@ -27,7 +27,8 @@
 
 (reg-event-fx :do-nothing (constantly nil))
 (reg-event-fx :user-analysis-loaded (constantly nil))
-(reg-event-fx :log-error (fn [_ ev] (js/console.error ev)))
+(reg-event-fx :log-error (fn [_ ev]
+                           (js/console.error ev)))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Graphql events ;;

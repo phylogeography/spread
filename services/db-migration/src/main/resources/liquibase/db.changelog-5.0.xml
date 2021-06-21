@@ -8,35 +8,22 @@
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="user_id" type="VARCHAR(36)">
-        <constraints nullable="false" />
-      </column>
       <column name="log_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
       <column name="locations_file_url" type="VARCHAR(200)"/>
       <column name="output_file_url" type="VARCHAR(200)"/>
-      <column name="readable_name" type="VARCHAR(200)"/>
       <column name="burn_in" type="FLOAT"/>
       <column name="number_of_locations" type="INT"/>
-      <column name="created_on" type="BIGINT">
-        <constraints nullable="false"/>
-      </column>
     </createTable>
   </changeSet>
 
   <changeSet author="filip" id="5.0-2">
-    <createIndex indexName="bayes_factor_SLASH_user_id_INDEX" tableName="bayes_factor_analysis">
-      <column name="user_id"/>
-    </createIndex>
-  </changeSet>
-
-  <changeSet author="filip" id="5.0-3">
-    <addForeignKeyConstraint constraintName="bayes_factor_analysis_SLASH_user_id_FK"
-                             baseColumnNames="user_id"
+    <addForeignKeyConstraint constraintName="bayes_factor_analysis_SLASH_analysis_FK"
+                             baseColumnNames="id"
                              baseTableName="bayes_factor_analysis"
                              referencedColumnNames="id"
-                             referencedTableName="user"
+                             referencedTableName="analysis"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"
@@ -44,9 +31,9 @@
                              validate="true"/>
   </changeSet>
 
-  <changeSet author="filip" id="5.0-4">
+  <changeSet author="filip" id="5.0-3">
     <createTable tableName="bayes_factors">
-      <column name="bayes_factor_analysis_id" type="VARCHAR(36)">
+      <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="bayes_factors" type="JSON">
@@ -55,35 +42,10 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="5.0-5">
+  <changeSet author="filip" id="5.0-4">
     <addForeignKeyConstraint constraintName="bayes_factors_SLASH_bayes_factor_analysis_FK"
-                             baseColumnNames="bayes_factor_analysis_id"
+                             baseColumnNames="id"
                              baseTableName="bayes_factors"
-                             referencedColumnNames="id"
-                             referencedTableName="bayes_factor_analysis"
-                             onDelete="CASCADE"
-                             onUpdate="RESTRICT"
-                             deferrable="false"
-                             initiallyDeferred="false"
-                             validate="true"/>
-  </changeSet>
-
-  <changeSet author="filip" id="5.0-6">
-    <createTable tableName="bayes_factor_analysis_status">
-      <column name="bayes_factor_analysis_id" type="VARCHAR(36)">
-        <constraints nullable="false" primaryKey="true"/>
-      </column>
-      <column name="status" type="VARCHAR(50)">
-        <constraints nullable="false" />
-      </column>
-      <column name="progress" type="float" defaultValueNumeric="0"/>
-    </createTable>
-  </changeSet>
-
-  <changeSet author="filip" id="5.0-7">
-    <addForeignKeyConstraint constraintName="bayes_factor_analysis_status_SLASH_bayes_factor_analysis_FK"
-                             baseColumnNames="bayes_factor_analysis_id"
-                             baseTableName="bayes_factor_analysis_status"
                              referencedColumnNames="id"
                              referencedTableName="bayes_factor_analysis"
                              onDelete="CASCADE"

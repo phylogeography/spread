@@ -19,35 +19,44 @@
                   :extension {:type String}}}}
 
  :objects
- {:PageInfo {:fields {:hasNextPage     {:type (non-null Boolean)}
-                      :hasPreviousPage {:type (non-null Boolean)}
-                      :startCursor     {:type String}
-                      :endCursor       {:type String}}}
+ {
+  ;; :PageInfo {:fields {:hasNextPage     {:type (non-null Boolean)}
+  ;;                     :hasPreviousPage {:type (non-null Boolean)}
+  ;;                     :startCursor     {:type String}
+  ;;                     :endCursor       {:type String}}}
 
-  :Analysis
-  {:fields {:id           {:type (non-null ID)}
-            :userId       {:type (non-null ID)}
-            :readableName {:description "Human-readable name. Usually file name."
-                           :type        String}
-            :createdOn    {:type (non-null :BigInt)}
-            :progress     {:type Float}
-            :status       {:type :AnalysisStatus}
-            :ofType       {:type (non-null :AnalysisType)}}}
+  ;; :AnalysisEdge {:fields {:node   {:type :Analysis}
+  ;;                         :cursor {:type String}}}
 
-  :AnalysisEdge {:fields {:node   {:type :Analysis}
-                          :cursor {:type String}}}
-
-  :AnalysisConnection {:fields {:totalCount {:type Int}
-                                :pageInfo   {:type (non-null :PageInfo)}
-                                :edges      {:type (list (non-null :AnalysisEdge))}}}
+  ;; :AnalysisConnection {:fields {:totalCount {:type Int}
+  ;;                               :pageInfo   {:type (non-null :PageInfo)}
+  ;;                               :edges      {:type (list (non-null :AnalysisEdge))}}}
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
-  :ParserStatus {:description "Return id and status. Mostly used for querying workers progress."
+  :TouchAnalysisReturnType {:description "Returned by touch analysis mutation"
+                            :fields      {:id    {:type (non-null ID)}
+                                          :isNew {:type (non-null Boolean)}}}
+
+  :Analysis {:description "Represents common fields of a parser. Returned by queries."
+             :fields      {:id           {:type (non-null ID)}
+                           :userId       {:type (non-null ID)}
+                           :readableName {:description "Human-readable name. Usually file name."
+                                          :type        String}
+                           :createdOn    {:type (non-null :BigInt)}
+                           :progress     {:type Float}
+                           :status       {:type (non-null :AnalysisStatus)}
+                           :isNew        {:description "Has this analysis been viewed?"
+                                          :type        (non-null Boolean)}
+                           :error        {:type    String
+                                          :resolve :resolve/analysis->error}
+                           :ofType       {:type (non-null :AnalysisType)}}}
+
+  :ParserStatus {:description "Analysis status, progress and some optional fields. Returned by mutations and used for subscriptions to the workers progress."
                  :fields      {:id           {:type (non-null ID)}
                                :readableName {:type String}
-                               :ofType       {:type (non-null :AnalysisType)}
-                               :progress     {:type (non-null Float)}
+                               :ofType       {:type :AnalysisType}
+                               :progress     {:type Float}
                                :status       {:type (non-null :AnalysisStatus)}}}
 
   :User {:fields {:id    {:type (non-null ID)}
@@ -155,21 +164,22 @@
                     :description "Returns all results for the authenticated user."
                     :resolve     :query/getUserAnalysis}
 
-  :searchUserAnalysis {:type        :AnalysisConnection
-                       :description "Returns paginated result with completed analysis for the authenticated user."
-                       :args        {:first    {:type Int}
-                                     :after    {:type String}
-                                     :last     {:type Int}
-                                     :before   {:type String}
-                                     :statuses {:type (list :AnalysisStatus)}}
-                       :resolve     :query/searchUserAnalysis}}
+  ;; :searchUserAnalysis {:type        :AnalysisConnection
+  ;;                      :description "Returns paginated result with completed analysis for the authenticated user."
+  ;;                      :args        {:first    {:type Int}
+  ;;                                    :after    {:type String}
+  ;;                                    :last     {:type Int}
+  ;;                                    :before   {:type String}
+  ;;                                    :statuses {:type (list :AnalysisStatus)}}
+  ;;                      :resolve     :query/searchUserAnalysis}
+
+  }
 
  :subscriptions
- {:parserStatus
-  {:type        :ParserStatus
-   :description "Returns a subscription to any parser status by it's ID."
-   :args        {:id {:type (non-null ID)}}
-   :stream      :subscription/parserStatus}}
+ {:parserStatus {:type        :ParserStatus
+                 :description "Returns a subscription to any parser status by it's ID."
+                 :args        {:id {:type (non-null ID)}}
+                 :stream      :subscription/parserStatus}}
 
  :mutations
  {:googleLogin {:type        :JWT
@@ -267,4 +277,9 @@
   :startBayesFactorParser {:type        :ParserStatus
                            :description "Starts executing a parser. Returns a ParserStatus with id."
                            :args        {:id {:type (non-null ID)}}
-                           :resolve     :mutation/startBayesFactorParser}}}
+                           :resolve     :mutation/startBayesFactorParser}
+
+  :touchAnalysis {:type        :TouchAnalysisReturnType
+                  :description "Marks analysis as viewed"
+                  :args        {:id {:type (non-null ID)}}
+                  :resolve     :mutation/touchAnalysis}}}

@@ -8,14 +8,10 @@
       <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="user_id" type="VARCHAR(36)">
-        <constraints nullable="false" />
-      </column>
       <column name="continuous_tree_id" type="VARCHAR(36)"/>
       <column name="trees_file_url" type="VARCHAR(200)">
         <constraints nullable="false" />
       </column>
-      <column name="readable_name" type="VARCHAR(200)"/>      
       <column name="slice_heights_file_url" type="VARCHAR(200)"/>
       <column name="burn_in" type="FLOAT"/>
       <column name="number_of_intervals" type="INT"/>
@@ -26,24 +22,15 @@
       <column name="contouring_grid_size" type="INT"/>
       <column name="timescale_multiplier" type="FLOAT"/>
       <column name="most_recent_sampling_date" type="VARCHAR(20)"/>
-      <column name="created_on" type="BIGINT">
-        <constraints nullable="false"/>
-      </column>
     </createTable>
   </changeSet>
 
   <changeSet author="filip" id="4.0-2">
-    <createIndex indexName="time_slicer_SLASH_user_id_INDEX" tableName="time_slicer">
-      <column name="user_id"/>
-    </createIndex>
-  </changeSet>
-
-  <changeSet author="filip" id="4.0-3">
-    <addForeignKeyConstraint constraintName="time_slicer_SLASH_user_id_FK"
-                             baseColumnNames="user_id"
+    <addForeignKeyConstraint constraintName="time_slicer_SLASH_analysis_FK"
+                             baseColumnNames="id"
                              baseTableName="time_slicer"
                              referencedColumnNames="id"
-                             referencedTableName="user"
+                             referencedTableName="analysis"
                              onDelete="CASCADE"
                              onUpdate="RESTRICT"
                              deferrable="false"
@@ -51,8 +38,8 @@
                              validate="true"/>
   </changeSet>
 
-  <changeSet author="filip" id="2.0-4">
-    <addForeignKeyConstraint constraintName="time_slicer_SLASH_continuous_tree_id_FK"
+  <changeSet author="filip" id="4.0-3">
+    <addForeignKeyConstraint constraintName="time_slicer_SLASH_continuous_tree_FK"
                              baseColumnNames="continuous_tree_id"
                              baseTableName="time_slicer"
                              referencedColumnNames="id"
@@ -64,9 +51,9 @@
                              validate="true"/>
   </changeSet>
 
-  <changeSet author="filip" id="2.0-5">
+  <changeSet author="filip" id="4.0-4">
     <createTable tableName="time_slicer_attributes">
-      <column name="time_slicer_id" type="VARCHAR(36)">
+      <column name="id" type="VARCHAR(36)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
       <column name="attribute_name" type="VARCHAR(200)">
@@ -75,9 +62,9 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="filip" id="2.0-6">
+  <changeSet author="filip" id="4.0-5">
     <addForeignKeyConstraint constraintName="time_slicer_attributes_SLASH_timeslicer_FK"
-                             baseColumnNames="time_slicer_id"
+                             baseColumnNames="id"
                              baseTableName="time_slicer_attributes"
                              referencedColumnNames="id"
                              referencedTableName="time_slicer"
@@ -87,34 +74,9 @@
                              initiallyDeferred="false"
                              validate="true"/>
     <addUniqueConstraint
-        columnNames="time_slicer_id, attribute_name"
+        columnNames="id, attribute_name"
         constraintName="unique_time_slicer_attribute_names"
         tableName="time_slicer_attributes"/>
-  </changeSet>
-
-  <changeSet author="filip" id="2.0-7">
-    <createTable tableName="time_slicer_status">
-      <column name="time_slicer_id" type="VARCHAR(36)">
-        <constraints nullable="false" primaryKey="true"/>
-      </column>
-      <column name="status" type="VARCHAR(50)">
-        <constraints nullable="false"/>
-      </column>
-      <column name="progress" type="float" defaultValueNumeric="0"/>
-    </createTable>
-  </changeSet>
-
-  <changeSet author="filip" id="2.0-8">
-    <addForeignKeyConstraint constraintName="time_slicer_status_SLASH_time_slicer_FK"
-                             baseColumnNames="time_slicer_id"
-                             baseTableName="time_slicer_status"
-                             referencedColumnNames="id"
-                             referencedTableName="time_slicer"
-                             onDelete="CASCADE"
-                             onUpdate="RESTRICT"
-                             deferrable="false"
-                             initiallyDeferred="false"
-                             validate="true"/>
   </changeSet>
 
 </databaseChangeLog>
