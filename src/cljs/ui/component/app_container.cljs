@@ -27,6 +27,8 @@
 
             [reagent-material-ui.core.box :refer [box]]
 
+            [reagent-material-ui.core.chip :refer [chip]]
+
             [reagent-material-ui.core.card :refer [card]]
             [reagent-material-ui.core.card-content :refer [card-content]]
             [reagent-material-ui.core.card-header :refer [card-header]]
@@ -161,26 +163,75 @@
                                                 :background     "#3428CA 0% 0% no-repeat padding-box"
                                                 :color          "#ECEFF8"}
 
+                                       :primary {:display        "flex"
+                                                 :flex-direction "row"
+                                                 :justify-content :space-between}
+
+                                       :details {:display :inline}
+
                                        })))
 
-(defn completed-menu-item [{:keys [id readable-name of-type status new?] :as item}]
+;; TODO : search
+(defn completed-menu-item [{:keys [id readable-name of-type status new?] :as item} classes]
   (let [[anchorElement setAnchorElement] (react/useState nil)
         handle-close                     #(setAnchorElement nil)
-        open?                            (not (nil? anchorElement))]
-    [list-item {:key    id
-                :button true
+        open?                            (not (nil? anchorElement))
+        error?                           (= "ERROR" status)]
+    [list-item {:button true
+                ;; :disableGutters true
                 :on-click
                 #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
                               (when new?
                                 [:graphql/query {:query
                                                  "mutation TouchAnalysisMutation($analysisId: ID!) {
-                                                                                        touchAnalysis(id: $analysisId) {
-                                                                                          id
-                                                                                          isNew
-                                                                                        }
-                                                                                      }"
+                                                             touchAnalysis(id: $analysisId) {
+                                                               id
+                                                               isNew
+                                                             }
+                                                           }"
                                                  :variables {:analysisId id}}])])}
-     [list-item-text {:primary   (or readable-name "Unknown")
+     [list-item-text {:primary   (reagent/as-element [:div {:class-name (:primary classes)}
+
+                                                      [:span (or readable-name "Unknown")]
+
+                                                      (when error?
+                                                        [chip {:label   "Error"
+                                                               :size    :small
+                                                               :variant "outlined"
+                                                               :color   "secondary"}])
+                                                      (when error?
+                                                        [chip {:label   "New"
+                                                               :size    :small
+                                                               :variant "outlined"
+                                                               :color   "primary"}])
+
+                                                      [:div
+                                                       [icon-button {:aria-label    "analysis kebab menu"
+                                                                     :aria-controls "menu-kebab"
+                                                                     :aria-haspopup true
+                                                                     :color         "inherit"
+                                                                     :style         {:padding 0}
+                                                                     :on-click      (fn [event]
+                                                                                      (setAnchorElement (.-currentTarget event))
+                                                                                      (.stopPropagation event))}
+                                                        [:img {:src (:kebab-menu icons)}]]
+                                                       [menu {:id               "menu-kebab"
+                                                              :anchorEl         anchorElement
+                                                              :anchorOrigin     {:vertical   "top"
+                                                                                 :horizontal "right"}
+                                                              :transform-origin {:vertical   "top"
+                                                                                 :horizontal "right"}
+                                                              :keep-mounted     true
+                                                              :open             open?
+                                                              :on-close         handle-close}
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Edit"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Load different file"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Copy settings"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Delete"]]]])
                       :secondary (case of-type
                                    "CONTINUOUS_TREE"
                                    "Continuous: MCC tree"
@@ -190,49 +241,35 @@
 
                                    "BAYES_FACTOR_ANALYSIS"
                                    "Discrete: Bayes Factor Rates"
-                                   nil)}]
-     [:div
-      [icon-button {:aria-label    "analysis kebab menu"
-                    :aria-controls "menu-kebab"
-                    :aria-haspopup true
-                    :color         "inherit"
-                    :on-click      (fn [event]
-                                     (setAnchorElement (.-currentTarget event))
-                                     (.stopPropagation event))}
-       [:img {:src (:kebab-menu icons)}]]
-      [menu {:id               "menu-kebab"
-             :anchorEl         anchorElement
-             :anchorOrigin     {:vertical   "top"
-                                :horizontal "right"}
-             :transform-origin {:vertical   "top"
-                                :horizontal "right"}
-             :keep-mounted     true
-             :open             open?
-             :on-close         handle-close}
-       [menu-item {:on-click (fn []
-                               (prn "TODO"))} "Edit"]
-       [menu-item {:on-click (fn []
-                               (prn "TODO"))} "Load different file"]
-       [menu-item {:on-click (fn []
-                               (prn "TODO"))} "Copy settings"]
-       [menu-item {:on-click (fn []
-                               (prn "TODO"))} "Delete"]]]]))
+                                   nil)}]]))
 
 (defn completed [classes]
   (let [search-term        (re-frame/subscribe [::subs/search])
         completed-analysis (re-frame/subscribe [::subs/completed-analysis-search])]
     (fn []
       (let [items @completed-analysis]
+
+        ;; TODO
+    #_[:input.search-input {:value       @search-term
+                             :on-change   #(>evt [:general/set-search (-> % .-target .-value)])
+                             :type        "text"
+                             :placeholder "Search..."}]
+
         [accordion {:defaultExpanded true}
          [accordion-summary {:expand-icon (reagent/as-element [:img {:src (:dropdown icons)}])}
           [:img {:src (:completed icons)}]
           [typography {:class-name (:heading classes)} "Completed data analysis"]]
          [divider {:variant "fullWidth"}]
-         [accordion-details
+         [accordion-details {:class-name (:details classes)}
           [list
            (doall
              (map (fn [{:keys [id readable-name of-type status new?] :as item}]
-                    ^{:key id} [completed-menu-item item])
+                    ^{:key id} [completed-menu-item (-> item
+                                                        ;; TODO : for dev
+                                                        #_(assoc :new? true)
+                                                        #_(assoc :status "ERROR")
+                                                        )
+                                classes])
                   items))]]]))))
 
 (defn run-new [classes]
@@ -247,7 +284,7 @@
       [:img {:src (:run-new icons)}]
       [typography {:class-name (:heading classes)} "Run new analysis"]]
      [divider {:variant "fullWidth"}]
-     [accordion-details
+     [accordion-details {:class-name (:details classes)}
       [list
        (doall
          (map-indexed (fn [index {:keys [main-label sub-label target query]}]
@@ -266,7 +303,7 @@
   [:div
    [run-new classes]
    [completed classes]
-   ;; TODO
+   ;; TODO : queue
 
    [button {:variant   "contained"
             :color     "primary"
