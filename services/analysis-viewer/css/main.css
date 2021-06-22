@@ -383,3 +383,43 @@ button {
 }
 
 
+/***********/
+/* Filters */
+/***********/
+
+.attribute-filters {
+	display: flex;
+	flex-direction: column;
+	row-gap: 10px;
+}
+
+.attribute-filters .selection i {
+	margin-left: 5px;
+}
+
+.filter {
+    border: 1px solid #3A3668;
+	border-radius: 5px;
+	padding: 3px;
+	font-size: 12px;
+}
+
+.filter .top-bar {
+    display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.filter .ordinal-attribute-filter .text {
+	display: inline-block;
+	max-width: 177px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.filter .ordinal-attribute-filter {
+	max-height: 150px;
+	overflow-y: scroll;
+}
+

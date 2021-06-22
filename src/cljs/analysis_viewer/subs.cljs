@@ -1,7 +1,8 @@
 (ns analysis-viewer.subs
   (:require [analysis-viewer.svg-renderer :as svg-renderer]
             [re-frame.core :refer [reg-sub]]
-            [shared.math-utils :as math-utils]))
+            [shared.math-utils :as math-utils]
+            [shared.utils :as utils]))
 
 (defn geo-json-data-map [db-maps]
   (let [maps {:type "FeatureCollection"
@@ -101,16 +102,45 @@
                  [obj-id obj])))
        (into {})))
 
+(defn filter-pass? [{:keys [attrs]} filter]  
+  (let [filter-attr (keyword (:attribute/id filter))]
+    (if-not (contains? attrs filter-attr)
+      true ;; pass thru the filter objects that doesn't contain the attribute
+
+      ;; the object contains the attribute    
+      (let [obj-val (get attrs filter-attr)]
+        (case (:filter/type filter)
+
+          ;; check the obj attribute value is on range
+          :linear-filter (let [[rfrom rto] (:range filter)]
+                           (<= rfrom obj-val rto))
+
+          ;; check the obj value is in the filter's filter-set 
+          :ordinal-filter (contains? (:filter-set filter) obj-val))))))
+
+(defn filter-data [data filters]  
+  (let [attr-filter (fn [obj]
+                      (every? (partial filter-pass? obj) filters))]
+    
+    (if (empty? filters)
+      data
+      (utils/filter-map-vals data attr-filter))))
+
 (reg-sub
- :analysis/colored-data
+ :analysis/colored-and-filtered-data
  :<- [:analysis/data]
  :<- [:ui/parameters]
- (fn [[data params] _]
-   (cond
-     (:transitions-attribute params) (color-data-objects data :transition (get params :transitions-attribute))
-     (:circles-attribute params)     (color-data-objects data :circle (get params :circles-attribute))
-     (:nodes-attribute params)       (color-data-objects data :node (get params :nodes-attribute))
-     :else data)))
+ :<- [:analysis.data/filters]
+ (fn [[data params filters] _]
+   (println "Total data objects " (count data))
+   (let [filtered-data (filter-data data (vals filters))
+         _ (println "Filtered data objects " (count filtered-data))
+         final-data (cond
+                      (:transitions-attribute params) (color-data-objects filtered-data :transition (get params :transitions-attribute))
+                      (:circles-attribute params)     (color-data-objects filtered-data :circle (get params :circles-attribute))
+                      (:nodes-attribute params)       (color-data-objects filtered-data :node (get params :nodes-attribute))
+                      :else filtered-data)]
+     final-data)))
 
 (reg-sub
  :analysis.data/type
@@ -155,6 +185,25 @@
         (map (fn [{:keys [id range]}]
                [id range]))
         (into {}))))
+
+(defn attribute-filter? [f]
+  (boolean (#{:linear-filter :ordinal-filter} (:filter/type f))))
+
+(reg-sub
+ :analysis.data/filters
+ (fn [db _]
+   (:analysis.data/filters db)))
+
+(reg-sub
+ :analysis.data/attribute-filters
+ :<- [:analysis.data/filters]
+ :<- [:analysis/attributes]
+ (fn [[filters attributes] _]   
+   (-> filters
+       (utils/filter-map-vals attribute-filter?)
+       (utils/map-map-vals (fn [filter]                             
+                             (let [attr (get attributes (:attribute/id filter))]
+                               (assoc filter :attribute attr)))))))
 
 (reg-sub
  :map/popup-coord

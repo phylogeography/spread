@@ -103,6 +103,29 @@
 (s/def :analysis/possible-objects-ids (s/coll-of :analysis.data.object/id))
 (s/def :map/popup-coord :cartesian/coord)
 
+(s/def :analysis.ordinal-attribute/filter-set (s/coll-of string?))
+
+(s/def :filter/id number?)
+
+(s/def :filter/type #{:ordinal-filter :linear-filter})
+
+(defmulti filter-type :filter/type)
+
+(defmethod filter-type :ordinal-filter [_]
+  (s/keys :req [:filter/id
+                :filter/type
+                :attribute/id]
+          :req-un [:analysis.ordinal-attribute/filter-set]))
+
+(defmethod filter-type :linear-filter [_]
+  (s/keys :req [:filter/id
+                :filter/type
+                :attribute/id]
+          :req-un [:analysis.linear-attribute/range]))
+
+(s/def :analysis.data/filter (s/multi-spec filter-type :filter/type))
+(s/def :analysis.data/filters (s/map-of :filter/id :analysis.data/filter))
+
 (s/def ::db (s/keys :req [:map/state                          
                           :animation/frame-timestamp
                           :animation/state
@@ -110,9 +133,10 @@
                           :animation/crop
                           :ui.collapsible-tabs/tabs
                           :ui.switch-buttons/states
-                          :ui/parameters]
+                          :ui/parameters
+                          :analysis.data/filters]
                     :opt [:map/data
-                          :analysis/data
+                          :analysis/data                          
                           :analysis.data/type
                           :analysis/attributes
                           :analysis/selected-object-id
@@ -130,6 +154,7 @@
    :animation/crop [0 1]
    :animation/speed 100
    :animation/state :stop
+   :analysis.data/filters {}
    :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
                                            :map-color true,
                                            :polygon-opacity true}}
