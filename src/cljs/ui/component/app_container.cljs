@@ -274,7 +274,7 @@
          (map-indexed (fn [index {:keys [main-label sub-label target query]}]
                         [list-item {:key      index
                                     :button   true
-                                    :on-click #(re-frame/dispatch [:router/navigate target nil query])}
+                                    :on-click #(>evt [:router/navigate target nil query])}
                          [box {:class-name (:box classes)}
                           main-label]
                          [list-item-text
@@ -286,15 +286,15 @@
 
 (defn main-menu [classes]
   [:div
-   [run-new classes {:default-expanded? false}]
-   [completed classes {:default-expanded? false}]
+   [run-new classes {:default-expanded? true}]
+   [completed classes {:default-expanded? true}]
    [queue classes {:default-expanded? true}]
    [button {:variant   "contained"
             :color     "primary"
             :size      "large"
             :className (:button classes)
             :startIcon (reagent/as-element [:img {:src (:run-new icons)}])
-            :on-click  #(re-frame/dispatch [:router/navigate :route/new-analysis nil {:tab "continuous-mcc-tree"}])}
+            :on-click  #(>evt [:router/navigate :route/new-analysis nil {:tab "continuous-mcc-tree"}])}
     "Run new analysis"]])
 
 (defn user-login [classes]
@@ -340,7 +340,8 @@
           :spacing   2}
     [grid {:item true :xs false :sm 1}]
     [grid {:item true :xs 10 :sm 10}
-     [toolbar {:disableGutters true}
+     [toolbar {:disableGutters true
+               :on-click       #(>evt [:router/navigate :route/home])}
       [icon-button {:class-name (:menu-button classes) :edge "start" :color "inherit" :aria-label "menu"}
        [avatar {:alt "spread" :variant "square" :src (arg->icon (:spread icons))}]]
       [typography {:class-name (:title classes) :variant "h6"} "Spread"]
