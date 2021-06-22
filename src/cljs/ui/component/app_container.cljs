@@ -335,7 +335,7 @@
        "Delete account"]]]))
 
 (defn header [classes]
-  [app-bar {:position   "static"
+  [app-bar {:position   :static
             :class-name (:app-bar classes)}
    [grid {:container true
           :spacing   2}
@@ -345,9 +345,9 @@
                :class-name     (:header classes)
                :on-click       #(>evt [:router/navigate :route/home])}
       [button {:class-name (:menu-button classes)
-               :color      "inherit"
-               :start-icon (reagent/as-element [avatar {:alt "spread" :variant "square" :src (arg->icon (:spread icons))}])}
-       [typography {:class-name (:title classes) :variant "h6"} "Spread"]]
+               :color      :inherit
+               :start-icon (reagent/as-element [avatar {:alt "spread" :variant :square :src (arg->icon (:spread icons))}])}
+       [typography {:class-name (:title classes) :variant :h6} "Spread"]]
       [user-login classes]]]
     [grid {:item true :xs false :sm 1}]]])
 
@@ -356,7 +356,7 @@
     (fn [child-page]
       [grid {:class-name (:root classes)
              :container  true
-             :direction  "column"}
+             :direction  :column}
        [header classes]
        [grid {:container true
               :spacing   2}
