@@ -17,6 +17,7 @@
             [ui.splash.page]
             [ui.storage]
             [ui.utils]
+            ;; [reagent-material-ui.pickers.mui-pickers-utils-provider :refer [mui-pickers-utils-provider]]
             [reagent-material-ui.core.css-baseline :refer [css-baseline]]
             [ui.websocket-fx :as websocket]))
 

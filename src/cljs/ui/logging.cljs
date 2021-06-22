@@ -1,5 +1,5 @@
 (ns ui.logging
-  (:require ["@sentry/browser" :as Sentry]
+  (:require #_["@sentry/browser" :as Sentry]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as timbre]))
 
@@ -11,7 +11,7 @@
    :debug js/console.info,
    :trace js/console.trace})
 
-(def ^:private timbre->sentry-levels
+#_(def ^:private timbre->sentry-levels
   {:fatal  "fatal"
    :error  "error"
    :warn   "warning"
@@ -38,7 +38,7 @@
                    (.apply f js/console (to-array vargs))))})
 
 
-(defn sentry-appender [{:keys [min-level] :as config}]
+#_(defn sentry-appender [{:keys [min-level] :as config}]
   (.init Sentry (clj->js config))
   {:enabled?   true
    :async?     true
@@ -75,12 +75,12 @@
   (merge data (decode-vargs (-> data
                                 :vargs))))
 
-(defn start [{:keys [:level :console? :sentry]}]
+(defn start [{:keys [:level :console? #_:sentry]}]
   (timbre/merge-config! {:level      (keyword level)
                          :middleware [wrap-decode-vargs]
                          :appenders  {:console (when console?
                                                  devtools-appender)
-                                      :sentry  (when sentry
+                                      #_#_:sentry  (when sentry
                                                  (sentry-appender sentry))}}))
 
 (defstate logging :start (start (:logging (mount/args))))

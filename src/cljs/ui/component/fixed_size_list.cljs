@@ -1,5 +1,5 @@
 (ns ui.component.fixed-size-list
-  (:require [reagent.core :as reagent]
+  #_(:require [reagent.core :as reagent]
             ["react-window" :refer (FixedSizeList)]))
 
-(def fixed-size-list (reagent/adapt-react-class FixedSizeList))
+#_(def fixed-size-list (reagent/adapt-react-class FixedSizeList))

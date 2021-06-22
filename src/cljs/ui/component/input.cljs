@@ -1,4 +1,5 @@
-(ns ui.component.input)
+(ns ui.component.input
+  (:require             [reagent-material-ui.core.text-field :refer [text-field]]))
 
 (defn text-input
   [{:keys [on-change value class read-only?]}]
@@ -11,19 +12,20 @@
                           (let [value (-> event .-target .-value)]
                             (on-change value))))}])
 
-(defn amount-input [{:keys [class value on-change]}]
-  [:input {:type      :text
-           :class     class
-           :value     value
-           :on-change (fn [^js event]
-
-                        (let [value (-> event .-target .-value)
-                              value (if (re-matches #"^\d*(\.|\.)?\d*$" value)
-                                      (js/parseFloat value)
-                                      value)
-                              value (if (js/isNaN value) nil value)]
-                          (when on-change
-                            (on-change value))))}])
+(defn amount-input [{:keys [classes value error? helper-text on-change label]}]
+  [text-field {:label      label
+               :variant    :outlined
+               :value      value
+               :error      error?
+               :helperText helper-text
+               :on-change  (fn [^js event]
+                             (let [value (-> event .-target .-value)
+                                   value (if (re-matches #"^\d*(\.|\.)?\d*$" value)
+                                           (js/parseFloat value)
+                                           value)
+                                   value (if (js/isNaN value) nil value)]
+                               (when on-change
+                                 (on-change value))))}])
 
 ;; TODO : make them searchable
 (defn select-input
