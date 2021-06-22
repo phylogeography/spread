@@ -80,7 +80,8 @@
                                                 :font           "normal normal medium 16px/19px Roboto"
                                                 :letter-spacing "0px"
                                                 :background     "#3428CA 0% 0% no-repeat padding-box"
-                                                :color          "#ECEFF8"}
+                                                :color          "#ECEFF8"
+                                                :border-radius "8px"}
 
                                        :primary {:display         "flex"
                                                  :flex-direction  "row"
@@ -341,10 +342,12 @@
     [grid {:item true :xs false :sm 1}]
     [grid {:item true :xs 10 :sm 10}
      [toolbar {:disableGutters true
+               :class-name     (:header classes)
                :on-click       #(>evt [:router/navigate :route/home])}
-      [icon-button {:class-name (:menu-button classes) :edge "start" :color "inherit" :aria-label "menu"}
-       [avatar {:alt "spread" :variant "square" :src (arg->icon (:spread icons))}]]
-      [typography {:class-name (:title classes) :variant "h6"} "Spread"]
+      [button {:class-name (:menu-button classes)
+               :color      "inherit"
+               :start-icon (reagent/as-element [avatar {:alt "spread" :variant "square" :src (arg->icon (:spread icons))}])}
+       [typography {:class-name (:title classes) :variant "h6"} "Spread"]]
       [user-login classes]]]
     [grid {:item true :xs false :sm 1}]]])
 
