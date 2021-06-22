@@ -34,7 +34,6 @@
   (fn [analysis]
     (sort-by :created-on (-> analysis vals vec))))
 
-;; TODO
 (re-frame/reg-sub
   ::analysis-results
   :<- [::analysis]
@@ -58,9 +57,17 @@
       (filter (fn [elem]
                 (let [readable-name (-> elem :readable-name)]
                   (when readable-name
-                    (string/includes? (string/lower-case readable-name) search-term))))
+                    (string/includes? (string/lower-case readable-name) (string/lower-case search-term)))))
               completed-analysis)
       completed-analysis)))
+
+(re-frame/reg-sub
+  ::new-completed-analysis
+  :<- [::completed-analysis]
+  (fn [[completed-analysis]]
+    (filter (fn [elem]
+              (:new? elem))
+            completed-analysis)))
 
 (re-frame/reg-sub
   ::queued-analysis
