@@ -111,18 +111,18 @@
                                                              :font           "normal normal 900 10px/11px Roboto"
                                                              :letter-spacing "0px"
                                                              :color          "#757295"
-                                                             :opacity        1}
+                                                             :opacity        1}})))
 
-                                       })))
+(def type->label {"CONTINUOUS_TREE"       "Continuous: MCC tree"
+                  "DISCRETE_TREE"         "Discrete: MCC tree"
+                  "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
-;; TODO : search
 (defn completed-menu-item [{:keys [id readable-name of-type status new?] :as item} classes]
   (let [[anchorElement setAnchorElement] (react/useState nil)
         handle-close                     #(setAnchorElement nil)
         open?                            (not (nil? anchorElement))
         error?                           (= "ERROR" status)]
     [list-item {:button true
-                ;; :disableGutters true
                 :on-click
                 #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
                               (when new?
@@ -177,16 +177,7 @@
                                                       [menu-item {:on-click (fn []
                                                                               (prn "TODO"))} "Delete"]]]])
                       :secondary (reagent/as-element [typography {:class-name (:secondary classes)}
-                                                      (case of-type
-                                                        "CONTINUOUS_TREE"
-                                                        "Continuous: MCC tree"
-
-                                                        "DISCRETE_TREE"
-                                                        "Discrete: MCC tree"
-
-                                                        "BAYES_FACTOR_ANALYSIS"
-                                                        "Discrete: Bayes Factor Rates"
-                                                        nil)])}]]))
+                                                      (type->label of-type)])}]]))
 
 (defn completed [classes {:keys [default-expanded?]}]
   (let [search-term        (re-frame/subscribe [::subs/search])
@@ -231,17 +222,7 @@
     [list-item-text {:primary   (reagent/as-element [:div {:class-name (:primary classes)}
                                                      [:span (or readable-name "Unknown")]])
                      :secondary (reagent/as-element [typography {:class-name (:secondary classes)}
-                                                     (case of-type
-                                                       "CONTINUOUS_TREE"
-                                                       "Continuous: MCC tree"
-
-                                                       "DISCRETE_TREE"
-                                                       "Discrete: MCC tree"
-
-                                                       "BAYES_FACTOR_ANALYSIS"
-                                                       "Discrete: Bayes Factor Rates"
-                                                       nil)])}]
-    ;; TODO style it
+                                                     (type->label of-type)])}]
     [linear-progress {:value      (* 100 progress)
                       :variant    "determinate"
                       :class-name (:progress classes)}]
@@ -252,11 +233,11 @@
   (let [queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
     (fn []
       (let [items
-            [{:readable-name "Relaxed_sDollo_AllSingleton_v2"
-              :progress      0.3
-              :id            "fff-ff-fff"
-              :of-type       "CONTINUOUS_TREE"}]
-            #_@queued-analysis
+            #_           [{:readable-name "Relaxed_sDollo_AllSingleton_v2"
+                           :progress      0.3
+                           :id            "fff-ff-fff"
+                           :of-type       "CONTINUOUS_TREE"}]
+            @queued-analysis
             queued-count (count items)]
         [accordion {:defaultExpanded default-expanded?}
          [accordion-summary {:expand-icon (reagent/as-element [:img {:src (:dropdown icons)}])}
@@ -297,7 +278,7 @@
                          [box {:class-name (:box classes)}
                           main-label]
                          [list-item-text
-                          {:class-name               (:secondaryclasses)
+                          {:class-name               (:secondary classes)
                            :secondary                sub-label
                            :secondaryTypographyProps {:align "left"}
                            }]])
