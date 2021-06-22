@@ -1,5 +1,36 @@
 (ns ui.new-analysis.page
   (:require [re-frame.core :as re-frame]
+
+            [reagent-material-ui.core.accordion :refer [accordion]]
+            [reagent-material-ui.core.accordion-details :refer [accordion-details]]
+            [reagent-material-ui.core.accordion-summary :refer [accordion-summary]]
+            [reagent-material-ui.core.app-bar :refer [app-bar]]
+            [reagent-material-ui.core.avatar :refer [avatar]]
+            [reagent-material-ui.core.box :refer [box]]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.card :refer [card]]
+            [reagent-material-ui.core.card-content :refer [card-content]]
+            [reagent-material-ui.core.chip :refer [chip]]
+            [reagent-material-ui.core.divider :refer [divider]]
+            [reagent-material-ui.core.grid :refer [grid]]
+            [reagent-material-ui.core.icon-button :refer [icon-button]]
+            [reagent-material-ui.core.linear-progress :refer [linear-progress]]
+            [reagent-material-ui.core.list :refer [list]]
+            [reagent-material-ui.core.list-item :refer [list-item]]
+            [reagent-material-ui.core.list-item-text :refer [list-item-text]]
+            [reagent-material-ui.core.menu :refer [menu]]
+            [reagent-material-ui.core.menu-item :refer [menu-item]]
+            [reagent-material-ui.core.toolbar :refer [toolbar]]
+            [reagent-material-ui.core.typography :refer [typography]]
+            [reagent-material-ui.icons.search :refer [search]]
+
+            [reagent-material-ui.core.tabs :refer [tabs]]
+            [reagent-material-ui.core.tab :refer [tab]]
+            ;; [reagent-material-ui.core.tab-panel :refer [tab-panel]]
+
+            [reagent-material-ui.styles :as styles]
+            [reagent.core :as reagent]
+
             [ui.component.app-container :refer [app-container]]
             [ui.component.button
              :refer
@@ -394,41 +425,71 @@
                                   :class    :button-reset
                                   :on-click #(prn "TODO : reset")}]]])]]))))
 
+(def use-styles (styles/make-styles (fn [theme]
+                                      {:centered {:display         :flex
+                                                  :justify-content :center
+                                                  :align-items     :center}
+
+                                       :header {:font  "normal normal 900 24px/28px Roboto"
+                                                :color "#3A3668"
+                                                }
+
+                                       :app-bar {:background    "#FFFFFF"
+                                                 :box-shadow    :none
+                                                 :border-bottom "1px solid #DEDEE7"
+                                                 ;; :margin-bottom 30
+                                                 }
+
+                                       :tab-title {:text-transform :none
+                                                   :text-align :center
+                                                   :font "normal normal medium 16px/19px Roboto"
+                                                   :color "#3A3668"
+                                                   }
+
+                                       :tab-subtitle {:text-transform :none
+                                                      :text-align :center
+                                                      :font "normal normal 900 10px/11px Roboto"
+                                                      :letter-spacing "0px"
+                                                      :color "#757295"
+                                                      }
+
+                                       })))
+
+;; TODO https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/db6d1f78-c5f4-460e-9f97-32e9df007388/specs/
 (defmethod page :route/new-analysis []
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn []
       (let [{:keys [query]}   @active-page
-            {active-tab :tab} query]
+            {active-tab :tab} query
+            classes           (use-styles)]
         [app-container
-         [:div.new-analysis
-          [:span "Run new analysis"]
-          [:div.tabbed-pane
-           [:div.tabs
-            (map (fn [tab]
-                   [:button.tab {:class    (when (= active-tab tab) "active")
-                                 :key      tab
-                                 :on-click #(>evt [:router/navigate :route/new-analysis nil {:tab tab}])}
-                    (case tab
-                      "discrete-mcc-tree"
-                      [:div
-                       [:span "Discrete"]
-                       [:span "MCC tree"]]
-
-                      "discrete-rates"
-                      [:div
-                       [:span "Discrete"]
-                       [:span "Rates"]]
-
-                      "continuous-mcc-tree"
-                      [:div
-                       [:span "Continuous"]
-                       [:span "MCC tree"]]
-
-                      nil)])
-                 ["discrete-mcc-tree" "discrete-rates" "continuous-mcc-tree" "continuous-time-slices"])]
-           [:div.panel
-            (case active-tab
-              "discrete-mcc-tree"   [discrete-mcc-tree]
-              "discrete-rates"      [discrete-rates]
-              "continuous-mcc-tree" [continuous-mcc-tree]
-              [continuous-mcc-tree])]]]]))))
+         [grid
+          [app-bar {:position   "static"
+                    :color      :transparent
+                    :class-name (:app-bar classes)}
+           [toolbar {:class-name (:centered classes)}
+            [typography {:class-name (:header classes)} "Run new analysis"]]]
+          [tabs {:value     active-tab
+                 :centered  true
+                 :on-change (fn [_ value]
+                              (>evt [:router/navigate :route/new-analysis nil {:tab value}]))}
+           [tab {:value "discrete-mcc-tree"
+                 :label (reagent/as-element
+                          [:div
+                           [typography {:class-name (:tab-title classes)} "Discrete"]
+                           [typography {:class-name (:tab-subtitle classes)} "MCC tree"]])}]
+           [tab {:value "discrete-rates"
+                 :label (reagent/as-element
+                          [:div
+                           [typography {:class-name (:tab-title classes)} "Discrete"]
+                           [typography {:class-name (:tab-subtitle classes)} "Rates"]])}]
+           [tab {:value "continuous-mcc-tree"
+                 :label (reagent/as-element
+                          [:div
+                           [typography {:class-name (:tab-title classes)} "Continuous"]
+                           [typography {:class-name (:tab-subtitle classes)} "MCC tree"]])}]]
+          (case active-tab
+            "discrete-mcc-tree"   [discrete-mcc-tree]
+            "discrete-rates"      [discrete-rates]
+            "continuous-mcc-tree" [continuous-mcc-tree]
+            [continuous-mcc-tree])]]))))
