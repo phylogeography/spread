@@ -195,7 +195,7 @@
 
 (defn data-group []
   (let [time @(re-frame/subscribe [:animation/percentage])
-        analysis-data  (vals @(re-frame/subscribe [:analysis/colored-data]))
+        analysis-data  (vals @(re-frame/subscribe [:analysis/colored-and-filtered-data]))
         {:keys [scale]} @(re-frame/subscribe [:map/state])
         params (merge @(subscribe [:ui/parameters])
                       @(subscribe [:switch-buttons/states]))
@@ -524,8 +524,66 @@
               :max max-date-str
               :value crop-max-date-str}]]))
 
-(defn continuous-attributes-range-filter []
-  [:div.attribute-range-filters "Range filters"])
+(defn ordinal-attribute-filter [f]  
+  (let [checked-set (:filter-set f)]
+    [:div.ordinal-attribute-filter
+     (for [item (:domain (:attribute f))]
+       ^{:key item}
+       [:div
+        [:label
+         [:input {:type :checkbox
+                  :name item
+                  :on-change (fn [evt]
+                               (let [checked? (-> evt .-target .-checked)
+                                     item (-> evt .-target .-name)]                                 
+                                 (if checked?
+                                   (dispatch [:filters/add-ordinal-attribute-filter-item (:filter/id f) item])
+                                   (dispatch [:filters/rm-ordinal-attribute-filter-item  (:filter/id f) item]))))
+                  :checked (boolean (checked-set item))}]
+         [:span.text item]]])]))
+
+(defn linear-attribute-filter [f]  
+  (let [rfrom (reagent/atom (first (:range f)))
+        rto (reagent/atom (second (:range f)))]
+   (fn [f]
+     [:div.linear-attribute-filter
+      [:div (str (:range f) " of " (:range (:attribute f)))]
+      ;; TODO: change this for range sliders
+      [:input {:type :text
+               :value @rfrom
+               :on-change #(reset! rfrom (-> % .-target .-value))}]
+      [:input {:type :text
+               :value @rto
+               :on-change #(reset! rto (-> % .-target .-value))}]
+      [:i.zmdi.zmdi-refresh {:style {:font-size "15px"}
+                             :on-click (fn [_]
+                                         (dispatch [:filters/set-linear-attribute-filter-range
+                                                    (:filter/id f)
+                                                    [(js/parseFloat @rfrom) (js/parseFloat @rto)]]))}]])))
+
+(defn continuous-attributes-filters []  
+  (let [attributes (subscribe [:analysis/attributes])
+        filters (subscribe [:analysis.data/attribute-filters])
+        selected-attr (reagent/atom (first (keys @attributes)))]    
+    (fn []
+      [:div.attribute-filters
+      [:div.selection
+       [:select.attribute {:on-change #(reset! selected-attr (-> % .-target .-value))
+                           :value @selected-attr}
+        (for [a (keys @attributes)]
+          ^{:key (str a)}
+          [:option {:value a} a])]
+       [:i.zmdi.zmdi-plus-circle {:on-click #(dispatch [:filters/add-attribute-filter @selected-attr])}]]
+      
+      (for [f (vals @filters)]
+        ^{:key (:filter/id f)}
+        [:div.filter
+         [:div.top-bar
+          [:span (:attribute/id f)]
+          [:i.zmdi.zmdi-close-circle {:on-click #(dispatch [:filters/rm-attribute-filter (:filter/id f)])}]]
+         (case (:filter/type f)
+           :linear-filter  [linear-attribute-filter f] 
+           :ordinal-filter [ordinal-attribute-filter f])])])))
 
 (defn continuous-tree-side-bar []
   [:div.tabs
@@ -548,9 +606,9 @@
                                 :child [continuous-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
-                      :childs [{:title "Attributes range"
+                      :childs [{:title "Attributes"
                                 :id :attributes-range-filters
-                                :child [continuous-attributes-range-filter]}]}]])
+                                :child [continuous-attributes-filters]}]}]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Discrete tree settings ;;
@@ -569,6 +627,7 @@
 (def discrete-tree-map-settings continuous-tree-map-settings)
 (def discrete-transitions-settings continuous-transitions-settings)
 (def discrete-animation-settings continuous-animation-settings)
+(def discrete-attributes-filters continuous-attributes-filters)
 
 (defn discrete-circles-settings []
   [:div.circles-settings
@@ -635,7 +694,9 @@
                                 :child [discrete-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
-                      :childs []}]])
+                      :childs [{:title "Attributes"
+                                :id :attributes-range-filters
+                                :child [discrete-attributes-filters]}]}]])
 
 (defn bayes-factor-side-bar []
   [:div.tabs

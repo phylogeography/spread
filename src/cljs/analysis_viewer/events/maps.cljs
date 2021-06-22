@@ -59,7 +59,7 @@
                            :range (:range attr)}
                  "ordinal" {:id id
                             :attribute/type :ordinal
-                            :domain (:domain attr)})]))
+                            :domain (map str (:domain attr))})]))
        (into {})))
 
 (defn data-loaded [{:keys [db]} [_ data]]
