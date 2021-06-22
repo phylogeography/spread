@@ -461,8 +461,6 @@
                     time-scale-multiplier     1}}
             @discrete-mcc-tree]
 
-
-
         #_[:div.discrete-mcc-tree
          [:div.upload
           [:span "Load tree file"]

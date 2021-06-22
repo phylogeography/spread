@@ -81,7 +81,7 @@
                                                 :letter-spacing "0px"
                                                 :background     "#3428CA 0% 0% no-repeat padding-box"
                                                 :color          "#ECEFF8"
-                                                :border-radius "8px"}
+                                                :border-radius  "8px"}
 
                                        :primary {:display         "flex"
                                                  :flex-direction  "row"
@@ -103,6 +103,9 @@
                                                 :border-radius "5px"}
 
                                        :search-icon {:color "#3A3668"}
+
+                                       :scroll-list {:overflow   :auto
+                                                     :max-height 300}
 
                                        :progress {:borderRadius 4
                                                   :height       8
@@ -205,7 +208,7 @@
                       :class-name  (:search classes)
                       :searchIcon  (reagent/as-element [search {:class-name (:search-icon classes)}])}]
          [accordion-details {:class-name (:details classes)}
-          [list
+          [list {:class-name (:scroll-list classes)}
            (doall
              (map (fn [{:keys [id readable-name of-type status new?] :as item}]
                     ^{:key id} [completed-menu-item (-> item
@@ -251,7 +254,7 @@
                     :variant "outlined"}])]]
          [divider {:variant "fullWidth"}]
          [accordion-details {:class-name (:details classes)}
-          [list
+          [list {:class-name (:scroll-list classes)}
            (doall
              (map (fn [{:keys [id readable-name of-type status new?] :as item}]
                     ^{:key id} [queued-menu-item item classes])
