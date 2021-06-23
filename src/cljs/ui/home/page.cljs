@@ -13,36 +13,30 @@
             [ui.utils :as ui-utils :refer [>evt]]))
 
 (def use-styles (styles/make-styles (fn [_]
-                                      {:centered {:display         :flex
-                                                  :justify-content :center
-                                                  :align-items     :center}
-
-                                       :title {:font           "normal normal 900 30px/35px Roboto"
-                                               :letter-spacing "3.9px"
-                                               :color          "#3A3668"
-                                               :text-transform "uppercase"}
-
-                                       :button {:textTransform  "none"
-                                                :font           "normal normal medium 16px/19px Roboto"
-                                                :letter-spacing "0px"
-                                                :background     "#3428CA 0% 0% no-repeat padding-box"
-                                                :color          "#ECEFF8"
-                                                :border-radius  "8px"
-                                                :width          325}
-
+                                      {:centered             {:display         :flex
+                                                              :justify-content :center
+                                                              :align-items     :center}
+                                       :title                {:font           "normal normal 900 30px/35px Roboto"
+                                                              :letter-spacing "3.9px"
+                                                              :color          "#3A3668"
+                                                              :text-transform "uppercase"}
+                                       :button               {:textTransform  "none"
+                                                              :font           "normal normal medium 16px/19px Roboto"
+                                                              :letter-spacing "0px"
+                                                              :background     "#3428CA 0% 0% no-repeat padding-box"
+                                                              :color          "#ECEFF8"
+                                                              :border-radius  "8px"
+                                                              :width          325}
                                        :button-documentation {:textTransform "none"
                                                               :border-radius "8px"}
-
-                                       :welcome {:text-align  :center
-                                                 :font        "normal normal 900 24px/28px Roboto"
-                                                 :font-weight :bold
-                                                 :color       "#3A3668"}
-
-                                       :paragraph {:text-align :left
-                                                   :font       "normal normal medium 16px/30px Roboto"
-                                                   :color      "#757295"}
-
-                                       :divider {:width 325}})))
+                                       :welcome              {:text-align  :center
+                                                              :font        "normal normal 900 24px/28px Roboto"
+                                                              :font-weight :bold
+                                                              :color       "#3A3668"}
+                                       :paragraph            {:text-align :left
+                                                              :font       "normal normal medium 16px/30px Roboto"
+                                                              :color      "#757295"}
+                                       :divider              {:width 325}})))
 
 (defmethod page :route/home []
   (fn []

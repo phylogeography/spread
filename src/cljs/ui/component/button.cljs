@@ -3,25 +3,6 @@
             [reagent.core :as reagent]
             [ui.component.icon :refer [arg->icon]]))
 
-;; (defn button-with-icon [{:keys [icon on-click class disabled?]}]
-;;   [:button {:class    class
-;;             :disabled disabled?
-;;             :on-click (fn [event]
-;;                         (on-click event)
-;;                         (.stopPropagation event))}
-;;    [:img {:src (arg->icon icon)}]])
-
-(defn button-with-label [{:keys [label on-click class disabled?]}]
-  [:button {:class    class
-            :disabled disabled?
-            :on-click on-click} label])
-
-;; (defn button-with-icon-and-label [{:keys [icon label on-click class disabled?]}]
-;;   [:button {:class    class
-;;             :disabled disabled?
-;;             :on-click on-click}
-;;    [:img {:src (arg->icon icon)}] label])
-
 (defn- file-select-handler [{:keys [file-with-meta file-accept-predicate on-file-accepted on-file-rejected]}]
   (if (file-accept-predicate file-with-meta)
     (let [{:keys [file]}      file-with-meta
@@ -63,7 +44,7 @@
                                                  :on-file-rejected      on-file-rejected})))}]
    [:label {:for (or id "file-upload-button")}
     [button {:class-name class-name
-             :disabled  disabled?
+             :disabled   disabled?
              :variant    "contained" :color "primary" :component "span"
              :startIcon  (reagent/as-element [:img {:src (arg->icon icon)}])}
      label]]])

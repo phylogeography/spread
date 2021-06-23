@@ -17,6 +17,9 @@
   {:localstorage (dissoc localstorage :access-token)
    :dispatch     [:router/navigate :route/splash]})
 
+;; FIXME : there is a problem here, immeditaely after logging
+;; the token is not persisted
+;; and the requests for user data fail
 (defn initialize [{:keys [db]} [_ config]]
   {:db             (assoc db :config config)
    :dispatch-n
