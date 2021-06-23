@@ -17,7 +17,7 @@
   {:localstorage (dissoc localstorage :access-token)
    :dispatch     [:router/navigate :route/splash]})
 
-(defn initialize [{:keys [localstorage db]} [_ config]]
+(defn initialize [{:keys [db]} [_ config]]
   {:db             (assoc db :config config)
    :dispatch-n
    [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)

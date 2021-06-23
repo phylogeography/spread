@@ -1,5 +1,5 @@
 (ns ui.component.search
-  (:require [reagent.core :as reagent]
-            ["material-ui-search-bar" :as SearchBar]))
+  (:require ["material-ui-search-bar" :as SearchBar]
+            [reagent.core :as reagent]))
 
 (def search-bar (reagent/adapt-react-class (.-default SearchBar)))

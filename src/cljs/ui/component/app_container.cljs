@@ -31,7 +31,7 @@
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
-(def use-styles (styles/make-styles (fn [theme]
+(def use-styles (styles/make-styles (fn [_]
                                       {:root {:background "#ECEFF8 0% 0% no-repeat padding-box"
                                               :min-width  "100%"
                                               :min-height "100vh"}
@@ -121,7 +121,7 @@
                   "DISCRETE_TREE"         "Discrete: MCC tree"
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
-(defn completed-menu-item [{:keys [id readable-name of-type status new?] :as item} classes]
+(defn completed-menu-item [{:keys [id readable-name of-type status new?]} classes]
   (let [[anchorElement setAnchorElement] (react/useState nil)
         handle-close                     #(setAnchorElement nil)
         open?                            (not (nil? anchorElement))
@@ -207,7 +207,7 @@
          [accordion-details {:class-name (:details classes)}
           [list {:class-name (:scroll-list classes)}
            (doall
-             (map (fn [{:keys [id readable-name of-type status new?] :as item}]
+             (map (fn [{:keys [id] :as item}]
                     ^{:key id} [completed-menu-item (-> item
                                                         ;; TODO : for dev
                                                         #_(assoc :new? true)
@@ -216,7 +216,7 @@
                                 classes])
                   items))]]]))))
 
-(defn queued-menu-item [{:keys [id readable-name of-type progress]}
+(defn queued-menu-item [{:keys [readable-name of-type progress]}
                         classes]
   [list-item {:button true}
    [:div
@@ -253,7 +253,7 @@
          [accordion-details {:class-name (:details classes)}
           [list {:class-name (:scroll-list classes)}
            (doall
-             (map (fn [{:keys [id readable-name of-type status new?] :as item}]
+             (map (fn [{:keys [id] :as item}]
                     ^{:key id} [queued-menu-item item classes])
                   items))]]]))))
 

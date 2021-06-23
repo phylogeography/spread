@@ -23,7 +23,7 @@
       (let [{:keys [id
                     tree-file tree-file-upload-progress
                     locations-file locations-file-url
-                    locations-file-upload-progress
+                    ;; locations-file-upload-progress
                     readable-name
                     locations-attribute
                     most-recent-sampling-date

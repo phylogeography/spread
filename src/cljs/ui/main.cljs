@@ -2,6 +2,7 @@
   (:require [day8.re-frame.forward-events-fx]
             [mount.core :as mount]
             [re-frame.core :as re-frame]
+            [reagent-material-ui.core.css-baseline :refer [css-baseline]]
             [reagent.core :as r]
             [reagent.dom :as rdom]
             [taoensso.timbre :as log]
@@ -17,9 +18,8 @@
             [ui.splash.page]
             [ui.storage]
             [ui.utils]
-            ;; [reagent-material-ui.pickers.mui-pickers-utils-provider :refer [mui-pickers-utils-provider]]
-            [reagent-material-ui.core.css-baseline :refer [css-baseline]]
-            [ui.websocket-fx :as websocket]))
+            [ui.websocket-fx :as websocket]
+            ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
 

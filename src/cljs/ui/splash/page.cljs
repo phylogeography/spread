@@ -17,14 +17,11 @@
             [ui.subscriptions :as subs]
             [ui.utils :as utils :refer [<sub >evt]]))
 
-(def use-styles (styles/make-styles (fn [{:keys [spacing] :as theme}]
+(def use-styles (styles/make-styles (fn [_]
                                       {:root       {:background "#ECEFF8"
                                                     :min-width  "100%"
                                                     :min-height "100vh"}
-                                       :card       {
-                                                    ;; :width         "720px"
-                                                    ;; :height        "580px"
-                                                    :width         "720px"
+                                       :card       {:width         "720px"
                                                     :height        "300px"
                                                     :box-shadow    "0px 30px 60px #313B5833"
                                                     :border-radius "20px"

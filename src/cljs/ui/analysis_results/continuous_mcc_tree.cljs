@@ -5,8 +5,8 @@
 
 (defn continuous-mcc-tree [{:keys [readable-name x-coordinate-attribute-name y-coordinate-attribute-name
                                    most-recent-sampling-date
-                                   timescale-multiplier]
-                            :as   analysis} classes]
+                                   timescale-multiplier]}
+                           classes]
   [grid {:container true
          :direction :column
          :spacing   1}

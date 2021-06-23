@@ -12,7 +12,7 @@
             [ui.router.component :refer [page]]
             [ui.utils :as ui-utils :refer [>evt]]))
 
-(def use-styles (styles/make-styles (fn [theme]
+(def use-styles (styles/make-styles (fn [_]
                                       {:centered {:display         :flex
                                                   :justify-content :center
                                                   :align-items     :center}

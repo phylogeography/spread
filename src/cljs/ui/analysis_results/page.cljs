@@ -1,55 +1,38 @@
 (ns ui.analysis-results.page
   (:require [re-frame.core :as re-frame]
-            [reagent-material-ui.core.outlined-input :refer [outlined-input]]
+            [reagent-material-ui.core.accordion :refer [accordion]]
+            [reagent-material-ui.core.accordion-details :refer [accordion-details]]
+            [reagent-material-ui.core.accordion-summary :refer [accordion-summary]]
             [reagent-material-ui.core.app-bar :refer [app-bar]]
-            [reagent-material-ui.core.avatar :refer [avatar]]
             [reagent-material-ui.core.box :refer [box]]
-            [reagent-material-ui.core.paper :refer [paper]]
             [reagent-material-ui.core.button :refer [button]]
-            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.divider :refer [divider]]
-            [reagent-material-ui.core.form-control :refer [form-control]]
             [reagent-material-ui.core.grid :refer [grid]]
-            [reagent-material-ui.core.icon-button :refer [icon-button]]
-            [reagent-material-ui.core.input-adornment :refer [input-adornment]]
-            [reagent-material-ui.core.input-label :refer [input-label]]
-            [reagent-material-ui.core.linear-progress :refer [linear-progress]]
-            [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.outlined-input :refer [outlined-input]]
-            [reagent-material-ui.core.select :refer [select]]
-            [reagent-material-ui.core.slider :refer [slider]]
             [reagent-material-ui.core.tab :refer [tab]]
-            [reagent-material-ui.core.tabs :refer [tabs]]
-            [reagent-material-ui.core.text-field :refer [text-field]]
-            [reagent-material-ui.core.toolbar :refer [toolbar]]
-            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.core.table :refer [table]]
             [reagent-material-ui.core.table-body :refer [table-body]]
             [reagent-material-ui.core.table-cell :refer [table-cell]]
             [reagent-material-ui.core.table-container :refer [table-container]]
             [reagent-material-ui.core.table-head :refer [table-head]]
-            [reagent-material-ui.core.table-pagination :refer [table-pagination]]
             [reagent-material-ui.core.table-row :refer [table-row]]
-            [reagent-material-ui.core.table-sort-label :refer [table-sort-label]]
-            [reagent-material-ui.core.accordion :refer [accordion]]
-            [reagent-material-ui.core.accordion-details :refer [accordion-details]]
-            [reagent-material-ui.core.accordion-summary :refer [accordion-summary]]
+            [reagent-material-ui.core.tabs :refer [tabs]]
+            [reagent-material-ui.core.toolbar :refer [toolbar]]
+            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.styles :as styles]
+            [reagent.core :as reagent]
             [ui.analysis-results.continuous-mcc-tree :refer [continuous-mcc-tree]]
             [ui.analysis-results.discrete-mcc-tree :refer [discrete-mcc-tree]]
             [ui.analysis-results.discrete-rates :refer [discrete-rates]]
-            [reagent.core :as reagent]
             [ui.component.app-container :refer [app-container]]
-            [ui.component.button :refer [button-with-label]]
-            [ui.component.input :refer [text-input]]
+            [ui.component.icon :refer [icons]]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
-            [ui.component.icon :refer [arg->icon icons]]
             [ui.time :as time]
             [ui.utils :refer [<sub >evt]]))
 
-(def use-styles (styles/make-styles (fn [theme]
+(def use-styles (styles/make-styles (fn [_]
                                       {:centered {:display         :flex
                                                   :justify-content :center
                                                   :align-items     :center}
@@ -270,7 +253,7 @@
               :on-click  #(prn "TODO")}
       "Delete"]]]])
 
-(defn tab-pane [{:keys [id active-tab classes]}]
+(defn tab-pane [{:keys [id]}]
   (let [analysis (re-frame/subscribe [::subs/analysis-results id])]
     (fn [{:keys [id active-tab classes]}]
       [:<>
@@ -292,7 +275,7 @@
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn []
       (let [{{:keys [id] :as query} :query}                         @active-page
-            {:keys [readable-name of-type created-on] :as analysis} (<sub [::subs/analysis-results id])
+            {:keys [readable-name of-type created-on]} (<sub [::subs/analysis-results id])
             active-tab                                              (or (:tab query) "results")
             classes                                                 (use-styles)]
         (if-not readable-name

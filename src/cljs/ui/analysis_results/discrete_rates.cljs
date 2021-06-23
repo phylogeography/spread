@@ -3,7 +3,7 @@
             [reagent-material-ui.core.text-field :refer [text-field]]
             [reagent-material-ui.core.typography :refer [typography]]))
 
-(defn discrete-rates [{:keys [readable-name burn-in] :as analysis}
+(defn discrete-rates [{:keys [readable-name burn-in]}
                       classes]
   [grid {:container true
          :direction :column
