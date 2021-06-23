@@ -1,5 +1,11 @@
 (ns ui.component.input
-  (:require [reagent-material-ui.core.text-field :refer [text-field]]))
+  (:require [reagent-material-ui.core.avatar :refer [avatar]]
+            [reagent-material-ui.core.icon-button :refer [icon-button]]
+            [reagent-material-ui.core.input-adornment :refer [input-adornment]]
+            [reagent-material-ui.core.outlined-input :refer [outlined-input]]
+            [reagent-material-ui.core.text-field :refer [text-field]]
+            [reagent.core :as reagent]
+            [ui.component.icon :refer [arg->icon icons]]))
 
 (defn text-input
   [{:keys [on-change value class read-only?]}]
@@ -53,3 +59,14 @@
 ;;            :on-change (fn [^js event]
 ;;                         (let [value (-> event .-target .-value)]
 ;;                           (on-change value)))}])
+
+(defn loaded-input [{:keys [value on-click classes]}]
+  [outlined-input {:class-name   (:outlined-input classes)
+                   :variant      :outlined
+                   :value        value
+                   :endAdornment (reagent/as-element [input-adornment
+                                                      [icon-button {:class-name (:icon-button classes)
+                                                                    :on-click   on-click}
+                                                       [avatar {:class-name (:icon-button classes)
+                                                                :alt        "spread" :variant "square"
+                                                                :src        (arg->icon (:delete icons))}]]])}])

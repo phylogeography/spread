@@ -124,38 +124,7 @@
                         :class    :button-delete
                         :on-click #(prn "TODO : delete")}]]])
 
-;; NOTE : the results tab
-;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed3112972c3f62905120
-(defn results [{:keys [output-file-url bayes-factors]}]
-  [:div.results-tab
-   [:span "Visualisations on a geographical map"]
-   [:div
-    [:a.button {:href output-file-url} output-file-url]
-    [button-with-label {:label    "Copy"
-                        :class    :button-copy-url
-                        :on-click #(prn "TODO : copy to clipboard")}]]
-   (when bayes-factors
-     [:div
-      [:div
-       [:span "Support values"]
-       [button-with-label {:label    "Export as CSV"
-                           :class    :button-export-csv
-                           :on-click #(prn "TODO : export to csv")}]]
-      [:table
-       [:thead [:tr
-                [:th "From"]
-                [:th "To"]
-                [:th "Bayes Factor"]
-                [:th "Posterior probability"]]]
-       (doall
-         (for [{:keys [from to bayes-factor posterior-probability]} bayes-factors]
-           ^{:key (str from to)}
-           [:tbody
-            [:tr
-             [:td from]
-             [:td to]
-             [:td bayes-factor]
-             [:td posterior-probability]]]))]])])
+
 
 
 (def use-styles (styles/make-styles (fn [theme]
@@ -188,6 +157,85 @@
 
 
                                        })))
+
+
+;; NOTE : the results tab
+;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed3112972c3f62905120
+(defn results [{:keys [output-file-url bayes-factors]}]
+
+  [grid {:container true
+         :direction :column}
+
+   [grid {:container true
+          :item      true
+          :direction :row
+          :xs        12 :xm 12}
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]
+
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]]
+
+
+   [grid {:container true
+          :item      true
+          :direction :row
+          :xs        12 :xm 12}
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]
+
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]]
+
+   #_[grid {:container true
+          :item      true
+          :direction :row
+          :xs        12 :xm 12}
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]
+
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]]
+
+
+
+   ]
+
+  #_[:div.results-tab
+   [:span "Visualisations on a geographical map"]
+   [:div
+    [:a.button {:href output-file-url} output-file-url]
+    [button-with-label {:label    "Copy"
+                        :class    :button-copy-url
+                        :on-click #(prn "TODO : copy to clipboard")}]]
+   (when bayes-factors
+     [:div
+      [:div
+       [:span "Support values"]
+       [button-with-label {:label    "Export as CSV"
+                           :class    :button-export-csv
+                           :on-click #(prn "TODO : export to csv")}]]
+      [:table
+       [:thead [:tr
+                [:th "From"]
+                [:th "To"]
+                [:th "Bayes Factor"]
+                [:th "Posterior probability"]]]
+       (doall
+         (for [{:keys [from to bayes-factor posterior-probability]} bayes-factors]
+           ^{:key (str from to)}
+           [:tbody
+            [:tr
+             [:td from]
+             [:td to]
+             [:td bayes-factor]
+             [:td posterior-probability]]]))]])])
 
 (defn tab-pane [{:keys [id active-tab classes]}]
   (let [analysis (re-frame/subscribe [::subs/analysis-results id])]
