@@ -23,7 +23,6 @@
             [reagent-material-ui.core.text-field :refer [text-field]]
             [reagent-material-ui.core.toolbar :refer [toolbar]]
             [reagent-material-ui.core.typography :refer [typography]]
-
             [reagent-material-ui.core.table :refer [table]]
             [reagent-material-ui.core.table-body :refer [table-body]]
             [reagent-material-ui.core.table-cell :refer [table-cell]]
@@ -36,6 +35,8 @@
             [reagent-material-ui.core.accordion-details :refer [accordion-details]]
             [reagent-material-ui.core.accordion-summary :refer [accordion-summary]]
             [reagent-material-ui.styles :as styles]
+            [ui.analysis-results.continuous-mcc-tree :refer [continuous-mcc-tree]]
+            [ui.analysis-results.discrete-mcc-tree :refer [discrete-mcc-tree]]
             [reagent.core :as reagent]
             [ui.component.app-container :refer [app-container]]
             [ui.component.button :refer [button-with-label]]
@@ -47,12 +48,58 @@
             [ui.time :as time]
             [ui.utils :refer [<sub >evt]]))
 
+(def use-styles (styles/make-styles (fn [theme]
+                                      {:centered {:display         :flex
+                                                  :justify-content :center
+                                                  :align-items     :center}
+
+                                       :header {:font  "normal normal 900 24px/28px Roboto"
+                                                :color "#3A3668"}
+
+                                       :error-accordion {:border        "1px solid #B20707E7"
+                                                         :border-radius "20px"}
+
+                                       :error-header {:text-align  "left"
+                                                      :font        "normal normal medium 16px/19px Roboto"
+                                                      :font-weight :bold
+                                                      :color       "#B20707"}
+
+                                       :app-bar {:background    "#FFFFFF"
+                                                 :box-shadow    :none
+                                                 :border-bottom "1px solid #DEDEE7"}
+
+                                       :box {:display        :flex
+                                             :flex-direction :row}
+
+                                       :input-label {:font        "normal normal medium 16px/19px Roboto"
+                                                     :color       "#3A3668"
+                                                     :font-weight :bold}
+
+                                       :copy-button {:height         38
+                                                     :text-transform :none
+                                                     :border-radius  "8px"}
+
+                                       :analysis-viewer-url {:height        38
+                                                             :min-width     500
+                                                             :border-radius "8px"
+                                                             :font          "normal normal medium 14px/16px Roboto"
+                                                             :color         "#3A3668"}
+
+                                       :divider {:width "100%"}
+
+                                       :scroll-list {:overflow   :auto
+                                                     :max-height 300}
+
+                                       })))
+
+
+
 
 (defn data [{:keys [of-type status error] :as analysis} classes]
-
   [grid {:container true
          :direction :column}
 
+   ;; error
    (when (= "ERROR" status)
      [accordion {:defaultExpanded true
                  :class-name      (:error-accordion classes)}
@@ -65,191 +112,51 @@
       [accordion-details {:class-name (:details classes)}
        error]])
 
+   ;; data
+   (case of-type
+     "CONTINUOUS_TREE"
+     [continuous-mcc-tree analysis classes]
+     "DISCRETE_TREE"
+     [discrete-mcc-tree analysis classes]
+     "BAYES_FACTOR_ANALYSIS"
+     [:div  #_#_analysis classes]
+     nil)
+
+   ;; buttons
+   [box {:paddingTop    10
+         :paddingBottom 10}
+    [divider {:variant    "fullWidth"
+              :class-name (:divider classes)}]]
    [grid {:container true
           :item      true
           :direction :row
           :xs        12 :xm 12}
     [grid {:item true
-           :xs   6 :xm 6}
-     [:div "ELEM"]]
-
+           :xs   4 :xm 4}
+     [button {:variant   :contained
+              :color     "primary"
+              :size      :large
+              :className (:start-button classes)
+              :on-click  #(prn "TODO")}
+      "Edit"]]
     [grid {:item true
-           :xs   6 :xm 6}
-     [:div "ELEM"]]]
-
-   [grid {:container true
-          :item      true
-          :direction :row
-          :xs        12 :xm 12}
+           :xs   4 :xm 4}
+     [button {:variant   :contained
+              :color     "primary"
+              :size      :large
+              :className (:start-button classes)
+              :on-click  #(prn "TODO")}
+      "Copy settings"]]
     [grid {:item true
-           :xs   6 :xm 6}
-     [:div "ELEM"]]
-
-    [grid {:item true
-           :xs   6 :xm 6}
-     [:div "ELEM"]]]
-
-
-
-   ]
-
-  #_[:div.data
-   (when (= "ERROR" status)
-     [:div.error
-      [:span "Error occured while running analysis"]
-      [:span "Check full report"]
-      [:p error]])
-
-   [:div.settings-section
-    (case of-type
-      "CONTINUOUS_TREE"
-      (let [{:keys [readable-name x-coordinate-attribute-name y-coordinate-attribute-name
-                    most-recent-sampling-date
-                    timescale-multiplier]}
-            analysis]
-        [:div.settings
-         [:fieldset
-          [:legend "name"]
-          [text-input {:value readable-name :read-only? true}]]
-
-         [:div.row
-          [:div.column
-           [:span "y coordinate"]
-           [:fieldset
-            [:legend "Latitude"]
-            [text-input {:value y-coordinate-attribute-name :read-only? true}]]]
-          [:div.column
-           [:span "x coordinate"]
-           [:fieldset
-            [:legend "Longitude"]
-            [text-input {:value x-coordinate-attribute-name :read-only? true}]]]]
-
-         [:div.row
-          [:div.column
-           [:span "Most recent sampling date"]
-           [text-input {:value most-recent-sampling-date :read-only? true}]]
-          [:div.column
-           [:span "Time scale multiplier"]
-           [text-input {:value timescale-multiplier :read-only? true}]]]])
-
-      "DISCRETE_TREE"
-      (let [{:keys [readable-name locations-attribute-name
-                    most-recent-sampling-date timescale-multiplier]} analysis]
-        [:div.settings
-         [:fieldset
-          [:legend "name"]
-          [text-input {:value readable-name :read-only? true}]]
-
-         [:div.row
-          [:div.column
-           [:span "locations attribute"]
-           [:fieldset
-            [:legend "Locations"]
-            [text-input {:value locations-attribute-name :read-only? true}]]]
-          [:div.column
-           [:span "Most recent sampling date"]
-           [text-input {:value most-recent-sampling-date :read-only? true}]]]
-
-         [:div.row
-          [:div.column
-           [:span "Time scale"]
-           [:fieldset
-            [:legend "Multiplier"]
-            [text-input {:value timescale-multiplier :read-only? true}]]]]])
-
-      "BAYES_FACTOR_ANALYSIS"
-      (let [{:keys [readable-name burn-in]} analysis]
-        [:div.settings
-         [:fieldset
-          [:legend "name"]
-          [text-input {:value readable-name :read-only? true}]]
-
-         [:div.row
-          [:div.column
-           [:span "Select burn-in"]
-           [:fieldset
-            [:legend "Burn-in"]
-            [text-input {:value burn-in :read-only? true}]]]]])
-
-      nil)]
-
-   [:div.buttons-section
-    [button-with-label {:label    "Edit"
-                        :class    :button-edit
-                        :on-click #(prn "TODO : edit")}]
-    [button-with-label {:label    "Copy settings"
-                        :class    :button-copy-settings
-                        :on-click #(prn "TODO : copy settings")}]
-    [button-with-label {:label    "Delete"
-                        :class    :button-delete
-                        :on-click #(prn "TODO : delete")}]]])
+           :xs   4 :xm 4}
+     [button {:variant   :contained
+              :color     "primary"
+              :size      :large
+              :className (:start-button classes)
+              :on-click  #(prn "TODO")}
+      "Delete"]]]])
 
 
-
-
-(def use-styles (styles/make-styles (fn [theme]
-                                      {
-
-                                       :centered {:display         :flex
-                                                  :justify-content :center
-                                                  :align-items     :center}
-
-                                       :header {:font  "normal normal 900 24px/28px Roboto"
-                                                :color "#3A3668"}
-
-                                       ;; :header {:display         "flex"
-                                       ;;          :flex-direction  "row"
-                                       ;;          :justify-content "space-between"}
-
-                                       :error-accordion {
-                                                         :border        "1px solid #B20707E7"
-                                                         :border-radius "20px"}
-
-                                       :error-header {
-                                                      :text-align "left"
-                                                      :font       "normal normal medium 16px/19px Roboto"
-                                                      :font-weight :bold
-                                                      :color       "#B20707"
-                                                      }
-
-                                       :app-bar {:background    "#FFFFFF"
-                                                 :box-shadow    :none
-                                                 :border-bottom "1px solid #DEDEE7"}
-
-                                       :box {
-                                             ;; :padding-right  5
-                                             ;; :text-align     "left"
-                                             ;; :font           "normal normal medium 16px/19px Roboto"
-                                             ;; :font-weight    500
-                                             ;; :letter-spacing "0px"
-                                             ;; :color          "#3A3668"
-
-                                             :display        :flex
-                                             :flex-direction :row
-                                             ;; :align-items :center
-                                             ;; :justify-content :space-between
-                                             }
-
-                                       :input-label {:font        "normal normal medium 16px/19px Roboto"
-                                                     :color       "#3A3668"
-                                                     :font-weight :bold}
-
-                                       :copy-button {:height 38
-                                                     :text-transform :none
-                                                     :border-radius "8px"}
-
-                                       :analysis-viewer-url {:height 38
-                                                             :min-width 500
-                                                             :border-radius "8px"
-                                                             :font   "normal normal medium 14px/16px Roboto"
-                                                             :color  "#3A3668"}
-
-                                       :divider {:width "100%"}
-
-                                       :scroll-list {:overflow   :auto
-                                                     :max-height 300}
-
-                                       })))
 
 
 ;; NOTE : the results tab
@@ -363,13 +270,7 @@
               :size      :large
               :className (:start-button classes)
               :on-click  #(prn "TODO")}
-      "Delete"]]]
-
-
-
-
-
-   ])
+      "Delete"]]]])
 
 (defn tab-pane [{:keys [id active-tab classes]}]
   (let [analysis (re-frame/subscribe [::subs/analysis-results id])]
@@ -439,23 +340,3 @@
                        ;; :analysis   analysis
                        :active-tab active-tab
                        :classes    classes}]]])))))
-
-
-#_[:div.analysis-results
-
-   [:div.tabbed-pane
-    [:div.tabs
-     (map (fn [tab-name]
-            [:button.tab {:class    (when (= tab tab-name) "active")
-                          :key      tab-name
-                          :on-click #(>evt [:router/navigate :route/analysis-results nil {:id id :tab tab-name}])}
-             (case tab-name
-               "data"    "Data"
-               "results" "Analysis results"
-               nil)])
-          ["data" "results"])]
-    [:div.panel
-     (case tab
-       "data"    [data @analysis]
-       "results" [results @analysis]
-       [results @analysis])]]]
