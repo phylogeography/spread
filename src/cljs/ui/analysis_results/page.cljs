@@ -37,6 +37,7 @@
             [reagent-material-ui.styles :as styles]
             [ui.analysis-results.continuous-mcc-tree :refer [continuous-mcc-tree]]
             [ui.analysis-results.discrete-mcc-tree :refer [discrete-mcc-tree]]
+            [ui.analysis-results.discrete-rates :refer [discrete-rates]]
             [reagent.core :as reagent]
             [ui.component.app-container :refer [app-container]]
             [ui.component.button :refer [button-with-label]]
@@ -92,9 +93,6 @@
 
                                        })))
 
-
-
-
 (defn data [{:keys [of-type status error] :as analysis} classes]
   [grid {:container true
          :direction :column}
@@ -119,7 +117,7 @@
      "DISCRETE_TREE"
      [discrete-mcc-tree analysis classes]
      "BAYES_FACTOR_ANALYSIS"
-     [:div  #_#_analysis classes]
+     [discrete-rates analysis classes]
      nil)
 
    ;; buttons
