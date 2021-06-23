@@ -189,16 +189,35 @@
 
                                        })))
 
+(defn tab-pane [{:keys [id active-tab classes]}]
+  (let [analysis (re-frame/subscribe [::subs/analysis-results id])]
+    (fn [{:keys [id active-tab classes]}]
+      [:<>
+       [tabs {:value     active-tab
+              :centered  true
+              :classes   {:indicator (:indicator classes)}
+              :on-change (fn [_ value]
+                           (>evt [:router/navigate :route/analysis-results nil {:id id :tab value}]))}
+        [tab {:value "data"
+              :label "Data"}]
+        [tab {:value "results"
+              :label "Analysis results"}]]
+       (case active-tab
+         "data"    [data @analysis]
+         "results" [results @analysis]
+         [results @analysis])])))
+
 (defmethod page :route/analysis-results []
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn []
-      (let [{{:keys [id tab]} :query}                               @active-page
+      (let [{{:keys [id] :as query} :query}                         @active-page
             {:keys [readable-name of-type created-on] :as analysis} (<sub [::subs/analysis-results id])
+            active-tab                                              (or (:tab query) "results")
             classes                                                 (use-styles)]
         (if-not readable-name
           [:div "Loading..." ]
           [app-container
-           [box
+           [grid
             [app-bar {:position   "static"
                       :color      :transparent
                       :class-name (:app-bar classes)}
@@ -234,10 +253,10 @@
                                  (-> created-on time/string->date (time/format true)))]]]]
                ;; gutter
                [grid {:item true :xs 2 :xm 2}]]]]
-
-            [:div (str "RESULTS ") id]
-
-            ]])))))
+            [tab-pane {:id         id
+                       ;; :analysis   analysis
+                       :active-tab active-tab
+                       :classes    classes}]]])))))
 
 
 #_[:div.analysis-results

@@ -128,7 +128,7 @@
         error?                           (= "ERROR" status)]
     [list-item {:button true
                 :on-click
-                #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id}]
+                #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id :tab "results"}]
                               (when new?
                                 [:graphql/query {:query
                                                  "mutation TouchAnalysisMutation($analysisId: ID!) {
@@ -138,10 +138,8 @@
                                                              }
                                                            }"
                                                  :variables {:analysisId id}}])])}
-     [list-item-text {:primary (reagent/as-element [:div {:class-name (:primary classes)}
-
+     [list-item-text {:primary   (reagent/as-element [:div {:class-name (:primary classes)}
                                                     [:span (or readable-name "Unknown")]
-
                                                     (when error?
                                                       [chip {:label   "Error"
                                                              :size    :small
@@ -152,7 +150,6 @@
                                                              :size    :small
                                                              :variant "outlined"
                                                              :color   "primary"}])
-
                                                     [:div
                                                      [icon-button {:aria-label    "analysis kebab menu"
                                                                    :aria-controls "menu-kebab"
