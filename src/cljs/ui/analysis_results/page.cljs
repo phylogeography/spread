@@ -180,7 +180,7 @@
                                              ;; :letter-spacing "0px"
                                              ;; :color          "#3A3668"
 
-                                             :display :flex
+                                             :display        :flex
                                              :flex-direction :row
                                              ;; :align-items :center
                                              ;; :justify-content :space-between
@@ -190,75 +190,71 @@
                                        })))
 
 (defmethod page :route/analysis-results []
-  (let [{{:keys [id tab]} :query} (<sub [::router.subs/active-page])
-        analysis                  (re-frame/subscribe [::subs/analysis-results id])]
+  (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn []
-      (let [classes                                    (use-styles)
-            {:keys [readable-name of-type created-on]} @analysis]
-        [app-container
-         [box
-          [app-bar {:position   "static"
-                    :color      :transparent
-                    :class-name (:app-bar classes)}
-           [toolbar {:class-name (:centered classes)}
-            ;; main
-            [grid {:container true
-                   :direction :column
-                   :align-items   :center
-                   :align-content :center
-                    ;; :xs        12 :xm 12
-                   }
-             ;; gutter
-             [grid {:item true :xs 2 :xm 2}]
-             ;; row
-             [grid {:item true :xs 8 :xm 8}
-              [typography {:class-name (:header classes)} readable-name]
-              ;; row
-              [grid {:item true
-                     :container :true
-                     :spacing 10}
-               [grid {:item true}
+      (let [{{:keys [id tab]} :query}                               @active-page
+            {:keys [readable-name of-type created-on] :as analysis} (<sub [::subs/analysis-results id])
+            classes                                                 (use-styles)]
+        (if-not readable-name
+          [:div "Loading..." ]
+          [app-container
+           [box
+            [app-bar {:position   "static"
+                      :color      :transparent
+                      :class-name (:app-bar classes)}
+             [toolbar {:class-name (:centered classes)}
+              ;; main
+              [grid {:container     true
+                     :direction     :column
+                     :align-items   :center
+                     :align-content :center}
+               ;; gutter
+               [grid {:item true :xs 2 :xm 2}]
+               ;; row
+               [grid {:item true :xs 8 :xm 8}
+                [typography {:class-name (:header classes)} readable-name]
+                ;; row
+                [grid {:item      true
+                       :container true
+                       :spacing   10}
+                 [grid {:item true}
+                  (case of-type
+                    "CONTINUOUS_TREE"       [box {:class-name (:box classes)}
+                                             [typography "Continuous:"]
+                                             [typography "MCC tree"]]
+                    "DISCRETE_TREE"         [box {:class-name (:box classes)}
+                                             [typography "Discrete:"]
+                                             [typography "MCC tree"]]
+                    "BAYES_FACTOR_ANALYSIS" [box {:class-name (:box classes)}
+                                             [typography "Discrete:"]
+                                             [typography "Bayes factor rates"]]
+                    nil)]
+                 [grid {:item true}
+                  [typography  (when created-on
+                                 (-> created-on time/string->date (time/format true)))]]]]
+               ;; gutter
+               [grid {:item true :xs 2 :xm 2}]]]]
 
-                (case of-type
-                  "CONTINUOUS_TREE"       [box {:class-name (:box classes)}
-                                           [typography "Continuous:"]
-                                           [typography "MCC tree"]]
-                  "DISCRETE_TREE"         [box {:class-name (:box classes)}
-                                           [typography "Discrete:"]
-                                           [typography "MCC tree"]]
-                  "BAYES_FACTOR_ANALYSIS" [box {:class-name (:box classes)}
-                                           [typography "Discrete:"]
-                                           [typography "Bayes factor rates"]]
-                  nil)
+            [:div (str "RESULTS ") id]
 
-                ]
-               [grid {:item true}
-                [typography  (when created-on
-                               (-> created-on time/string->date (time/format true)))]]]]
-             ;; gutter
-             [grid {:item true :xs 2 :xm 2}]]]]
-
-          [:div (str "RESULTS ") id]
-
-          ]
+            ]])))))
 
 
+#_[:div.analysis-results
 
-         #_[:div.analysis-results
-
-          [:div.tabbed-pane
-           [:div.tabs
-            (map (fn [tab-name]
-                   [:button.tab {:class    (when (= tab tab-name) "active")
-                                 :key      tab-name
-                                 :on-click #(>evt [:router/navigate :route/analysis-results nil {:id id :tab tab-name}])}
-                    (case tab-name
-                      "data"    "Data"
-                      "results" "Analysis results"
-                      nil)])
-                 ["data" "results"])]
-           [:div.panel
-            (case tab
-              "data"    [data @analysis]
-              "results" [results @analysis]
-              [results @analysis])]]]]))))
+   [:div.tabbed-pane
+    [:div.tabs
+     (map (fn [tab-name]
+            [:button.tab {:class    (when (= tab tab-name) "active")
+                          :key      tab-name
+                          :on-click #(>evt [:router/navigate :route/analysis-results nil {:id id :tab tab-name}])}
+             (case tab-name
+               "data"    "Data"
+               "results" "Analysis results"
+               nil)])
+          ["data" "results"])]
+    [:div.panel
+     (case tab
+       "data"    [data @analysis]
+       "results" [results @analysis]
+       [results @analysis])]]]
