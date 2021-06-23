@@ -17,7 +17,7 @@
     icon
     (icons icon)))
 
-(defn icon-with-label [{:keys [icon label on-click]}]
+#_(defn icon-with-label [{:keys [icon label on-click]}]
   [:div.icon-label {:on-click on-click}
    [:img {:src (arg->icon icon) :id label}]
    [:span.label label]])

@@ -1,8 +1,8 @@
 (ns ui.component.indicator)
 
-(defn busy []
+#_(defn busy []
   [:div.busy])
 
-(defn loading []
+#_(defn loading []
   [:div.loading
    [:h4 "loading.."]])

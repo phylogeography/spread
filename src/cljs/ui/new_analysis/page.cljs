@@ -1,62 +1,32 @@
 (ns ui.new-analysis.page
   (:require [re-frame.core :as re-frame]
-            [ui.component.icon :refer [arg->icon icons]]
-
-            [reagent-material-ui.core.text-field :refer [text-field]]
-
-            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
-
-            [reagent-material-ui.core.accordion :refer [accordion]]
-            [reagent-material-ui.core.accordion-details :refer [accordion-details]]
-            [reagent-material-ui.core.accordion-summary :refer [accordion-summary]]
             [reagent-material-ui.core.app-bar :refer [app-bar]]
             [reagent-material-ui.core.avatar :refer [avatar]]
             [reagent-material-ui.core.box :refer [box]]
             [reagent-material-ui.core.button :refer [button]]
-            [reagent-material-ui.core.card :refer [card]]
-            [reagent-material-ui.core.card-content :refer [card-content]]
-            [reagent-material-ui.core.chip :refer [chip]]
+            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.divider :refer [divider]]
+            [reagent-material-ui.core.form-control :refer [form-control]]
             [reagent-material-ui.core.grid :refer [grid]]
             [reagent-material-ui.core.icon-button :refer [icon-button]]
+            [reagent-material-ui.core.input-adornment :refer [input-adornment]]
+            [reagent-material-ui.core.input-label :refer [input-label]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
-            [reagent-material-ui.core.list :refer [list]]
-            [reagent-material-ui.core.list-item :refer [list-item]]
-            [reagent-material-ui.core.list-item-text :refer [list-item-text]]
-            [reagent-material-ui.core.menu :refer [menu]]
-
-            [reagent-material-ui.core.select :refer [select]]
-
-            [ui.component.date-picker :refer [date-picker]]
-
             [reagent-material-ui.core.menu-item :refer [menu-item]]
+            [reagent-material-ui.core.outlined-input :refer [outlined-input]]
+            [reagent-material-ui.core.select :refer [select]]
+            [reagent-material-ui.core.tab :refer [tab]]
+            [reagent-material-ui.core.tabs :refer [tabs]]
+            [reagent-material-ui.core.text-field :refer [text-field]]
             [reagent-material-ui.core.toolbar :refer [toolbar]]
             [reagent-material-ui.core.typography :refer [typography]]
-            [reagent-material-ui.icons.search :refer [search]]
-
-            [reagent-material-ui.core.tabs :refer [tabs]]
-            [reagent-material-ui.core.tab :refer [tab]]
-            ;; [reagent-material-ui.core.tab-panel :refer [tab-panel]]
-
-            [reagent-material-ui.core.form-control :refer [form-control]]
-
-            [reagent-material-ui.core.input-label :refer [input-label]]
-
-            [reagent-material-ui.core.input-adornment :refer [input-adornment]]
-            [reagent-material-ui.core.outlined-input :refer [outlined-input]]
-
             [reagent-material-ui.styles :as styles]
             [reagent.core :as reagent]
-
             [ui.component.app-container :refer [app-container]]
-            [ui.component.button
-             :refer
-             [button-file-upload button-with-icon button-with-label]]
-            [ui.component.indicator :refer [busy]]
-            [ui.component.input
-             :refer
-             [amount-input range-input select-input text-input]]
-            [ui.component.progress :refer [progress-bar]]
+            [ui.component.button :refer [button-file-upload]]
+            [ui.component.date-picker :refer [date-picker]]
+            [ui.component.icon :refer [arg->icon icons]]
+            [ui.component.input :refer [amount-input]]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
@@ -109,11 +79,11 @@
                                                          }
 
                                        :border {
-                                                :border      "1px solid #DEDEE7"
+                                                :border        "1px solid #DEDEE7"
                                                 ;; :width "100%"
-                                                :display     :flex
+                                                :display       :flex
                                                 ;; :justify-content :center
-                                                :align-items :center
+                                                :align-items   :center
                                                 :width         "373px"
                                                 :height        "46px"
                                                 :border-radius "8px"
@@ -170,7 +140,10 @@
    [input-label {:id id} label]
    [select {:label-id  id
             :value     value
-            :on-change on-change}
+            :on-change (fn [^js event]
+                         (let [value (-> event .-target .-value)]
+                           (when on-change
+                             (on-change value))))}
     (doall
       (map (fn [option]
              ^{:key option}
@@ -186,10 +159,6 @@
   (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])
         field-errors        (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
-
-      (prn "@@ MULTIPLIER" (:time-scale-multiplier @continuous-mcc-tree))
-      (prn "@@ ERROR" @field-errors)
-
       (let [{:keys [id
                     readable-name
                     tree-file tree-file-upload-progress
@@ -301,11 +270,10 @@
          ;; row
          [grid {:container     true
                 :item          true
-                :direction     :column #_:row
-                :xs            12      :xm 12
+                :direction     :column
+                :xs            12 :xm 12
                 :align-items   :center
-                :align-content :center
-                }
+                :align-content :center}
           (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
             [circular-progress {:size 100}])]
 
@@ -350,8 +318,8 @@
                                   :value     y-coordinate
                                   :options   attribute-names
                                   :label     "Latitude"
-                                  :on-change (fn [^js event]
-                                               (>evt [:continuous-mcc-tree/set-y-coordinate (-> event .-target .-value)]))}]]
+                                  :on-change (fn [value]
+                                               (>evt [:continuous-mcc-tree/set-y-coordinate value]))}]]
              ;; col right
              [grid {:item true :xs 6 :xm 6}
               [attributes-select {:classes   classes
@@ -359,8 +327,8 @@
                                   :value     x-coordinate
                                   :options   attribute-names
                                   :label     "Longitude"
-                                  :on-change (fn [^js event]
-                                               (>evt [:continuous-mcc-tree/set-x-coordinate (-> event .-target .-value)]))}]]]
+                                  :on-change (fn [value]
+                                               (>evt [:continuous-mcc-tree/set-x-coordinate value]))}]]]
 
             ;; row
             [grid {:container true
@@ -407,6 +375,7 @@
               [button {:variant   "contained"
                        :color     "primary"
                        :size      "large"
+                       :disabled  (boolean (seq @field-errors))
                        :className (:start-button classes)
                        :on-click  #(dispatch-n [[:continuous-mcc-tree/start-analysis {:readable-name             readable-name
                                                                                       :y-coordinate              y-coordinate
@@ -442,7 +411,6 @@
                        :on-click  #(prn "TODO")}
                "Reset"]]]])]))))
 
-;; TODO
 (defn discrete-mcc-tree [classes]
   (let [discrete-mcc-tree (re-frame/subscribe [::subs/discrete-mcc-tree])
         field-errors      (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
@@ -461,114 +429,229 @@
                     time-scale-multiplier     1}}
             @discrete-mcc-tree]
 
-        #_[:div.discrete-mcc-tree
-         [:div.upload
-          [:span "Load tree file"]
-          [:div
-           [:div
-            (cond
-              (and (nil? tree-file-upload-progress) (nil? tree-file))
-              [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
-                                   :icon             :upload
-                                   :class            "upload-button"
-                                   :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+        ;; main container
+        [grid {:container true
+               :direction :column
+               :spacing   1}
 
-              (not= 1 tree-file-upload-progress)
-              [progress-bar {:class "tree-upload-progress-bar" :progress tree-file-upload-progress :label "Uploading. Please wait"}]
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
+          ;; col left
+          [grid {:item true
+                 :xs   6 :xm 6}
+           [typography {:class-name (:input-label classes)} "Load tree file"]]
+          ;; col right
+          [grid {:item true :xs 6 :xm 6}]]
 
-              :else [:span.tree-filename tree-file])]
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
+          ;; col left
+          [grid {:item true :xs 6 :xm 6}
+           (cond
+             (and (nil? tree-file-upload-progress) (nil? tree-file))
+             [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
+                                  :label            "Choose a file"
+                                  :class-name       (:upload-button classes)
+                                  :icon             :upload
+                                  :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
 
-           (if (nil? tree-file)
-             [:p
-              [:span "When upload is complete all unique attributes will be automatically filled."]
-              [:span "You can then select location attribute and change other settings."]]
-             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-tree-file])
-                                :icon     :delete}])]
+             (not= 1 tree-file-upload-progress)
+             [linear-progress {:value      (* 100 tree-file-upload-progress)
+                               :variant    "determinate"
+                               :class-name (:upload-progress classes)}]
 
-          [:span "Load locations file"]
-          [:div
-           [:div
-            (cond
-              (and (nil? locations-file-upload-progress) (nil? locations-file))
-              [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
-                                   :icon             :upload
-                                   :class            "upload-button"
-                                   :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
+             tree-file
+             [loaded-input {:classes  classes
+                            :value    tree-file
+                            :on-click #(>evt [:discrete-mcc-tree/delete-tree-file])}]
 
-              (not= 1 tree-file-upload-progress)
-              [progress-bar {:class "locations-upload-progress-bar" :progress locations-file-upload-progress :label "Uploading. Please wait"}]
+             :else nil)]
+          ;; col right
+          [grid {:item true
+                 :xs   6 :xm 6}
+           (when (nil? tree-file)
+             [:<>
+              [typography "When upload is complete all unique attributes will be automatically filled."]
+              [typography "You can then select location attribute and change other settings."]])]]
 
-              :else [:span.tree-filename locations-file])]
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
 
-           (if (nil? locations-file)
-             [:p
-              [:span "Select a file that maps geographical coordinates to the location attribute states."]
-              [:span "Once this file is uploaded you can start your analysis."]]
-             [button-with-icon {:on-click #(>evt [:discrete-mcc-tree/delete-locations-file])
-                                :icon     :delete}])]]
+          ;; col left
+          [grid {:item true :xs 6 :xm 6}
+           [typography {:class-name (:input-label classes)} "Load locations file"]]
 
-         [:div.settings
-          ;; show indicator before worker parses the attributes
+          ;; col right
+          [grid {:item true :xs 6 :xm 6}]]
+
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
+          ;; col left
+          [grid {:item true :xs 6 :xm 6}
+           [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
+                                :icon             :upload
+                                :class-name       (:upload-button classes)
+                                :label            "Choose a file"
+                                :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]]
+
+          ;; col right
+          [grid {:item true
+                 :xs   6 :xm 6}
+
+           (when (nil? locations-file)
+             [:<>
+              [typography "Select a file that maps geographical coordinates to the location attribute states"]
+              [typography "Once this file is uploaded you can start your analysis."]])]]
+
+         ;; row
+         [grid {:container     true
+                :item          true
+                :xs            12 :xm 12
+                :direction     :column
+                :align-items   :center
+                :align-content :center}
           (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
-            [busy])
+            [circular-progress {:size 100}])]
 
-          (when attribute-names
-            [:<>
-             [:fieldset
-              [:legend "name"]
-              [text-input {:value     readable-name
-                           :on-change #(>evt [:discrete-mcc-tree/set-readable-name %])}]]
+         (when (and attribute-names locations-file)
+           [:<>
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
+             ;; col left
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [text-field {:label     "Name" :variant :outlined
+                           :value     readable-name
+                           ;; :shrink    (nil? readable-name)
+                           :on-change (fn [_ value] (>evt [:discrete-mcc-tree/set-readable-name value]))}]]
+             ;; col right
+             [grid {:item true :xs 6 :xm 6}]]
 
-             [:div.row
-              [:div.column
-               [:span "Select locations attribute"]
-               [:fieldset
-                [:legend "Locations"]
-                [select-input {:value     locations-attribute
-                               :options   attribute-names
-                               :on-change #(>evt [:discrete-mcc-tree/set-locations-attribute %])}]]]
-              [:div.column
-               [:span "Most recent sampling date"]
-               [date-picker {:date-format time/date-format
-                             :on-change   #(>evt [:discrete-mcc-tree/set-most-recent-sampling-date %])
-                             :selected    most-recent-sampling-date}]]]
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
+             ;; col left
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [typography {:class-name (:input-label classes)} "Select locations attribute"]]
+             ;; col right
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [typography {:class-name (:input-label classes)} "Most recent sampling date"]]]
 
-             [:div.row
-              [:div.column
-               [:span "Time scale"]
-               [:fieldset
-                [:legend "Multiplier"]
-                [amount-input {:class     :multiplier-field
-                               :value     time-scale-multiplier
-                               :on-change #(>evt [:discrete-mcc-tree/set-time-scale-multiplier %])}]]
-               [error-reported (:time-scale-multiplier @field-errors)]]]
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
 
-             [:div.start-analysis-section
-              [button-with-label {:label     "Start analysis"
-                                  :class     :button-start-analysis
-                                  :disabled? (seq @field-errors)
-                                  :on-click  #(dispatch-n [[:discrete-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                                               :locations-attribute-name  locations-attribute
-                                                                                               :locations-file-url        locations-file-url
-                                                                                               :most-recent-sampling-date most-recent-sampling-date
-                                                                                               :time-scale-multiplier     time-scale-multiplier}]
-                                                           [:graphql/subscription {:id        id
-                                                                                   :query     "subscription SubscriptionRoot($id: ID!) {
+             ;; col left
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [attributes-select {:classes   classes
+                                  :id        "select-locations-attribute"
+                                  :value     locations-attribute
+                                  :options   attribute-names
+                                  :label     "Locations attribute"
+                                  :on-change (fn [value]
+                                               (>evt [:discrete-mcc-tree/set-locations-attribute value]))}]]
+             ;; col right
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [date-picker {:wrapperClassName (:date-picker classes)
+                            :date-format      time/date-format
+                            :on-change        #(>evt [:discrete-mcc-tree/set-most-recent-sampling-date %])
+                            :selected         most-recent-sampling-date}]]]
+
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
+             ;; col left
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [typography {:class-name (:input-label classes)} "Time scale"]]
+             ;; col right
+             [grid {:item true :xs 6 :xm 6}]]
+
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
+             ;; col left
+             [grid {:item true :xs 6 :xm 6}
+              [amount-input {:label       "Multiplier"
+                             :value       time-scale-multiplier
+                             :error?      (not (nil? (:time-scale-multiplier @field-errors)))
+                             :helper-text (:time-scale-multiplier @field-errors)
+                             :on-change   (fn [value]
+                                            (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]))}]]
+             ;; col right
+             [grid {:item true :xs 6 :xm 6}]]
+
+            [box {:padding-top    5
+                  :padding-bottom 5}
+             [divider {:variant "fullWidth"}]]
+
+            [grid {:container true
+                   :direction :row
+                   :spacing   1}
+             [grid {:item true}
+              [button {:variant   "contained"
+                       :disabled  (boolean (seq @field-errors))
+                       :color     "primary"
+                       :size      "large"
+                       :className (:start-button classes)
+                       :on-click  #(dispatch-n [[:discrete-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                                    :locations-attribute-name  locations-attribute
+                                                                                    :locations-file-url        locations-file-url
+                                                                                    :most-recent-sampling-date most-recent-sampling-date
+                                                                                    :time-scale-multiplier     time-scale-multiplier}]
+                                                [:graphql/subscription {:id        id
+                                                                        :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
                                                                                                   status
                                                                                                   progress
                                                                                                   ofType
                                                                                                 }}"
-                                                                                   :variables {"id" id}}]])}]
-              [button-with-label {:label    "Paste settings"
-                                  :class    :button-paste-settings
-                                  :on-click #(prn "TODO : paste settings")}]
-              [button-with-label {:label    "Reset"
-                                  :class    :button-reset
-                                  :on-click #(prn "TODO : reset")}]]])]]))))
+                                                                        :variables {"id" id}}]])}
+               "Start analysis"]]
+
+             [grid {:item true}
+              [button {:variant   "contained"
+                       :color     "primary"
+                       :size      "large"
+                       :className (:start-button classes)
+                       :on-click  #(prn "TODO")}
+               "Paste settings"]]
+
+             [grid {:item true}
+              [button {:variant   "contained"
+                       :color     "primary"
+                       :size      "large"
+                       :className (:start-button classes)
+                       :on-click  #(prn "TODO")}
+               "Reset"]]]])]))))
 
 (defn discrete-rates [classes]
   (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
@@ -585,102 +668,102 @@
                     upload-status]
              :or   {burn-in 10}}
             @bayes-factor]
-        [:div.bayes-factor
-         [:div.upload
-          [:span "Load log file"]
-          [:div
-           [:div
-            (cond
-              (and (nil? log-file-upload-progress) (nil? log-file))
-              [button-file-upload {:id               "bayes-factor-log-file-upload-button"
-                                   :icon             :upload
-                                   :class            "upload-button"
-                                   :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
+        #_[:div.bayes-factor
+           [:div.upload
+            [:span "Load log file"]
+            [:div
+             [:div
+              (cond
+                (and (nil? log-file-upload-progress) (nil? log-file))
+                [button-file-upload {:id               "bayes-factor-log-file-upload-button"
+                                     :icon             :upload
+                                     :class            "upload-button"
+                                     :label            "Choose a file"
+                                     :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
 
-              (not= 1 log-file-upload-progress)
-              [progress-bar {:class    "log-file-upload-progress-bar"
-                             :progress log-file-upload-progress
-                             :label    "Uploading. Please wait"}]
+                (not= 1 log-file-upload-progress)
+                [progress-bar {:class    "log-file-upload-progress-bar"
+                               :progress log-file-upload-progress
+                               :label    "Uploading. Please wait"}]
 
-              :else [:span.log-filename log-file])]
+                :else [:span.log-filename log-file])]
 
-           (if (nil? log-file)
-             [:p
-              [:span  "Upload log file."]
-              [:span  "You can then upload a matching coordinates file."]]
-             [button-with-icon {:on-click #(>evt [:bayes-factor/delete-log-file])
-                                :icon     :delete}])]
+             (if (nil? log-file)
+               [:p
+                [:span  "Upload log file."]
+                [:span  "You can then upload a matching coordinates file."]]
+               [button-with-icon {:on-click #(>evt [:bayes-factor/delete-log-file])
+                                  :icon     :delete}])]
 
-          [:span "Load locations file"]
-          [:div
-           [:div
-            (cond
-              (and (nil? locations-file-upload-progress) (nil? locations-file))
-              [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
-                                   :icon             :upload
-                                   :class            "upload-button"
-                                   :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
+            [:span "Load locations file"]
+            [:div
+             [:div
+              (cond
+                (and (nil? locations-file-upload-progress) (nil? locations-file))
+                [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
+                                     :icon             :upload
+                                     :class            "upload-button"
+                                     :label            "Choose a file"
+                                     :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
 
-              (not= 1 locations-file-upload-progress)
-              [progress-bar {:class    "locations-upload-progress-bar"
-                             :progress locations-file-upload-progress
-                             :label    "Uploading. Please wait"}]
+                (not= 1 locations-file-upload-progress)
+                [progress-bar {:class    "locations-upload-progress-bar"
+                               :progress locations-file-upload-progress
+                               :label    "Uploading. Please wait"}]
 
-              :else [:span.locations-filename locations-file])]
+                :else [:span.locations-filename locations-file])]
 
-           (if (nil? locations-file)
-             [:p
-              [:span "Select a file that maps geographical coordinates to the locations."]
-              [:span "Once this file is uploaded you can then start your analysis."]]
-             [button-with-icon {:on-click #(>evt [:bayes-factor/delete-locations-file])
-                                :icon     :delete}])]]
+             (if (nil? locations-file)
+               [:p
+                [:span "Select a file that maps geographical coordinates to the locations."]
+                [:span "Once this file is uploaded you can then start your analysis."]]
+               [button-with-icon {:on-click #(>evt [:bayes-factor/delete-locations-file])
+                                  :icon     :delete}])]]
 
-         [:div.settings
-          (when (= "UPLOADING" upload-status)
-            [busy])
+           [:div.settings
+            (when (= "UPLOADING" upload-status)
+              [busy])
 
-          (when (and (= 1 log-file-upload-progress)
-                     (= 1 locations-file-upload-progress))
-            [:<>
-             [:fieldset
-              [:legend "name"]
-              [text-input {:value     readable-name
-                           :on-change #(>evt [:bayes-factor/set-readable-name %])}]]
-
-             [:div.row
-              [:div.column
-               [:span "Select burn-in"]
+            (when (and (= 1 log-file-upload-progress)
+                       (= 1 locations-file-upload-progress))
+              [:<>
                [:fieldset
-                [:legend "Burn-in"]
-                [range-input {:value     burn-in
-                              :min       0
-                              :max       99
-                              :on-change #(>evt [:bayes-factor/set-burn-in %])}]]]]
+                [:legend "name"]
+                [text-input {:value     readable-name
+                             :on-change #(>evt [:bayes-factor/set-readable-name %])}]]
 
-             [:div.start-analysis-section
-              [button-with-label {:label     "Start analysis"
-                                  :class     :button-start-analysis
-                                  :disabled? (seq @field-errors)
-                                  :on-click  #(dispatch-n [[:bayes-factor/start-analysis {:readable-name      readable-name
-                                                                                          :burn-in            (/ burn-in 100)
-                                                                                          :locations-file-url locations-file-url}]
-                                                           [:graphql/subscription {:id        id
-                                                                                   :query     "subscription SubscriptionRoot($id: ID!) {
+               [:div.row
+                [:div.column
+                 [:span "Select burn-in"]
+                 [:fieldset
+                  [:legend "Burn-in"]
+                  [range-input {:value     burn-in
+                                :min       0
+                                :max       99
+                                :on-change #(>evt [:bayes-factor/set-burn-in %])}]]]]
+
+               [:div.start-analysis-section
+                [button-with-label {:label     "Start analysis"
+                                    :class     :button-start-analysis
+                                    :disabled? (seq @field-errors)
+                                    :on-click  #(dispatch-n [[:bayes-factor/start-analysis {:readable-name      readable-name
+                                                                                            :burn-in            (/ burn-in 100)
+                                                                                            :locations-file-url locations-file-url}]
+                                                             [:graphql/subscription {:id        id
+                                                                                     :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
                                                                                                   status
                                                                                                   progress
                                                                                                   ofType
                                                                                                 }}"
-                                                                                   :variables {"id" id}}]])}]
-              [button-with-label {:label    "Paste settings"
-                                  :class    :button-paste-settings
-                                  :on-click #(prn "TODO : paste settings")}]
-              [button-with-label {:label    "Reset"
-                                  :class    :button-reset
-                                  :on-click #(prn "TODO : reset")}]]])]]))))
+                                                                                     :variables {"id" id}}]])}]
+                [button-with-label {:label    "Paste settings"
+                                    :class    :button-paste-settings
+                                    :on-click #(prn "TODO : paste settings")}]
+                [button-with-label {:label    "Reset"
+                                    :class    :button-reset
+                                    :on-click #(prn "TODO : reset")}]]])]]))))
 
 
 ;; TODO https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/db6d1f78-c5f4-460e-9f97-32e9df007388/specs/
