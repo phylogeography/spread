@@ -32,7 +32,9 @@
             [reagent-material-ui.core.table-pagination :refer [table-pagination]]
             [reagent-material-ui.core.table-row :refer [table-row]]
             [reagent-material-ui.core.table-sort-label :refer [table-sort-label]]
-
+            [reagent-material-ui.core.accordion :refer [accordion]]
+            [reagent-material-ui.core.accordion-details :refer [accordion-details]]
+            [reagent-material-ui.core.accordion-summary :refer [accordion-summary]]
             [reagent-material-ui.styles :as styles]
             [reagent.core :as reagent]
             [ui.component.app-container :refer [app-container]]
@@ -41,15 +43,57 @@
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
+            [ui.component.icon :refer [arg->icon icons]]
             [ui.time :as time]
             [ui.utils :refer [<sub >evt]]))
 
 
+(defn data [{:keys [of-type status error] :as analysis} classes]
+
+  [grid {:container true
+         :direction :column}
+
+   (when (= "ERROR" status)
+     [accordion {:defaultExpanded true
+                 :class-name      (:error-accordion classes)}
+      [accordion-summary {:expand-icon (reagent/as-element [:img {:src (:dropdown icons)}])}
+       [:div
+        [:div {:class-name (:centered classes)}
+         [:img {:src (:error icons)}]
+         [typography {:class-name (:error-header classes)} "Error occured while running analysis"]]
+        [typography {:class-name nil } "Check full report"]]]
+      [accordion-details {:class-name (:details classes)}
+       error]])
+
+   [grid {:container true
+          :item      true
+          :direction :row
+          :xs        12 :xm 12}
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]
+
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]]
+
+   [grid {:container true
+          :item      true
+          :direction :row
+          :xs        12 :xm 12}
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]
+
+    [grid {:item true
+           :xs   6 :xm 6}
+     [:div "ELEM"]]]
 
 
 
-(defn data [{:keys [of-type status error] :as analysis}]
-  [:div.data
+   ]
+
+  #_[:div.data
    (when (= "ERROR" status)
      [:div.error
       [:span "Error occured while running analysis"]
@@ -152,6 +196,21 @@
 
                                        :header {:font  "normal normal 900 24px/28px Roboto"
                                                 :color "#3A3668"}
+
+                                       ;; :header {:display         "flex"
+                                       ;;          :flex-direction  "row"
+                                       ;;          :justify-content "space-between"}
+
+                                       :error-accordion {
+                                                         :border        "1px solid #B20707E7"
+                                                         :border-radius "20px"}
+
+                                       :error-header {
+                                                      :text-align "left"
+                                                      :font       "normal normal medium 16px/19px Roboto"
+                                                      :font-weight :bold
+                                                      :color       "#B20707"
+                                                      }
 
                                        :app-bar {:background    "#FFFFFF"
                                                  :box-shadow    :none
