@@ -147,7 +147,7 @@
                                                              :size    :small
                                                              :variant "outlined"
                                                              :color   "secondary"}])
-                                                    (when error?
+                                                    (when new?
                                                       [chip {:label   "New"
                                                              :size    :small
                                                              :variant "outlined"
@@ -263,7 +263,7 @@
 (defn run-new [classes {:keys [default-expanded?]}]
   (let [items [{:main-label "Discrete:"         :sub-label "MCC tree"
                 :target     :route/new-analysis :query     {:tab "discrete-mcc-tree"}}
-               {:main-label "Discrete:"         :sub-label "Rates"
+               {:main-label "Discrete:"         :sub-label "Bayes factor rates"
                 :target     :route/new-analysis :query     {:tab "discrete-rates"}}
                {:main-label "Continuous:"       :sub-label "MCC tree"
                 :target     :route/new-analysis :query     {:tab "continuous-mcc-tree"}}]]
@@ -284,8 +284,7 @@
                          [list-item-text
                           {:class-name               (:secondary classes)
                            :secondary                sub-label
-                           :secondaryTypographyProps {:align "left"}
-                           }]])
+                           :secondaryTypographyProps {:align "left"}}]])
                       items))]]]))
 
 (defn main-menu [classes]

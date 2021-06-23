@@ -1,5 +1,28 @@
 (ns ui.analysis-results.page
   (:require [re-frame.core :as re-frame]
+            [reagent-material-ui.core.app-bar :refer [app-bar]]
+            [reagent-material-ui.core.avatar :refer [avatar]]
+            [reagent-material-ui.core.box :refer [box]]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
+            [reagent-material-ui.core.divider :refer [divider]]
+            [reagent-material-ui.core.form-control :refer [form-control]]
+            [reagent-material-ui.core.grid :refer [grid]]
+            [reagent-material-ui.core.icon-button :refer [icon-button]]
+            [reagent-material-ui.core.input-adornment :refer [input-adornment]]
+            [reagent-material-ui.core.input-label :refer [input-label]]
+            [reagent-material-ui.core.linear-progress :refer [linear-progress]]
+            [reagent-material-ui.core.menu-item :refer [menu-item]]
+            [reagent-material-ui.core.outlined-input :refer [outlined-input]]
+            [reagent-material-ui.core.select :refer [select]]
+            [reagent-material-ui.core.slider :refer [slider]]
+            [reagent-material-ui.core.tab :refer [tab]]
+            [reagent-material-ui.core.tabs :refer [tabs]]
+            [reagent-material-ui.core.text-field :refer [text-field]]
+            [reagent-material-ui.core.toolbar :refer [toolbar]]
+            [reagent-material-ui.core.typography :refer [typography]]
+            [reagent-material-ui.styles :as styles]
+            [reagent.core :as reagent]
             [ui.component.app-container :refer [app-container]]
             [ui.component.button :refer [button-with-label]]
             [ui.component.input :refer [text-input]]
@@ -134,29 +157,95 @@
              [:td bayes-factor]
              [:td posterior-probability]]]))]])])
 
+
+(def use-styles (styles/make-styles (fn [theme]
+                                      {
+
+                                       :centered {:display         :flex
+                                                  :justify-content :center
+                                                  :align-items     :center}
+
+                                       :header {:font  "normal normal 900 24px/28px Roboto"
+                                                :color "#3A3668"}
+
+                                       :app-bar {:background    "#FFFFFF"
+                                                 :box-shadow    :none
+                                                 :border-bottom "1px solid #DEDEE7"}
+
+                                       :box {
+                                             ;; :padding-right  5
+                                             ;; :text-align     "left"
+                                             ;; :font           "normal normal medium 16px/19px Roboto"
+                                             ;; :font-weight    500
+                                             ;; :letter-spacing "0px"
+                                             ;; :color          "#3A3668"
+
+                                             :display :flex
+                                             :flex-direction :row
+                                             ;; :align-items :center
+                                             ;; :justify-content :space-between
+                                             }
+
+
+                                       })))
+
 (defmethod page :route/analysis-results []
   (let [{{:keys [id tab]} :query} (<sub [::router.subs/active-page])
         analysis                  (re-frame/subscribe [::subs/analysis-results id])]
     (fn []
-
-
-
-      (let [{:keys [readable-name of-type created-on]} @analysis]
+      (let [classes                                    (use-styles)
+            {:keys [readable-name of-type created-on]} @analysis]
         [app-container
+         [box
+          [app-bar {:position   "static"
+                    :color      :transparent
+                    :class-name (:app-bar classes)}
+           [toolbar {:class-name (:centered classes)}
+            ;; main
+            [grid {:container true
+                   :direction :column
+                   :align-items   :center
+                   :align-content :center
+                    ;; :xs        12 :xm 12
+                   }
+             ;; gutter
+             [grid {:item true :xs 2 :xm 2}]
+             ;; row
+             [grid {:item true :xs 8 :xm 8}
+              [typography {:class-name (:header classes)} readable-name]
+              ;; row
+              [grid {:item true
+                     :container :true
+                     :spacing 10}
+               [grid {:item true}
 
-         [:div (str "RESULTS") id]
+                (case of-type
+                  "CONTINUOUS_TREE"       [box {:class-name (:box classes)}
+                                           [typography "Continuous:"]
+                                           [typography "MCC tree"]]
+                  "DISCRETE_TREE"         [box {:class-name (:box classes)}
+                                           [typography "Discrete:"]
+                                           [typography "MCC tree"]]
+                  "BAYES_FACTOR_ANALYSIS" [box {:class-name (:box classes)}
+                                           [typography "Discrete:"]
+                                           [typography "Bayes factor rates"]]
+                  nil)
+
+                ]
+               [grid {:item true}
+                [typography  (when created-on
+                               (-> created-on time/string->date (time/format true)))]]]]
+             ;; gutter
+             [grid {:item true :xs 2 :xm 2}]]]]
+
+          [:div (str "RESULTS ") id]
+
+          ]
+
+
 
          #_[:div.analysis-results
-          [:div.header
-           [:span readable-name]
-           [:div.sub-header
-            [:span (case of-type
-                     "CONTINUOUS_TREE"       "Continuous: MCC tree"
-                     "DISCRETE_TREE"         "Discrete: MCC tree"
-                     "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"
-                     nil)]
-            [:span (when created-on
-                     (-> created-on time/string->date (time/format true)))]]]
+
           [:div.tabbed-pane
            [:div.tabs
             (map (fn [tab-name]
