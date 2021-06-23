@@ -334,7 +334,7 @@
        "Delete account"]]]))
 
 (defn header [classes]
-  [app-bar {:position   :static
+  [app-bar {:position   :sticky
             :class-name (:app-bar classes)}
    [grid {:container true
           :spacing   2}
