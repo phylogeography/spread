@@ -144,7 +144,7 @@
       (let [{:keys [readable-name of-type created-on]} @analysis]
         [app-container
 
-         [:div (str "RESULTS for ") id]
+         [:div (str "RESULTS") id]
 
          #_[:div.analysis-results
           [:div.header

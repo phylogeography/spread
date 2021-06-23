@@ -15,6 +15,7 @@
             [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.outlined-input :refer [outlined-input]]
             [reagent-material-ui.core.select :refer [select]]
+            [reagent-material-ui.core.slider :refer [slider]]
             [reagent-material-ui.core.tab :refer [tab]]
             [reagent-material-ui.core.tabs :refer [tabs]]
             [reagent-material-ui.core.text-field :refer [text-field]]
@@ -39,26 +40,22 @@
                                                   :align-items     :center}
 
                                        :header {:font  "normal normal 900 24px/28px Roboto"
-                                                :color "#3A3668"
-                                                }
+                                                :color "#3A3668"}
 
                                        :app-bar {:background    "#FFFFFF"
                                                  :box-shadow    :none
-                                                 :border-bottom "1px solid #DEDEE7"
-                                                 }
+                                                 :border-bottom "1px solid #DEDEE7"}
 
                                        :tab-title {:text-transform :none
                                                    :text-align     :center
                                                    :font           "normal normal medium 16px/19px Roboto"
-                                                   :color          "#3A3668"
-                                                   }
+                                                   :color          "#3A3668"}
 
                                        :tab-subtitle {:text-transform :none
                                                       :text-align     :center
                                                       :font           "normal normal 900 10px/11px Roboto"
                                                       :letter-spacing "0px"
-                                                      :color          "#757295"
-                                                      }
+                                                      :color          "#757295"}
 
                                        :indicator {:background       "#EEBE53"
                                                    :background-color "#EEBE53"}
@@ -70,58 +67,44 @@
                                                        :color          "#ECEFF8"
                                                        :border-radius  "8px"
                                                        :width          "324px"
-                                                       :height         "48px"
-                                                       }
+                                                       :height         "48px"}
 
                                        :upload-progress {:border-radius "8px"
                                                          :width         "324px"
-                                                         :height        "48px"
-                                                         }
+                                                         :height        "48px"}
 
-                                       :border {
-                                                :border        "1px solid #DEDEE7"
-                                                ;; :width "100%"
+                                       :border {:border        "1px solid #DEDEE7"
                                                 :display       :flex
-                                                ;; :justify-content :center
                                                 :align-items   :center
                                                 :width         "373px"
                                                 :height        "46px"
-                                                :border-radius "8px"
-                                                }
+                                                :border-radius "8px"}
 
                                        :icon-button {:width  "14px"
-                                                     :height "18px"
-                                                     }
+                                                     :height "18px"}
 
-                                       :input-label {
-                                                     :font        "normal normal medium 16px/19px Roboto"
+                                       :input-label {:font        "normal normal medium 16px/19px Roboto"
                                                      :color       "#3A3668"
-                                                     :font-weight :bold
-                                                     }
+                                                     :font-weight :bold}
 
                                        :outlined-input {:height "46px"
                                                         :font   "normal normal medium 14px/16px Roboto"
-                                                        :color  "#3A3668"
-                                                        }
+                                                        :color  "#3A3668"}
 
                                        :form-control {:margin    ((:spacing theme) 1)
-                                                      :min-width 120
-                                                      }
+                                                      :min-width 120}
 
                                        :date-picker {:border-radius "8px"
-                                                     :border        "1px solid #E2E2EA"
-                                                     }
+                                                     :border        "1px solid #E2E2EA"}
 
                                        :start-button {:background     "EEBE53"
                                                       :box-shadow     "0px 10px 30px #EEBE5327"
                                                       :border-radius  "8px"
                                                       :font           "normal normal medium 16px/19px Roboto"
                                                       :color          "#3A3668"
-                                                      :text-transform :none
-                                                      }
+                                                      :text-transform :none}
 
-                                       })))
-
+                                       :slider {:width 324}})))
 
 (defn- loaded-input [{:keys [value on-click classes]}]
   [outlined-input {:class-name   (:outlined-input classes)
@@ -149,11 +132,6 @@
              ^{:key option}
              [menu-item {:value option} option])
            options))]])
-
-(defn- error-reported [message]
-  (when message
-    [:div.error-reported
-     [:span message]]))
 
 (defn continuous-mcc-tree [classes]
   (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])
@@ -509,7 +487,6 @@
           ;; col right
           [grid {:item true
                  :xs   6 :xm 6}
-
            (when (nil? locations-file)
              [:<>
               [typography "Select a file that maps geographical coordinates to the location attribute states"]
@@ -616,10 +593,10 @@
                    :direction :row
                    :spacing   1}
              [grid {:item true}
-              [button {:variant   "contained"
+              [button {:variant   :contained
                        :disabled  (boolean (seq @field-errors))
-                       :color     "primary"
-                       :size      "large"
+                       :color     :primary
+                       :size      :large
                        :className (:start-button classes)
                        :on-click  #(dispatch-n [[:discrete-mcc-tree/start-analysis {:readable-name             readable-name
                                                                                     :locations-attribute-name  locations-attribute
@@ -666,107 +643,208 @@
                     readable-name
                     burn-in
                     upload-status]
-             :or   {burn-in 10}}
+             :or   {burn-in 0.1}}
             @bayes-factor]
-        #_[:div.bayes-factor
-           [:div.upload
-            [:span "Load log file"]
-            [:div
-             [:div
-              (cond
-                (and (nil? log-file-upload-progress) (nil? log-file))
-                [button-file-upload {:id               "bayes-factor-log-file-upload-button"
-                                     :icon             :upload
-                                     :class            "upload-button"
-                                     :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
 
-                (not= 1 log-file-upload-progress)
-                [progress-bar {:class    "log-file-upload-progress-bar"
-                               :progress log-file-upload-progress
-                               :label    "Uploading. Please wait"}]
+        [grid {:container true
+               :direction :column
+               :spacing   1}
 
-                :else [:span.log-filename log-file])]
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
+          ;; col left
+          [grid {:item true
+                 :xs   6 :xm 6}
+           [typography {:class-name (:input-label classes)} "Load log file"]]
+          ;; col right
+          [grid {:item true :xs 6 :xm 6}]]
 
-             (if (nil? log-file)
-               [:p
-                [:span  "Upload log file."]
-                [:span  "You can then upload a matching coordinates file."]]
-               [button-with-icon {:on-click #(>evt [:bayes-factor/delete-log-file])
-                                  :icon     :delete}])]
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
+          ;; col left
+          [grid {:item true :xs 6 :xm 6}
+           (cond
+             (and (nil? log-file-upload-progress) (nil? log-file))
+             [button-file-upload {:id               "bayes-factor-log-file-upload-button"
+                                  :icon             :upload
+                                  :class-name       (:upload-button classes)
+                                  :label            "Choose a file"
+                                  :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
 
-            [:span "Load locations file"]
-            [:div
-             [:div
-              (cond
-                (and (nil? locations-file-upload-progress) (nil? locations-file))
-                [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
-                                     :icon             :upload
-                                     :class            "upload-button"
-                                     :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
+             (not= 1 log-file-upload-progress)
+             [linear-progress {:value      (* 100 log-file-upload-progress)
+                               :variant    "determinate"
+                               :class-name (:upload-progress classes)}]
 
-                (not= 1 locations-file-upload-progress)
-                [progress-bar {:class    "locations-upload-progress-bar"
-                               :progress locations-file-upload-progress
-                               :label    "Uploading. Please wait"}]
+             log-file
+             [loaded-input {:classes  classes
+                            :value    log-file
+                            :on-click #(>evt [:bayes-factor/delete-log-file])}]
 
-                :else [:span.locations-filename locations-file])]
+             :else nil)]
+          ;; col right
+          [grid {:item true :xs 6 :xm 6}
+           (when (nil? log-file)
+             [:<>
+              [typography "Upload log file."]
+              [typography "You can then upload a matching coordinates file."]])]]
 
-             (if (nil? locations-file)
-               [:p
-                [:span "Select a file that maps geographical coordinates to the locations."]
-                [:span "Once this file is uploaded you can then start your analysis."]]
-               [button-with-icon {:on-click #(>evt [:bayes-factor/delete-locations-file])
-                                  :icon     :delete}])]]
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
+          ;; col left
+          [grid {:item true
+                 :xs   6 :xm 6}
+           [typography {:class-name (:input-label classes)} "Load locations file"]]
+          ;; col right
+          [grid {:item true :xs 6 :xm 6}]]
 
-           [:div.settings
-            (when (= "UPLOADING" upload-status)
-              [busy])
+         ;; row
+         [grid {:container true
+                :item      true
+                :direction :row
+                :xs        12 :xm 12}
+          ;; col left
+          [grid {:item true :xs 6 :xm 6}
+           (cond
+             (and (nil? locations-file-upload-progress) (nil? locations-file))
+             [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
+                                  :icon             :upload
+                                  :class-name       (:upload-button classes)
+                                  :label            "Choose a file"
+                                  :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
 
-            (when (and (= 1 log-file-upload-progress)
-                       (= 1 locations-file-upload-progress))
-              [:<>
-               [:fieldset
-                [:legend "name"]
-                [text-input {:value     readable-name
-                             :on-change #(>evt [:bayes-factor/set-readable-name %])}]]
+             (not= 1 locations-file-upload-progress)
+             [linear-progress {:value      (* 100 locations-file-upload-progress)
+                               :variant    "determinate"
+                               :class-name (:upload-progress classes)}]
 
-               [:div.row
-                [:div.column
-                 [:span "Select burn-in"]
-                 [:fieldset
-                  [:legend "Burn-in"]
-                  [range-input {:value     burn-in
-                                :min       0
-                                :max       99
-                                :on-change #(>evt [:bayes-factor/set-burn-in %])}]]]]
+             locations-file
+             [loaded-input {:classes  classes
+                            :value    locations-file
+                            :on-click #(>evt [:bayes-factor/delete-locations-file])}]
 
-               [:div.start-analysis-section
-                [button-with-label {:label     "Start analysis"
-                                    :class     :button-start-analysis
-                                    :disabled? (seq @field-errors)
-                                    :on-click  #(dispatch-n [[:bayes-factor/start-analysis {:readable-name      readable-name
-                                                                                            :burn-in            (/ burn-in 100)
-                                                                                            :locations-file-url locations-file-url}]
-                                                             [:graphql/subscription {:id        id
-                                                                                     :query     "subscription SubscriptionRoot($id: ID!) {
+             :else nil)]
+          ;; col right
+          [grid {:item true :xs 6 :xm 6}
+           (when (nil? locations-file)
+             [:<>
+              [typography "Select a file that maps geographical coordinates to the log file columns"]
+              [typography "Once this file is uploaded you can start your analysis."]])]]
+
+         ;; row
+         [grid {:container     true
+                :item          true
+                :xs            12 :xm 12
+                :direction     :column
+                :align-items   :center
+                :align-content :center}
+          (when (= "UPLOADING" upload-status)
+            [circular-progress {:size 100}])]
+
+         (when (and (= 1 log-file-upload-progress)
+                    (= 1 locations-file-upload-progress))
+           [:<>
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
+             ;; col left
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [text-field {:label     "Name" :variant :outlined
+                           :value     readable-name
+                           ;; :shrink    (nil? readable-name)
+                           :on-change (fn [_ value] (>evt [:bayes-factor/set-readable-name value]))}]]
+             ;; col right
+             [grid {:item true :xs 6 :xm 6}]]
+
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
+             ;; col left
+             [grid {:item true :xs 6 :xm 6}
+              [typography {:class-name (:input-label classes)} "Select burn-in"]]
+             ;; col right
+             [grid {:item true :xs 6 :xm 6}]]
+
+            ;; row
+            [grid {:container true
+                   :item      true
+                   :direction :row
+                   :xs        12 :xm 12}
+             ;; col left
+             [grid {:item true
+                    :xs   6 :xm 6}
+              [slider {:value             burn-in
+                       :min               0.0
+                       :max               0.9
+                       :step              0.1
+                       :valueLabelDisplay :auto
+                       :class-name        (:slider classes)
+                       :marks             true
+                       :on-change         (fn [_ value]
+                                            (>evt [:bayes-factor/set-burn-in value]))}]]
+             ;; col right
+             [grid {:item true :xs 6 :xm 6}]]
+
+            [box {:padding-top    5
+                  :padding-bottom 5}
+             [divider {:variant "fullWidth"}]]
+
+            [grid {:container true
+                   :direction :row
+                   :spacing   1}
+             [grid {:item true}
+              [button {:variant   :contained
+                       :disabled  (boolean (seq @field-errors))
+                       :color     :primary
+                       :size      :large
+                       :className (:start-button classes)
+                       :on-click  #(dispatch-n [[:bayes-factor/start-analysis {:readable-name      readable-name
+                                                                               :burn-in            (/ burn-in 100)
+                                                                               :locations-file-url locations-file-url}]
+                                                [:graphql/subscription {:id        id
+                                                                        :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
                                                                                                   status
                                                                                                   progress
                                                                                                   ofType
                                                                                                 }}"
-                                                                                     :variables {"id" id}}]])}]
-                [button-with-label {:label    "Paste settings"
-                                    :class    :button-paste-settings
-                                    :on-click #(prn "TODO : paste settings")}]
-                [button-with-label {:label    "Reset"
-                                    :class    :button-reset
-                                    :on-click #(prn "TODO : reset")}]]])]]))))
+                                                                        :variables {"id" id}}]])}
+               "Start analysis"]]
 
+             [grid {:item true}
+              [button {:variant   "contained"
+                       :color     "primary"
+                       :size      "large"
+                       :className (:start-button classes)
+                       :on-click  #(prn "TODO")}
+               "Paste settings"]]
 
-;; TODO https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/db6d1f78-c5f4-460e-9f97-32e9df007388/specs/
+             [grid {:item true}
+              [button {:variant   "contained"
+                       :color     "primary"
+                       :size      "large"
+                       :className (:start-button classes)
+                       :on-click  #(prn "TODO")}
+               "Reset"]]]])]))))
+
+;; NOTE: specs
+;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/db6d1f78-c5f4-460e-9f97-32e9df007388/specs/
+;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed2b39f8103c14a9c660
 (defmethod page :route/new-analysis []
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn []
