@@ -84,3 +84,29 @@
 	height: 20px;
 }
 
+
+/***********************************/
+/* Material UI customized sliders  */
+/***********************************/
+
+.MuiSlider-root {
+    color: #EEBE53 !important;
+}
+
+.MuiSlider-thumb {
+	border-radius: 10% !important;
+	border: 1px solid #3A3668 !important;
+    background-color: #DEDEE8 !important;
+} 
+
+.MuiSlider-thumb::after {
+    border-radius: 10% !important;
+}
+
+.MuiSlider-rail {
+    background-color: #DEDEE8 !important;
+}
+
+.MuiSlider-track {
+    background-color:  #EEBE53 !important;;
+}
