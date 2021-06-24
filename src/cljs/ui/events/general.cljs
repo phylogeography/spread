@@ -17,16 +17,19 @@
   {:localstorage (dissoc localstorage :access-token)
    :dispatch     [:router/navigate :route/splash]})
 
+;; FIXME : there is a problem here, immeditaely after logging
+;; the token is not persisted
+;; and the requests for user data fail
 (defn initialize [{:keys [db]} [_ config]]
   {:db             (assoc db :config config)
-   ;; TODO : only if there is token in localstorage, else it will result in an auth error
-   :dispatch-n     [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
-                                                   :format     :json
-                                                   :on-connect [:graphql/ws-authorize
-                                                                {:on-timeout [:graphql/ws-authorize-failed]}]
-                                                   :protocols  ["graphql-ws"]}]
-                    [:graphql/query {:query
-                                     "query SearchAnalysis {
+   :dispatch-n
+   [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
+                                   :format     :json
+                                   :on-connect [:graphql/ws-authorize
+                                                {:on-timeout [:graphql/ws-authorize-failed]}]
+                                   :protocols  ["graphql-ws"]}]
+    [:graphql/query {:query
+                     "query SearchAnalysis {
                                         getAuthorizedUser {
                                           id
                                           email

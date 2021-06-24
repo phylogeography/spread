@@ -2,6 +2,7 @@
   (:require [day8.re-frame.forward-events-fx]
             [mount.core :as mount]
             [re-frame.core :as re-frame]
+            [reagent-material-ui.core.css-baseline :refer [css-baseline]]
             [reagent.core :as r]
             [reagent.dom :as rdom]
             [taoensso.timbre :as log]
@@ -17,7 +18,8 @@
             [ui.splash.page]
             [ui.storage]
             [ui.utils]
-            [ui.websocket-fx :as websocket]))
+            [ui.websocket-fx :as websocket]
+            ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
 
@@ -35,7 +37,9 @@
         (as-> $ (log/info "Started" {:components $
                                      :config     config})))
     (re-frame/dispatch-sync [:general/initialize config])
-    (rdom/render [router]
+    (rdom/render [:<>
+                  [css-baseline]
+                  [router]]
                  (.getElementById js/document "app")
                  functional-compiler)))
 
