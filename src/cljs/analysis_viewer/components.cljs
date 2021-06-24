@@ -1,5 +1,6 @@
 (ns analysis-viewer.components
   (:require [re-frame.core :refer [dispatch subscribe]]
+            [reagent-material-ui.core.slider :as mui-slider]
             [reagent.core :as r]))
 
 (defn switch-button [{:keys [id]}]
@@ -48,33 +49,52 @@
                             (dispatch (conj ev-vec new-val))))
             inc-btn [:button.plus {:on-click #(set-new-val (+ val inc-buttons))} "+"]
             dec-btn [:button.plus {:on-click #(set-new-val (- val inc-buttons))} "-"]]
-       [:div.slider {:class class                     
-                     :on-mouse-move (fn [evt]
-                                      (when grab-screen-val
-                                        (let [new-coord-val (if vertical?
-                                                              (-> evt .-nativeEvent .-offsetY)
-                                                              (-> evt .-nativeEvent .-offsetX))
-                                              screen-change (- new-coord-val grab-screen-val)
-                                              new-screen-length (if vertical?
-                                                                  (- grab-screen-length screen-change)
-                                                                  (+ grab-screen-length screen-change))]
-                                          (set-new-val (screen-length->val new-screen-length)))))
-                     :on-mouse-up (fn [_]                                 
-                                    (swap! state dissoc :grab-screen-val :grab-screen-length))}        
-        [:div.outer {:class (if vertical? "vertical" "horizontal")
-                     :style {:width slider-width :height slider-height}}
-         (when inc-buttons (if vertical? inc-btn dec-btn))
-         [:svg {:width slider-width :height slider-height}
-          [:line (assoc line-props :stroke "#DEDEE8")]
-          [:line (assoc line-props
-                        :stroke "#EEBE53"
-                        :stroke-dasharray length)]
-          [:rect {:x block-x
-                  :y block-y
-                  :width 12 :height 12 :fill "white" :stroke "grey"
-                  :on-mouse-down (fn [evt]
-                                   (let [coord (if vertical?
-                                                 (-> evt .-nativeEvent .-offsetY)
-                                                 (-> evt .-nativeEvent .-offsetX))]                                     
-                                     (swap! state assoc :grab-screen-val coord :grab-screen-length screen-length)))}]]
-         (when inc-buttons (if vertical? dec-btn inc-btn))]]))))
+        [:div.slider {:class class                     
+                      :on-mouse-move (fn [evt]
+                                       (when grab-screen-val
+                                         (let [new-coord-val (if vertical?
+                                                               (-> evt .-nativeEvent .-offsetY)
+                                                               (-> evt .-nativeEvent .-offsetX))
+                                               screen-change (- new-coord-val grab-screen-val)
+                                               new-screen-length (if vertical?
+                                                                   (- grab-screen-length screen-change)
+                                                                   (+ grab-screen-length screen-change))]
+                                           (set-new-val (screen-length->val new-screen-length)))))
+                      :on-mouse-up (fn [_]                                 
+                                     (swap! state dissoc :grab-screen-val :grab-screen-length))}        
+         [:div.outer {:class (if vertical? "vertical" "horizontal")
+                      :style {:width slider-width :height slider-height}}
+          (when inc-buttons (if vertical? inc-btn dec-btn))
+          [:svg {:width slider-width :height slider-height}
+           [:line (assoc line-props :stroke "#DEDEE8")]
+           [:line (assoc line-props
+                         :stroke "#EEBE53"
+                         :stroke-dasharray length)]
+           [:rect {:x block-x
+                   :y block-y
+                   :width 12 :height 12 :fill "white" :stroke "grey"
+                   :on-mouse-down (fn [evt]
+                                    (let [coord (if vertical?
+                                                  (-> evt .-nativeEvent .-offsetY)
+                                                  (-> evt .-nativeEvent .-offsetX))]                                     
+                                      (swap! state assoc :grab-screen-val coord :grab-screen-length screen-length)))}]]
+          (when inc-buttons (if vertical? dec-btn inc-btn))]]))))
+
+(defn mui-slider
+  "Re-frame friendly vertical slider.
+  vertical? - When true will be drawed vertically
+  length - the length in pixels of the slider line
+  subs-vec - A subscription vector from where the component should read the current value
+  ev-vec - A event vector that is going to be dispatched with the new value everytime the slider changes
+  min-val, max-val - The limits of the value read using subs-vec and set by ev-vec "
+  [{:keys [vertical? subs-vec ev-vec min-val max-val class]}]  
+  (let [val @(subscribe subs-vec)]
+    [mui-slider/slider {:value val
+                        :orientation (if vertical? :vertical :horizontal)
+                        :min min-val
+                        :max max-val
+                        :value-label-display :auto                        
+                        :class-name class
+                        :step 0.001
+                        :on-change (fn [_ value]
+                                     (dispatch (conj ev-vec (js->clj value))))}]))

@@ -195,6 +195,12 @@
    (:analysis.data/filters db)))
 
 (reg-sub
+ :analysis.data/linear-attribute-filter-range
+ :<- [:analysis.data/filters]
+ (fn [filters [_ filter-id]]
+   (get-in filters [filter-id :range])))
+
+(reg-sub
  :analysis.data/attribute-filters
  :<- [:analysis.data/filters]
  :<- [:analysis/attributes]
@@ -235,7 +241,7 @@
    :poly-stroke-width "0.02"
    :line-color "#B20707"
    :line-width "0.1"
-   :text-color (if (get switch-buttons-states :labels?)
+   :text-color (if (get switch-buttons-states :map-labels?)
                  (get ui-params :map-borders-color "#079DAB")
                  :transparent)
    :text-size (:labels-size ui-params)                         

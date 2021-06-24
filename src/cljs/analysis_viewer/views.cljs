@@ -1,14 +1,14 @@
 (ns analysis-viewer.views
   "Render maps and analysis data as hiccup svg vectors.
   Also handles animations."
-  (:require [analysis-viewer.components :refer [switch-button slider]]
+  (:require [analysis-viewer.components :refer [switch-button slider mui-slider]]
             [analysis-viewer.events.maps :as events.maps]
             [analysis-viewer.svg-renderer :as svg-renderer]
             [clojure.string :as str]
             [goog.string :as gstr]
             [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [reagent.core :as reagent]
-            [reagent.dom :as rdom]
+            [reagent.dom :as rdom]            
             [shared.math-utils :as math-utils]))
 
 (def data-box-padding
@@ -138,13 +138,13 @@
         frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
     
     [:div.animation-controls
-     [slider {:inc-buttons 0.8
-              :min-val 1
-              :max-val 200
-              :length 100
-              :vertical? true
-              :subs-vec [:animation/speed]
-              :ev-vec [:animation/set-speed]}]
+     [mui-slider {:inc-buttons 0.8
+                  :class "speed-slider"
+                  :min-val 1
+                  :max-val 200
+                  :vertical? true
+                  :subs-vec [:animation/speed]
+                  :ev-vec [:animation/set-speed]}]
      (if (zero? frame-timestamp)
        [:div.loading "Loading..."]
        [:div.inner
@@ -463,34 +463,31 @@
    [attribute-color-chooser :transitions-attribute]
 
    [:label "Curvature"]
-   [slider {:inc-buttons 0.1
-            :min-val 0.1
-            :max-val 2
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :transitions-curvature]
-            :ev-vec [:parameters/select :transitions-curvature]}]
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0.1
+                :max-val 2
+                :vertical? false
+                :subs-vec [:ui/parameters :transitions-curvature]
+                :ev-vec [:parameters/select :transitions-curvature]}]
 
    [:label "Width"]
-   [slider {:inc-buttons 0.05
-            :min-val 0
-            :max-val 0.3
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :transitions-width]
-            :ev-vec [:parameters/select :transitions-width]}]])
+   [mui-slider {:inc-buttons 0.05
+                :min-val 0
+                :max-val 0.3
+                :vertical? false
+                :subs-vec [:ui/parameters :transitions-width]
+                :ev-vec [:parameters/select :transitions-width]}]])
 
 (defn continuous-polygons-settings []
   [:div.polygons-settings
    [color-chooser {:param-name :polygons-color}]
    [:label "Opacity"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 1
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :polygons-opacity]
-            :ev-vec [:parameters/select :polygons-opacity]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:ui/parameters :polygons-opacity]
+                :ev-vec [:parameters/select :polygons-opacity]}]])
 
 (defn continuous-animation-settings []  
   (let [[from-millis to-millis] @(subscribe [:analysis/date-range])
@@ -543,23 +540,13 @@
          [:span.text item]]])]))
 
 (defn linear-attribute-filter [f]  
-  (let [rfrom (reagent/atom (first (:range f)))
-        rto (reagent/atom (second (:range f)))]
-   (fn [f]
-     [:div.linear-attribute-filter
-      [:div (str (:range f) " of " (:range (:attribute f)))]
-      ;; TODO: change this for range sliders
-      [:input {:type :text
-               :value @rfrom
-               :on-change #(reset! rfrom (-> % .-target .-value))}]
-      [:input {:type :text
-               :value @rto
-               :on-change #(reset! rto (-> % .-target .-value))}]
-      [:i.zmdi.zmdi-refresh {:style {:font-size "15px"}
-                             :on-click (fn [_]
-                                         (dispatch [:filters/set-linear-attribute-filter-range
-                                                    (:filter/id f)
-                                                    [(js/parseFloat @rfrom) (js/parseFloat @rto)]]))}]])))
+  [:div.linear-attribute-filter
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:analysis.data/linear-attribute-filter-range (:filter/id f)]
+                :ev-vec [:filters/set-linear-attribute-filter-range (:filter/id f)]}]])
 
 (defn continuous-attributes-filters []  
   (let [attributes (subscribe [:analysis/attributes])
@@ -634,38 +621,35 @@
    [color-chooser {:param-name :circles-color}]
    [attribute-color-chooser :circles-attribute]
    [:label "Size"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 1
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :circles-radius]
-            :ev-vec [:parameters/select :circles-radius]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:ui/parameters :circles-radius]
+                :ev-vec [:parameters/select :circles-radius]}]])
 
 (defn discrete-nodes-settings []
   [:div.nodes-settings
    [color-chooser {:param-name :nodes-color}]
    [attribute-color-chooser :nodes-attribute]
    [:label "Size"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 1
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :nodes-size]
-            :ev-vec [:parameters/select :nodes-size]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:ui/parameters :nodes-size]
+                :ev-vec [:parameters/select :nodes-size]}]])
 
 (defn discrete-labels-settings []
   [:div.labels-settings
    [color-chooser {:param-name :labels-color}]
    [:label "Size"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 2
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :labels-size]
-            :ev-vec [:parameters/select :labels-size]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 2
+                :vertical? false
+                :subs-vec [:ui/parameters :labels-size]
+                :ev-vec [:parameters/select :labels-size]}]])
 
 (defn discrete-tree-side-bar []
   [:div.tabs
