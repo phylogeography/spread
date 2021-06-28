@@ -112,24 +112,25 @@
                              (map (fn [l] [(:id l) l]))
                              (into {}))
         points-index (build-points-index (concat points counts))        
-        point-coordinate (fn [point-id]
-                           (->> (get points-index point-id)
-                                :locationId
-                                (get locations-index)
-                                :coordinate))
+        point-location (fn [point-id]
+                         (->> (get points-index point-id)
+                              :locationId
+                              (get locations-index)))
         nodes-objects (->> points                           
                            (map (fn [{:keys [id attributes] :as point}]
-                                  (let [coordinate (point-coordinate id)]
+                                  (let [{:keys [coordinate id]} (point-location id)]
                                     (cond-> (merge
                                              {:type :node
                                               :coord (calc-proj-coord coordinate)                                      
-                                              :attrs attributes}
+                                              :attrs attributes
+                                              :label id}
                                              (calc-show-percs point)))))))
         circles-objects (->> counts
                              (map (fn [{:keys [id attributes] :as point}]
-                                    (let [coordinate (point-coordinate id)]
+                                    (let [{:keys [coordinate id]} (point-location id)]
                                       (cond-> (merge
                                                {:type :circle
+                                                :label id
                                                 :coord (calc-proj-coord coordinate)                                      
                                                 :attrs attributes
                                                 :count-attr (get attributes :count)}
@@ -137,11 +138,15 @@
         transitions-objects (->> lines
                                  (map (fn [{:keys [startPointId endPointId attributes] :as line}]
                                         (let [start-point (get points-index startPointId)
-                                              end-point (get points-index endPointId)]
+                                              end-point (get points-index endPointId)
+                                              start-loc (point-location (:id start-point))
+                                              end-loc   (point-location (:id end-point))]
                                           (merge
                                            {:type :transition
-                                            :from-coord (calc-proj-coord (point-coordinate (:id start-point)))
-                                            :to-coord (calc-proj-coord (point-coordinate (:id end-point)))
+                                            :from-coord (calc-proj-coord (:coordinate start-loc))
+                                            :to-coord (calc-proj-coord (:coordinate end-loc))
+                                            :from-label (:id start-loc)
+                                            :to-label   (:id end-loc)
                                             :attrs attributes}
                                            (calc-show-percs line))))))
         objects (concat transitions-objects nodes-objects circles-objects)]

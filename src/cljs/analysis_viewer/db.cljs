@@ -175,5 +175,5 @@
                    :circles-color "#EEBE53"
                    :nodes-color "#B20707"
                    :nodes-size 0.1
-                   :labels-color "#ECEFF8"
+                   :labels-color "#a5387b"
                    :labels-size 0.5}})
