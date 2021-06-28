@@ -231,6 +231,13 @@
       (assoc db :animation/frame-timestamp crop-high)
       (assoc db :animation/frame-timestamp next-ts))))
 
+(defn animation-reset [{:keys [animation/crop] :as db} [_ dir]]  
+  (let [[crop-low crop-high] crop
+        ts (case dir
+             :start crop-low
+             :end   crop-high)]
+    (assoc db :animation/frame-timestamp ts)))
+
 (defn animation-toggle-play-stop [{:keys [db]} _]
   (if (= (:animation/state db) :play)
     {:db (assoc db :animation/state :stop)

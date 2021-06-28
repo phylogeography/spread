@@ -151,10 +151,12 @@
        [:div.inner
         [:div.speed (gstr/format "Speed: %d days/sec" speed)]
         [:div.buttons
-         [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/prev])} ""]    
+         [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/reset :start])} ""]
+         [:i.zmdi.zmdi-caret-left {:on-click #(dispatch [:animation/prev])} ""]
          [:i.zmdi {:on-click #(dispatch [:animation/toggle-play-stop])
                    :class (if playing? "zmdi-pause" "zmdi-play")}]
-         [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/next])} ""]]
+         [:i.zmdi.zmdi-caret-right {:on-click #(dispatch [:animation/next])} ""]
+         [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/reset :end])} ""]]
         [:div.timeline {:width "100%" :height "100%"}
          [:div.crop-box {:style {:left crop-left 
                                  :width crop-width}}
