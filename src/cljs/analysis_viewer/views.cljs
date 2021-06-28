@@ -17,7 +17,7 @@
 
 (def hl-color "yellow")
 
-(defn svg-node-object [{:keys [coord show-start show-end id hl?]} _ time-perc params]
+(defn svg-node-object [{:keys [coord show-start show-end id hl? label]} _ time-perc params]
   (let [{:keys [nodes? nodes-radius nodes-color]} params
         show? (and (<= show-start time-perc show-end)
                    nodes?)
@@ -216,6 +216,44 @@
           time
           params])])))
 
+(defn text-group []
+  (let [time @(re-frame/subscribe [:animation/percentage])
+        data-objects (vals @(re-frame/subscribe [:analysis/colored-and-filtered-data]))
+        ui-params @(subscribe [:ui/parameters])
+        switch-buttons @(subscribe [:switch-buttons/states])
+        text-color (if (get switch-buttons :labels?)
+                     (get ui-params :labels-color "#079DAB")
+                     :transparent)
+        font-size (str (:labels-size ui-params) "px")]
+    
+    [:g {}
+     (for [{:keys [show-start show-end] :as obj} data-objects]
+       ^{:key (:id obj)}
+       [:g {:style {:display (if (<= show-start time show-end) :block :none)}}
+        (if (= :transition (:type obj))
+          ;; it is a transition add labels for src and dst         
+          (let [[x1 y1] (:from-coord obj)
+                [x2 y2] (:to-coord obj)]
+            [:g {}
+             [:text {:x x1 :y y1
+                     :font-size font-size
+                     :fill text-color
+                     :text-anchor "middle"}
+              (:from-label obj)]
+             [:text {:x x2 :y y2
+                     :font-size font-size
+                     :fill text-color
+                     :text-anchor "middle"}
+              (:to-label obj)]])
+
+          ;; other kinds of objects only contains one label
+          (let [[x y] (:coord obj)]
+            [:text {:x x :y y
+                    :font-size font-size
+                    :fill text-color
+                    :text-anchor "middle"}
+             (:label obj)]))])]))
+
 (defn object-attributes-popup [selected-obj]
   (let [[x y] @(re-frame/subscribe [:map/popup-coord])]
     [:div.pop-up.selected-object-popup
@@ -369,7 +407,8 @@
                                         scale scale)}            
             [:svg {:view-box "0 0 360 180" :preserve-aspect-ratio "xMinYMin"}
              (when show-map? [map-group])
-             [data-group]]]
+             [data-group]
+             [text-group]]]
 
            (when zoom-rectangle
              (let [[x1 y1] (:origin zoom-rectangle)
