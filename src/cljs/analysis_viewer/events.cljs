@@ -47,6 +47,7 @@
 
 (reg-event-db :animation/prev [sc] events.maps/animation-prev)
 (reg-event-db :animation/next [sc] events.maps/animation-next)
+(reg-event-db :animation/reset [sc] events.maps/animation-reset)
 (reg-event-fx :animation/toggle-play-stop [sc] events.maps/animation-toggle-play-stop)
 (reg-event-db :animation/set-crop [sc] events.maps/animation-set-crop)
 (reg-event-db :animation/set-speed [sc] events.maps/animation-set-speed)
