@@ -33,11 +33,12 @@
                        hl-color
                        nodes-color)}]]))
 
-(defn svg-circle-object [{:keys [coord show-start show-end count-attr id hl?]} _ time-perc params]
+(defn svg-circle-object [{:keys [coord show-start show-end count-attr id hl? attr-color]} _ time-perc params]
   (let [{:keys [circles? circles-radius circles-color]} params
         show? (and (<= show-start time-perc show-end)
                    circles?)
-        [x1 y1] coord]
+        [x1 y1] coord
+        effective-color (or attr-color circles-color)]
     
     [:g {:style {:display (if show? :block :none)}}
      [:circle {:id id
@@ -47,7 +48,7 @@
                :opacity 0.2
                :fill (if hl?
                        hl-color
-                       circles-color)}]]))
+                       effective-color)}]]))
 
 (defn svg-polygon-object [{:keys [coords show-start show-end id hl?]} _ time-perc params]
   (let [{:keys [polygons? polygons-color polygons-opacity]} params
