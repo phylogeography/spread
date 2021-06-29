@@ -1,7 +1,8 @@
 (ns analysis-viewer.events
   (:require [analysis-viewer.db :as db]
+            [analysis-viewer.events.filters :as events.filters]
             [analysis-viewer.events.maps :as events.maps]
-            [analysis-viewer.events.ui :as events.ui]
+            [analysis-viewer.events.ui :as events.ui]            
             [clojure.spec.alpha :as s]
             [expound.alpha :as expound]
             [re-frame.core :refer [reg-event-db reg-event-fx] :as re-frame]))
@@ -49,6 +50,12 @@
 (reg-event-fx :animation/toggle-play-stop [sc] events.maps/animation-toggle-play-stop)
 (reg-event-db :animation/set-crop [sc] events.maps/animation-set-crop)
 (reg-event-db :animation/set-speed [sc] events.maps/animation-set-speed)
+
+(reg-event-db :filters/add-attribute-filter [sc] events.filters/add-attribute-filter)
+(reg-event-db :filters/rm-attribute-filter [sc] events.filters/rm-attribute-filter)
+(reg-event-db :filters/set-linear-attribute-filter-range [sc] events.filters/set-linear-attribute-filter-range)
+(reg-event-db :filters/add-ordinal-attribute-filter-item [sc] events.filters/add-ordinal-attribute-filter-item)
+(reg-event-db :filters/rm-ordinal-attribute-filter-item [sc] events.filters/rm-ordinal-attribute-filter-item)
 
 (reg-event-fx :ticker/tick [] events.maps/ticker-tick)
 

@@ -1,14 +1,14 @@
 (ns analysis-viewer.views
   "Render maps and analysis data as hiccup svg vectors.
   Also handles animations."
-  (:require [analysis-viewer.components :refer [switch-button slider]]
+  (:require [analysis-viewer.components :refer [switch-button slider mui-slider]]
             [analysis-viewer.events.maps :as events.maps]
             [analysis-viewer.svg-renderer :as svg-renderer]
             [clojure.string :as str]
             [goog.string :as gstr]
             [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [reagent.core :as reagent]
-            [reagent.dom :as rdom]
+            [reagent.dom :as rdom]            
             [shared.math-utils :as math-utils]))
 
 (def data-box-padding
@@ -138,13 +138,13 @@
         frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
     
     [:div.animation-controls
-     [slider {:inc-buttons 0.8
-              :min-val 1
-              :max-val 200
-              :length 100
-              :vertical? true
-              :subs-vec [:animation/speed]
-              :ev-vec [:animation/set-speed]}]
+     [mui-slider {:inc-buttons 0.8
+                  :class "speed-slider"
+                  :min-val 1
+                  :max-val 200
+                  :vertical? true
+                  :subs-vec [:animation/speed]
+                  :ev-vec [:animation/set-speed]}]
      (if (zero? frame-timestamp)
        [:div.loading "Loading..."]
        [:div.inner
@@ -195,7 +195,7 @@
 
 (defn data-group []
   (let [time @(re-frame/subscribe [:animation/percentage])
-        analysis-data  (vals @(re-frame/subscribe [:analysis/colored-data]))
+        analysis-data  (vals @(re-frame/subscribe [:analysis/colored-and-filtered-data]))
         {:keys [scale]} @(re-frame/subscribe [:map/state])
         params (merge @(subscribe [:ui/parameters])
                       @(subscribe [:switch-buttons/states]))
@@ -463,34 +463,31 @@
    [attribute-color-chooser :transitions-attribute]
 
    [:label "Curvature"]
-   [slider {:inc-buttons 0.1
-            :min-val 0.1
-            :max-val 2
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :transitions-curvature]
-            :ev-vec [:parameters/select :transitions-curvature]}]
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0.1
+                :max-val 2
+                :vertical? false
+                :subs-vec [:ui/parameters :transitions-curvature]
+                :ev-vec [:parameters/select :transitions-curvature]}]
 
    [:label "Width"]
-   [slider {:inc-buttons 0.05
-            :min-val 0
-            :max-val 0.3
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :transitions-width]
-            :ev-vec [:parameters/select :transitions-width]}]])
+   [mui-slider {:inc-buttons 0.05
+                :min-val 0
+                :max-val 0.3
+                :vertical? false
+                :subs-vec [:ui/parameters :transitions-width]
+                :ev-vec [:parameters/select :transitions-width]}]])
 
 (defn continuous-polygons-settings []
   [:div.polygons-settings
    [color-chooser {:param-name :polygons-color}]
    [:label "Opacity"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 1
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :polygons-opacity]
-            :ev-vec [:parameters/select :polygons-opacity]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:ui/parameters :polygons-opacity]
+                :ev-vec [:parameters/select :polygons-opacity]}]])
 
 (defn continuous-animation-settings []  
   (let [[from-millis to-millis] @(subscribe [:analysis/date-range])
@@ -524,6 +521,57 @@
               :max max-date-str
               :value crop-max-date-str}]]))
 
+(defn ordinal-attribute-filter [f]  
+  (let [checked-set (:filter-set f)]
+    [:div.ordinal-attribute-filter
+     (for [item (:domain (:attribute f))]
+       ^{:key item}
+       [:div
+        [:label
+         [:input {:type :checkbox
+                  :name item
+                  :on-change (fn [evt]
+                               (let [checked? (-> evt .-target .-checked)
+                                     item (-> evt .-target .-name)]                                 
+                                 (if checked?
+                                   (dispatch [:filters/add-ordinal-attribute-filter-item (:filter/id f) item])
+                                   (dispatch [:filters/rm-ordinal-attribute-filter-item  (:filter/id f) item]))))
+                  :checked (boolean (checked-set item))}]
+         [:span.text item]]])]))
+
+(defn linear-attribute-filter [f]  
+  [:div.linear-attribute-filter
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:analysis.data/linear-attribute-filter-range (:filter/id f)]
+                :ev-vec [:filters/set-linear-attribute-filter-range (:filter/id f)]}]])
+
+(defn continuous-attributes-filters []  
+  (let [attributes (subscribe [:analysis/attributes])
+        filters (subscribe [:analysis.data/attribute-filters])
+        selected-attr (reagent/atom (first (keys @attributes)))]    
+    (fn []
+      [:div.attribute-filters
+      [:div.selection
+       [:select.attribute {:on-change #(reset! selected-attr (-> % .-target .-value))
+                           :value @selected-attr}
+        (for [a (keys @attributes)]
+          ^{:key (str a)}
+          [:option {:value a} a])]
+       [:i.zmdi.zmdi-plus-circle {:on-click #(dispatch [:filters/add-attribute-filter @selected-attr])}]]
+      
+      (for [f (vals @filters)]
+        ^{:key (:filter/id f)}
+        [:div.filter
+         [:div.top-bar
+          [:span (:attribute/id f)]
+          [:i.zmdi.zmdi-close-circle {:on-click #(dispatch [:filters/rm-attribute-filter (:filter/id f)])}]]
+         (case (:filter/type f)
+           :linear-filter  [linear-attribute-filter f] 
+           :ordinal-filter [ordinal-attribute-filter f])])])))
+
 (defn continuous-tree-side-bar []
   [:div.tabs
    [collapsible-tabs {:title "Settings"
@@ -545,7 +593,9 @@
                                 :child [continuous-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
-                      :childs []}]])
+                      :childs [{:title "Attributes"
+                                :id :attributes-range-filters
+                                :child [continuous-attributes-filters]}]}]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Discrete tree settings ;;
@@ -564,44 +614,42 @@
 (def discrete-tree-map-settings continuous-tree-map-settings)
 (def discrete-transitions-settings continuous-transitions-settings)
 (def discrete-animation-settings continuous-animation-settings)
+(def discrete-attributes-filters continuous-attributes-filters)
 
 (defn discrete-circles-settings []
   [:div.circles-settings
    [color-chooser {:param-name :circles-color}]
    [attribute-color-chooser :circles-attribute]
    [:label "Size"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 1
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :circles-radius]
-            :ev-vec [:parameters/select :circles-radius]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:ui/parameters :circles-radius]
+                :ev-vec [:parameters/select :circles-radius]}]])
 
 (defn discrete-nodes-settings []
   [:div.nodes-settings
    [color-chooser {:param-name :nodes-color}]
    [attribute-color-chooser :nodes-attribute]
    [:label "Size"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 1
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :nodes-size]
-            :ev-vec [:parameters/select :nodes-size]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 1
+                :vertical? false
+                :subs-vec [:ui/parameters :nodes-size]
+                :ev-vec [:parameters/select :nodes-size]}]])
 
 (defn discrete-labels-settings []
   [:div.labels-settings
    [color-chooser {:param-name :labels-color}]
    [:label "Size"]
-   [slider {:inc-buttons 0.1
-            :min-val 0
-            :max-val 2
-            :length 140
-            :vertical? false
-            :subs-vec [:ui/parameters :labels-size]
-            :ev-vec [:parameters/select :labels-size]}]])
+   [mui-slider {:inc-buttons 0.1
+                :min-val 0
+                :max-val 2
+                :vertical? false
+                :subs-vec [:ui/parameters :labels-size]
+                :ev-vec [:parameters/select :labels-size]}]])
 
 (defn discrete-tree-side-bar []
   [:div.tabs
@@ -630,7 +678,9 @@
                                 :child [discrete-animation-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
-                      :childs []}]])
+                      :childs [{:title "Attributes"
+                                :id :attributes-range-filters
+                                :child [discrete-attributes-filters]}]}]])
 
 (defn bayes-factor-side-bar []
   [:div.tabs
