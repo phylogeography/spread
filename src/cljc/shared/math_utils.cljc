@@ -166,3 +166,23 @@
   (fn [x]
     (let [p (calc-perc orig-from orig-to x)]
       (+ (* p (- dest-to dest-from)) dest-from))))
+
+(defn bounding-box [coords]
+  (reduce (fn [r [x y]]
+            (-> r
+                (update :min-x #(min % x))
+                (update :min-y #(min % y))
+                (update :max-x #(max % x))
+                (update :max-y #(max % y))))
+          {:min-x 360
+           :min-y 180
+           :max-x 0
+           :max-y 0}
+          coords))
+
+(defn box-overlap? [box-1 box-2]
+  (let [overlap-1d? (fn [a1 a2 b1 b2]
+                     (and (>= a2 b1)
+                          (>= b2 a1)))]
+    (and (overlap-1d? (:min-x box-1) (:max-x box-1) (:min-x box-2) (:max-x box-2))
+         (overlap-1d? (:min-y box-1) (:max-y box-1) (:min-y box-2) (:max-y box-2))))) 

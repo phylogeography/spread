@@ -5,7 +5,8 @@
   - geojson->svg
   "
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [shared.math-utils :as math-utils]))
 
 (def ^:dynamic *coord-transform-fn* identity)
 
@@ -30,26 +31,13 @@
 
 (defn geo-json-bounding-box
 
-  "Calculates the bounding box (in long,lat) for any geo-json map."
+  "Calculates the bounding box in proj-coord for any geo-json map."
   
   [geo-json]
 
-  (let [coords (all-coords geo-json)]
-    (loop [min-lat 90
-           min-long 180
-           max-lat -90
-           max-long -180
-           [[lon lat] & rcoords] coords]
-      (if lat
-        (recur (min min-lat lat)
-               (min min-long lon)
-               (max max-lat lat)
-               (max max-long lon)
-               rcoords)
-        {:min-lat min-lat
-         :min-long min-long
-         :max-lat max-lat
-         :max-long max-long}))))
+  (let [coords (->> (all-coords geo-json)
+                    (map *coord-transform-fn*))]
+    (math-utils/bounding-box coords)))
 
 (s/def ::geojson any?)
 (s/def :html/color string?)
@@ -122,20 +110,25 @@
                               (svg-line (*coord-transform-fn* coor) opts))))]
     (into [:g {} all-lines])))
 
-(defn text-for-geo-json [geo-json text opts]
-  (let [{:keys [min-long min-lat max-long max-lat]} (geo-json-bounding-box geo-json)
-        [text-x text-y] (*coord-transform-fn* [(+ (/ (Math/abs (- max-long min-long)) 2) min-long)
-                                               (+ (/ (Math/abs (- max-lat min-lat)) 2) min-lat)])]
+(defn text-for-box [box text opts]
+  (let [{:keys [min-x min-y max-x max-y]} box
+        [text-x text-y] [(+ (/ (Math/abs (- max-x min-x)) 2) min-x)
+                         (+ (/ (Math/abs (- max-y min-y)) 2) min-y)]]
     [:text {:x text-x :y text-y
             :font-size (str (:text-size opts) "px")
             :fill (:text-color opts)
             :text-anchor "middle"} text]))
 
 (defmethod geojson->svg :Feature [{:keys [geometry properties]} opts]
-  (when geometry
-    (let [feature-text (:name properties)]
-      (into [:g {}] (cond-> [(geojson->svg geometry opts)]
-                      feature-text (into [(text-for-geo-json geometry feature-text opts)]))))))
+  (when geometry    
+    (let [proj-box (geo-json-bounding-box geometry)
+          feature-text (:name properties)]
+      
+      (when (or (nil? (:clip-box opts))
+                (math-utils/box-overlap? (:clip-box opts)
+                                         proj-box))
+        (into [:g {}] (cond-> [(geojson->svg geometry opts)]
+                        feature-text (into [(text-for-box proj-box feature-text opts)])))))))
 
 (defmethod geojson->svg :FeatureCollection [{:keys [features]} opts]
   (into [:g {}] (mapv (fn [feat] (geojson->svg feat opts)) features)))
