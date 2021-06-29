@@ -126,21 +126,24 @@
       data
       (utils/filter-map-vals data attr-filter))))
 
+(defn colored-and-filtered-data [data params filters]
+  (println "Total data objects " (count data))
+  (let [filtered-data (filter-data data (vals filters))
+        _ (println "Filtered data objects " (count filtered-data))
+        final-data (cond
+                     (:transitions-attribute params) (color-data-objects filtered-data :transition (get params :transitions-attribute))
+                     (:circles-attribute params)     (color-data-objects filtered-data :circle (get params :circles-attribute))
+                     (:nodes-attribute params)       (color-data-objects filtered-data :node (get params :nodes-attribute))
+                     :else filtered-data)]
+    final-data))
+
 (reg-sub
  :analysis/colored-and-filtered-data
  :<- [:analysis/data]
  :<- [:ui/parameters]
  :<- [:analysis.data/filters]
  (fn [[data params filters] _]
-   (println "Total data objects " (count data))
-   (let [filtered-data (filter-data data (vals filters))
-         _ (println "Filtered data objects " (count filtered-data))
-         final-data (cond
-                      (:transitions-attribute params) (color-data-objects filtered-data :transition (get params :transitions-attribute))
-                      (:circles-attribute params)     (color-data-objects filtered-data :circle (get params :circles-attribute))
-                      (:nodes-attribute params)       (color-data-objects filtered-data :node (get params :nodes-attribute))
-                      :else filtered-data)]
-     final-data)))
+   (colored-and-filtered-data data params filters)))
 
 (reg-sub
  :analysis.data/type

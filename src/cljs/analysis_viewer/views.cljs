@@ -17,21 +17,30 @@
 
 (def hl-color "yellow")
 
-(defn svg-node-object [{:keys [coord show-start show-end id hl? label]} _ time-perc params]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ATTENTION!! This functions (svg-transition-object, svg-node-object, etc)                               ;;
+;; should never be converted to reagent components, since they are also used by the svg renderer system   ;;
+;; which doesn't understand components                                                                    ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn svg-node-object [{:keys [coord show-start show-end id hl?]} _ time-perc params]
   (let [{:keys [nodes? nodes-radius nodes-color]} params
         show? (and (<= show-start time-perc show-end)
                    nodes?)
         [x1 y1] coord]
+
     
-    [:g {:style {:display (if show? :block :none)}}
-     [:circle {:id id
-               :cx x1
-               :cy y1
-               :r (* nodes-radius 0.5)
-               :opacity 0.2
-               :fill (if hl?
-                       hl-color
-                       nodes-color)}]]))
+    (if-not show?
+      [:g]
+      [:g {}     
+       [:circle {:id id
+                 :cx x1
+                 :cy y1
+                 :r (* nodes-radius 0.5)
+                 :opacity 0.2
+                 :fill (if hl?
+                         hl-color
+                         nodes-color)}]])))
 
 (defn svg-circle-object [{:keys [coord show-start show-end count-attr id hl? attr-color]} _ time-perc params]
   (let [{:keys [circles? circles-radius circles-color]} params
@@ -40,32 +49,36 @@
         [x1 y1] coord
         effective-color (or attr-color circles-color)]
     
-    [:g {:style {:display (if show? :block :none)}}
-     [:circle {:id id
-               :cx x1
-               :cy y1
-               :r (* circles-radius count-attr)
-               :opacity 0.2
-               :fill (if hl?
-                       hl-color
-                       effective-color)}]]))
+    (if-not show?
+      [:g]
+      [:g {}
+      [:circle {:id id
+                :cx x1
+                :cy y1
+                :r (* circles-radius count-attr)
+                :opacity 0.2
+                :fill (if hl?
+                        hl-color
+                        effective-color)}]])))
 
 (defn svg-polygon-object [{:keys [coords show-start show-end id hl?]} _ time-perc params]
   (let [{:keys [polygons? polygons-color polygons-opacity]} params
         show? (and (<= show-start time-perc show-end)
                    polygons?)]
     
-    [:g {:style {:display (if show? :block :none)}}
-     [:polygon
-      {:id id
-       :points (->> coords
-                    (map (fn [coord] (str/join " " coord)))
-                    (str/join ","))
-       
-       :fill (if hl?
-               hl-color
-               polygons-color)
-       :opacity polygons-opacity}]]))
+    (if-not show?
+      [:g]
+      [:g {:style {:display (if show? :block :none)}}
+      [:polygon
+       {:id id
+        :points (->> coords
+                     (map (fn [coord] (str/join " " coord)))
+                     (str/join ","))
+        
+        :fill (if hl?
+                hl-color
+                polygons-color)
+        :opacity polygons-opacity}]])))
 
 (defn svg-transition-object [{:keys [from-coord to-coord show-start show-end id attr-color hl?]} _ time-perc params]
   (let [{:keys [transitions? transitions-color transitions-width transitions-curvature missiles?]} params
@@ -88,21 +101,23 @@
                          :fill :transparent}
         missile-size 0.3]
     
-    [:g {:style {:display (if show? :block :none)}}
-     [:circle {:cx x1 :cy y1 :r 0.05 :fill effective-color}] 
-     [:circle {:cx x2 :cy y2 :r 0.05 :fill effective-color}]
-     [:path (if clip-perc
+    (if-not show?
+      [:g]
+      [:g {:style {:display (if show? :block :none)}}
+       [:circle {:cx x1 :cy y1 :r 0.05 :fill effective-color}] 
+       [:circle {:cx x2 :cy y2 :r 0.05 :fill effective-color}]
+       [:path (if clip-perc
 
-              ;; animated dashed curves
-              (let [c-length (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2)]
-                (assoc curve-path-info
-                       :stroke-dasharray (if missiles?
-                                           [(* missile-size c-length) (* (- 1 missile-size) c-length)]
-                                           c-length) 
-                       :stroke-dashoffset (- c-length (* c-length clip-perc))))
- 
-              ;; normal curves
-              curve-path-info)]]))
+                ;; animated dashed curves
+                (let [c-length (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2)]
+                  (assoc curve-path-info
+                         :stroke-dasharray (if missiles?
+                                             [(* missile-size c-length) (* (- 1 missile-size) c-length)]
+                                             c-length) 
+                         :stroke-dashoffset (- c-length (* c-length clip-perc))))
+                
+                ;; normal curves
+                curve-path-info)]])))
 
 (defn map-primitive-object [{:keys [type] :as primitive-object} scale time params]
   (case type
@@ -110,6 +125,47 @@
     :node (svg-node-object primitive-object scale time params)
     :circle (svg-circle-object primitive-object scale time params)
     :polygon (svg-polygon-object primitive-object scale time params)))
+
+(defn text-group [data-objects time params]
+  (let [text-color (if (get params :labels?)
+                     (get params :labels-color "#079DAB")
+                     :transparent)
+        font-size (str (:labels-size params) "px")]    
+    [:g {}
+     (for [{:keys [show-start show-end] :as obj} data-objects]
+       
+       (let [show? (<= show-start time show-end)]         
+         (if-not show?
+           [:g {:key (:id obj)}]
+           [:g {:key (:id obj)}
+           (if (= :transition (:type obj))
+             ;; it is a transition add labels for src and dst         
+             (let [[x1 y1] (:from-coord obj)
+                   [x2 y2] (:to-coord obj)]
+               [:g {}
+                [:text {:x x1 :y y1
+                        :font-size font-size
+                        :fill text-color
+                        :text-anchor "middle"}
+                 (:from-label obj)]
+                [:text {:x x2 :y y2
+                        :font-size font-size
+                        :fill text-color
+                        :text-anchor "middle"}
+                 (:to-label obj)]])
+
+             ;; other kinds of objects only contains one label
+             (let [[x y] (:coord obj)]
+               [:text {:x x :y y
+                       :font-size font-size
+                       :fill text-color
+                       :text-anchor "middle"}
+                (:label obj)]))])))]))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Reagent components start here ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (def left-button  0)
 (def wheel-button 1)
@@ -218,43 +274,12 @@
           time
           params])])))
 
-(defn text-group []
+(defn text-group-component []
   (let [time @(re-frame/subscribe [:animation/percentage])
         data-objects (vals @(re-frame/subscribe [:analysis/colored-and-filtered-data]))
         ui-params @(subscribe [:ui/parameters])
-        switch-buttons @(subscribe [:switch-buttons/states])
-        text-color (if (get switch-buttons :labels?)
-                     (get ui-params :labels-color "#079DAB")
-                     :transparent)
-        font-size (str (:labels-size ui-params) "px")]
-    
-    [:g {}
-     (for [{:keys [show-start show-end] :as obj} data-objects]
-       ^{:key (:id obj)}
-       [:g {:style {:display (if (<= show-start time show-end) :block :none)}}
-        (if (= :transition (:type obj))
-          ;; it is a transition add labels for src and dst         
-          (let [[x1 y1] (:from-coord obj)
-                [x2 y2] (:to-coord obj)]
-            [:g {}
-             [:text {:x x1 :y y1
-                     :font-size font-size
-                     :fill text-color
-                     :text-anchor "middle"}
-              (:from-label obj)]
-             [:text {:x x2 :y y2
-                     :font-size font-size
-                     :fill text-color
-                     :text-anchor "middle"}
-              (:to-label obj)]])
-
-          ;; other kinds of objects only contains one label
-          (let [[x y] (:coord obj)]
-            [:text {:x x :y y
-                    :font-size font-size
-                    :fill text-color
-                    :text-anchor "middle"}
-             (:label obj)]))])]))
+        switch-buttons @(subscribe [:switch-buttons/states])]
+    [text-group data-objects time (merge ui-params switch-buttons)]))
 
 (defn object-attributes-popup [selected-obj]
   (let [[x y] @(re-frame/subscribe [:map/popup-coord])]
@@ -393,12 +418,6 @@
                  :height "100%"
                  :id "map-and-data"}
 
-           ;; gradients definitions
-           [:defs {}
-            [:linearGradient {:id "grad"}
-             [:stop {:offset "0%" :stop-color "#DD0808"}]
-             [:stop {:offset "100%" :stop-color "#B20707"}]]]
-
            ;; map background
            [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill "#ECEFF8"}]
 
@@ -410,7 +429,7 @@
             [:svg {:view-box "0 0 360 180" :preserve-aspect-ratio "xMinYMin"}
              (when show-map? [map-group])
              [data-group]
-             [text-group]]]
+             [text-group-component]]]
 
            (when zoom-rectangle
              (let [[x1 y1] (:origin zoom-rectangle)
