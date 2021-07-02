@@ -1,7 +1,6 @@
 (ns analysis-viewer.fxs
   (:require-macros [hiccups.core :as hiccups :refer [html]])
-  (:require [analysis-viewer.map-emitter :as map-emitter]
-            [analysis-viewer.svg-renderer :as svg-renderer]            
+  (:require [analysis-viewer.svg-renderer :as svg-renderer]            
             [analysis-viewer.views :as views]
             [goog.string :as gstr]
             [hiccups.runtime :as hiccupsrt]
