@@ -107,6 +107,14 @@
   [(+ long 180) 
    (+ (* -1 lat) 90)])
 
+(defn map-box->proj-box [{:keys [min-x min-y max-x max-y]}]  
+  (let [[x1 y1] (map-coord->proj-coord [min-x min-y])
+        [x2 y2] (map-coord->proj-coord [max-x max-y])]
+    {:min-x (min x1 x2)
+     :min-y (min y1 y2)
+     :max-x (max x1 x2)
+     :max-y (max y1 y2)}))
+
 (defn screen-coord->proj-coord
   "Convert from:
        - screen-coord: [x,y]      coordinates in screen pixels, 0 <= x <= map-width, 0 <= y <= map-height

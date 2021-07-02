@@ -5,7 +5,8 @@
             [analysis-viewer.map-emitter :as map-emitter]
             [analysis-viewer.subs :as subs]
             [clojure.string :as string]
-            [shared.math-utils :as math-utils]))
+            [shared.math-utils :as math-utils]
+            [shared.output-data :as output-data]))
 
 ;; screen-coord: [x,y]      coordinates in screen pixels, 0 <= x <= map-width, 0 <= y <= map-height
 ;; proj-coord:   [x,y]      coordinates in map projection coords, 0 <= x <= 360, 0 <= y <= 180
@@ -59,11 +60,12 @@
                         :ContinuousTree (map-emitter/continuous-tree-output->map-data data)
                         :DiscreteTree   (map-emitter/discrete-tree-output->map-data data)
                         :BayesFactor    (map-emitter/bayes-output->map-data data))
-        {:keys [min-x min-y max-x max-y]} (map-emitter/data-box (vals analysis-data))
-        padding 2]
-
+        {:keys [min-x min-y max-x max-y] :as data-box} (-> (output-data/data-bounding-box data)
+                                                           (math-utils/map-box->proj-box))
+        padding 2]    
     {:db (cond-> db
            true (assoc :analysis/data analysis-data)
+           true (assoc :analysis/data-box data-box)
            true (assoc :analysis.data/type analysis-type)
            true (assoc :analysis/attributes (build-attributes (into (:pointAttributes data)
                                                                     (:lineAttributes data))))
@@ -185,6 +187,7 @@
                                           :analysis-data (vals (subs/colored-and-filtered-data (:analysis/data db)
                                                                                                (:ui/parameters db)
                                                                                                (:analysis.data/filters db)))
+                                          :data-box (:analysis/data-box db)
                                           :time (let [[df dt] (:analysis/date-range db)]
                                                   (math-utils/calc-perc df dt (:animation/frame-timestamp db)))
                                           :params (merge ui-params
