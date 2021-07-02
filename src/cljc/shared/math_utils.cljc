@@ -9,6 +9,15 @@
 (def pow  #?(:clj  #(Math/pow    %1 %2)
              :cljs #(js/Math.pow %1 %2)))
 
+(def parse-int #?(:clj  #(Integer/parseInt %1 %2)
+                  :cljs #(js/parseInt %1 %2)))
+
+(def min-int #?(:clj Integer/MIN_VALUE
+                :cljs js/Number.MIN_SAFE_INTEGER))
+
+(def max-int #?(:clj Integer/MAX_VALUE
+                :cljs js/Number.MAX_SAFE_INTEGER))
+
 (defn quad-curve-length
   "Calculates the length of a quadratic curve given three points using the algorithm in
   https://web.archive.org/web/20131204200129/http://www.malczak.info:80/blog/quadratic-bezier-curve-length/
@@ -133,7 +142,7 @@
 
 (defn normalize-color-str [color-str]
   (let [[_ r g b] (re-find #"#(..)(..)(..)" color-str)
-        norm (fn [hex-str] (/ (js/parseInt hex-str 16) 255))]
+        norm (fn [hex-str] (/ (parse-int hex-str 16) 255))]
     [(norm r) (norm g) (norm b)]))
 
 (defn to-hex [n]
@@ -174,10 +183,10 @@
                 (update :min-y #(min % y))
                 (update :max-x #(max % x))
                 (update :max-y #(max % y))))
-          {:min-x 360
-           :min-y 180
-           :max-x 0
-           :max-y 0}
+          {:min-x max-int
+           :min-y max-int
+           :max-x min-int
+           :max-y min-int}
           coords))
 
 (defn box-overlap? [box-1 box-2]
@@ -186,3 +195,4 @@
                           (>= b2 a1)))]
     (and (overlap-1d? (:min-x box-1) (:max-x box-1) (:min-x box-2) (:max-x box-2))
          (overlap-1d? (:min-y box-1) (:max-y box-1) (:min-y box-2) (:max-y box-2))))) 
+

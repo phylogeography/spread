@@ -1,6 +1,5 @@
 (ns analysis-viewer.subs
-  (:require [analysis-viewer.svg-renderer :as svg-renderer]
-            [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub]]
             [shared.math-utils :as math-utils]
             [shared.utils :as utils]))
 
@@ -9,7 +8,7 @@
               :features (->> db-maps
                              (sort-by :map/z-index <)
                              (map :map/geo-json))}]
-    (assoc maps :map-box (svg-renderer/geo-json-bounding-box maps))))
+    maps))
 
 (reg-sub
  :maps/all-maps-data
