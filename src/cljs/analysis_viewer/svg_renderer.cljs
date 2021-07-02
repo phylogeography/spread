@@ -95,15 +95,15 @@
 
 (defmethod geojson->svg :Feature [{:keys [geometry properties]} opts]
   (when geometry    
-    (let [proj-box (geojson/geo-json-bounding-box geometry) ;; this is in [long lat]
+    (let [geo-box (geojson/geo-json-bounding-box geometry) ;; this is in [long lat]          
           feature-text (:name properties)]
                   
       (when (or (nil? (:clip-box opts))
                 (math-utils/box-overlap? (:clip-box opts)
-                                         proj-box))
+                                         (math-utils/map-box->proj-box geo-box)))
         
         (into [:g {}] (cond-> [(geojson->svg geometry opts)]                        
-                        feature-text (into [(text-for-box proj-box feature-text opts)])))))))
+                        feature-text (into [(text-for-box geo-box feature-text opts)])))))))
 
 (defmethod geojson->svg :FeatureCollection [{:keys [features]} opts]
   (into [:g {}] (mapv (fn [feat] (geojson->svg feat opts)) features)))
