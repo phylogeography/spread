@@ -1,52 +1,56 @@
 (ns analysis-viewer.fxs
   (:require-macros [hiccups.core :as hiccups :refer [html]])
-  (:require [analysis-viewer.svg-renderer :as svg-renderer]
+  (:require [analysis-viewer.map-emitter :as map-emitter]
+            [analysis-viewer.svg-renderer :as svg-renderer]            
             [analysis-viewer.views :as views]
+            [goog.string :as gstr]
             [hiccups.runtime :as hiccupsrt]
             [re-frame.core :as re-frame]
             [shared.math-utils :as math-utils]))
 
-(defn data-map [geo-json-map analysis-data time map-opts ui-params]
-  [:svg {:xmlns "http://www.w3.org/2000/svg"
-         :xmlns:amcharts "http://amcharts.com/ammap"
-         :xmlns:xlink "http://www.w3.org/1999/xlink"
-         :version "1.1"
-         :width "100%"
-         :height "100%"
-         :id "map-and-data"}
-
-   ;; gradients definitions
-   [:defs {}
-    [:linearGradient {:id "grad"}
-     [:stop {:offset "0%" :stop-color :red}]
-     [:stop {:offset "100%" :stop-color :yellow}]]]
-
-   ;; map background
-   [:rect {:x "0" :y "0" :width "100%" :height "100%" :fill (:background-color map-opts)}]
-   
-   ;; map and data svg
-   [:g {}
-    [:svg {:view-box "0 0 360 180"}
-     ;; map group
+(defn data-map [geo-json-map analysis-data time params]  
+  (let [analysis-data-box (map-emitter/data-box analysis-data)
+        padding 10]
+    [:svg {:xmlns "http://www.w3.org/2000/svg"
+          :xmlns:amcharts "http://amcharts.com/ammap"
+          :xmlns:xlink "http://www.w3.org/1999/xlink"
+          :version "1.1"
+          :width "1000px"
+          :height "500px"
+          :id "map-and-data"
+          :preserve-aspect-ratio "xMinYMin"
+          :viewBox (gstr/format "%d %d %d %d"
+                                (- (:min-x analysis-data-box) padding)
+                                (- (:min-y analysis-data-box) padding)
+                                (+ (* 2 padding) (- (:max-x analysis-data-box) (:min-x analysis-data-box)))
+                                (+ (* 2 padding) (- (:max-y analysis-data-box) (:min-y analysis-data-box))))}
+    
+    ;; map background
+    [:rect {:x "0" :y "0" :width "360" :height "180" :fill (:background-color params)}]    
+    
+    ;; map group
+    [:g {}
      [:g {}      
       (binding [svg-renderer/*coord-transform-fn* math-utils/map-coord->proj-coord]
         (svg-renderer/geojson->svg geo-json-map 
-                                  map-opts))]
+                                   (assoc params :clip-box analysis-data-box)))]
 
-     ;; data group
+     ;; data group     
      [:g {}
       (when analysis-data
         [:g {}
          (for [primitive-object analysis-data]
            ^{:key (str (:id primitive-object))}
-           (views/map-primitive-object primitive-object 1 time ui-params))])]]]])
+           (views/map-primitive-object primitive-object 1 time params))])]
+
+     ;; text group
+     (views/text-group analysis-data time params)]]))
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg
- (fn [{:keys [geo-json-map analysis-data time map-params ui-params]}]
-   (let [svg-text (html (data-map geo-json-map analysis-data time map-params ui-params))
+ (fn [{:keys [geo-json-map analysis-data time params]}]
+   (let [svg-text (html (data-map geo-json-map analysis-data time params))
          download-anchor (js/document.createElement "a")]
-
      (.setAttribute download-anchor "href" (str "data:image/svg+xml;charset=utf-8," (js/encodeURIComponent svg-text)))
      (.setAttribute download-anchor "download" "map.svg")
      (set! (-> download-anchor .-style .-display) "none")

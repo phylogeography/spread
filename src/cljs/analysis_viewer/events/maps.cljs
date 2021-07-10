@@ -36,19 +36,6 @@
                                       (update :map/z-index #(or % 100))
                                       (assoc :map/geo-json geo-json-map)))})
 
-(defn get-analysis-objects-view-box [objects]
-  (let [all-coords (->> objects
-                        (mapcat (fn [o]
-                                  (case (:type o)
-                                    :transition [(:from-coord o) (:to-coord o)]
-                                    :node [(:coord o)]
-                                    :circle [(:coord o)]
-                                    :polygon (:coords o)))))]
-    {:x1 (apply min (map first all-coords))
-     :y1 (apply min (map second all-coords))
-     :x2 (apply max (map first all-coords))
-     :y2 (apply max (map second all-coords))}))
-
 (defn build-attributes [all-attributes]
   (->> all-attributes
        (map (fn [{:keys [scale id] :as attr}]              
@@ -72,7 +59,7 @@
                         :ContinuousTree (map-emitter/continuous-tree-output->map-data data)
                         :DiscreteTree   (map-emitter/discrete-tree-output->map-data data)
                         :BayesFactor    (map-emitter/bayes-output->map-data data))
-        {:keys [x1 y1 x2 y2]} (get-analysis-objects-view-box (vals analysis-data))
+        {:keys [min-x min-y max-x max-y]} (map-emitter/data-box (vals analysis-data))
         padding 2]
 
     {:db (cond-> db
@@ -83,8 +70,8 @@
            timeline-start (assoc :analysis/date-range [timeline-start timeline-end])
            timeline-start (assoc :animation/frame-timestamp timeline-start)
            timeline-start (assoc :animation/crop [timeline-start timeline-end]))
-     :dispatch [:map/set-view-box {:x1 (- x1 padding) :y1 (- y1 padding)
-                                   :x2 (+ x2 padding) :y2 (+ y2 padding)}]}))
+     :dispatch [:map/set-view-box {:x1 (- min-x padding) :y1 (- min-y padding)
+                                   :x2 (+ max-x padding) :y2 (+ max-y padding)}]}))
 
 (defn load-map [_ [_ map-data]]
   {:http-xhrio {:method          :get
@@ -192,12 +179,17 @@
 
 (defn download-current-as-svg [{:keys [db]} [_ ]]  
   (let [ui-params (:ui/parameters db)
-        map-params (subs/build-map-parameters (:ui/parameters db) (:switch-buttons/states db))]
+        map-params (subs/build-map-parameters (:ui/parameters db)
+                                              (:ui.switch-buttons/states db))]
     {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps/data db))
-                                          :analysis-data (:analysis/data db)
-                                          :time (:animation/percentage db)
-                                          :ui-params ui-params
-                                          :map-params map-params}}))
+                                          :analysis-data (vals (subs/colored-and-filtered-data (:analysis/data db)
+                                                                                               (:ui/parameters db)
+                                                                                               (:analysis.data/filters db)))
+                                          :time (let [[df dt] (:analysis/date-range db)]
+                                                  (math-utils/calc-perc df dt (:animation/frame-timestamp db)))
+                                          :params (merge ui-params
+                                                         map-params
+                                                         (:ui.switch-buttons/states db))}}))
 
 (def tick-duration 50) ;; milliseconds
 
@@ -230,6 +222,13 @@
     (if (>= next-ts crop-high)
       (assoc db :animation/frame-timestamp crop-high)
       (assoc db :animation/frame-timestamp next-ts))))
+
+(defn animation-reset [{:keys [animation/crop] :as db} [_ dir]]  
+  (let [[crop-low crop-high] crop
+        ts (case dir
+             :start crop-low
+             :end   crop-high)]
+    (assoc db :animation/frame-timestamp ts)))
 
 (defn animation-toggle-play-stop [{:keys [db]} _]
   (if (= (:animation/state db) :play)
