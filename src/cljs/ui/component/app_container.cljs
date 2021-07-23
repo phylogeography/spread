@@ -115,7 +115,11 @@
                                                              :font           "normal normal 900 10px/11px Roboto"
                                                              :letter-spacing "0px"
                                                              :color          "#757295"
-                                                             :opacity        1}})))
+                                                             :opacity        1}
+
+                                       :no-margin {:margin 0}
+
+                                       })))
 
 (def type->label {"CONTINUOUS_TREE"       "Continuous: MCC tree"
                   "DISCRETE_TREE"         "Discrete: MCC tree"
@@ -139,44 +143,44 @@
                                                            }"
                                                  :variables {:analysisId id}}])])}
      [list-item-text {:primary   (reagent/as-element [:div {:class-name (:primary classes)}
-                                                    [:span (or readable-name "Unknown")]
-                                                    (when error?
-                                                      [chip {:label   "Error"
-                                                             :size    :small
-                                                             :variant "outlined"
-                                                             :color   "secondary"}])
-                                                    (when new?
-                                                      [chip {:label   "New"
-                                                             :size    :small
-                                                             :variant "outlined"
-                                                             :color   "primary"}])
-                                                    [:div
-                                                     [icon-button {:aria-label    "analysis kebab menu"
-                                                                   :aria-controls "menu-kebab"
-                                                                   :aria-haspopup true
-                                                                   :color         "inherit"
-                                                                   :style         {:padding 0}
-                                                                   :on-click      (fn [event]
-                                                                                    (setAnchorElement (.-currentTarget event))
-                                                                                    (.stopPropagation event))}
-                                                      [:img {:src (:kebab-menu icons)}]]
-                                                     [menu {:id               "menu-kebab"
-                                                            :anchorEl         anchorElement
-                                                            :anchorOrigin     {:vertical   "top"
-                                                                               :horizontal "right"}
-                                                            :transform-origin {:vertical   "top"
-                                                                               :horizontal "right"}
-                                                            :keep-mounted     true
-                                                            :open             open?
-                                                            :on-close         handle-close}
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Edit"]
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Load different file"]
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Copy settings"]
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Delete"]]]])
+                                                      [:span (or readable-name "Unknown")]
+                                                      (when error?
+                                                        [chip {:label   "Error"
+                                                               :size    :small
+                                                               :variant "outlined"
+                                                               :color   "secondary"}])
+                                                      (when new?
+                                                        [chip {:label   "New"
+                                                               :size    :small
+                                                               :variant "outlined"
+                                                               :color   "primary"}])
+                                                      [:div
+                                                       [icon-button {:aria-label    "analysis kebab menu"
+                                                                     :aria-controls "menu-kebab"
+                                                                     :aria-haspopup true
+                                                                     :color         "inherit"
+                                                                     :style         {:padding 0}
+                                                                     :on-click      (fn [event]
+                                                                                      (setAnchorElement (.-currentTarget event))
+                                                                                      (.stopPropagation event))}
+                                                        [:img {:src (:kebab-menu icons)}]]
+                                                       [menu {:id               "menu-kebab"
+                                                              :anchorEl         anchorElement
+                                                              :anchorOrigin     {:vertical   "top"
+                                                                                 :horizontal "right"}
+                                                              :transform-origin {:vertical   "top"
+                                                                                 :horizontal "right"}
+                                                              :keep-mounted     true
+                                                              :open             open?
+                                                              :on-close         handle-close}
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Edit"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Load different file"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Copy settings"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Delete"]]]])
                       :secondary (reagent/as-element [typography {:class-name (:secondary classes)}
                                                       (type->label of-type)])}]]))
 
@@ -264,7 +268,9 @@
                 :target     :route/new-analysis :query     {:tab "discrete-rates"}}
                {:main-label "Continuous:"       :sub-label "MCC tree"
                 :target     :route/new-analysis :query     {:tab "continuous-mcc-tree"}}]]
-    [accordion {:defaultExpanded default-expanded?}
+    [accordion {:classes         #js {:root     (:no-margin classes)
+                                      :expanded (:no-margin classes)}
+                :defaultExpanded default-expanded?}
      [accordion-summary {:expand-icon (reagent/as-element [:img {:src (:dropdown icons)}])}
       [:img {:src (:run-new icons)}]
       [typography {:class-name (:heading classes)} "Run new analysis"]]
