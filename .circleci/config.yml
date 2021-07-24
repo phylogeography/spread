@@ -65,7 +65,25 @@ orbs:
               root: services
               paths:
                 - << parameters.service >>/<< parameters.service >>.tar
-      # deploy: TODO
+      deploy:
+        working_directory: ~/ci-spread
+        environment:
+          AWS_PAGER: ""
+        docker:
+          - image: nodrama/deploy:latest
+        shell: /bin/bash -eo pipefail
+        parameters:
+          spread-env:
+            type: string
+          service:
+            type: string
+        steps:
+          - setup_remote_docker:
+              version: 19.03.13
+          - checkout
+       # TODO
+
+
 
 #
 # cljs-service orb
@@ -157,7 +175,7 @@ jobs:
           cache-key: services/db-migration/pom.xml
           steps:
             - run:
-                name: compile
+                name: Compile
                 command: |
                   mvn clean package
                 working_directory: services/db-migration
@@ -214,7 +232,7 @@ jobs:
     # docker 19.03.13
     # docker-compose 1.27.4
     # node 12.18.4 (default)
-    # node 14.8.0
+    # node 14.80.
     # openjdk 1.8
     # openjdk 11.0.8 (default)
     # yarn 1.22.5
@@ -276,7 +294,7 @@ jobs:
           cache-key: deps.edn
           steps:
             - run:
-                name: Install clojure
+                name: Install Clojure
                 command: |
                   curl -O https://download.clojure.org/install/linux-install-1.10.1.536.sh
                   chmod +x linux-install-1.10.1.536.sh
@@ -338,3 +356,10 @@ workflows:
           spread-env: "prod"
           requires:
             - "[PROD] Approve deployment"
+      - clj-service/deploy:
+          name: "Deploy API service"
+          spread-env: "prod"
+          service: "api"
+          requires:
+            - "[PROD] Approve deployment"
+      # TODO : remaining services
