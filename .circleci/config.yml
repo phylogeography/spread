@@ -289,7 +289,7 @@ jobs:
             serverless invoke --function migrate --stage $SPREAD_ENV --log
           working_directory: services/db-migration
 
-  Test api:
+  Test API:
     working_directory: ~/ci-spread
     # https://discuss.circleci.com/t/early-preview-new-ubuntu-20-04-linux-machine-executor-image/37281
     # aws-cli 2.0.52
