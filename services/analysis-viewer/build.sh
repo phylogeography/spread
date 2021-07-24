@@ -2,7 +2,7 @@
 
 set -e
 
-NAME=analysis-viewer
+NAME=analysis-viewer-service
 
 while getopts b:p:t: flag
 do
@@ -39,7 +39,7 @@ then
   cd ../../
   yarn deps
   yarn release
-  docker build --tag $IMG -f services/ui/Dockerfile .
+  docker build --tag $IMG -f services/analysis-viewer/Dockerfile .
 fi
 
 # PUSH
