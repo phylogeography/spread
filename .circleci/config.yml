@@ -279,9 +279,11 @@ workflows:
       - Build db migration lambda          
       # ~~~ DEPLOY ~~~
       # PROD
+      # TODOs
+      # M+x replace string deployment/configs master
       - "[PROD] Approve deployment":
           type: approval
           filters:
             branches:
               only:
-                - master
+                - deployment/configs
