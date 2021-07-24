@@ -328,8 +328,12 @@ workflows:
             branches:
               only:
                 - deployment/configs
+          requires:
+            - Build db migration lambda
+            - Build analysis viewer
+            - Build UI
+            - Test api
       - Instrument DB:
           spread-env: "prod"
           requires:
-            - Build db migration lambda
             - "[PROD] Approve deployment"
