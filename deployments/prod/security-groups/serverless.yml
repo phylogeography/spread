@@ -1,0 +1,183 @@
+org: nodrama
+app: spread
+
+service: spread-security-groups
+
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  region:
+    prod: us-east-2
+  whitelistedIP1: 90.187.162.109/32 # be202
+
+provider:
+  name: aws
+  profile: spread
+  region: ${self:custom.region.${self:custom.stage}, self.region.dev}
+  stage: dev
+  deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
+
+resources:
+  Resources:
+
+    BastionSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: ${self:custom.stage}-bastion-SG
+        GroupDescription: Whitelist inbound IPs
+        SecurityGroupIngress: # inbound
+        - IpProtocol: tcp # ssh
+          FromPort: 22
+          ToPort: 22
+          CidrIp: ${self:custom.whitelistedIP1}
+        - IpProtocol: tcp # mysql
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: ${self:custom.whitelistedIP1}
+        VpcId: {'Fn::ImportValue': '${self:custom.stage}-vpc-id'}
+        Tags:
+          - Key: Name
+            Value: ${self:custom.stage}-bastion-SG
+
+    # A security group for the containers we will run in ECS.
+    # Three rules, allowing network traffic from a public facing load
+    # balancer, a private internal load balancer, and from other members
+    # of the security group.
+    ECSContainerSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: ${self:custom.stage}-ecs-container-SG
+        GroupDescription: ECS containers SG
+        VpcId: {'Fn::ImportValue': '${self:custom.stage}-vpc-id'}
+        Tags:
+          - Key: Name
+            Value: ${self:custom.stage}-ecs-container-SG
+
+    EcsSecurityGroupIngressFromPublicALB:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+        Description: Ingress from the public ALB
+        GroupId: !Ref 'ECSContainerSecurityGroup'
+        IpProtocol: -1
+        SourceSecurityGroupId: !Ref 'PublicLoadBalancerSecurityGroup'
+
+    EcsSecurityGroupIngressFromSelf:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+        Description: Ingress from other containers in the same security group
+        GroupId: !Ref 'ECSContainerSecurityGroup'
+        IpProtocol: -1
+        SourceSecurityGroupId: !Ref 'ECSContainerSecurityGroup'
+
+    # A public facing (application) load balancer, used for accepting traffic from
+    # the internet and directing it to the public facing microservices
+    PublicLoadBalancerSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: ${self:custom.stage}-public-load-balancer-SG
+        GroupDescription: Access to the public facing load balancer
+        VpcId: {'Fn::ImportValue': '${self:custom.stage}-vpc-id'}
+        Tags:
+          - Key: Name
+            Value: ${self:custom.stage}-public-load-balancer-SG
+        SecurityGroupIngress:
+        # Allow access to ALB from anywhere on the internet
+          - CidrIp: 0.0.0.0/0
+            IpProtocol: -1
+
+    # APISecurityGroup:
+    #   Type: AWS::EC2::SecurityGroup
+    #   Properties:
+    #     GroupName: ${self:custom.stage}-api-SG
+    #     GroupDescription: default SG for referencing in RDS security group
+    #     VpcId: {'Fn::ImportValue': '${self:custom.stage}-vpc-id'}
+    #     Tags:
+    #       - Key: Name
+    #         Value: ${self:custom.stage}-api-SG
+
+    DBMigrationSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: ${self:custom.stage}-db-migration-SG
+        GroupDescription: default SG for referencing in RDS security group
+        VpcId: {'Fn::ImportValue': '${self:custom.stage}-vpc-id'}
+        Tags:
+          - Key: Name
+            Value: ${self:custom.stage}-db-migration-SG
+
+    RDSSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: ${self:custom.stage}-rds-SG
+        GroupDescription: Whitelist inbound traffic from bastion in the public subnet, ECS containers and db-lambda
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId:
+            Ref: BastionSecurityGroup
+        # - IpProtocol: tcp
+        #   FromPort: 3306
+        #   ToPort: 3306
+        #   SourceSecurityGroupId:
+        #     Ref: APISecurityGroup
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId:
+            Ref: DBMigrationSecurityGroup
+       # allow ingress from ECSContainers
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref 'ECSContainerSecurityGroup'
+        VpcId: {'Fn::ImportValue': '${self:custom.stage}-vpc-id'}
+        Tags:
+          - Key: Name
+            Value: ${self:custom.stage}-rds-SG
+    RDSSecurityGroupIngressFromSelf:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+        Description: self referencing rule
+        GroupId: !Ref 'RDSSecurityGroup'
+        IpProtocol: -1
+        SourceSecurityGroupId: !Ref 'RDSSecurityGroup'
+
+  Outputs:
+
+    DBMigrationSecurityGroupIdExport:
+      Value:
+        Ref: DBMigrationSecurityGroup
+      Export:
+        Name: ${self:custom.stage}-db-migration-security-group-id
+
+    # APISecurityGroupIdExport:
+    #   Value:
+    #     Ref: APISecurityGroup
+    #   Export:
+    #     Name: ${self:custom.stage}-api-security-group-id
+
+    RDSSecurityGroupIdExport:
+      Value:
+        Ref: RDSSecurityGroup
+      Export:
+        Name: ${self:custom.stage}-rds-security-group-id
+
+    PublicLoadBalancerSecurityGroupIdExport:
+      Value:
+        Ref: PublicLoadBalancerSecurityGroup
+      Export:
+        Name: ${self:custom.stage}-public-load-balancer-security-group-id
+
+    ECSContainerSecurityGroupIdExport:
+      Value:
+        Ref: ECSContainerSecurityGroup
+      Export:
+        Name: ${self:custom.stage}-ecs-container-security-group-id
+
+    BastionSecurityGroupIdExport:
+      Value:
+        Ref: BastionSecurityGroup
+      Export:
+        Name: ${self:custom.stage}-bastion-security-group-id

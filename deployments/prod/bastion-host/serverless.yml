@@ -1,0 +1,37 @@
+org: nodrama
+app: spread
+
+service: spread-bastion
+
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  region:
+    prod: us-east-2
+  ami:    # Ubuntu 20.04          18.04
+    prod: ami-0436fb85faebc46f0 # ami-077cf8407f0b2025c
+
+provider:
+  name: aws
+  profile: spread
+  region: ${self:custom.region.${self:custom.stage}, self.region.dev}
+  stage: dev
+  deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
+
+resources:
+  Resources:
+
+    BastionHost:
+      Type: AWS::EC2::Instance
+      Properties:
+        InstanceType: t2.nano #t2.micro
+        ImageId: ${self:custom.ami.${self:custom.stage}, self.ami.dev}
+        # NOTE create that key first and store it safely for ssh access
+        KeyName: spread.pem
+        SubnetId: {'Fn::ImportValue': '${self:custom.stage}-public-subnet1-id'}
+        SecurityGroupIds:
+          - {'Fn::ImportValue': '${self:custom.stage}-bastion-security-group-id'}
+        Tags:
+          - Key: Name
+            Value: ${self:custom.stage}-bastion

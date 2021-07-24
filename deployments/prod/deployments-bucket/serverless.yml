@@ -1,0 +1,24 @@
+org: nodrama
+app: spread
+service: spread-deployments-bucket
+
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  region:
+    prod: us-east-2
+
+provider:
+  name: aws
+  profile: spread
+  region: ${self:custom.region.${self:custom.stage}, self.region.dev}
+  stage: dev
+
+resources:
+  Resources:
+    UploadBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: spread-${self:custom.stage}-serverless-deployments-bucket
+        AccessControl: Private

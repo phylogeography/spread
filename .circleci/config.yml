@@ -89,11 +89,11 @@ orbs:
                 cat "env/<< parameters.spread-env >>" >>  $BASH_ENV
                 source $BASH_ENV
                 echo "env: $SPREAD_ENV"
-          # - run:
-          #     name: Configure serverless with AWS credentials
-          #     command: |
-          #       echo "env: $SPREAD_ENV"
-          #       serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+          - run:
+              name: Configure serverless with AWS credentials
+              command: |
+                echo "env: $SPREAD_ENV"
+                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
           - run:
               name: Deploy with serverless
               command: |
@@ -186,11 +186,11 @@ orbs:
                 cat "env/<< parameters.spread-env >>" >>  $BASH_ENV
                 source $BASH_ENV
                 echo "env: $SPREAD_ENV"
-          # - run:
-          #     name: Configure serverless with AWS credentials
-          #     command: |
-          #       echo "env: $SPREAD_ENV"
-          #       serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+          - run:
+              name: Configure serverless with AWS credentials
+              command: |
+                echo "env: $SPREAD_ENV"
+                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
           - run:
               name: Deploy with serverless
               command: |
