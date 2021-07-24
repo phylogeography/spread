@@ -330,7 +330,7 @@ workflows:
                 - deployment/configs
           requires:
             - Build db migration lambda
-            - Build analysis viewer
+            - Build Analysis Viewer
             - Build UI
             - Test api
       - Instrument DB:
