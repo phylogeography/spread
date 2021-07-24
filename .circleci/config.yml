@@ -277,4 +277,10 @@ workflows:
           name: Build Analysis Viewer
           service: "analysis-viewer"
       # ~~~ DEPLOY ~~~
-      # TODOs
+      # PROD
+      - "[PROD] Approve deployment":
+          type: approval
+          filters:
+            branches:
+              only:
+                - master
