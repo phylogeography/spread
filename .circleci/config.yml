@@ -26,7 +26,7 @@ orbs:
 #
 # clj-service orb
 # - build: builds a clojure service docker image and persists it to workspace
-# - deploy: gets the docker image from build and an environment parameter and deploys the docker to the environment
+# - deploy: gets the docker image from build and an environment parameter and deploys the service to the environment
 #
   clj-service:
     jobs:
@@ -90,6 +90,11 @@ orbs:
                 source $BASH_ENV
                 echo "env: $SPREAD_ENV"
           - run:
+              name: Configure serverless with AWS credentials
+              command: |
+                echo "env: $SPREAD_ENV"
+                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+          - run:
               name: Deploy with serverless
               command: |
                 docker load -i << parameters.service >>.tar
@@ -97,7 +102,7 @@ orbs:
                 serverless deploy --stage $SPREAD_ENV
               working_directory: services/<< parameters.service >>
           - run:
-              name: Force redeployment of the docker
+              name: Force redeployment of the ECS service
               command: |
                 # NOTE : force service redeployment or sls doesn't seem to understand the image has changed
                 aws ecs update-service --region $API_AWS_REGION --cluster spread-ecs-$SPREAD_ENV --service spread-<< parameters.service >> --force-new-deployment
@@ -106,7 +111,7 @@ orbs:
 #
 # cljs-service orb
 # - build: builds a ClojureScript service docker image and persists it to workspace
-# - deploy: gets the docker image from build and an environment parameter and deploys the docker to the environment
+# - deploy: gets the docker image from build and an environment parameter and deploys the service to the environment
 #
   cljs-service:
     orbs:
@@ -157,7 +162,48 @@ orbs:
               root: services
               paths:
                 - << parameters.service >>/<< parameters.service >>.tar
-      # deploy: TODO
+      deploy:
+        working_directory: ~/ci-spread
+        environment:
+          AWS_PAGER: ""
+        docker:
+          - image: nodrama/deploy:latest
+        shell: /bin/bash -eo pipefail
+        parameters:
+          spread-env:
+            type: string
+          service:
+            type: string
+        steps:
+          - setup_remote_docker:
+              version: 19.03.13
+          - checkout
+          - attach_workspace:
+              at: services
+          - run:
+              name: Source environment variables
+              command: |
+                cat "env/<< parameters.spread-env >>" >>  $BASH_ENV
+                source $BASH_ENV
+                echo "env: $SPREAD_ENV"
+          - run:
+              name: Configure serverless with AWS credentials
+              command: |
+                echo "env: $SPREAD_ENV"
+                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+          - run:
+              name: Deploy with serverless
+              command: |
+                docker load -i << parameters.service >>.tar
+                ./build.sh -b false -p true
+                serverless deploy --stage $SPREAD_ENV
+              working_directory: services/<< parameters.service >>
+          - run:
+              name: Force redeployment of the ECS service
+              command: |
+                # NOTE : force service redeployment or sls doesn't seem to understand the image has changed
+                aws ecs update-service --region $API_AWS_REGION --cluster spread-ecs-$SPREAD_ENV --service spread-<< parameters.service >> --force-new-deployment
+              working_directory: services/<< parameters.service >>
 
 executors:
   java-builder:
@@ -343,7 +389,7 @@ workflows:
           service: "api"
           requires:
             - Build libspread
-      - Test api:
+      - Test API:
           requires:
             - Build worker service
             - Build api service
@@ -356,20 +402,17 @@ workflows:
       - Build db migration lambda
       # ~~~ DEPLOY ~~~
       # PROD
-      # TODOs
-      # deploy services
-      # M+x replace string deployment/configs master
       - "[PROD] Approve deployment":
           type: approval
           filters:
             branches:
               only:
-                - deployment/configs
+                - deployment/configs # TODO this is for testing only, replace with master
           requires:
             - Build db migration lambda
             - Build Analysis Viewer
             - Build UI
-            - Test api
+            - Test API
       - Instrument DB:
           spread-env: "prod"
           requires:
@@ -380,4 +423,10 @@ workflows:
           service: "api"
           requires:
             - "[PROD] Approve deployment"
-      # TODO : remaining services
+      - clj-service/deploy:
+          name: "Deploy worker service"
+          spread-env: "prod"
+          service: "worker"
+          requires:
+            - "[PROD] Approve deployment"
+      # TODO : cljs services
