@@ -276,6 +276,7 @@ workflows:
       - cljs-service/build:
           name: Build Analysis Viewer
           service: "analysis-viewer"
+      - Build db migration lambda          
       # ~~~ DEPLOY ~~~
       # PROD
       - "[PROD] Approve deployment":
