@@ -181,31 +181,31 @@ jobs:
       - checkout
       - attach_workspace:
           at: services
-          - setup_remote_docker:
-              version: 19.03.13
-          - run:
-              name: Source environment variables
-              command: |
-                cat "services/env/<< parameters.spread-env >>" >>  $BASH_ENV
-                source $BASH_ENV
-                echo "env: $SPREAD_ENV"
-          - run:
-              name: Configure serverless with AWS credentials
-              command: |
-                echo "env: $SPREAD_ENV"
-                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
-          - run:
-              name: Deploy DB versioning lambda
-              command: |
-                echo "env: $CLASH_ENV"
-                serverless deploy --stage $CLASH_ENV
-              working_directory: services/db-migration
-          - run:
-              name: Instrument DB
-              command: |
-                echo "env: $SPREAD_ENV"
-                serverless invoke --function migrate --stage $CLASH_ENV --log
-              working_directory: services/db-migration
+      - setup_remote_docker:
+          version: 19.03.13
+      - run:
+          name: Source environment variables
+          command: |
+            cat "services/env/<< parameters.spread-env >>" >>  $BASH_ENV
+            source $BASH_ENV
+            echo "env: $SPREAD_ENV"
+      - run:
+          name: Configure serverless with AWS credentials
+          command: |
+            echo "env: $SPREAD_ENV"
+            serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+      - run:
+          name: Deploy DB versioning lambda
+          command: |
+            echo "env: $SPREAD_ENV"
+            serverless deploy --stage $CLASH_ENV
+          working_directory: services/db-migration
+      - run:
+          name: Instrument DB
+          command: |
+            echo "env: $SPREAD_ENV"
+            serverless invoke --function migrate --stage $SPREAD_ENV --log
+          working_directory: services/db-migration
 
   Test api:
     working_directory: ~/ci-spread
