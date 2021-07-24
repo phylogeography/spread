@@ -148,6 +148,24 @@ jobs:
           paths:
             - libspread-1.0.0-SNAPSHOT.jar
 
+  Build db migration lambda:
+    executor: java-builder
+    steps:
+      - checkout
+      - maven-cache/with:
+          cache-version: migration
+          cache-key: services/db-migration/pom.xml
+          steps:
+            - run:
+                name: compile
+                command: |
+                  mvn clean package
+                working_directory: services/db-migration
+      - persist_to_workspace:
+          root: services
+          paths:
+            - db-migration/target/db-migration.jar
+
   Test api:
     working_directory: ~/ci-spread
     # https://discuss.circleci.com/t/early-preview-new-ubuntu-20-04-linux-machine-executor-image/37281
@@ -258,9 +276,19 @@ workflows:
       - cljs-service/build:
           name: Build Analysis Viewer
           service: "analysis-viewer"
+      - Build db migration lambda
+          filters:
+            branches:
+              only:
+                - master
       # ~~~ DEPLOY ~~~
       # TODO (PROD)
       # - approve step (in console)
-      # - build db migration lambda
-      # - invoke lambda
-      # - deploy services
+      # - deploy and invoke db migration lambda lambda
+      # - deploy clj and cljs services
+      - "[PROD] Approve services deployment":
+          type: approval
+          filters:
+            branches:
+              only:
+                - master
