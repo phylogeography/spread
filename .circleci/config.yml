@@ -407,7 +407,7 @@ workflows:
           filters:
             branches:
               only:
-                - deployment/configs # TODO this is for testing only, replace with master
+                - master
           requires:
             - Build db migration lambda
             - Build Analysis Viewer

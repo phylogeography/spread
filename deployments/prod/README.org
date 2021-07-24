@@ -69,7 +69,7 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-
 sudo chmod a+x /usr/local/bin/docker-compose
 
 # set this ENV var
-echo "API_DB_HOST=<SETME>" >> /etc/environment
+echo "DB_HOST=<SETME>" >> /etc/environment
 
 # launch compose
 docker-compose -f docker-compose.yml up -d

@@ -1,4 +1,4 @@
-org: spread
+org: nodrama
 app: spread
 
 service: db-migration
@@ -8,8 +8,7 @@ custom:
   # commands. Or fallsback to what we have set in the provider section.
   stage: ${opt:stage, self:provider.stage}
   region:
-    qa: TODO
-    prod: TODO
+    prod: us-east-2
 
 provider:
   name: aws

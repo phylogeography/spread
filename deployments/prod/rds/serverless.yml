@@ -14,10 +14,11 @@ custom:
   storage:
     prod: 20
   storageType:
-    prod: standard # magnetic gp2 # ssd
+    # magnetic (gp2 is ssd)
+    prod: standard
   deletionProtection:
     prod: true
-  # NOTE: If you want to restore your instance using a DB snapshot uncomment this    
+  # NOTE: If you want to restore your instance using a DB snapshot uncomment this
   # snapshot:
   #   prod: <arn-of-the-snapshot>
   availabilityZone:
@@ -55,8 +56,8 @@ resources:
         Engine: mysql
         EngineVersion: 8.0.25
         AutoMinorVersionUpgrade: true
-        MasterUsername: ${env:API_DB_USER}
-        MasterUserPassword: ${env:API_DB_PASSWORD}
+        MasterUsername: ${env:DB_USER}
+        MasterUserPassword: ${env:DB_PASSWORD}
         PubliclyAccessible: false
         BackupRetentionPeriod: 14 #days
         VPCSecurityGroups:
