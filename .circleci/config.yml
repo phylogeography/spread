@@ -276,10 +276,5 @@ workflows:
       - cljs-service/build:
           name: Build Analysis Viewer
           service: "analysis-viewer"
-      - Build db migration lambda
-          filters:
-            branches:
-              only:
-                - master
       # ~~~ DEPLOY ~~~
       # TODOs
