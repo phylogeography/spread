@@ -70,10 +70,7 @@
 
    :query/getUserAnalysis   (auth-decorator resolvers/get-user-analysis)
    :resolve/analysis->error resolvers/analysis->error
-   :mutation/touchAnalysis  (auth-decorator mutations/touch-analysis)
-
-   ;; :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
-   })
+   :mutation/touchAnalysis  (auth-decorator mutations/touch-analysis)})
 
 (defn streamer-map []
   {:subscription/parserStatus (auth-decorator (subscriptions/create-analysis-status-sub))})
@@ -165,9 +162,9 @@
                                                     schema/compile)
         interceptors                            (interceptors compiled-schema context)
         subscription-interceptors               (subscription-interceptors compiled-schema context)
-        ;; TODO : use /ide endpoint only when env = dev
         routes                                  (into #{["/api" :post interceptors :route-name ::api]
-                                                        ["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
+                                                        ;; NOTE: not needed, we use Apollo
+                                                        #_["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
                                                       (pedestal/graphiql-asset-routes "/assets/graphiql"))
         opts                                    (cond-> {::http/routes routes
                                                          ::http/port port

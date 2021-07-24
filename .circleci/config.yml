@@ -321,6 +321,7 @@ workflows:
       # ~~~ DEPLOY ~~~
       # PROD
       # TODOs
+      # deploy services
       # M+x replace string deployment/configs master
       - "[PROD] Approve deployment":
           type: approval

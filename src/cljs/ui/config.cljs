@@ -2,7 +2,6 @@
   (:require [shared.macros :refer [get-env-variable]]))
 
 (def environment (get-env-variable "SPREAD_ENV"))
-(def sentry-dsn (get-env-variable "SENTRY_DSN"))
 (def google-client-id (get-env-variable "GOOGLE_CLIENT_ID" :required))
 (def public-key (get-env-variable "PUBLIC_KEY" :required))
 (def version "0.1.0")
@@ -40,16 +39,18 @@
   (-> default-config
       (assoc-in [:logging :level] :debug)))
 
-(def qa-config
+;; TODO : fill with production values
+(def prod-config
   (-> default-config
       (assoc-in [:logging :level] :info)
-      (assoc-in [:logging :sentry] {:dsn         sentry-dsn
-                                    :min-level   :warn
-                                    :environment "QA"
-                                    :release     version})))
+      (assoc-in [:graphql :ws-url] "TODO")
+      (assoc-in [:graphql :url] "TODO")
+      (assoc :root-url "TODO")
+      (assoc-in [:google :redirect-url] "TODO")
+      ))
 
 (defn load []
   (case environment
     "dev" dev-config
-    "qa"  qa-config
+    "prod"  prod-config
     dev-config))
