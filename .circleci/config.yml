@@ -255,5 +255,12 @@ workflows:
       - cljs-service/build:
           name: Build UI
           service: "ui"
+      - cljs-service/build:
+          name: Build Analysis Viewer
+          service: "analysis-viewer"
       # ~~~ DEPLOY ~~~
-      # TODO (QA/PROD)
+      # TODO (PROD)
+      # - approve step (in console)
+      # - build db migration lambda
+      # - invoke lambda
+      # - deploy services

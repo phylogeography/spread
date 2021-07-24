@@ -2,7 +2,7 @@
 
 set -e
 
-NAME=api-service
+NAME=analysis-viewer
 
 while getopts b:p:t: flag
 do
@@ -36,13 +36,10 @@ IMG=$NAME:$TAG
 
 if [ $BUILD = true ]
 then
-    cd ../../
-    # TODO : this overwrites libspread pom.xml in the root dir
-    # not sure how to fix that (build libspread with deps.edn?)
-    clojure -Spom;
-    clojure -A:uberjar api-service.jar -C -m api.main;
-
-    docker build --tag $IMG -f services/api/Dockerfile .
+  cd ../../
+  yarn deps
+  yarn release
+  docker build --tag $IMG -f services/ui/Dockerfile .
 fi
 
 # PUSH
