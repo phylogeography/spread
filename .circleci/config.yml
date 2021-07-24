@@ -328,7 +328,7 @@ workflows:
             branches:
               only:
                 - deployment/configs
-      - Instrument DB
+      - Instrument DB:
           spread-env: "prod"
           requires:
             - Build db migration lambda
