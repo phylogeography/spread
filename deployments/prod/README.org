@@ -18,7 +18,7 @@ Different pieces of the infrastructure are arranged into directories, and typica
 
 #+BEGIN_SRC bash
 cd <service>
-sls deploy --stage <stage>
+sls deploy
 #+END_SRC
 
 Spread uses one stage (prod) corresponding to it's production environment, but the templates can easily be extended to support multiple environments (like dev, staging and/or QA).

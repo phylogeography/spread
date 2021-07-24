@@ -2,12 +2,10 @@ export SPREAD_ENV="prod"
 export LOGGING_LEVEL="info"
 export FLOW_STORM=false
 
-export API_AWS_REGION="TODO"
-export API_AWS_ACCESS_KEY_ID="TODO"
-export API_AWS_SECRET_ACCESS_KEY="TODO"
+export API_AWS_REGION="us-east-2"
 export BUCKET_NAME="spread-prod-uploads"
 
-export DB_HOST="TODO"
+export DB_HOST="prod-rds.cnpg0w4k89jg.us-east-2.rds.amazonaws.com"
 export DB_DATABASE="spread"
 export DB_PORT=3306
 
@@ -36,3 +34,5 @@ EOF
 # export GOOGLE_CLIENT_SECRET=
 # export DB_USER=
 # export DB_PASSWORD=
+# export API_AWS_ACCESS_KEY_ID=
+# export API_AWS_SECRET_ACCESS_KEY=

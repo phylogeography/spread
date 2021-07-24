@@ -1,34 +1,29 @@
-org: nodrama
+org: kuleuven
 app: spread
-
 service: spread-bastion
 
 custom:
-  # Our stage is based on what is passed in when running serverless
-  # commands. Or fallsback to what we have set in the provider section.
-  stage: ${opt:stage, self:provider.stage}
-  region:
-    prod: us-east-2
-  ami:    # Ubuntu 20.04          18.04
-    prod: ami-0436fb85faebc46f0 # ami-077cf8407f0b2025c
+  stage: prod
+  ami:   ami-00399ec92321828f5 # Ubuntu 20.04
 
 provider:
   name: aws
-  profile: spread
-  region: ${self:custom.region.${self:custom.stage}, self.region.dev}
-  stage: dev
+  region: us-east-2
+  stage: prod
   deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
 
 resources:
   Resources:
 
+    # NOTE: we do not allocate a fixed EIP, it will get a public IP from the public subnet
+    # but it WILL change if the instance ever gets rebooted
     BastionHost:
       Type: AWS::EC2::Instance
       Properties:
-        InstanceType: t2.nano #t2.micro
-        ImageId: ${self:custom.ami.${self:custom.stage}, self.ami.dev}
+        InstanceType: t2.micro #t2.micro
+        ImageId: ${self:custom.ami}
         # NOTE create that key first and store it safely for ssh access
-        KeyName: spread.pem
+        KeyName: spread
         SubnetId: {'Fn::ImportValue': '${self:custom.stage}-public-subnet1-id'}
         SecurityGroupIds:
           - {'Fn::ImportValue': '${self:custom.stage}-bastion-security-group-id'}

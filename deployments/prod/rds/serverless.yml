@@ -1,34 +1,20 @@
-org: nodrama
+org: kuleuven
 app: spread
-
 service: spread-rds
 
 custom:
-  # Our stage is based on what is passed in when running serverless
-  # commands. Or fallsback to what we have set in the provider section.
-  stage: ${opt:stage, self:provider.stage}
-  region:
-    prod: us-east-2
-  instance:
-    prod: db.t2.micro
-  storage:
-    prod: 20
-  storageType:
-    # magnetic (gp2 is ssd)
-    prod: standard
-  deletionProtection:
-    prod: true
+  stage: prod  
+  instance: db.t2.micro
+  storage: 20
+  storageType: standard
   # NOTE: If you want to restore your instance using a DB snapshot uncomment this
-  # snapshot:
-  #   prod: <arn-of-the-snapshot>
-  availabilityZone:
-    prod: us-east-2a
+  # snapshot: <arn-of-the-snapshot>
+  availabilityZone: us-east-2a
 
 provider:
   name: aws
-  profile: spread
-  region: ${self:custom.region.${self:custom.stage}, self.region.dev}
-  stage: dev
+  region: us-east-2  
+  stage: prod
   deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
 
 resources:
@@ -45,17 +31,18 @@ resources:
     RDSInstance:
       Type: AWS::RDS::DBInstance
       Properties:
-        DeletionProtection: ${self:custom.deletionProtection.${self:custom.stage}, self.deletionProtection.dev}
+        DeletionProtection: true
         DBInstanceIdentifier: ${self:custom.stage}-rds
-        DBInstanceClass: ${self:custom.instance.${self:custom.stage}, self.instance.dev}
-        AllocatedStorage: ${self:custom.storage.${self:custom.stage}, self.storage.dev}
-        StorageType: ${self:custom.storageType.${self:custom.stage}, self.storageType.dev}
-        AvailabilityZone: ${self:custom.availabilityZone.${self:custom.stage}, self.availabilityZone.dev}
+        DBInstanceClass: ${self:custom.instance}
+        AllocatedStorage: ${self:custom.storage}
+        StorageType: ${self:custom.storageType}
+        AvailabilityZone: ${self:custom.availabilityZone}
         DBSubnetGroupName:
           Ref: RDSSubnetGroup
         Engine: mysql
         EngineVersion: 8.0.25
         AutoMinorVersionUpgrade: true
+        # NOTE: shares these with the CI server
         MasterUsername: ${env:DB_USER}
         MasterUserPassword: ${env:DB_PASSWORD}
         PubliclyAccessible: false
