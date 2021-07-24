@@ -175,35 +175,38 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
-          - checkout
-          - attach_workspace:
-              at: services
-          - run:
-              name: Source environment variables
-              command: |
-                cat "env/<< parameters.spread-env >>" >>  $BASH_ENV
-                source $BASH_ENV
-                echo "env: $SPREAD_ENV"
-          - run:
-              name: Configure serverless with AWS credentials
-              command: |
-                echo "env: $SPREAD_ENV"
-                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
-          - run:
-              name: Deploy with serverless
-              command: |
-                docker load -i << parameters.service >>.tar
-                ./build.sh -b false -p true
-                serverless deploy --stage $SPREAD_ENV
-              working_directory: services/<< parameters.service >>
-          - run:
-              name: Force redeployment of the ECS service
-              command: |
-                # NOTE : force service redeployment or sls doesn't seem to understand the image has changed
-                aws ecs update-service --region $API_AWS_REGION --cluster spread-ecs-$SPREAD_ENV --service spread-<< parameters.service >> --force-new-deployment
-              working_directory: services/<< parameters.service >>
+          - clj-service/deploy:
+              spread-env: << parameters.spread-env >>
+              service: << parameters.service >>
+          # - setup_remote_docker:
+          #     version: 19.03.13
+          # - checkout
+          # - attach_workspace:
+          #     at: services
+          # - run:
+          #     name: Source environment variables
+          #     command: |
+          #       cat "env/<< parameters.spread-env >>" >>  $BASH_ENV
+          #       source $BASH_ENV
+          #       echo "env: $SPREAD_ENV"
+          # - run:
+          #     name: Configure serverless with AWS credentials
+          #     command: |
+          #       echo "env: $SPREAD_ENV"
+          #       serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+          # - run:
+          #     name: Deploy with serverless
+          #     command: |
+          #       docker load -i << parameters.service >>.tar
+          #       ./build.sh -b false -p true
+          #       serverless deploy --stage $SPREAD_ENV
+          #     working_directory: services/<< parameters.service >>
+          # - run:
+          #     name: Force redeployment of the ECS service
+          #     command: |
+          #       # NOTE : force service redeployment or sls doesn't seem to understand the image has changed
+          #       aws ecs update-service --region $API_AWS_REGION --cluster spread-ecs-$SPREAD_ENV --service spread-<< parameters.service >> --force-new-deployment
+          #     working_directory: services/<< parameters.service >>
 
 executors:
   java-builder:
@@ -429,4 +432,15 @@ workflows:
           service: "worker"
           requires:
             - "[PROD] Approve deployment"
-      # TODO : cljs services
+      - cljs-service/deploy:
+          name: "Deploy UI service"
+          spread-env: "prod"
+          service: "ui"
+          requires:
+            - "[PROD] Approve deployment"
+      - cljs-service/deploy:
+          name: "Deploy analysis-viewer service"
+          spread-env: "prod"
+          service: "analysis-viewer"
+          requires:
+            - "[PROD] Approve deployment"
