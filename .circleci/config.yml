@@ -282,13 +282,4 @@ workflows:
               only:
                 - master
       # ~~~ DEPLOY ~~~
-      # TODO (PROD)
-      # - approve step (in console)
-      # - deploy and invoke db migration lambda lambda
-      # - deploy clj and cljs services
-      - "[PROD] Approve services deployment":
-          type: approval
-          filters:
-            branches:
-              only:
-                - master
+      # TODOs
