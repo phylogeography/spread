@@ -39,18 +39,19 @@
                                           :isNew {:type (non-null Boolean)}}}
 
   :Analysis {:description "Represents common fields of a parser. Returned by queries."
-             :fields      {:id           {:type (non-null ID)}
-                           :userId       {:type (non-null ID)}
-                           :readableName {:description "Human-readable name. Usually file name."
-                                          :type        String}
-                           :createdOn    {:type (non-null :BigInt)}
-                           :progress     {:type Float}
-                           :status       {:type (non-null :AnalysisStatus)}
-                           :isNew        {:description "Has this analysis been viewed?"
-                                          :type        (non-null Boolean)}
-                           :error        {:type    String
-                                          :resolve :resolve/analysis->error}
-                           :ofType       {:type (non-null :AnalysisType)}}}
+             :fields      {:id              {:type (non-null ID)}
+                           :userId          {:type (non-null ID)}
+                           :readableName    {:description "Human-readable name. Usually file name."
+                                             :type        String}
+                           :createdOn       {:type (non-null :BigInt)}
+                           :progress        {:type Float}
+                           :status          {:type (non-null :AnalysisStatus)}
+                           :isNew           {:description "Has this analysis been viewed?"
+                                             :type        (non-null Boolean)}
+                           :viewerUrlParams {:type String}
+                           :error           {:type    String
+                                             :resolve :resolve/analysis->error}
+                           :ofType          {:type (non-null :AnalysisType)}}}
 
   :ParserStatus {:description "Analysis status, progress and some optional fields. Returned by mutations and used for subscriptions to the workers progress."
                  :fields      {:id           {:type (non-null ID)}
@@ -79,7 +80,9 @@
                                                             :resolve :resolve/continuous-tree->attributes}
                                  :timeSlicer               {:type     :TimeSlicer
                                                             :resolver :resolve/continuous-tree->time-slicer}
-                                 :outputFileUrl            {:type String}}}
+                                 :outputFileUrl            {:type String}
+                                 :analysis                 {:type (non-null :Analysis)
+                                                            :resolve :resolve/tree->user-analysis}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
                  :fields      {:id                     {:description "Unique identifier."
@@ -93,6 +96,8 @@
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
                                :status                 {:type (non-null :AnalysisStatus)}
+                               :analysis               {:type (non-null :Analysis)
+                                                        :resolve :resolve/tree->user-analysis}
                                :progress               {:type Float}
                                :attributeNames         {:type    (list String)
                                                         :resolve :resolve/discrete-tree->attributes}
@@ -118,7 +123,9 @@
                              :progress                           {:type Float}
                              :attributeNames                     {:type    (list String)
                                                                   :resolve :resolve/time-slicer->attributes}
-                             :outputFileUrl                      {:type String}}}
+                             :outputFileUrl                      {:type String}
+                             :analysis                           {:type (non-null :Analysis)
+                                                                  :resolve :resolve/tree->user-analysis}}}
 
   :BayesFactor {:description "Represents BSSVS support for a single connection."
                 :fields      {:from                 {:type String}
@@ -138,6 +145,8 @@
                                       :progress         {:type Float}
                                       :burnIn           {:type Float}
                                       :outputFileUrl    {:type String}
+                                      :analysis         {:type (non-null :Analysis)
+                                                         :resolve :resolve/tree->user-analysis}
                                       :bayesFactors     {:type    (list :BayesFactor)
                                                          :resolve :resolve/bayes-factor-analysis->bayes-factors}}}}
 

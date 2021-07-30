@@ -12,8 +12,9 @@
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
             [shared.errors :as errors]
-            [shared.utils :refer [file-exists? longest-common-substring round]]
-            [taoensso.timbre :as log])
+            [shared.utils :refer [file-exists? longest-common-substring round decode-json]]
+            [taoensso.timbre :as log]
+            [worker.maps :as maps])
   (:import [com.spread.parsers BayesFactorParser ContinuousTreeParser DiscreteTreeParser TimeSlicerParser]
            com.spread.progress.IProgressObserver))
 
@@ -58,7 +59,7 @@
       (errors/handle-analysis-error! db id e))))
 
 (defmethod handler :parse-discrete-tree
-  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
+  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config maps-boxes]}]
   (log/info "handling parse-discrete-tree" args)
   (try
     (let [{:keys [user-id locations-attribute-name
@@ -99,7 +100,8 @@
                                  (.registerProgressObserver progress-handler))
           output-object-key    (str user-id "/" id ".json")
           output-object-path   (str tmp-dir "/" output-object-key)
-          _                    (spit output-object-path (.parse parser) :append false)
+          output-json-str      (.parse parser)
+          _                    (spit output-object-path output-json-str :append false)
           _                    (aws-s3/upload-file s3 {:bucket    bucket-name
                                                        :key       output-object-key
                                                        :file-path output-object-path})
@@ -107,8 +109,10 @@
       ;; TODO : in a transaction
       (discrete-tree-model/upsert! db {:id              id
                                        :output-file-url url})
+       
       (analysis-model/upsert! db {:id     id
-                                  :status :SUCCEEDED}))
+                                  :status :SUCCEEDED
+                                  :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes (decode-json output-json-str))}))
     (catch Exception e
       (log/error "Exception when handling parse-discrete-tree" {:error e})
       (errors/handle-analysis-error! db id e))))
@@ -139,7 +143,7 @@
 (defmethod handler
   ;; "This handler will parse the continuous MCC tree and create HPD interval contours around it if a corresponding trees sample is provided"
   :parse-continuous-tree
-  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
+  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config maps-boxes]}]
   (log/info "handling parse-continuous-tree" args)
   (try
     (let [{:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
@@ -225,13 +229,14 @@
           _                  (aws-s3/upload-file s3 {:bucket    bucket-name
                                                      :key       output-object-key
                                                      :file-path output-object-path})
-          url                (aws-s3/build-url aws-config bucket-name output-object-key)
+          url                (aws-s3/build-url aws-config bucket-name output-object-key)          
           _                  (log/info "Continuous tree output URL" {:url url})]
       ;; TODO : in a transaction
       (continuous-tree-model/upsert! db {:id              id
                                          :output-file-url url})
       (analysis-model/upsert! db {:id     id
-                                  :status :SUCCEEDED}))
+                                  :status :SUCCEEDED
+                                  :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes data)}))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
       (errors/handle-analysis-error! db id e))))
@@ -272,7 +277,7 @@
     (json/read-str output :key-fn keyword)))
 
 (defmethod handler :parse-bayes-factors
-  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config]}]
+  [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config maps-boxes]}]
   (log/info "handling parse-bayes-factors" args)
   (try
     (let [_
@@ -348,7 +353,8 @@
       (bayes-factor-model/upsert! db {:id              id
                                       :output-file-url url})
       (analysis-model/upsert! db {:id     id
-                                  :status :SUCCEEDED}))
+                                  :status :SUCCEEDED
+                                  :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes spreadData)}))
     (catch Exception e
       (log/error "Exception when handling parse-bayes-factors" {:error e})
       (errors/handle-analysis-error! db id e))))
@@ -358,10 +364,14 @@
         sqs                                     (aws-sqs/create-client aws)
         s3                                      (aws-s3/create-client aws)
         db                                      (db/init db)
+        maps-boxes                              (maps/load-map-boxes)
+        _                                       (log/info (format "Loaded %d maps boxes" (count maps-boxes)))
         context                                 {:s3          s3
                                                  :db          db
                                                  :bucket-name bucket-name
-                                                 :aws-config  aws}]
+                                                 :aws-config  aws
+                                                 :maps-boxes  maps-boxes}]
+    
     (log/info "Starting worker listener" config)
     (loop []
       (try
