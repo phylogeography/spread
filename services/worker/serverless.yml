@@ -3,27 +3,18 @@ app: spread
 service: spread-worker
 
 custom:
-  # Our stage is based on what is passed in when running serverless
-  # commands. Or fallsback to what we have set in the provider section.
-  stage: ${opt:stage, self:provider.stage}
-  region:
-    prod: us-east-2
+  stage: prod
   ServiceName: spread-worker
   # see for availiable values https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu
-  ContainerCpu: # 1024 is 1 CPU
-    prod: 1024
-  ContainerMemory: # in MB
-    prod: 2048
-  Image: # The docker image
-    prod: TODO
-  DesiredCount: # How many copies of the service task to run
-    prod: 1 #2
+  ContainerCpu: 1024 # 1024 is 1 CPU
+  ContainerMemory: 2048 # in MB
+  Image: public.ecr.aws/a8p1v4e1/worker-service:latest
+  DesiredCount: 1 # How many copies of the service task to run
 
 provider:
   name: aws
-  profile: spread
-  region: ${self:custom.region.${self:custom.stage}, self.region.dev}
-  stage: dev
+  region: us-east-2
+  stage: prod
   deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
 
 resources:
@@ -55,7 +46,7 @@ resources:
           - Sid: "WorkerQueuePolicy"
             Effect: Allow
             Action: ['SQS:SendMessage', 'SQS:ReceiveMessage', 'SQS:DeleteMessage']
-            Resource: { 'Fn::Join': [':', ['arn:aws:sqs', '${self:custom.region.${self:custom.stage}, self.region.dev}', { Ref: 'AWS::AccountId' }, 'spread-${self:custom.stage}-worker' ]] }
+            Resource: { 'Fn::Join': [':', ['arn:aws:sqs', 'us-east-2', { Ref: 'AWS::AccountId' }, 'spread-${self:custom.stage}-worker' ]] }
             Principal:
               AWS:
                 - { 'Fn::Join': [':', ['arn:aws:iam:', { Ref: 'AWS::AccountId' }, 'user/spread-${self:custom.stage}' ]] }
@@ -73,8 +64,8 @@ resources:
       Type: AWS::ECS::TaskDefinition
       Properties:
         Family: ${self:custom.ServiceName}
-        Cpu: ${self:custom.ContainerCpu.${self:custom.stage}, self.ContainerCpu.dev}
-        Memory: ${self:custom.ContainerMemory.${self:custom.stage}, self.ContainerMemory.dev}
+        Cpu: ${self:custom.ContainerCpu}
+        Memory: ${self:custom.ContainerMemory}
         NetworkMode: awsvpc
         RequiresCompatibilities:
           - FARGATE
@@ -82,21 +73,21 @@ resources:
       # TaskRoleArn: !Ref 'Role' # IAM role to give the service containers if the code within needs access to other AWS resources
         ContainerDefinitions:
           - Name: ${self:custom.ServiceName}
-            Cpu: ${self:custom.ContainerCpu.${self:custom.stage}, self.ContainerCpu.dev}
-            Memory: ${self:custom.ContainerMemory.${self:custom.stage}, self.ContainerMemory.dev}
-            Image: ${self:custom.Image.${self:custom.stage}, self.Image.dev}
+            Cpu: ${self:custom.ContainerCpu}
+            Memory: ${self:custom.ContainerMemory}
+            Image: ${self:custom.Image}
             LogConfiguration:
               LogDriver: awslogs
               options:
                 awslogs-group: '/ecs/spread-worker-${self:custom.stage}'
-                awslogs-region: ${self:custom.region.${self:custom.stage}, self.region.dev}
+                awslogs-region: us-east-2
                 awslogs-stream-prefix: 'ecs'
             # ENV vars for container
             Environment:
               - Name: 'SPREAD_ENV'
                 Value: ${env:SPREAD_ENV}
-              - Name: 'API_LOGGING_LEVEL'
-                Value: ${env:API_LOGGING_LEVEL}
+              - Name: 'LOGGING_LEVEL'
+                Value: ${env:LOGGING_LEVEL}
               - Name: 'API_AWS_REGION'
                 Value: ${env:API_AWS_REGION}
               - Name: 'API_AWS_ACCESS_KEY_ID'
@@ -130,7 +121,7 @@ resources:
         DeploymentConfiguration:
           MaximumPercent: 200
           MinimumHealthyPercent: 75
-        DesiredCount: ${self:custom.DesiredCount.${self:custom.stage}, self.DesiredCount.dev}
+        DesiredCount: ${self:custom.DesiredCount}
         NetworkConfiguration:
           AwsvpcConfiguration:
             SecurityGroups:

@@ -11,7 +11,7 @@ export DB_PORT=3306
 
 export API_PORT=3001
 
-export WORKERS_QUEUE_URL="TODO"
+export WORKERS_QUEUE_URL="https://sqs.us-east-2.amazonaws.com/816997647674/spread-prod-worker"
 
 export GOOGLE_CLIENT_ID=806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com
 

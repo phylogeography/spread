@@ -50,8 +50,7 @@ fi
 if [ $PUSH = true ]
 then
 
-  # TODO : obtain public registry id, for example x2t8a1o3
-  REGISTRY=TODO
+  REGISTRY=a8p1v4e1
   echo "Pushing $IMG to the registry $REGISTRY"
   
   # authenticate docker to use AWS registry
