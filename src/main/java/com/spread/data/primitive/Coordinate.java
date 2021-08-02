@@ -21,4 +21,13 @@ public class Coordinate {
         this.yCoordinate = latitude;
     }
 
+	public Double getX(){
+		return xCoordinate;
+	}
+
+	public Double getY(){
+		return yCoordinate;
+	}
+	
+
 }
