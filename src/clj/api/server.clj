@@ -73,6 +73,7 @@
    :mutation/touchAnalysis  (auth-decorator mutations/touch-analysis)
 
    ;; :query/searchUserAnalysis (auth-decorator resolvers/search-user-analysis)
+   :resolve/tree->user-analysis resolvers/tree->user-analysis
    })
 
 (defn streamer-map []
