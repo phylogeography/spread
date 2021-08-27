@@ -9,7 +9,7 @@ custom:
   ContainerCpu: 512 # 1024 is 1 CPU
   ContainerMemory: 1024 #in MB
   Image: public.ecr.aws/a8p1v4e1/api-service:latest
-  ContainerPort: 80 # What port number the application inside the docker container is binding to
+  ContainerPort: 3001 # What port number the application inside the docker container is binding to
   DesiredCount: 1
   Path: '*'
   Priority: 1
@@ -144,10 +144,10 @@ resources:
     TargetGroup:
       Type: AWS::ElasticLoadBalancingV2::TargetGroup
       Properties:
-        HealthCheckIntervalSeconds: 6
-        HealthCheckPath: /
+        HealthCheckIntervalSeconds: 120
+        HealthCheckPath: /healthcheck
         HealthCheckProtocol: HTTP
-        HealthCheckTimeoutSeconds: 5
+        HealthCheckTimeoutSeconds: 30
         HealthyThresholdCount: 2
         TargetType: ip
         Name: ${self:custom.ServiceName}
