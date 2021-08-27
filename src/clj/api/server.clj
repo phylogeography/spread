@@ -16,7 +16,9 @@
             [com.walmartlabs.lacinia.schema :as schema]
             [com.walmartlabs.lacinia.util :as lacinia-util]
             [io.pedestal.http :as http]
+            [io.pedestal.http.body-params :as body-params]
             [io.pedestal.interceptor :refer [interceptor]]
+            [io.pedestal.interceptor.error :as interceptor.error]
             [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as log]))
 
@@ -139,6 +141,26 @@
 (defn stop [this]
   (http/stop this))
 
+(def ^:private error-interceptor
+  (interceptor.error/error-dispatch
+    [context exception]
+    :else
+    (let [relevant-context (select-keys context
+                                        [:interceptor
+                                         :stage
+                                         :execution-id
+                                         :exception-type])]
+      (log/error "Intercepted an error" {:context relevant-context
+                                         :error   exception})
+      (assoc context :io.pedestal.interceptor.chain/error exception))))
+
+(def ^:private common-interceptors
+  [error-interceptor (body-params/body-params) http/json-body])
+
+(defn- healthcheck-response [_]
+  {:body   {"status" "OK"}
+   :status 200})
+
 (defn start [{:keys [api aws db env google public-key private-key] :as config}]
   (let [dev?                                    (= "dev" env)
         {:keys [port allowed-origins]}          api
@@ -164,17 +186,23 @@
                                                     schema/compile)
         interceptors                            (interceptors compiled-schema context)
         subscription-interceptors               (subscription-interceptors compiled-schema context)
-        routes                                  (into #{["/api" :post interceptors :route-name ::api]
-                                                        ;; NOTE: not needed, we use Apollo
-                                                        #_["/ide" :get (pedestal/graphiql-ide-handler {:port port}) :route-name ::graphiql-ide]}
-                                                      (pedestal/graphiql-asset-routes "/assets/graphiql"))
+        routes                                  #{["/api" :post interceptors :route-name ::api]
+                                                  ["/healthcheck"
+                                                   :get
+                                                   (conj common-interceptors `healthcheck-response)
+                                                   :route-name
+                                                   ::healthcheck]}
         opts                                    (cond-> {::http/routes routes
                                                          ::http/port port
                                                          ::http/type :jetty
                                                          ::http/join? false
-                                                         ::http/allowed-origins   {:allowed-origins (fn [origin]
-                                                                                                      ;; (log/debug "checking allowed CORS" {:origin origin})
-                                                                                                      (allowed-origins origin))}}
+                                                         ::http/allowed-origins   {:allowed-origins
+                                                                                   #_(constantly true)
+                                                                                   (fn [origin]
+                                                                                     (log/debug "checking allowed CORS" {:origin origin})
+                                                                                     #_(allowed-origins origin)
+                                                                                     true
+                                                                                     )}}
                                                   true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path        "/ws"
                                                                                                        ;; The interval at which keep-alive messages are sent to the client
                                                                                                        :keep-alive-ms             60000 ;; one minute
