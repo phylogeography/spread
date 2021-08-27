@@ -4,7 +4,6 @@ MAINTAINER "Filip Bielejec" <fbielejec@gmail.com>
 WORKDIR api
 
 COPY api-service.jar /api/api-service.jar
-# RUN mkdir /tmp
 
 ENTRYPOINT ["java", "-jar" , "api-service.jar"]
 CMD ["--max-old-space-size=2048"]

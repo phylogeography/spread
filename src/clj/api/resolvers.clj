@@ -11,6 +11,14 @@
             [shared.utils :refer [clj->gql]]
             [taoensso.timbre :as log]))
 
+(defn pong
+  [_context _args _parent]
+  {:message "Pong"})
+
+(defn pong->status
+  [_context _args _parent]
+  :OK)
+
 (defn get-authorized-user
   [{:keys [authed-user-id db]} _ _]
   (log/info "get-authorized-user query" {:authed-user-id authed-user-id})

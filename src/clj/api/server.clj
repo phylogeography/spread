@@ -43,6 +43,8 @@
   {:mutation/googleLogin   mutations/google-login
    :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
 
+   :query/pong              resolvers/pong
+   :resolve/pong->status    resolvers/pong->status
    :query/getAuthorizedUser (auth-decorator resolvers/get-authorized-user)
 
    :mutation/uploadContinuousTree        (auth-decorator mutations/upload-continuous-tree)
