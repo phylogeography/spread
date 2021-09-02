@@ -153,8 +153,6 @@
     [collapsible-tab {:id :run-new
                       :title "Run new analysis"
                       :icon "icons/icn_run_analysis.svg"
-                      :badge-text "2 new"
-                      :badge-color "purple"
                       :child [:div.run-new
                               (map-indexed (fn [index {:keys [main-label sub-label target query]}]
                                              [:li.clickable {:key      index
