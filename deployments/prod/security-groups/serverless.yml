@@ -80,16 +80,6 @@ resources:
           - CidrIp: 0.0.0.0/0
             IpProtocol: -1
 
-    # APISecurityGroup:
-    #   Type: AWS::EC2::SecurityGroup
-    #   Properties:
-    #     GroupName: ${self:custom.stage}-api-SG
-    #     GroupDescription: default SG for referencing in RDS security group
-    #     VpcId: {'Fn::ImportValue': '${self:custom.stage}-vpc-id'}
-    #     Tags:
-    #       - Key: Name
-    #         Value: ${self:custom.stage}-api-SG
-
     DBMigrationSecurityGroup:
       Type: AWS::EC2::SecurityGroup
       Properties:

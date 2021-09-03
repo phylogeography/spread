@@ -163,7 +163,7 @@
 
 (defn start [{:keys [api aws db env google public-key private-key] :as config}]
   (let [dev?                                    (= "dev" env)
-        {:keys [port allowed-origins]}          api
+        {:keys [port host allowed-origins]}     api
         {:keys [workers-queue-url bucket-name]} aws
         schema                                  (load-schema)
         sqs                                     (aws-sqs/create-client aws)
@@ -194,15 +194,16 @@
                                                    ::healthcheck]}
         opts                                    (cond-> {::http/routes routes
                                                          ::http/port port
+                                                         ::http/host host
                                                          ::http/type :jetty
                                                          ::http/join? false
                                                          ::http/allowed-origins   {:allowed-origins
-                                                                                   #_(constantly true)
-                                                                                   (fn [origin]
-                                                                                     (log/debug "checking allowed CORS" {:origin origin})
-                                                                                     #_(allowed-origins origin)
-                                                                                     true
-                                                                                     )}}
+                                                                                   (constantly true) :creds true
+                                                                                   #_(fn [origin]
+                                                                                       (log/debug "checking allowed CORS" {:origin origin})
+                                                                                       #_(allowed-origins origin)
+                                                                                       true
+                                                                                       )}}
                                                   true (pedestal/enable-subscriptions compiled-schema {:subscriptions-path        "/ws"
                                                                                                        ;; The interval at which keep-alive messages are sent to the client
                                                                                                        :keep-alive-ms             60000 ;; one minute
