@@ -21,10 +21,10 @@ COPY services/ui/X0X.html /usr/share/nginx/html/X0X.html
 RUN ln -s -f /etc/nginx/sites-available/spreadviz.org /etc/nginx/sites-enabled/spreadviz.org
 
 # copy static content
-COPY services/ui/index.html /spread/index.html
-COPY services/ui/js/main.js /spread/js/main.js
-COPY services/ui/css/main.css /spread/css/main.css
-COPY services/ui/fonts/ /spread/fonts/
+COPY services/analysis-viewer/index.html /spread/index.html
+COPY services/analysis-viewer/js/main.js /spread/js/main.js
+COPY services/analysis-viewer/css/main.css /spread/css/main.css
+COPY services/analysis-viewer/fonts/ /spread/fonts/
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
