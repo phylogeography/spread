@@ -8,7 +8,8 @@ user_id,
 readable_name,
 created_on,
 status,
-progress
+progress,
+viewer_url_params
 )
 VALUES (
 :id,
@@ -17,15 +18,17 @@ VALUES (
 :readable-name,
 :created-on,
 :status,
-:progress
+:progress,
+:viewer-url-params
 )
 ON DUPLICATE KEY UPDATE
-of_type       = IF(:of-type IS NOT NULL, :of-type, of_type),
-user_id       = IF(:user-id IS NOT NULL, :user-id, user_id),
-readable_name = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
-created_on    = IF(:created-on IS NOT NULL, :created-on, created_on),
-status        = IF(:status IS NOT NULL, :status, status),
-progress      = IF(:progress IS NOT NULL, :progress, progress)
+of_type           = IF(:of-type IS NOT NULL, :of-type, of_type),
+user_id           = IF(:user-id IS NOT NULL, :user-id, user_id),
+readable_name     = IF(:readable-name IS NOT NULL, :readable-name, readable_name),
+created_on        = IF(:created-on IS NOT NULL, :created-on, created_on),
+status            = IF(:status IS NOT NULL, :status, status),
+progress          = IF(:progress IS NOT NULL, :progress, progress),
+viewer_url_params = IF(:viewer-url-params IS NOT NULL, :viewer-url-params, viewer_url_params)
 
 -- :name delete-analysis :! :n
 -- :doc Delete an analysis by id
@@ -45,7 +48,8 @@ readable_name,
 created_on,
 status,
 progress,
-is_new
+is_new,
+viewer_url_params
 FROM analysis
 WHERE id = :id
 
@@ -59,7 +63,8 @@ of_type,
 readable_name,
 status,
 progress,
-is_new
+is_new,
+viewer_url_params
 FROM analysis
 WHERE user_id = :user-id
 

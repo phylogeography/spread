@@ -29,7 +29,7 @@
     :url    "http://127.0.0.1:3001/api"}
 
    :root-url "http://localhost:8020"
-
+   :analysis-viewer-url "http://localhost:8021"
    :google
    {:client-id    google-client-id
     :redirect-uri "http://localhost:8020/?auth=google"}

@@ -27,6 +27,9 @@
                                                           yCoordinateAttributeName
                                                           mostRecentSamplingDate
                                                           timescaleMultiplier
+                                                          analysis {
+                                                              viewerUrlParams
+                                                          }
                                                         }
                                                       }"
 
@@ -40,6 +43,9 @@
                                                           locationsAttributeName
                                                           mostRecentSamplingDate
                                                           timescaleMultiplier
+                                                          analysis {
+                                                              viewerUrlParams
+                                                          }
                                                         }
                                                       }"
 
@@ -55,6 +61,9 @@
                                                             bayesFactor
                                                             posteriorProbability}
                                                           outputFileUrl
+                                                          analysis {
+                                                              viewerUrlParams
+                                                          }
                                                         }
                                                       }"
 

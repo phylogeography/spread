@@ -27,6 +27,12 @@
        (str/join ",")
        (format "maps=%s")))
 
+(defn build-viewer-url-params [user-id analysis-id map-boxes output-json]
+  (let [suggested-codes (maps-country-codes-for-data output-json map-boxes)
+        output-param (format "output=%s/%s.json" user-id analysis-id)
+        maps-param (build-maps-url-param suggested-codes)]    
+    (format "?%s&%s" output-param maps-param)))
+
 (comment
   
   (def map-boxes (load-map-boxes))
@@ -40,7 +46,6 @@
   ;; only once after generating the output file
   ;; For that we need to call (load-map-boxes) at worker start use build-maps-url-param at
   ;; api level to build the url for the analysis or just make the worker store the full url in the db
-  ;; like http://localhost:8021/?output=[USER_ID]/[ANALYSIS_ID].json&maps=CN,HK,VN
   
   (def suggested-codes (maps-country-codes-for-data output map-boxes)) ;; => ("CN" "HK" "VN")
   
