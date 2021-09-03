@@ -93,7 +93,7 @@ orbs:
               name: Configure serverless with AWS credentials
               command: |
                 echo "env: $SPREAD_ENV"
-                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+                serverless config credentials --provider aws --key $CI_AWS_ACCESS_KEY_ID --secret $CI_AWS_SECRET_ACCESS_KEY
           - run:
               name: Deploy with serverless
               command: |
@@ -190,7 +190,7 @@ orbs:
               name: Configure serverless with AWS credentials
               command: |
                 echo "env: $SPREAD_ENV"
-                serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+                serverless config credentials --provider aws --key $CI_AWS_ACCESS_KEY_ID --secret $CI_AWS_SECRET_ACCESS_KEY
           - run:
               name: Deploy with serverless
               command: |
@@ -275,7 +275,7 @@ jobs:
           name: Configure serverless with AWS credentials
           command: |
             echo "env: $SPREAD_ENV"
-            serverless config credentials --provider aws --key $AWS_ACCESS_KEY_ID --secret $AWS_SECRET_ACCESS_KEY
+            serverless config credentials --provider aws --key $CI_AWS_ACCESS_KEY_ID --secret $CI_AWS_SECRET_ACCESS_KEY
       - run:
           name: Deploy DB versioning lambda
           command: |
