@@ -21,9 +21,7 @@
                   :extension {:type String}}}}
 
  :objects
- {
-
-  :Pong {:description "Healthcheck response."
+ {:Pong {:description "Healthcheck response."
          :fields      {:message {:type (non-null String)}
                        :status  {:type    (non-null Status)
                                  :resolve :resolve/pong->status}}}
