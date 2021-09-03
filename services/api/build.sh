@@ -56,6 +56,7 @@ if [ $PUSH = true ]; then
   aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/$REGISTRY
   # tag image
   docker tag $IMG public.ecr.aws/$REGISTRY/$NAME:$TAG
+  # docker tag $IMG public.ecr.aws/$REGISTRY/$NAME:$CIRCLE_SHA1
   # push tagged image to the registry
   docker push public.ecr.aws/$REGISTRY/$NAME:$TAG
 

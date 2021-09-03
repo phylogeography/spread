@@ -39,15 +39,13 @@
   (-> default-config
       (assoc-in [:logging :level] :debug)))
 
-;; TODO : fill with production values
 (def prod-config
   (-> default-config
       (assoc-in [:logging :level] :info)
-      (assoc-in [:graphql :ws-url] "TODO")
-      (assoc-in [:graphql :url] "TODO")
-      (assoc :root-url "TODO")
-      (assoc-in [:google :redirect-url] "TODO")
-      ))
+      (assoc-in [:graphql :ws-url] "wss://api.spreadviz.org/ws")
+      (assoc-in [:graphql :url] "https://api.spreadviz.org/api")
+      (assoc :root-url "spreadviz.org")
+      (assoc-in [:google :redirect-url] "spreadviz.org/?auth=google")))
 
 (defn load []
   (case environment

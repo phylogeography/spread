@@ -13,6 +13,8 @@ custom:
   DesiredCount: 1
   Path: '*'
   Priority: 1
+  # TODO : change to all domains certificate
+  CertificateArn: arn:aws:acm:us-east-2:816997647674:certificate/0cca2aa7-5343-446c-ad36-d210aeec5c16
 
 provider:
   name: aws
@@ -168,7 +170,7 @@ resources:
         Port: 443
         Protocol: HTTPS
         Certificates:
-          - CertificateArn: arn:aws:acm:us-east-2:816997647674:certificate/8f97a6f8-39f7-41ca-9e6c-e4ed3d44c560
+          - CertificateArn: ${self:custom.CertificateArn}
 
     HTTPLoadBalancerListener:
       Type: AWS::ElasticLoadBalancingV2::Listener
