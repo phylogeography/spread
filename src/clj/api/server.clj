@@ -73,9 +73,10 @@
    :query/getBayesFactorAnalysis                 resolvers/get-bayes-factor-analysis
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
-   :query/getUserAnalysis   (auth-decorator resolvers/get-user-analysis)
-   :resolve/analysis->error resolvers/analysis->error
-   :mutation/touchAnalysis  (auth-decorator mutations/touch-analysis)})
+   :query/getUserAnalysis       (auth-decorator resolvers/get-user-analysis)
+   :resolve/analysis->error     resolvers/analysis->error
+   :mutation/touchAnalysis      (auth-decorator mutations/touch-analysis)
+   :resolve/tree->user-analysis resolvers/tree->user-analysis})
 
 (defn streamer-map []
   {:subscription/parserStatus (auth-decorator (subscriptions/create-analysis-status-sub))})

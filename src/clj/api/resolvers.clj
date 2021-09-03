@@ -95,3 +95,7 @@
   (let [error (error-model/get-error db {:id analysis-id})]
     (log/info "analysis->error result" error)
     (:error error)))
+
+(defn tree->user-analysis [{:keys [db]} _ {:keys [id]}]
+  (log/info "tree->user-analysis" {:analysis-id id})
+  (clj->gql  (analysis-model/get-analysis db {:id id})))
