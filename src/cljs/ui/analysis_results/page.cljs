@@ -136,9 +136,6 @@
               :on-click  #(prn "TODO")}
       "Delete"]]]])
 
-
-
-
 ;; NOTE : the results tab
 ;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed3112972c3f62905120
 (defn results [{:keys [bayes-factors] :as analysis} classes]  
