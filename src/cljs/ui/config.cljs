@@ -7,7 +7,8 @@
 (def version "0.1.0")
 
 (def default-config
-  {:logging
+  {:version "1.0.1"
+   :logging
    {:level    :info
     :console? true
     :sentry   false}
