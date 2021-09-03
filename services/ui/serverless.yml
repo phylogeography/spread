@@ -8,7 +8,7 @@ custom:
   # see for availiable values https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu
   ContainerCpu: 256 # 1024 is 1 CPU
   ContainerMemory: 512 #in MB
-  Image: public.ecr.aws/a8p1v4e1/ui-service
+  Image: public.ecr.aws/a8p1v4e1/ui-service:latest
   ContainerPort: 80 # What port number the application inside the docker container is binding to
   DesiredCount: 1
   Path: '*'

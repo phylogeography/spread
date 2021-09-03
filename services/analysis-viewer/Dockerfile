@@ -24,6 +24,7 @@ RUN ln -s -f /etc/nginx/sites-available/spreadviz.org /etc/nginx/sites-enabled/s
 COPY services/ui/index.html /spread/index.html
 COPY services/ui/js/main.js /spread/js/main.js
 COPY services/ui/css/main.css /spread/css/main.css
+COPY services/ui/fonts/ /spread/fonts/
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

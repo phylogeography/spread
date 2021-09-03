@@ -13,7 +13,6 @@ custom:
   DesiredCount: 1
   Path: '*'
   Priority: 1
-  # TODO : change to all domains certificate
   CertificateArn: arn:aws:acm:us-east-2:816997647674:certificate/0cca2aa7-5343-446c-ad36-d210aeec5c16
 
 provider:

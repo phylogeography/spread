@@ -38,7 +38,7 @@ if [ $BUILD = true ]
 then
   cd ../../
   yarn deps
-  yarn release
+  yarn shadow-cljs release analysis-viewer
   docker build --tag $IMG -f services/analysis-viewer/Dockerfile .
 fi
 
@@ -47,14 +47,14 @@ fi
 if [ $PUSH = true ]
 then
 
-  # TODO : obtain public registry id, for example x2t8a1o3
-  REGISTRY=TODO
+  REGISTRY=a8p1v4e1
   echo "Pushing $IMG to the registry $REGISTRY"
 
   # authenticate docker to use AWS registry
   aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/$REGISTRY
   # tag image
   docker tag $IMG public.ecr.aws/$REGISTRY/$NAME:$TAG
+  # docker tag $IMG public.ecr.aws/$REGISTRY/$NAME:$CIRCLE_SHA1
   # push tagged image to the registry
   docker push public.ecr.aws/$REGISTRY/$NAME:$TAG
 

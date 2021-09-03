@@ -26,13 +26,14 @@
 
 (defn auth-decorator [resolver-fn]
   (fn [{:keys [access-token public-key] :as context} args value]
+    (log/info "verifying auth token claims" {:access-token access-token})
     (if access-token
       ;; this will throw an exception when token is invalid or expired
       (let [{:keys [sub] :as claims} (auth/verify-token {:token      access-token
                                                          :public-key public-key
                                                          :claims     {:iss "spread"
                                                                       :aud "spread-client"}})]
-        (log/debug "verified token claims" claims)
+        (log/info "verified token claims" claims)
         (resolver-fn (merge context {:authed-user-id sub}) args value))
       (throw (Exception. "Authorization required")))))
 

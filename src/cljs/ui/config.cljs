@@ -45,8 +45,8 @@
       (assoc-in [:logging :level] :info)
       (assoc-in [:graphql :ws-url] "wss://api.spreadviz.org/ws")
       (assoc-in [:graphql :url] "https://api.spreadviz.org/api")
-      (assoc :root-url "spreadviz.org")
-      (assoc-in [:google :redirect-url] "spreadviz.org/?auth=google")))
+      (assoc :root-url "https://spreadviz.org")
+      (assoc-in [:google :redirect-url] "https://spreadviz.org/?auth=google")))
 
 (defn load []
   (case environment

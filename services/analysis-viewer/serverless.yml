@@ -1,37 +1,29 @@
-org: nodrama
+org: kuleuven
 app: spread
-
 service: spread-analysis-viewer
 
 custom:
-  # Our stage is based on what is passed in when running serverless
-  # commands. Or fallsback to what we have set in the provider section.
-  stage: ${opt:stage, self:provider.stage}
-  region:
-    prod: us-east-2
-  CertificateArn:
-    prod: TODO #arn:aws:acm:us-east-2:854738110479:certificate/8ceee094-678e-4484-bcd8-28f9f683eeda
+  stage: prod
   ServiceName: spread-analysis-viewer
   # see for availiable values https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-taskdefinition.html#cfn-ecs-taskdefinition-cpu
   ContainerCpu: 256 # 1024 is 1 CPU
   ContainerMemory: 512 #in MB
-  Image: # The docker image
-    prod: TODO
+  Image: public.ecr.aws/a8p1v4e1/analysis-viewer-service:latest
   ContainerPort: 80 # What port number the application inside the docker container is binding to
-  DesiredCount: # How many copies of the service task to run
-    prod: 1
+  DesiredCount: 1
   Path: '*'
   Priority: 1
+  CertificateArn: arn:aws:acm:us-east-2:816997647674:certificate/0cca2aa7-5343-446c-ad36-d210aeec5c16
 
 provider:
   name: aws
-  profile: spread
-  region: ${self:custom.region.${self:custom.stage}, self.region.dev}
-  stage: dev
+  region: us-east-2
+  stage: prod
   deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
 
 resources:
   Resources:
+
     LogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
@@ -55,14 +47,14 @@ resources:
           - Name: ${self:custom.ServiceName}
             Cpu: ${self:custom.ContainerCpu}
             Memory: ${self:custom.ContainerMemory}
-            Image: ${self:custom.Image.${self:custom.stage}, self.Image.dev}
+            Image: ${self:custom.Image}
             PortMappings:
               - ContainerPort: ${self:custom.ContainerPort}
             LogConfiguration:
               LogDriver: awslogs
               options:
                 awslogs-group: '/ecs/spread-analysis-viewer-${self:custom.stage}'
-                awslogs-region: ${self:custom.region.${self:custom.stage}, self.region.dev}
+                awslogs-region: us-east-2
                 awslogs-stream-prefix: 'ecs'
             # ENV vars for container
             # Environment:
@@ -83,7 +75,7 @@ resources:
         DeploymentConfiguration:
           MaximumPercent: 200
           MinimumHealthyPercent: 75
-        DesiredCount: ${self:custom.DesiredCount.${self:custom.stage}, self.DesiredCount.dev}
+        DesiredCount: ${self:custom.DesiredCount}
         NetworkConfiguration:
           AwsvpcConfiguration:
             AssignPublicIp: DISABLED
@@ -147,7 +139,7 @@ resources:
         Port: 443
         Protocol: HTTPS
         Certificates:
-          - CertificateArn: ${self:custom.CertificateArn.${self:custom.stage}}
+          - CertificateArn: ${self:custom.CertificateArn}
 
     HTTPLoadBalancerListener:
       Type: AWS::ElasticLoadBalancingV2::Listener
