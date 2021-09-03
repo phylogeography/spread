@@ -165,7 +165,7 @@
 
 (defn start [{:keys [api aws db env google public-key private-key] :as config}]
   (let [dev?                                    (= "dev" env)
-        {:keys [port host allowed-origins]}     api
+        {:keys [port host #_allowed-origins]}     api
         {:keys [workers-queue-url bucket-name]} aws
         schema                                  (load-schema)
         sqs                                     (aws-sqs/create-client aws)
@@ -226,4 +226,3 @@
 (defstate server
   :start (start (mount/args))
   :stop (stop server))
-
