@@ -153,7 +153,6 @@ orbs:
               command: |
                 cd services/<< parameters.service >>
                 ./build.sh -b true -p false
-                docker save -o << parameters.service >>.tar << parameters.service >>-service:latest
           - save_cache:
               key: maven-<< parameters.service >>-{{ checksum "shadow-cljs.edn" }}
               paths:
@@ -194,8 +193,9 @@ orbs:
           - run:
               name: Deploy with serverless
               command: |
-                docker load -i << parameters.service >>.tar
-                ./build.sh -b false -p true
+                echo "env: $SPREAD_ENV"
+                # NOTE : need to build image here, since ENV vars are loaded at compile time
+                ./build.sh -b true -p true
                 serverless deploy --stage $SPREAD_ENV
               working_directory: services/<< parameters.service >>
           - run:

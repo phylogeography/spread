@@ -6,7 +6,7 @@
 (def public-key (get-env-variable "PUBLIC_KEY" :required))
 
 (def default-config
-  {:version "1.0.2"
+  {:version "1.0.3"
    :environment environment
    :logging
    {:level    :info
