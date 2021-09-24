@@ -50,16 +50,6 @@
       (assoc-in [:google :redirect-uri] "https://spreadviz.org/?auth=google")))
 
 (defn load []
-
-  (prn "@1" environment)
-
-  (prn "@1" prod-config)
-
-  (prn "@3" (case environment
-         "dev"  dev-config
-         "prod" prod-config
-         dev-config))
-
   (case environment
     "dev"  dev-config
     "prod" prod-config
