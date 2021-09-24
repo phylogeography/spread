@@ -1,7 +1,7 @@
 (ns ui.config
   (:require [shared.macros :refer [get-env-variable]]))
 
-(def environment (get-env-variable "SPREAD_ENV"))
+(def environment (get-env-variable "SPREAD_ENV" :required))
 (def google-client-id (get-env-variable "GOOGLE_CLIENT_ID" :required))
 (def public-key (get-env-variable "PUBLIC_KEY" :required))
 
@@ -46,9 +46,20 @@
       (assoc-in [:graphql :ws-url] "wss://api.spreadviz.org/ws")
       (assoc-in [:graphql :url] "https://api.spreadviz.org/api")
       (assoc :root-url "https://spreadviz.org")
-      (assoc-in [:google :redirect-url] "https://spreadviz.org/?auth=google")))
+      (assoc :analysis-viewer-url "https://view.spreadviz.org")
+      (assoc-in [:google :redirect-uri] "https://spreadviz.org/?auth=google")))
 
 (defn load []
+
+  (prn "@1" environment)
+
+  (prn "@1" prod-config)
+
+  (prn "@3" (case environment
+         "dev"  dev-config
+         "prod" prod-config
+         dev-config))
+
   (case environment
     "dev"  dev-config
     "prod" prod-config
