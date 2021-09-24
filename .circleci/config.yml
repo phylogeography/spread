@@ -157,10 +157,10 @@ orbs:
               key: maven-<< parameters.service >>-{{ checksum "shadow-cljs.edn" }}
               paths:
                 - ~/.m2/repository
-          - persist_to_workspace:
-              root: services
-              paths:
-                - << parameters.service >>/<< parameters.service >>.tar
+          # - persist_to_workspace:
+          #     root: services
+          #     paths:
+          #       - << parameters.service >>/<< parameters.service >>.tar
       deploy:
         working_directory: ~/ci-spread
         environment:
@@ -177,8 +177,8 @@ orbs:
           - setup_remote_docker:
               version: 19.03.13
           - checkout
-          - attach_workspace:
-              at: services
+          # - attach_workspace:
+          #     at: services
           - run:
               name: Source environment variables
               command: |
