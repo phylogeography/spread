@@ -7,6 +7,7 @@
 
 (def default-config
   {:version "1.0.2"
+   :environment environment
    :logging
    {:level    :info
     :console? true
