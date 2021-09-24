@@ -5,6 +5,11 @@
 (s/def :html/color (s/and string? #(str/starts-with? % "#")))
 
 (s/def :cartesian/coord (s/tuple number? number?))
+(s/def :box/min-x number?)
+(s/def :box/max-x number?)
+(s/def :box/min-y number?)
+(s/def :box/max-y number?)
+(s/def :cartesian/box (s/keys :req-un [:box/min-x :box/max-x :box/min-y :box/max-y]))
 
 (s/def :map/scale number?)
 (s/def :map/translate :cartesian/coord)
@@ -28,6 +33,7 @@
 (s/def :analysis.data.object/id string?)
 (s/def :analysis.data/type #{:ContinuousTree :DiscreteTree :BayesFactor})
 (s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object))
+(s/def :analysis/data-box :cartesian/box)
 
 (s/def :attribute/id string?)
 
@@ -136,7 +142,8 @@
                           :ui/parameters
                           :analysis.data/filters]
                     :opt [:map/data
-                          :analysis/data                          
+                          :analysis/data
+                          :analysis/data-box
                           :analysis.data/type
                           :analysis/attributes
                           :analysis/selected-object-id

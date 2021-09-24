@@ -190,14 +190,3 @@
                           (count nodes-objects)
                           (count transitions-objects)))
     (index-objects objects)))
-  
-(defn data-box [data-objects]  
-  (let [all-coords (->> data-objects
-                        (mapcat (fn [o]
-                                  (case (:type o)
-                                    :node [(:coord o)]
-                                    :circle [(:coord o)]
-                                    :polygon (:coords o)
-                                    :transition [(:from-coord o) (:to-coord o)])))
-                        (into #{}))]
-    (math-utils/bounding-box all-coords)))

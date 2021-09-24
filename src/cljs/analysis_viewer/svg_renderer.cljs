@@ -6,38 +6,10 @@
   "
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
+            [shared.geojson :as geojson]
             [shared.math-utils :as math-utils]))
 
 (def ^:dynamic *coord-transform-fn* identity)
-
-(defn all-coords
-
-  "Returns the set of all coordinates found in a geo-json map."
-  
-  [geo-json] 
-
-  (when geo-json
-    (case (keyword (:type geo-json))
-      :Point             #{(:coordinates geo-json)}
-      :MultiPoint        (into #{} (:coordinates geo-json))
-      :Line              (into #{} (:coordinates geo-json))
-      :LineString        (into #{} (:coordinates geo-json))
-      :MultiLineString   (into #{} (->> (:coordinates geo-json) (apply concat)))
-      :Polygon           (into #{} (->> (:coordinates geo-json) (apply concat)))
-      :MultiPolygon      (into #{} (->> (:coordinates geo-json) (apply concat) (apply concat)))
-      :FeatureCollection (into #{} (mapcat all-coords (:features geo-json)))
-      :Feature           (when-let [g (:geometry geo-json)] (all-coords g))
-      (throw (ex-info (pr-str "Don't know how to find coords of " (:type geo-json)) {})))))
-
-(defn geo-json-bounding-box
-
-  "Calculates the bounding box in proj-coord for any geo-json map."
-  
-  [geo-json]
-
-  (let [coords (->> (all-coords geo-json)
-                    (map *coord-transform-fn*))]
-    (math-utils/bounding-box coords)))
 
 (s/def ::geojson any?)
 (s/def :html/color string?)
@@ -112,8 +84,10 @@
 
 (defn text-for-box [box text opts]
   (let [{:keys [min-x min-y max-x max-y]} box
-        [text-x text-y] [(+ (/ (Math/abs (- max-x min-x)) 2) min-x)
-                         (+ (/ (Math/abs (- max-y min-y)) 2) min-y)]]
+        [x1 y1] (*coord-transform-fn* [min-x min-y])
+        [x2 y2] (*coord-transform-fn* [max-x max-y])
+        [text-x text-y] [(+ (/ (Math/abs (- x1 x2)) 2) (min x1 x2))
+                         (+ (/ (Math/abs (- y1 y2)) 2) (min y1 y2))]]
     [:text {:x text-x :y text-y
             :font-size (str (:text-size opts) "px")
             :fill (:text-color opts)
@@ -121,14 +95,15 @@
 
 (defmethod geojson->svg :Feature [{:keys [geometry properties]} opts]
   (when geometry    
-    (let [proj-box (geo-json-bounding-box geometry)
+    (let [geo-box (geojson/geo-json-bounding-box geometry) ;; this is in [long lat]          
           feature-text (:name properties)]
-      
+                  
       (when (or (nil? (:clip-box opts))
                 (math-utils/box-overlap? (:clip-box opts)
-                                         proj-box))
-        (into [:g {}] (cond-> [(geojson->svg geometry opts)]
-                        feature-text (into [(text-for-box proj-box feature-text opts)])))))))
+                                         (math-utils/map-box->proj-box geo-box)))
+        
+        (into [:g {}] (cond-> [(geojson->svg geometry opts)]                        
+                        feature-text (into [(text-for-box geo-box feature-text opts)])))))))
 
 (defmethod geojson->svg :FeatureCollection [{:keys [features]} opts]
   (into [:g {}] (mapv (fn [feat] (geojson->svg feat opts)) features)))

@@ -549,7 +549,8 @@ public class ContinuousTreeParser implements IProgressReporter {
         }
 
         attributes.put("nodeName", value);
-
+		attributes.put("xCoordinate",coordinate.getX());
+		attributes.put("yCoordinate",coordinate.getY());
         // external nodes have no posterior annotated, need to fix that
         if (rootedTree.isExternal(node)) {
             attributes.put(ParsersUtils.POSTERIOR, 1.0);

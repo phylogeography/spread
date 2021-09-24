@@ -8,7 +8,6 @@
             [reagent-material-ui.core.button :refer [button]]
             [reagent-material-ui.core.divider :refer [divider]]
             [reagent-material-ui.core.grid :refer [grid]]
-            [reagent-material-ui.core.outlined-input :refer [outlined-input]]
             [reagent-material-ui.core.tab :refer [tab]]
             [reagent-material-ui.core.table :refer [table]]
             [reagent-material-ui.core.table-body :refer [table-body]]
@@ -137,121 +136,119 @@
               :on-click  #(prn "TODO")}
       "Delete"]]]])
 
-
-
-
 ;; NOTE : the results tab
 ;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed3112972c3f62905120
-(defn results [{:keys [output-file-url bayes-factors]} classes]
-  [grid {:container true
-         :direction :column}
-   [grid {:container true
-          :item      true
-          :direction :row
-          :xs        12 :xm 12}
-    [grid {:item true
-           :xs   6 :xm 6}
-     [typography {:class-name (:input-label classes)} "Visualisations on a geographical map"]]
-    [grid {:item true
-           :xs   6 :xm 6}]]
-   [grid {:container true
-          :item      true
-          :direction :row
-          :xs        12 :xm 12}
-    [grid {:item true
-           :xs   6 :xm 6}
-     [outlined-input {:class-name (:analysis-viewer-url classes)
-                      :variant    :outlined
-                      ;; TODO : link to viewer here
-                      :value      (or output-file-url "")}]]
-    [grid {:item true
-           :xs   6 :xm 6}
-     [button {:variant   "contained"
-              :color     "primary"
-              :size      "large"
-              :className (:copy-button classes)
-              :on-click  #(prn "TODO")}
-      "Copy"]]]
+(defn results [{:keys [bayes-factors] :as analysis} classes]  
+  (let [config @(re-frame/subscribe [::subs/config])
+        viewer-host (:analysis-viewer-url config)
+        {:keys [viewer-url-params]} (:analysis analysis)
+        viewer-url (str viewer-host "/" viewer-url-params)]
+    [grid {:container true
+           :direction :column}
+     [grid {:container true
+            :item      true
+            :direction :row
+            :xs        12 :xm 12}
+      [grid {:item true
+             :xs   6 :xm 6}
+       [typography {:class-name (:input-label classes)} "Visualisations on a geographical map"]]
+      [grid {:item true
+             :xs   6 :xm 6}]]
+     [grid {:container true
+            :item      true
+            :direction :row
+            :xs        12 :xm 12}
+      [grid {:item true
+             :xs   6 :xm 6}
+       [:a {:href viewer-url} viewer-url]]
+      [grid {:item true
+             :xs   6 :xm 6}
+       [button {:variant   "contained"
+                :color     "primary"
+                :size      "large" 
+                :className (:copy-button classes)
+                :on-click  #(js/navigator.clipboard.writeText viewer-url)}
+        "Copy"]]]
 
-   ;; bayes factors table
-   (when bayes-factors
-     [:<>
-      [box {:paddingTop    10
-            :paddingBottom 10}
-       [divider {:variant    "fullWidth"
-                 :class-name (:divider classes)}]]
-      [grid {:container true
-             :item      true
-             :direction :row
-             :xs        12 :xm 12}
-       [grid {:item true
-              :xs   6 :xm 6}
-        [typography {:class-name (:input-label classes)} "Support values"]]
-       [grid {:item true
-              :xs   6 :xm 6}
-        [button {:variant   "contained"
-                 :color     "primary"
-                 :size      "large"
-                 :className (:export-button classes)
-                 :on-click  #(prn "TODO")}
-         "Export to CSV"]]]
+     ;; bayes factors table
+     (when bayes-factors
+       [:<>
+        [box {:paddingTop    10
+              :paddingBottom 10}
+         [divider {:variant    "fullWidth"
+                   :class-name (:divider classes)}]]
+        [grid {:container true
+               :item      true
+               :direction :row
+               :xs        12 :xm 12}
+         [grid {:item true
+                :xs   6 :xm 6}
+          [typography {:class-name (:input-label classes)} "Support values"]]
+         [grid {:item true
+                :xs   6 :xm 6}
+          [button {:variant   "contained"
+                   :color     "primary"
+                   :size      "large"
+                   :className (:export-button classes)
+                   :on-click  #(prn "TODO")}
+           "Export to CSV"]]]
 
-      [grid {:container true
-             :item      true
-             :direction :row
-             :xs        12 :xm 12}
-       ;; TODO : table with sorting https://material-ui.com/components/tables/#sorting-amp-selecting
-       [table-container {:class-name (:scroll-list classes)}
-        [table {:class-name (:table classes)}
-         [table-head
-          [table-row
-           [table-cell {:align :right} "From"]
-           [table-cell {:align :right} "To"]
-           [table-cell {:align :right} "Bayes Factor"]
-           [table-cell {:align :right} "Posterior probability"]]]
-         [table-body
-          (doall
-            (map (fn [{:keys [from to bayes-factor posterior-probability]}]
-                   [table-row {:key (str from to)}
-                    [table-cell {:align :right} from]
-                    [table-cell {:align :right} to]
-                    [table-cell {:align :right} bayes-factor]
-                    [table-cell {:align :right} posterior-probability]])
-                 bayes-factors))]]]]])
+        [grid {:container true
+               :item      true
+               :direction :row
+               :xs        12 :xm 12}
+         ;; TODO : table with sorting https://material-ui.com/components/tables/#sorting-amp-selecting
+         [table-container {:class-name (:scroll-list classes)}
+          [table {:class-name (:table classes)}
+           [table-head
+            [table-row
+             [table-cell {:align :right} "From"]
+             [table-cell {:align :right} "To"]
+             [table-cell {:align :right} "Bayes Factor"]
+             [table-cell {:align :right} "Posterior probability"]]]
+           [table-body
+            (doall
+             (map (fn [{:keys [from to bayes-factor posterior-probability]}]
+                    [table-row {:key (str from to)}
+                     [table-cell {:align :right} from]
+                     [table-cell {:align :right} to]
+                     [table-cell {:align :right} bayes-factor]
+                     [table-cell {:align :right} posterior-probability]])
+                  bayes-factors))]]]]])
 
-   ;; buttons
-   [box {:paddingTop    10
-         :paddingBottom 10}
-    [divider {:variant    "fullWidth"
-              :class-name (:divider classes)}]]
-   [grid {:container true
-          :item      true
-          :direction :row
-          :xs        12 :xm 12}
-    [grid {:item true
-           :xs   4 :xm 4}
-     [button {:variant   :contained
-              :color     "primary"
-              :size      :large
-              :className (:start-button classes)
-              :on-click  #(prn "TODO")}
-      "Edit"]]
-    [grid {:item true
-           :xs   4 :xm 4}
-     [button {:variant   :contained
-              :color     "primary"
-              :size      :large
-              :className (:start-button classes)
-              :on-click  #(prn "TODO")}
-      "Copy settings"]]
-    [grid {:item true
-           :xs   4 :xm 4}
-     [button {:variant   :contained
-              :color     "primary"
-              :size      :large
-              :className (:start-button classes)
-              :on-click  #(prn "TODO")}
-      "Delete"]]]])
+     ;; buttons
+     [box {:paddingTop    10
+           :paddingBottom 10}
+      [divider {:variant    "fullWidth"
+                :class-name (:divider classes)}]]
+     [grid {:container true
+            :item      true
+            :direction :row
+            :xs        12 :xm 12}
+      [grid {:item true
+             :xs   4 :xm 4}
+       [button {:variant   :contained
+                :color     "primary"
+                :size      :large
+                :className (:start-button classes)
+                :on-click  #(prn "TODO")}
+        "Edit"]]
+      [grid {:item true
+             :xs   4 :xm 4}
+       [button {:variant   :contained
+                :color     "primary"
+                :size      :large
+                :className (:start-button classes)
+                :on-click  #(prn "TODO")}
+        "Copy settings"]]
+      [grid {:item true
+             :xs   4 :xm 4}
+       [button {:variant   :contained
+                :color     "primary"
+                :size      :large
+                :className (:start-button classes)
+                :on-click  #(prn "TODO")}
+        "Delete"]]]]))
 
 (defn tab-pane [{:keys [id]}]
   (let [analysis (re-frame/subscribe [::subs/analysis-results id])]

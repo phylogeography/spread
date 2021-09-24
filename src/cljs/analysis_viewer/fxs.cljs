@@ -1,16 +1,14 @@
 (ns analysis-viewer.fxs
   (:require-macros [hiccups.core :as hiccups :refer [html]])
-  (:require [analysis-viewer.map-emitter :as map-emitter]
-            [analysis-viewer.svg-renderer :as svg-renderer]            
+  (:require [analysis-viewer.svg-renderer :as svg-renderer]            
             [analysis-viewer.views :as views]
             [goog.string :as gstr]
             [hiccups.runtime :as hiccupsrt]
             [re-frame.core :as re-frame]
             [shared.math-utils :as math-utils]))
 
-(defn data-map [geo-json-map analysis-data time params]  
-  (let [analysis-data-box (map-emitter/data-box analysis-data)
-        padding 10]
+(defn data-map [geo-json-map analysis-data analysis-data-box time params]  
+  (let [padding 10]
     [:svg {:xmlns "http://www.w3.org/2000/svg"
           :xmlns:amcharts "http://amcharts.com/ammap"
           :xmlns:xlink "http://www.w3.org/1999/xlink"
@@ -48,8 +46,8 @@
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg
- (fn [{:keys [geo-json-map analysis-data time params]}]
-   (let [svg-text (html (data-map geo-json-map analysis-data time params))
+ (fn [{:keys [geo-json-map analysis-data data-box time params]}]
+   (let [svg-text (html (data-map geo-json-map analysis-data data-box time params))
          download-anchor (js/document.createElement "a")]
      (.setAttribute download-anchor "href" (str "data:image/svg+xml;charset=utf-8," (js/encodeURIComponent svg-text)))
      (.setAttribute download-anchor "download" "map.svg")

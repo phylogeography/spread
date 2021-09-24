@@ -1,14 +1,14 @@
 (ns ui.config
   (:require [shared.macros :refer [get-env-variable]]))
 
-(def environment (get-env-variable "SPREAD_ENV"))
-(def sentry-dsn (get-env-variable "SENTRY_DSN"))
+(def environment (get-env-variable "SPREAD_ENV" :required))
 (def google-client-id (get-env-variable "GOOGLE_CLIENT_ID" :required))
 (def public-key (get-env-variable "PUBLIC_KEY" :required))
-(def version "0.1.0")
 
 (def default-config
-  {:logging
+  {:version "1.0.3"
+   :environment environment
+   :logging
    {:level    :info
     :console? true
     :sentry   false}
@@ -28,8 +28,8 @@
    {:ws-url "ws://127.0.0.1:3001/ws"
     :url    "http://127.0.0.1:3001/api"}
 
-   :root-url "http://localhost:8020"
-
+   :root-url            "http://localhost:8020"
+   :analysis-viewer-url "http://localhost:8021"
    :google
    {:client-id    google-client-id
     :redirect-uri "http://localhost:8020/?auth=google"}
@@ -40,16 +40,27 @@
   (-> default-config
       (assoc-in [:logging :level] :debug)))
 
-(def qa-config
+(def prod-config
   (-> default-config
       (assoc-in [:logging :level] :info)
-      (assoc-in [:logging :sentry] {:dsn         sentry-dsn
-                                    :min-level   :warn
-                                    :environment "QA"
-                                    :release     version})))
+      (assoc-in [:graphql :ws-url] "wss://api.spreadviz.org/ws")
+      (assoc-in [:graphql :url] "https://api.spreadviz.org/api")
+      (assoc :root-url "https://spreadviz.org")
+      (assoc :analysis-viewer-url "https://view.spreadviz.org")
+      (assoc-in [:google :redirect-uri] "https://spreadviz.org/?auth=google")))
 
 (defn load []
+
+  (prn "@1" environment)
+
+  (prn "@1" prod-config)
+
+  (prn "@3" (case environment
+         "dev"  dev-config
+         "prod" prod-config
+         dev-config))
+
   (case environment
-    "dev" dev-config
-    "qa"  qa-config
+    "dev"  dev-config
+    "prod" prod-config
     dev-config))
