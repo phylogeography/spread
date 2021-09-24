@@ -4,10 +4,9 @@
 (def environment (get-env-variable "SPREAD_ENV"))
 (def google-client-id (get-env-variable "GOOGLE_CLIENT_ID" :required))
 (def public-key (get-env-variable "PUBLIC_KEY" :required))
-(def version "0.1.0")
 
 (def default-config
-  {:version "1.0.1"
+  {:version "1.0.2"
    :logging
    {:level    :info
     :console? true
@@ -28,7 +27,7 @@
    {:ws-url "ws://127.0.0.1:3001/ws"
     :url    "http://127.0.0.1:3001/api"}
 
-   :root-url "http://localhost:8020"
+   :root-url            "http://localhost:8020"
    :analysis-viewer-url "http://localhost:8021"
    :google
    {:client-id    google-client-id
@@ -50,6 +49,6 @@
 
 (defn load []
   (case environment
-    "dev" dev-config
-    "prod"  prod-config
+    "dev"  dev-config
+    "prod" prod-config
     dev-config))
