@@ -371,26 +371,26 @@
     (log/info "delete-s3-object" {:object-key object-key})
     (aws-s3/delete-file s3 {:bucket bucket :key object-key})))
 
-(defn- delete-continuous-tree-analysis [{:keys [id db s3 bucket-name user-id]}]
+(defn- delete-continuous-tree-analysis! [{:keys [id db s3 bucket-name user-id]}]
   (let [{:keys [tree-file-url output-file-url]} (continuous-tree-model/get-tree db {:id id})
-        {:keys [trees-file-url]}                (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})]
-
+        {trees-file-url :trees-file-url time-slicer-analysis-id :id}
+        (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})]
     (log/info "delete-continuous-tree-analysis" {:tree-file-url   tree-file-url
                                                  :output-file-url output-file-url
                                                  :trees-file-url  trees-file-url})
 
     (doseq [url (remove nil? [tree-file-url output-file-url trees-file-url])]
       (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
-
-    ;; TODO : delete DB content
-
-  ))
-
-;; TODO
-(defn- delete-discrete-tree-analysis [id db])
+    ;; TODO : in a transaction
+    (analysis-model/delete-analysis db {:id id})
+    (when time-slicer-analysis-id
+      (analysis-model/delete-analysis db {:id time-slicer-analysis-id}))))
 
 ;; TODO
-(defn- delete-bayes-factor-analysis [id db])
+(defn- delete-discrete-tree-analysis! [id db])
+
+;; TODO
+(defn- delete-bayes-factor-analysis! [id db])
 
 (defn delete-analysis
   [{:keys [authed-user-id db s3 bucket-name]} {id :id :as args} _]
@@ -399,9 +399,9 @@
   (try
     (let [{:keys [of-type]} (analysis-model/get-analysis db {:id id})]
       (case (keyword of-type)
-        :CONTINUOUS_TREE       (delete-continuous-tree-analysis {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
-        :DISCRETE_TREE         (delete-discrete-tree-analysis {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
-        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
+        :CONTINUOUS_TREE       (delete-continuous-tree-analysis! {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
+        :DISCRETE_TREE         (delete-discrete-tree-analysis! {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
+        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis! {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
         (log/error "Unknown analysis type" {:of-type of-type :id id}))
       {:id id})
     (catch Exception e
