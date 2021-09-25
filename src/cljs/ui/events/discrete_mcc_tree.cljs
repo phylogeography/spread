@@ -59,7 +59,7 @@
   ;; NOTE : we just delete the object from S3 and dissoc the app-db values
   ;; there is no need to change the analysis settings in the DB as they are not set yet
   ;; this happens only when the analysis is started
-  (let [{:keys [id locations-file-url]} (get-in db [:new-analysis :discrete-mcc-tree])]
+  (let [{:keys [locations-file-url]} (get-in db [:new-analysis :discrete-mcc-tree])]
     {:dispatch [:graphql/query {:query
                                 "mutation DeleteFile($url: String!) {
                                      deleteFile(url: $url) {

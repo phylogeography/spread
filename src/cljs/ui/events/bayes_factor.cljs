@@ -30,14 +30,32 @@
   {:db (assoc-in db [:new-analysis :bayes-factor :log-file-upload-progress] progress)})
 
 (defn delete-log-file [{:keys [db]}]
-  ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (dissoc-in db [:new-analysis :bayes-factor])})
+  (let [id (get-in db [:new-analysis :bayes-factor :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                   deleteAnalysis(id: $analysisId) {
+                                          id
+                                        }
+                                     }"
+                                :variables {:analysisId id}}]
+     :db       (dissoc-in db [:new-analysis :bayes-factor])}))
 
 (defn delete-locations-file [{:keys [db]}]
-  ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (-> db
-           (dissoc-in [:new-analysis :bayes-factor :locations-file])
-           (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))})
+  ;; NOTE : we just delete the object from S3 and dissoc the app-db values
+  ;; there is no need to change the analysis settings in the DB as they are not set yet
+  ;; this happens only when the analysis is started
+  (let [{:keys [locations-file-url]} (get-in db [:new-analysis :bayes-factor])]
+    {:dispatch [:graphql/query {:query
+                                "mutation DeleteFile($url: String!) {
+                                     deleteFile(url: $url) {
+                                       key
+                                     }
+                                   }"
+                                :variables {:url locations-file-url}}]
+     :db (-> db
+             (dissoc-in [:new-analysis :bayes-factor :locations-file])
+             (dissoc-in [:new-analysis :bayes-factor :locations-file-url])
+             (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))}))
 
 (defn log-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _]       (string/split url "?")
