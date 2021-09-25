@@ -28,10 +28,12 @@ services:
       - ./sqs/elasticmq.conf:/opt/elasticmq.conf
 
   s3:
-    image: minio/minio:latest
-    command: --console-address ":9001"
+    image: minio/minio:RELEASE.2021-09-24T00-24-24Z
+    command: server --address 0.0.0.0:9000 --console-address ":9001" /data
     container_name: dev_s3
-    command: server /data
+    expose:
+      - 9000
+      - 9001
     ports:
       - 9000:9000
       - 9001:9001

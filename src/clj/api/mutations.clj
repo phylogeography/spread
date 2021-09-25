@@ -12,7 +12,11 @@
             [clj-http.client :as http]
             [shared.errors :as errors]
             [shared.time :as time]
-            [shared.utils :refer [clj->gql decode-json new-uuid]]
+            [shared.utils :refer [file-extension clj->gql decode-json new-uuid              tree-object-extension
+                                  trees-object-extension
+                                  locations-object-extension
+                                  log-object-extension
+                                  output-object-extension]]
             [taoensso.timbre :as log]))
 
 (defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri} _]
@@ -360,24 +364,25 @@
       (log/error "Exception occured when marking analysis as touched" {:analysis/id id
                                                                        :error       e}))))
 
-;; TODO
-;; delete tree_file_url
-;; delete output_file_url
-;; delete trees_file_url
+(defn delete-s3-object [{:keys [s3 bucket url user-id]}]
+  (let [object-id (s3-url->id url user-id)
+        extension (file-extension url)
+        object-key (str user-id "/" object-id extension)]
+    (log/info "delete-s3-object" {:object-key object-key})
+    (aws-s3/delete-file s3 {:bucket bucket :key object-key})))
 
-;; {:tree-file-url  "http://127.0.0.1:9000/spread-dev-uploads/7c839acc-5e48-415b-a03e-391957cedc5d/2ee897a0-bb0e-44bd-8d03-7912b26f9e27.tree"
-;;  :output-file-url "127.0.0.1:9000/spread-dev-uploads/7c839acc-5e48-415b-a03e-391957cedc5d/2ee897a0-bb0e-44bd-8d03-7912b26f9e27.json"
-;;  :trees-file-url nil}
-
-(defn- delete-continuous-tree-analysis [id db]
+(defn- delete-continuous-tree-analysis [{:keys [id db s3 bucket-name user-id]}]
   (let [{:keys [tree-file-url output-file-url]} (continuous-tree-model/get-tree db {:id id})
-        {:keys [trees-file-url]} (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})
-        ;; id     (s3-url->id tree-file-url authed-user-id)
-        ]
+        {:keys [trees-file-url]}                (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})]
 
-    (prn "@@@" {:tree-file-url tree-file-url
-                :output-file-url output-file-url
-                :trees-file-url trees-file-url})
+    (log/info "delete-continuous-tree-analysis" {:tree-file-url   tree-file-url
+                                                 :output-file-url output-file-url
+                                                 :trees-file-url  trees-file-url})
+
+    (doseq [url (remove nil? [tree-file-url output-file-url trees-file-url])]
+      (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+
+    ;; TODO : delete DB content
 
   ))
 
@@ -387,25 +392,18 @@
 ;; TODO
 (defn- delete-bayes-factor-analysis [id db])
 
-;; "65928c97-3a2e-4cd0-b13c-7d363c315f71"
 (defn delete-analysis
-  [{:keys [authed-user-id db bucket-name]} {id :id :as args} _]
+  [{:keys [authed-user-id db s3 bucket-name]} {id :id :as args} _]
   (log/info "delete-analysis" {:user/id authed-user-id
                                :args    args})
   (try
-    ;; type and match on that
     (let [{:keys [of-type]} (analysis-model/get-analysis db {:id id})]
       (case (keyword of-type)
-        :CONTINUOUS_TREE       (delete-continuous-tree-analysis id db)
-        :DISCRETE_TREE         (delete-discrete-tree-analysis id db)
-        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis id db)
-        ;; :TIME_SLICER
-        (log/error "Unknown analysis type" {:of-type of-type :id id})
-        )
-
-      {:id id}
-
-      )
+        :CONTINUOUS_TREE       (delete-continuous-tree-analysis {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
+        :DISCRETE_TREE         (delete-discrete-tree-analysis {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
+        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
+        (log/error "Unknown analysis type" {:of-type of-type :id id}))
+      {:id id})
     (catch Exception e
       (log/error "Exception occured when deleting analysis" {:analysis/id id
-                                                              :error       e}))))
+                                                             :error       e}))))
