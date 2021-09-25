@@ -23,8 +23,15 @@
                    (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))}))
 
 (defn delete-tree-file [{:keys [db]}]
-  ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (dissoc-in db [:new-analysis :continuous-mcc-tree])})
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                   deleteAnalysis(id: $analysisId) {
+                                          id
+                                        }
+                                     }"
+                                :variables {:analysisId id}}]
+     :db       (dissoc-in db [:new-analysis :continuous-mcc-tree])}))
 
 (defn upload-tree-file [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]

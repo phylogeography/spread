@@ -76,6 +76,7 @@
    :query/getUserAnalysis       (auth-decorator resolvers/get-user-analysis)
    :resolve/analysis->error     resolvers/analysis->error
    :mutation/touchAnalysis      (auth-decorator mutations/touch-analysis)
+   :mutation/deleteFile      (auth-decorator mutations/delete-file)
    :mutation/deleteAnalysis      (auth-decorator mutations/delete-analysis)
    :resolve/tree->user-analysis resolvers/tree->user-analysis})
 

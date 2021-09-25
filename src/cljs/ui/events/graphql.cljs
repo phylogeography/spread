@@ -310,6 +310,11 @@
   [{:keys [db]} _ {:keys [id]}]
   {:db (dissoc-in db [:analysis id])})
 
+(defmethod handler :delete-file
+  [_ _ _]
+  ;; nothing to do
+  )
+
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]
   (re-frame/dispatch [:splash/login-success access-token]))

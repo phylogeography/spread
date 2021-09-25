@@ -32,6 +32,9 @@
                             :fields      {:id    {:type (non-null ID)}
                                           :isNew {:type (non-null Boolean)}}}
 
+  :DeleteFileReturnType {:description "Returned by delete file mutation."
+                         :fields      {:key {:type (non-null String)}}}
+
   :DeleteAnalysisReturnType {:description "Returned by delete analysis mutation."
                              :fields      {:id {:type (non-null ID)}}}
 
@@ -285,6 +288,11 @@
                   :description "Marks analysis as viewed"
                   :args        {:id {:type (non-null ID)}}
                   :resolve     :mutation/touchAnalysis}
+
+  :deleteFile {:type        :DeleteFileReturnType
+               :description "Deletes analysis from the DB and it's content from S3"
+               :args        {:url {:type (non-null String)}}
+               :resolve     :mutation/deleteFile}
 
   :deleteAnalysis {:type        :DeleteAnalysisReturnType
                    :description "Deletes analysis from the DB and it's content from S3"

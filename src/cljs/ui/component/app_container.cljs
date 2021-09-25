@@ -177,14 +177,15 @@
                                                                               (prn "TODO"))} "Copy settings"]
                                                       [menu-item {:on-click
                                                                   (fn [event]
+                                                                    ;; TODO : if on results page nav to home
+                                                                    (.stopPropagation event)
                                                                     (>evt [:graphql/query {:query
                                                                                            "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                                                                              deleteAnalysis(id: $analysisId) {
                                                                                                id
                                                                                              }
                                                                                           }"
-                                                                                           :variables {:analysisId id}}])
-                                                                    (.stopPropagation event))}
+                                                                                           :variables {:analysisId id}}]))}
                                                        "Delete"]]]])
                       :secondary (reagent/as-element [typography {:class-name (:secondary classes)}
                                                       (type->label of-type)])}]]))

@@ -155,3 +155,6 @@
 (reg-event-fx :router/unwatch-active-page events.router/interceptors events.router/unwatch-active-page)
 (reg-event-fx :router/navigate events.router/interceptors events.router/navigate)
 (reg-event-fx :router/stop events.router/interceptors events.router/stop)
+
+(comment
+  (re-frame/dispatch [:utils/app-db]))

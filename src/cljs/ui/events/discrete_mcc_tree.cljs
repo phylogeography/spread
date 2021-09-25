@@ -45,14 +45,32 @@
                    (assoc-in [:new-analysis :discrete-mcc-tree :readable-name] readable-name))}))
 
 (defn delete-tree-file [{:keys [db]}]
-  ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (dissoc-in db [:new-analysis :discrete-mcc-tree])})
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                   deleteAnalysis(id: $analysisId) {
+                                          id
+                                        }
+                                     }"
+                                :variables {:analysisId id}}]
+     :db       (dissoc-in db [:new-analysis :discrete-mcc-tree])}))
 
 (defn delete-locations-file [{:keys [db]}]
-  ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (-> db
-           (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file])
-           (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-upload-progress]))})
+  ;; NOTE : we just delete the object from S3 and dissoc the app-db values
+  ;; there is no need to change the analysis settings in the DB as they are not set yet
+  ;; this happens only when the analysis is started
+  (let [{:keys [id locations-file-url]} (get-in db [:new-analysis :discrete-mcc-tree])]
+    {:dispatch [:graphql/query {:query
+                                "mutation DeleteFile($url: String!) {
+                                     deleteFile(url: $url) {
+                                       key
+                                     }
+                                   }"
+                                :variables {:url locations-file-url}}]
+     :db       (-> db
+                   (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file])
+                   (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-url])
+                   (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-upload-progress]))}))
 
 (defn on-locations-file-selected [_ [_ file-with-meta]]
   (let [{:keys [filename]} file-with-meta

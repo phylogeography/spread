@@ -360,12 +360,13 @@
       (log/error "Exception occured when marking analysis as touched" {:analysis/id id
                                                                        :error       e}))))
 
-(defn- delete-s3-object [{:keys [s3 bucket url user-id]}]
+(defn- delete-s3-object! [{:keys [s3 bucket url user-id]}]
   (let [object-id (s3-url->id url user-id)
         extension (file-extension url)
         object-key (str user-id "/" object-id extension)]
     (log/info "delete-s3-object" {:object-key object-key})
-    (aws-s3/delete-file s3 {:bucket bucket :key object-key})))
+    (aws-s3/delete-file s3 {:bucket bucket :key object-key})
+    object-key))
 
 (defn- delete-continuous-tree-analysis! [{:keys [id db s3 bucket-name user-id]}]
   (let [{:keys [tree-file-url output-file-url]} (continuous-tree-model/get-tree db {:id id})
@@ -375,7 +376,7 @@
                                                  :output-file-url output-file-url
                                                  :trees-file-url  trees-file-url})
     (doseq [url (remove nil? [tree-file-url output-file-url trees-file-url])]
-      (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
     ;; TODO : in a transaction
     (analysis-model/delete-analysis db {:id id})
     (when time-slicer-analysis-id
@@ -385,23 +386,23 @@
   (let [{:keys [tree-file-url locations-file-url output-file-url]}
         (discrete-tree-model/get-tree db {:id id})]
     (doseq [url (remove nil? [tree-file-url locations-file-url output-file-url])]
-      (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
     (analysis-model/delete-analysis db {:id id})))
 
 (defn- delete-bayes-factor-analysis! [{:keys [id db s3 bucket-name user-id]}]
   (let [{:keys [log-file-url locations-file-url output-file-url]}
         (bayes-factor-model/get-bayes-factor-analysis db {:id id})]
     (doseq [url (remove nil? [log-file-url locations-file-url output-file-url])]
-      (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
     (analysis-model/delete-analysis db {:id id})))
 
-;; TODO : add tests
+;; TODO : add tests for this mutation
 (defn delete-analysis
   [{:keys [authed-user-id db s3 bucket-name]} {id :id :as args} _]
-  (log/info "delete-analysis" {:user/id authed-user-id
-                               :args    args})
   (try
-    (let [{:keys [of-type]} (analysis-model/get-analysis db {:id id})
+    (let [_                 (log/info "delete-analysis" {:user/id authed-user-id
+                                                         :args    args})
+          {:keys [of-type]} (analysis-model/get-analysis db {:id id})
           args-map          {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id}]
       (case (keyword of-type)
         :CONTINUOUS_TREE       (delete-continuous-tree-analysis! args-map)
@@ -412,3 +413,13 @@
     (catch Exception e
       (log/error "Exception occured when deleting analysis" {:analysis/id id
                                                              :error       e}))))
+
+(defn delete-file [{:keys [authed-user-id db s3 bucket-name]} {url :url :as args} _]
+  (try
+    (let [_          (log/info "delete-file" {:user/id authed-user-id
+                                              :args args})
+          object-key (delete-s3-object! {:url url :user-id authed-user-id :s3 s3 :bucket bucket-name})]
+      {:key object-key})
+    (catch Exception e
+      (log/error "Exception occured when deleting file" {:url   url
+                                                         :error e}))))
