@@ -8,6 +8,13 @@
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
            [java.util Base64]))
 
+(def tree-object-suffix ".tree")
+(def trees-object-suffix ".trees")
+(def locations-object-suffix ".txt")
+(def log-object-suffix ".log")
+(def output-object-suffix ".json")
+
+
 (defn get-env-variable
   [var-name & [required?]]
   (let [var-value (System/getenv var-name)]

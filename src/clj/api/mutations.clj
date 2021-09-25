@@ -361,16 +361,51 @@
                                                                        :error       e}))))
 
 ;; TODO
+;; delete tree_file_url
+;; delete output_file_url
+;; delete trees_file_url
+
+;; {:tree-file-url  "http://127.0.0.1:9000/spread-dev-uploads/7c839acc-5e48-415b-a03e-391957cedc5d/2ee897a0-bb0e-44bd-8d03-7912b26f9e27.tree"
+;;  :output-file-url "127.0.0.1:9000/spread-dev-uploads/7c839acc-5e48-415b-a03e-391957cedc5d/2ee897a0-bb0e-44bd-8d03-7912b26f9e27.json"
+;;  :trees-file-url nil}
+
+(defn- delete-continuous-tree-analysis [id db]
+  (let [{:keys [tree-file-url output-file-url]} (continuous-tree-model/get-tree db {:id id})
+        {:keys [trees-file-url]} (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})
+        ;; id     (s3-url->id tree-file-url authed-user-id)
+        ]
+
+    (prn "@@@" {:tree-file-url tree-file-url
+                :output-file-url output-file-url
+                :trees-file-url trees-file-url})
+
+  ))
+
+;; TODO
+(defn- delete-discrete-tree-analysis [id db])
+
+;; TODO
+(defn- delete-bayes-factor-analysis [id db])
+
+;; "65928c97-3a2e-4cd0-b13c-7d363c315f71"
 (defn delete-analysis
-  [{:keys [authed-user-id db]} {id :id :as args} _]
+  [{:keys [authed-user-id db bucket-name]} {id :id :as args} _]
   (log/info "delete-analysis" {:user/id authed-user-id
                                :args    args})
   (try
+    ;; type and match on that
+    (let [{:keys [of-type]} (analysis-model/get-analysis db {:id id})]
+      (case (keyword of-type)
+        :CONTINUOUS_TREE       (delete-continuous-tree-analysis id db)
+        :DISCRETE_TREE         (delete-discrete-tree-analysis id db)
+        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis id db)
+        ;; :TIME_SLICER
+        (log/error "Unknown analysis type" {:of-type of-type :id id})
+        )
 
+      {:id id}
 
-    {:id id}
-
-
+      )
     (catch Exception e
-      (log/error "Exception occured when deleteing analysis" {:analysis/id id
+      (log/error "Exception occured when deleting analysis" {:analysis/id id
                                                               :error       e}))))

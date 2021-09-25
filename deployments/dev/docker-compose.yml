@@ -29,10 +29,12 @@ services:
 
   s3:
     image: minio/minio:latest
+    command: --console-address ":9001"
     container_name: dev_s3
     command: server /data
     ports:
       - 9000:9000
+      - 9001:9001
     volumes:
       - s3_data:/data
     environment:
@@ -41,6 +43,6 @@ services:
 
 volumes:
   s3_data:
-    external: false    
+    external: false
   mysql_data:
-    external: false    
+    external: false
