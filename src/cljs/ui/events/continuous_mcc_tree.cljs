@@ -79,7 +79,7 @@
 
 (defn trees-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _]            (string/split url "?")
-        continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :parser-id])]
+        continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :id])]
     {:dispatch [:graphql/query {:query
                                 "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
                                                    uploadTimeSlicer(continuousTreeId: $continuousTreeId,
@@ -97,10 +97,18 @@
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :trees-file-upload-progress] progress)})
 
 (defn delete-trees-file [{:keys [db]}]
-  ;; TODO : dispatch graphql mutation to delete from db & S3
-  {:db (-> db
-           (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file])
-           (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file-upload-progress]))})
+  ;; NOTE: internally this is a separate parser therefore we need to delete the whole analysis
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :time-slicer-parser-id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                   deleteAnalysis(id: $analysisId) {
+                                          id
+                                        }
+                                     }"
+                                :variables {:analysisId id}}]
+     :db       (-> db
+                   (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file])
+                   (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file-upload-progress]))}))
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
                                               most-recent-sampling-date time-scale-multiplier]}]]

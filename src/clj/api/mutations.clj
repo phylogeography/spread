@@ -396,6 +396,14 @@
       (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
     (analysis-model/delete-analysis db {:id id})))
 
+(defn- delete-time-slicer-analysis! [{:keys [id db s3 bucket-name user-id]}]
+  (let [{:keys [trees-file-url output-file-url]} (time-slicer-model/get-time-slicer db {:id id})]
+    (log/info "delete-time-slicer-analysis" {:trees-file-url  trees-file-url
+                                             :output-file-url output-file-url})
+    (doseq [url (remove nil? [output-file-url trees-file-url])]
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+    (analysis-model/delete-analysis db {:id id})))
+
 ;; TODO : add tests for this mutation
 (defn delete-analysis
   [{:keys [authed-user-id db s3 bucket-name]} {id :id :as args} _]
@@ -408,6 +416,7 @@
         :CONTINUOUS_TREE       (delete-continuous-tree-analysis! args-map)
         :DISCRETE_TREE         (delete-discrete-tree-analysis! args-map)
         :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis! args-map)
+        :TIME_SLICER           (delete-time-slicer-analysis! args-map)
         (log/error "Unknown analysis type" {:of-type of-type :id id}))
       {:id id})
     (catch Exception e
@@ -417,7 +426,7 @@
 (defn delete-file [{:keys [authed-user-id db s3 bucket-name]} {url :url :as args} _]
   (try
     (let [_          (log/info "delete-file" {:user/id authed-user-id
-                                              :args args})
+                                              :args    args})
           object-key (delete-s3-object! {:url url :user-id authed-user-id :s3 s3 :bucket bucket-name})]
       {:key object-key})
     (catch Exception e
