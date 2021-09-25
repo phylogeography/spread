@@ -12,11 +12,7 @@
             [clj-http.client :as http]
             [shared.errors :as errors]
             [shared.time :as time]
-            [shared.utils :refer [file-extension clj->gql decode-json new-uuid              tree-object-extension
-                                  trees-object-extension
-                                  locations-object-extension
-                                  log-object-extension
-                                  output-object-extension]]
+            [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
             [taoensso.timbre :as log]))
 
 (defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri} _]
@@ -364,7 +360,7 @@
       (log/error "Exception occured when marking analysis as touched" {:analysis/id id
                                                                        :error       e}))))
 
-(defn delete-s3-object [{:keys [s3 bucket url user-id]}]
+(defn- delete-s3-object [{:keys [s3 bucket url user-id]}]
   (let [object-id (s3-url->id url user-id)
         extension (file-extension url)
         object-key (str user-id "/" object-id extension)]
@@ -378,7 +374,6 @@
     (log/info "delete-continuous-tree-analysis" {:tree-file-url   tree-file-url
                                                  :output-file-url output-file-url
                                                  :trees-file-url  trees-file-url})
-
     (doseq [url (remove nil? [tree-file-url output-file-url trees-file-url])]
       (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
     ;; TODO : in a transaction
@@ -386,22 +381,32 @@
     (when time-slicer-analysis-id
       (analysis-model/delete-analysis db {:id time-slicer-analysis-id}))))
 
-;; TODO
-(defn- delete-discrete-tree-analysis! [id db])
+(defn- delete-discrete-tree-analysis! [{:keys [id db s3 bucket-name user-id]}]
+  (let [{:keys [tree-file-url locations-file-url output-file-url]}
+        (discrete-tree-model/get-tree db {:id id})]
+    (doseq [url (remove nil? [tree-file-url locations-file-url output-file-url])]
+      (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+    (analysis-model/delete-analysis db {:id id})))
 
-;; TODO
-(defn- delete-bayes-factor-analysis! [id db])
+(defn- delete-bayes-factor-analysis! [{:keys [id db s3 bucket-name user-id]}]
+  (let [{:keys [log-file-url locations-file-url output-file-url]}
+        (bayes-factor-model/get-bayes-factor-analysis db {:id id})]
+    (doseq [url (remove nil? [log-file-url locations-file-url output-file-url])]
+      (delete-s3-object {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+    (analysis-model/delete-analysis db {:id id})))
 
+;; TODO : add tests
 (defn delete-analysis
   [{:keys [authed-user-id db s3 bucket-name]} {id :id :as args} _]
   (log/info "delete-analysis" {:user/id authed-user-id
                                :args    args})
   (try
-    (let [{:keys [of-type]} (analysis-model/get-analysis db {:id id})]
+    (let [{:keys [of-type]} (analysis-model/get-analysis db {:id id})
+          args-map          {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id}]
       (case (keyword of-type)
-        :CONTINUOUS_TREE       (delete-continuous-tree-analysis! {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
-        :DISCRETE_TREE         (delete-discrete-tree-analysis! {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
-        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis! {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id})
+        :CONTINUOUS_TREE       (delete-continuous-tree-analysis! args-map)
+        :DISCRETE_TREE         (delete-discrete-tree-analysis! args-map)
+        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis! args-map)
         (log/error "Unknown analysis type" {:of-type of-type :id id}))
       {:id id})
     (catch Exception e
