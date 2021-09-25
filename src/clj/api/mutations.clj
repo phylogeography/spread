@@ -359,3 +359,18 @@
     (catch Exception e
       (log/error "Exception occured when marking analysis as touched" {:analysis/id id
                                                                        :error       e}))))
+
+;; TODO
+(defn delete-analysis
+  [{:keys [authed-user-id db]} {id :id :as args} _]
+  (log/info "delete-analysis" {:user/id authed-user-id
+                               :args    args})
+  (try
+
+
+    {:id id}
+
+
+    (catch Exception e
+      (log/error "Exception occured when deleteing analysis" {:analysis/id id
+                                                              :error       e}))))
