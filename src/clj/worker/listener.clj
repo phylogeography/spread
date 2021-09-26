@@ -45,8 +45,7 @@
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling discrete-tree-upload" args)
   (try
-    (let [;; TODO: parse extension
-          tree-object-key (str user-id "/" id tree-object-extension)
+    (let [tree-object-key (str user-id "/" id tree-object-extension)
           tree-file-path  (str tmp-dir "/" tree-object-key)
           _               (aws-s3/download-file s3 {:bucket    bucket-name
                                                     :key       tree-object-key
@@ -71,7 +70,6 @@
                   timescale-multiplier most-recent-sampling-date
                   locations-file-url]}
           (discrete-tree-model/get-tree db {:id id})
-          ;; TODO: parse extension
           tree-object-key      (str user-id "/" id tree-object-extension)
           tree-file-path       (str tmp-dir "/" tree-object-key)
           ;; is it cached on disk?
@@ -80,7 +78,6 @@
                                                            :key       tree-object-key
                                                            :dest-path tree-file-path}))
           locations-file-id    (s3-url->id locations-file-url user-id)
-          ;; TODO: parse extension
           locations-object-key (str user-id "/" locations-file-id locations-object-extension)
           locations-file-path  (str tmp-dir "/" locations-object-key)
           ;; is it cached on disk?
@@ -115,8 +112,8 @@
       (discrete-tree-model/upsert! db {:id              id
                                        :output-file-url url})
 
-      (analysis-model/upsert! db {:id     id
-                                  :status :SUCCEEDED
+      (analysis-model/upsert! db {:id                id
+                                  :status            :SUCCEEDED
                                   :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes (decode-json output-json-str))}))
     (catch Exception e
       (log/error "Exception when handling parse-discrete-tree" {:error e})
@@ -126,8 +123,7 @@
   [{:keys [id user-id] :as args} {:keys [db s3 bucket-name]}]
   (log/info "handling continuous-tree-upload" args)
   (try
-    (let [;; TODO: parse extension
-          tree-object-key (str user-id "/" id tree-object-extension)
+    (let [tree-object-key (str user-id "/" id tree-object-extension)
           tree-file-path  (str tmp-dir "/" tree-object-key)
           _               (aws-s3/download-file s3 {:bucket    bucket-name
                                                     :key       tree-object-key
@@ -153,7 +149,7 @@
   (try
     (let [{:keys [user-id x-coordinate-attribute-name y-coordinate-attribute-name
                   timescale-multiplier most-recent-sampling-date]
-           :as continuous-tree}
+           :as   continuous-tree}
           (continuous-tree-model/get-tree db {:id id})
 
           _ (log/info "ContinuousTree retrieved by id" continuous-tree)
@@ -169,7 +165,6 @@
 
           _ (log/info "TimeSlicer retrieved by continuous tree id" time-slicer)
 
-          ;; TODO: parse extension
           tree-object-key  (str user-id "/" id tree-object-extension)
           tree-file-path   (str tmp-dir "/" tree-object-key)
           ;; is it cached on disk?
@@ -182,7 +177,7 @@
                                                      (when (= (mod progress 0.1) 0.0)
                                                        #_(log/debug "continuous tree progress" {:id       id
                                                                                                 :progress progress})
-                                                       (analysis-model/upsert! db {:id  id
+                                                       (analysis-model/upsert! db {:id       id
                                                                                    :status   :RUNNING
                                                                                    :progress progress})))))
 
@@ -239,8 +234,8 @@
       ;; TODO : in a transaction
       (continuous-tree-model/upsert! db {:id              id
                                          :output-file-url url})
-      (analysis-model/upsert! db {:id     id
-                                  :status :SUCCEEDED
+      (analysis-model/upsert! db {:id                id
+                                  :status            :SUCCEEDED
                                   :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes data)}))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
@@ -293,7 +288,6 @@
                   number-of-locations
                   burn-in]}
           (bayes-factor-model/get-bayes-factor-analysis db {:id id})
-          ;; TODO: parse extension
           log-object-key   (str user-id "/" id log-object-extension)
           log-file-path    (str tmp-dir "/" log-object-key)
           ;; is it cached on disk?
@@ -321,7 +315,6 @@
 
                  [false true]
                  (let [locations-file-id    (s3-url->id locations-file-url user-id)
-                       ;; TODO: parse extension
                        locations-object-key (str user-id "/" locations-file-id locations-object-extension)
                        locations-file-path  (str tmp-dir "/" locations-object-key)
                        ;; is it cached on disk?
@@ -357,8 +350,8 @@
                                                    :bayes-factors (json/write-str bayesFactors)})
       (bayes-factor-model/upsert! db {:id              id
                                       :output-file-url url})
-      (analysis-model/upsert! db {:id     id
-                                  :status :SUCCEEDED
+      (analysis-model/upsert! db {:id                id
+                                  :status            :SUCCEEDED
                                   :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes spreadData)}))
     (catch Exception e
       (log/error "Exception when handling parse-bayes-factors" {:error e})
