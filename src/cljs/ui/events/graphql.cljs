@@ -315,6 +315,15 @@
   ;; nothing to do
   )
 
+;; TODO
+;; nav to home
+(defmethod handler :delete-user-data
+  [{:keys [db]} _ {:keys []}]
+  (>evt [:router/navigate :route/home])
+  {:db (-> db
+           (dissoc :analysis)
+           (dissoc :new-analysis))})
+
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]
   (re-frame/dispatch [:splash/login-success access-token]))

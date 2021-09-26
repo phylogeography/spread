@@ -78,6 +78,7 @@
    :mutation/touchAnalysis      (auth-decorator mutations/touch-analysis)
    :mutation/deleteFile      (auth-decorator mutations/delete-file)
    :mutation/deleteAnalysis      (auth-decorator mutations/delete-analysis)
+   :mutation/deleteUserData      (auth-decorator mutations/delete-user-data)
    :resolve/tree->user-analysis resolvers/tree->user-analysis})
 
 (defn streamer-map []

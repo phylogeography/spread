@@ -28,15 +28,18 @@
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
-  :TouchAnalysisReturnType {:description "Returned by touch analysis mutation."
+  :TouchAnalysisReturnType {:description "Returned by the touch analysis mutation."
                             :fields      {:id    {:type (non-null ID)}
                                           :isNew {:type (non-null Boolean)}}}
 
-  :DeleteFileReturnType {:description "Returned by delete file mutation."
+  :DeleteFileReturnType {:description "Returned by the delete file mutation."
                          :fields      {:key {:type (non-null String)}}}
 
-  :DeleteAnalysisReturnType {:description "Returned by delete analysis mutation."
+  :DeleteAnalysisReturnType {:description "Returned by the delete analysis mutation."
                              :fields      {:id {:type (non-null ID)}}}
+
+  :DeleteUserDataReturnType {:description "Returned by the delete user data mutation."
+                             :fields      {:userId {:type (non-null ID)}}}
 
   :Analysis {:description "Represents common fields of a parser. Returned by queries."
              :fields      {:id              {:type (non-null ID)}
@@ -297,4 +300,10 @@
   :deleteAnalysis {:type        :DeleteAnalysisReturnType
                    :description "Deletes analysis from the DB and it's content from S3"
                    :args        {:id {:type (non-null ID)}}
-                   :resolve     :mutation/deleteAnalysis}}}
+                   :resolve     :mutation/deleteAnalysis}
+
+  :deleteUserData {:type        :DeleteUserDataReturnType
+                   :description "Deletes analysis from the DB and it's content from S3"
+                   :resolve     :mutation/deleteUserData}
+
+  }}

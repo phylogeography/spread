@@ -361,11 +361,11 @@
                                                                        :error       e}))))
 
 (defn- delete-s3-object! [{:keys [s3 bucket url user-id]}]
-  (let [object-id (s3-url->id url user-id)
-        extension (file-extension url)
+  (let [object-id  (s3-url->id url user-id)
+        extension  (file-extension url)
         object-key (str user-id "/" object-id extension)]
     (log/info "delete-s3-object" {:object-key object-key})
-    (aws-s3/delete-file s3 {:bucket bucket :key object-key})
+    (aws-s3/delete-object s3 {:bucket bucket :key object-key})
     object-key))
 
 (defn- delete-continuous-tree-analysis! [{:keys [id db s3 bucket-name user-id]}]
@@ -432,3 +432,15 @@
     (catch Exception e
       (log/error "Exception occured when deleting file" {:url   url
                                                          :error e}))))
+
+(defn delete-user-data
+  [{:keys [authed-user-id db s3 bucket-name]} _ _]
+  (try
+    (let [_            (log/info "delete-user-data" {:user/id authed-user-id})
+          user-objects (:Contents (aws-s3/list-objects s3 {:bucket bucket-name :prefix authed-user-id}))]
+      (aws-s3/delete-objects s3 {:bucket bucket-name :objects user-objects})
+      (analysis-model/delete-all-user-analysis db {:user-id authed-user-id})
+      (clj->gql {:user-id authed-user-id}))
+    (catch Exception e
+      (log/error "Exception occured when deleting user data" {:user/id authed-user-id
+                                                              :error   e}))))

@@ -3,4 +3,5 @@
 -/node_modules/
 -/target/
 -/js/
+-/services/ui/js/
 -/.serverless/
