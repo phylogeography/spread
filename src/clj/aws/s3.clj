@@ -62,18 +62,18 @@
                             :ACL    "public-read"}}))
 
 #_(defn delete-bucket [s3 {:keys [bucket-name]}]
-  (aws/invoke s3 {:op      :DeleteBucket
-                  :request {:Bucket bucket-name}}))
+    (aws/invoke s3 {:op      :DeleteBucket
+                    :request {:Bucket bucket-name}}))
 
 (defn get-signed-url [s3-presigner {:keys [bucket-name key]}]
   (let [putObjectRequest          (-> (PutObjectRequest/builder)
-                             (.bucket bucket-name)
-                             (.key key)
-                             (.build))
+                                      (.bucket bucket-name)
+                                      (.key key)
+                                      (.build))
         putObjectPresignRequest   (-> (PutObjectPresignRequest/builder)
-                                    (.signatureDuration (Duration/ofMinutes 15))
-                                    (.putObjectRequest putObjectRequest)
-                                    (.build))
+                                      (.signatureDuration (Duration/ofMinutes 15))
+                                      (.putObjectRequest putObjectRequest)
+                                      (.build))
         presignedPutObjectRequest (-> s3-presigner
                                       (.presignPutObject putObjectPresignRequest))]
     (-> presignedPutObjectRequest (.url))))
@@ -87,8 +87,8 @@
                       :request {:Bucket bucket
                                 :Key    key
                                 :Body   (-> file-path
-                                          io/file
-                                          io/input-stream)}})
+                                            io/file
+                                            io/input-stream)}})
       (throw-on-error {:api :s3 :fn ::upload-file})))
 
 (defn download-file
@@ -113,10 +113,11 @@
                   :request {:Bucket bucket
                             :Prefix prefix}}))
 
-(defn delete-objects [s3 {:keys [bucket objects]}]
+(defn delete-objects
 
   "Objects : [{:Key \"7c839acc-5e48-415b-a03e-391957cedc5d/124290fa-c895-4bb0-8271-e22acaaf605d.txt\"}]"
 
+  [s3 {:keys [bucket objects]}]
   (aws/invoke s3 {:op      :DeleteObjects
                   :request {:Delete {:Objects objects}
                             :Bucket bucket}}))
@@ -127,7 +128,7 @@
 
   [s3 {:keys [bucket key]}]
   (log/info "Deleting object from s3" {:bucket bucket
-                                     :key    key})
+                                       :key    key})
   (-> (aws/invoke s3 {:op      :DeleteObject
                       :request {:Bucket bucket
                                 :Key    key}})

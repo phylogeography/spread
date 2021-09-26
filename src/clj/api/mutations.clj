@@ -423,7 +423,7 @@
       (log/error "Exception occured when deleting analysis" {:analysis/id id
                                                              :error       e}))))
 
-(defn delete-file [{:keys [authed-user-id db s3 bucket-name]} {url :url :as args} _]
+(defn delete-file [{:keys [authed-user-id s3 bucket-name]} {url :url :as args} _]
   (try
     (let [_          (log/info "delete-file" {:user/id authed-user-id
                                               :args    args})

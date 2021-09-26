@@ -189,10 +189,10 @@
 
                                                                         (>evt [:graphql/query {:query
                                                                                                "mutation DeleteAnalysisMutation($analysisId: ID!) {
-                                                                                              deleteAnalysis(id: $analysisId) {
-                                                                                                id
-                                                                                              }
-                                                                                            }"
+                                                                                                  deleteAnalysis(id: $analysisId) {
+                                                                                                    id
+                                                                                                  }
+                                                                                                }"
                                                                                                :variables {:analysisId id}}])))}
                                                          "Delete"]]]])
                       :secondary (reagent/as-element [typography {:class-name (:secondary classes)}
