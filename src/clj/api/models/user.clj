@@ -3,6 +3,7 @@
 
 ;; These are just not to upset clj-kondo
 (declare upsert-user)
+(declare delete-user)
 (declare get-user-by-id)
 (declare get-user-by-email)
 (declare count-user-analysis*)
@@ -11,9 +12,6 @@
 
 (hugsql/def-db-fns "sql/user.sql")
 (hugsql/def-sqlvec-fns "sql/user.sql")
-
-#_(defn get-user-analysis [db args]
-  (get-user-analysis* db args))
 
 (defn search-user-analysis [db {:keys [statuses user-id readable-name] :as args}]
   (let [statuses      (map name statuses)

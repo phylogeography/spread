@@ -315,14 +315,21 @@
   ;; nothing to do
   )
 
-;; TODO
-;; nav to home
 (defmethod handler :delete-user-data
-  [{:keys [db]} _ {:keys []}]
+  [{:keys [db]} _ _]
   (>evt [:router/navigate :route/home])
   {:db (-> db
            (dissoc :analysis)
            (dissoc :new-analysis))})
+
+(defmethod handler :delete-user-account
+  [{:keys [db]} _ {:keys [user-id]}]
+  ;; removes token
+  (>evt [:general/logout])
+  (>evt [:router/navigate :route/splash])
+  {:db (-> db
+           (dissoc-in [:users :authorized-user])
+           (dissoc-in [:users user-id]))})
 
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]

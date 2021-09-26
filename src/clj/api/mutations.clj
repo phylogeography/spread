@@ -433,14 +433,30 @@
       (log/error "Exception occured when deleting file" {:url   url
                                                          :error e}))))
 
+(defn delete-user-data!
+  [{:keys [user-id db s3 bucket-name]}]
+  (let [user-objects (:Contents (aws-s3/list-objects s3 {:bucket bucket-name
+                                                         :prefix user-id}))]
+    (aws-s3/delete-objects s3 {:bucket bucket-name :objects user-objects})
+    (analysis-model/delete-all-user-analysis db {:user-id user-id})))
+
 (defn delete-user-data
   [{:keys [authed-user-id db s3 bucket-name]} _ _]
   (try
-    (let [_            (log/info "delete-user-data" {:user/id authed-user-id})
-          user-objects (:Contents (aws-s3/list-objects s3 {:bucket bucket-name :prefix authed-user-id}))]
-      (aws-s3/delete-objects s3 {:bucket bucket-name :objects user-objects})
-      (analysis-model/delete-all-user-analysis db {:user-id authed-user-id})
-      (clj->gql {:user-id authed-user-id}))
+    (log/info "delete-user-data" {:user/id authed-user-id})
+    (delete-user-data! {:user-id authed-user-id :db db :s3 s3 :bucket-name bucket-name})
+    (clj->gql {:user-id authed-user-id})
     (catch Exception e
       (log/error "Exception occured when deleting user data" {:user/id authed-user-id
                                                               :error   e}))))
+
+(defn delete-user-account
+  [{:keys [authed-user-id db s3 bucket-name]} _ _]
+  (try
+    (log/info "delete-user-account" {:user/id authed-user-id})
+    (delete-user-data! {:user-id authed-user-id :db db :s3 s3 :bucket-name bucket-name})
+    (user-model/delete-user db {:id authed-user-id})
+    (clj->gql {:user-id authed-user-id})
+    (catch Exception e
+      (log/error "Exception occured when deleting user account" {:user/id authed-user-id
+                                                                 :error   e}))))

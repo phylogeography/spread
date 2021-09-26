@@ -347,7 +347,13 @@
                               (handle-close))}
        "Clear data"]
       [menu-item {:on-click (fn []
-                              (prn "TODO")
+                              (>evt [:graphql/query {:query
+                                                     "mutation DeleteUserAccountMutation {
+                                                                 deleteUserAccount {
+                                                                   userId
+                                                                 }
+                                                               }"}])
+
                               (handle-close))}
        "Delete account"]]]))
 

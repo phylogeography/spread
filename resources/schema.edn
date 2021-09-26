@@ -41,6 +41,9 @@
   :DeleteUserDataReturnType {:description "Returned by the delete user data mutation."
                              :fields      {:userId {:type (non-null ID)}}}
 
+  :DeleteUserAccountReturnType {:description "Returned by the delete user data mutation."
+                                :fields      {:userId {:type (non-null ID)}}}
+
   :Analysis {:description "Represents common fields of a parser. Returned by queries."
              :fields      {:id              {:type (non-null ID)}
                            :userId          {:type (non-null ID)}
@@ -305,5 +308,9 @@
   :deleteUserData {:type        :DeleteUserDataReturnType
                    :description "Deletes analysis from the DB and it's content from S3"
                    :resolve     :mutation/deleteUserData}
+
+  :deleteUserAccount {:type        :DeleteUserAccountReturnType
+                      :description "Deletes user account data from the DB and data content from S3"
+                      :resolve     :mutation/deleteUserAccount}
 
   }}
