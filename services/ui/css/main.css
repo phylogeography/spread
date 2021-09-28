@@ -9,7 +9,6 @@ html,body,#app,.app-container-grid {
 	font-family: 'Roboto', sans-serif;
 	background-color: #ECEFF8;
 }
-
 li {
 	list-style: none;
 }
@@ -20,20 +19,26 @@ li {
 
 .field-table {
 	display: flex;
-	flex-direction: column;
+	flex-direction: column;	
 }
 
 .field-line {
     display: flex;
     justify-content: space-between;
-	width: 700px;
+	overflow: hidden;
+	height: 95px;
+	margin-bottom: 5px;
 }
+
+.field-line h4 {
+	margin-top: 0px;
+}
+
 
 .field-card {
     display: flex;
-	height: 100px;
-	flex-direction: column;
-    justify-content: space-between;
+    width: 350px;
+    flex-direction: column;    
 }
 
 
