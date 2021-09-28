@@ -53,7 +53,7 @@
              :as analysis}
             @bayes-factor
             controls-disabled? (or @field-errors (not log-file))]
-        [:div.run-new-bayes
+        [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-log-file
            [:div

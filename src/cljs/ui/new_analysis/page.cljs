@@ -9,25 +9,6 @@
             [ui.router.subs :as router.subs]
             [ui.utils :as ui-utils :refer [>evt]]))
 
-(defn header []
-  [:div.header
-   [:h2 "Run new analysis"]])
-
-(defn body [active-tab]
-  [:div.body
-   [tabs {:on-change (fn [_ value]                       
-                       (>evt [:router/navigate :route/new-analysis nil {:tab value}]))
-          :active active-tab 
-          :tabs-vec [{:id "discrete-mcc-tree"   :label "Discrete"   :sub-label "MCC tree"}
-                     {:id "discrete-rates"      :label "Discrete"   :sub-label "Rates"}
-                     {:id "continuous-mcc-tree" :label "Continuous" :sub-label "MCC tree"}]}]
-   (case active-tab
-     "discrete-mcc-tree"   [discrete-mcc-tree]
-     "discrete-rates"      [discrete-rates]
-     "continuous-mcc-tree" [continuous-mcc-tree]
-     [discrete-mcc-tree {}])])
-
-
 ;; NOTE: specs
 ;; https://xd.adobe.com/view/cab84bb6-15c6-44e3-9458-2ff4af17c238-9feb/screen/db6d1f78-c5f4-460e-9f97-32e9df007388/specs/
 ;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed2b39f8103c14a9c660
@@ -38,5 +19,16 @@
             {active-tab :tab} query]
         [app-container
          [:div.run-new-analysis
-          [header]
-          [body active-tab]]]))))
+          [:div.header
+           [:h2 "Run new analysis"]]
+          [tabs {:on-change (fn [_ value]                       
+                              (>evt [:router/navigate :route/new-analysis nil {:tab value}]))
+                 :active active-tab 
+                 :tabs-vec [{:id "discrete-mcc-tree"   :label "Discrete"   :sub-label "MCC tree"}
+                            {:id "discrete-rates"      :label "Discrete"   :sub-label "Rates"}
+                            {:id "continuous-mcc-tree" :label "Continuous" :sub-label "MCC tree"}]}]
+          (case active-tab
+            "discrete-mcc-tree"   [discrete-mcc-tree]
+            "discrete-rates"      [discrete-rates]
+            "continuous-mcc-tree" [continuous-mcc-tree]
+            [discrete-mcc-tree {}])]]))))

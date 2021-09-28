@@ -62,7 +62,7 @@
             @discrete-mcc-tree
             locations-attribute       (or locations-attribute (first attribute-names))
             controls-disabled? (or (not attribute-names) (not locations-file))]
-        [:div.run-new-discrete
+        [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-tree-file
            [:div
@@ -128,6 +128,7 @@
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
                                              (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]))}]]]])]
+         
          [controls {:id id
                     :readable-name readable-name
                     :locations-attribute locations-attribute

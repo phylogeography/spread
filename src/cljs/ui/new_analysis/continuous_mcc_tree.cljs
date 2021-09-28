@@ -63,8 +63,9 @@
              :as analysis}
             @continuous-mcc-tree
             controls-disabled? (or (not attribute-names) (not tree-file))]
-        [:div.run-new-continuous
-         [:div.data {:style {:grid-area "data"}}
+        [:<>
+
+         [:div.data {}
           [:section.load-tree-file
            [:div
             [:h4 "Load tree file"]
@@ -138,6 +139,7 @@
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
                                              (>evt [:continuous-mcc-tree/set-time-scale-multiplier value]))}]]]])]
+         
          [controls {:id id
                     :readable-name readable-name
                     :y-coordinate y-coordinate

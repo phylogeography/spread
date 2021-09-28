@@ -19,7 +19,7 @@ li {
 
 .field-table {
 	display: flex;
-	flex-direction: column;	
+	flex-direction: column;    
 }
 
 .field-line {
@@ -223,12 +223,15 @@ li {
 
 .run-new-analysis {
 	height: 100%;
-	display: grid;
-	grid-template-rows: 75px 1fr;
-	grid-template-columns: 100%;
-	grid-template-areas:
-		"header"
-		"body"        
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.run-new-analysis .tabs {
+	max-width: 500px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .run-new-analysis .upload-spinner {
@@ -237,35 +240,17 @@ li {
 }
 
 .run-new-analysis .header {
-	margin: auto;
-	color: #3A3668;
-}
-.run-new-analysis .body {
-    border-top: 1px solid #DEDEE8;	
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-    color: #3A3668;
-}
-
-.run-new-analysis .run-new-discrete {
-	display: grid;
-	grid-template-rows: 1fr 120px;
-	grid-template-columns: 100%;
-	grid-template-areas:
-		"data"
-		"footer";
-	height: 100%;
-	width: 100%;
-}
-
-.run-new-analysis .run-new-discrete .data {
-	width: 800px;
+	flex-shrink: 0;
+	height: 100px;
 	margin-left: auto;
 	margin-right: auto;
+	color: #3A3668;
+	border-bottom: 1px solid #DEDEE8;
+    width: 100%;
+    text-align: center;
 }
 
-.run-new-analysis .run-new-discrete .load-tree-file,.load-locations-file  {
+.run-new-analysis .load-tree-file,.load-locations-file  {
 	display:flex;    
 }
 
@@ -281,32 +266,25 @@ li {
 	margin-bottom: 0px;
 }
 
-.run-new-analysis .run-new-continuous {
-	display: grid;
-	grid-template-rows: 1fr 120px;
-	grid-template-columns: 100%;
-	grid-template-areas:
-		"data"
-		"footer";
-	height: 100%;
-	width: 100%;
-}
-
-.run-new-analysis .run-new-continuous .data {
+.run-new-analysis .data {
+	flex: 1;
+	flex-shrink: 1;
 	width: 800px;
 	margin-left: auto;
 	margin-right: auto;
+	min-height: 0px;
+	overflow: auto;
 }
 
-.run-new-analysis .run-new-continuous .load-tree-file,.load-trees-file  {
+.run-new-analysis .load-tree-file,.load-trees-file  {
 	display:flex;    
 }
 
-.run-new-continuous .file-upload-button {
+.run-new-analysis .file-upload-button {
 	width: 200px;
 }
 
-.run-new-continuous p.doc {
+.run-new-analysis p.doc {
     display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
@@ -331,23 +309,14 @@ li {
 	margin-right: auto;
 }
 
-.run-new-analysis .run-new-bayes .load-log-file,.load-locations-file  {
+.run-new-analysis .load-log-file,.load-locations-file  {
 	display:flex;    
 }
 
-.run-new-bayes .file-upload-button {
-	width: 200px;
-}
-
-.run-new-bayes p.doc {
-    display: flex;
-	flex-direction: column;
-	justify-content: flex-end;
-	margin-left: 10px;
-	margin-bottom: 0px;
-}
-
 .run-new-analysis .controls-wrapper {
+	flex-shrink: 0;
+	min-height: 120px;
+	max-height: 120px;
 	display: flex;
     justify-content: center;
 	border-top: 1px solid #DEDEE8;
