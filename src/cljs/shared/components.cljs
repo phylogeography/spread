@@ -18,8 +18,7 @@
 
 (defn spread-logo []
   [:div.spread-logo 
-   [:div.logo-img
-    [:div.hex.hex1] [:div.hex.hex2] [:div.hex.hex3] [:div.hex.hex4]]
+   [:img.logo-img {:src "/icons/icn_spread.svg"}]
    [:span.text "spread"]])
 
 (defn button [{:keys [text on-click icon class disabled?]}]
