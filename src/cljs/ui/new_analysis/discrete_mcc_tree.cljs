@@ -45,8 +45,10 @@
   (let [discrete-mcc-tree (re-frame/subscribe [::subs/discrete-mcc-tree])
         field-errors      (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
-     (let [{:keys [tree-file tree-file-upload-progress
-                    locations-file 
+      (let [{:keys [id
+                    tree-file tree-file-upload-progress
+                    locations-file
+                    locations-file-url
                     ;; locations-file-upload-progress
 
                     readable-name
@@ -126,4 +128,10 @@
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
                                              (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]))}]]]])]
-         [controls analysis {:disabled? controls-disabled? }]]))))
+         [controls {:id id
+                    :readable-name readable-name
+                    :locations-attribute locations-attribute
+                    :locations-file-url locations-file-url
+                    :most-recent-sampling-date most-recent-sampling-date
+                    :time-scale-multiplier time-scale-multiplier}
+          {:disabled? controls-disabled? }]]))))

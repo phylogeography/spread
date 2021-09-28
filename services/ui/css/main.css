@@ -224,7 +224,7 @@ li {
 .run-new-analysis {
 	height: 100%;
 	display: grid;
-	grid-template-rows: 120px 1fr;
+	grid-template-rows: 75px 1fr;
 	grid-template-columns: 100%;
 	grid-template-areas:
 		"header"

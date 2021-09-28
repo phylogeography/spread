@@ -12,7 +12,8 @@
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
-(defn controls [{:keys [id readable-name y-coordinate x-coordinate most-recent-sampling-date time-scale-multiplier]} {:keys [disabled?]}]
+(defn controls [{:keys [id readable-name y-coordinate x-coordinate most-recent-sampling-date time-scale-multiplier]}
+                {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
     [button {:text "Start analysis"
@@ -47,7 +48,8 @@
   (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])
         field-errors        (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
     (fn []
-      (let [{:keys [readable-name
+      (let [{:keys [id
+                    readable-name
                     tree-file tree-file-upload-progress
                     trees-file
                     y-coordinate x-coordinate
@@ -136,4 +138,10 @@
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
                                              (>evt [:continuous-mcc-tree/set-time-scale-multiplier value]))}]]]])]
-         [controls analysis {:disabled? controls-disabled? }]]))))
+         [controls {:id id
+                    :readable-name readable-name
+                    :y-coordinate y-coordinate
+                    :x-coordinate x-coordinate
+                    :most-recent-sampling-date most-recent-sampling-date
+                    :time-scale-multiplier time-scale-multiplier}
+          {:disabled? controls-disabled? }]]))))

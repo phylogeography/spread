@@ -41,7 +41,9 @@
   (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
         field-errors (re-frame/subscribe [::subs/bayes-factor-field-errors])]
     (fn []
-      (let [{:keys [log-file
+      (let [{:keys [id
+                    locations-file-url
+                    log-file
                     log-file-upload-progress
                     locations-file
                     locations-file-upload-progress
@@ -105,4 +107,8 @@
                         :marks             true
                        :on-change         (fn [_ value]
                                             (>evt [:bayes-factor/set-burn-in value]))}]]]])]
-         [controls analysis {:disabled? controls-disabled?}]]))))
+         [controls {:id id
+                    :readable-name readable-name
+                    :burn-in burn-in
+                    :locations-file-url locations-file-url}
+          {:disabled? controls-disabled?}]]))))
