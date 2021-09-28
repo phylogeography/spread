@@ -49,8 +49,7 @@
                     locations-file-upload-progress
                     readable-name
                     burn-in]
-             :or   {burn-in 0.1}
-             :as analysis}
+             :or   {burn-in 0.1}}
             @bayes-factor
             controls-disabled? (or @field-errors (not log-file))]
         [:<>

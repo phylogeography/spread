@@ -59,8 +59,7 @@
              :or   {y-coordinate              (first attribute-names)
                     x-coordinate              (first attribute-names)
                     most-recent-sampling-date (time/now)
-                    time-scale-multiplier     1}
-             :as analysis}
+                    time-scale-multiplier     1}}
             @continuous-mcc-tree
             controls-disabled? (or (not attribute-names) (not tree-file))]
         [:<>

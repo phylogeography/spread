@@ -56,9 +56,8 @@
                     most-recent-sampling-date
                     time-scale-multiplier
                     attribute-names]
-	        :or   {most-recent-sampling-date (time/now)
-                   time-scale-multiplier     1}
-             :as analysis}
+             :or   {most-recent-sampling-date (time/now)
+                    time-scale-multiplier     1}}
             @discrete-mcc-tree
             locations-attribute       (or locations-attribute (first attribute-names))
             controls-disabled? (or (not attribute-names) (not locations-file))]
