@@ -204,6 +204,7 @@
                                                          ::http/type :jetty
                                                          ::http/join? false
                                                          ::http/allowed-origins   {:allowed-origins
+                                                                                   ;; TODO : bring that back, we have now origins we can use
                                                                                    (constantly true) :creds true
                                                                                    #_(fn [origin]
                                                                                        (log/debug "checking allowed CORS" {:origin origin})

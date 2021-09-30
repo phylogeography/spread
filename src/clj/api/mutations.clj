@@ -433,7 +433,7 @@
       (log/error "Exception occured when deleting file" {:url   url
                                                          :error e}))))
 
-(defn delete-user-data!
+(defn- delete-user-data!
   [{:keys [user-id db s3 bucket-name]}]
   (let [user-objects (:Contents (aws-s3/list-objects s3 {:bucket bucket-name
                                                          :prefix user-id}))]

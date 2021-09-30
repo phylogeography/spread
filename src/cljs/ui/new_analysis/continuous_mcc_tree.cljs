@@ -269,5 +269,7 @@
                        :color     "primary"
                        :size      "large"
                        :className (:start-button classes)
+                       ;; TODO : remove that analysis along with S3 data
+                       ;; dissoc it from new-analysis
                        :on-click  #(prn "TODO")}
                "Reset"]]]])]))))
