@@ -10,8 +10,7 @@
             [shared.components :refer [collapsible-tab spread-logo button]]
             [ui.component.icon :refer [icons]]
             [ui.component.search :refer [search-bar]]
-            [ui.format :refer [format-percentage]]
-            [ui.router.subs :as router.subs]
+            [ui.format :refer [format-percentage]]            
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
@@ -46,7 +45,7 @@
             [:li {:on-click #()} "Edit"]
             [:li {:on-click #()} "Load different file"]
             [:li {:on-click #()} "Copy settings"]
-            [:li {:on-click (fn [event]
+            [:li {:on-click #() #_(fn [event]
                               (let [{active-route-name :name query :query} @active-page]
                                 (.stopPropagation event)
 
