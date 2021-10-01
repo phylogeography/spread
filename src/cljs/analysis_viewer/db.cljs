@@ -1,5 +1,6 @@
 (ns analysis-viewer.db
-  (:require [clojure.spec.alpha :as s]
+  (:require [analysis-viewer.config :as config]
+            [clojure.spec.alpha :as s]
             [clojure.string :as str]))
 
 (s/def :html/color (s/and string? #(str/starts-with? % "#")))
@@ -51,7 +52,7 @@
 
 (defmethod attribute-type :linear [_]
   (s/keys :req [:attribute/type]
-          :req-un [:attribute/id                   
+          :req-un [:attribute/id
                    :analysis.linear-attribute/range]))
 
 (defmethod attribute-type :ordinal [_]
@@ -132,10 +133,10 @@
 (s/def :analysis.data/filter (s/multi-spec filter-type :filter/type))
 (s/def :analysis.data/filters (s/map-of :filter/id :analysis.data/filter))
 
-(s/def ::db (s/keys :req [:map/state                          
+(s/def ::db (s/keys :req [:map/state
                           :animation/frame-timestamp
                           :animation/state
-                          :animation/speed 
+                          :animation/speed
                           :animation/crop
                           :ui.collapsible-tabs/tabs
                           :ui.switch-buttons/states
@@ -153,7 +154,8 @@
                           :map/popup-coord]))
 
 (defn initial-db []
-  {:map/state {:scale 1
+  {:config (config/load)
+   :map/state {:scale 1
                :translate [0 0]
                :width nil
                :height nil}

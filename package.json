@@ -3,6 +3,7 @@
     "lint": "clj-kondo --config .clj-kondo/config.edn --lint src/cljs",
     "release": "yarn shadow-cljs release ui",
     "watch": "shadow-cljs watch ui",
+    "watch:viewer": "shadow-cljs watch analysis-viewer",
     "clean": "git clean -fdx",
     "deps": "yarn install --frozen-lockfile"
   },

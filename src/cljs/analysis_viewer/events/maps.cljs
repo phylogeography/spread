@@ -18,17 +18,19 @@
 (def max-scale 22)
 (def min-scale 0.8)
 
-;; TODO: grab this from config
-(def s3-bucket-url "http://127.0.0.1:9000/spread-dev-uploads/")
-
-(defn initialize [_ [_ maps analysis-data-url]]
-  (let [load-maps-events (->> maps
+(defn initialize [_ [_ maps output]]
+  (let [
+        {:keys [config] :as db} (db/initial-db)
+        _ (prn "CONF" config)
+        {:keys [s3-bucket-url]} config
+        analysis-data-url (str s3-bucket-url output)
+        load-maps-events (->> maps
                               (mapv (fn [map-code]
                                       (let [world-map? (string/ends-with? map-code "WORLD")]
                                         [:map/load-map (cond-> {:map/url (str s3-bucket-url "maps/country-code-maps/" map-code ".json")}
                                                          world-map? (assoc :map/z-index 0))]))))
         load-data-event [:map/load-data analysis-data-url]]
-    {:db (db/initial-db) 
+    {:db db
      :fx (->> (conj load-maps-events load-data-event)
               (map (fn [ev] [:dispatch ev])))}))
 
@@ -39,7 +41,7 @@
 
 (defn build-attributes [all-attributes]
   (->> all-attributes
-       (map (fn [{:keys [scale id] :as attr}]              
+       (map (fn [{:keys [scale id] :as attr}]
               [id
                (case scale
                  "linear" {:id id
@@ -62,7 +64,7 @@
                         :BayesFactor    (map-emitter/bayes-output->map-data data))
         {:keys [min-x min-y max-x max-y] :as data-box} (-> (output-data/data-bounding-box data)
                                                            (math-utils/map-box->proj-box))
-        padding 2]    
+        padding 2]
     {:db (cond-> db
            true (assoc :analysis/data analysis-data)
            true (assoc :analysis/data-box data-box)
@@ -78,7 +80,7 @@
 (defn load-map [_ [_ map-data]]
   {:http-xhrio {:method          :get
                 :uri             (:map/url map-data)
-                :timeout         8000 
+                :timeout         8000
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map/map-loaded map-data]
                 :on-failure      [:log-error]}})
@@ -86,15 +88,15 @@
 (defn load-data [_ [_ analysis-data-url]]
   {:http-xhrio {:method          :get
                 :uri             analysis-data-url
-                :timeout         8000 
-                :response-format (ajax/json-response-format {:keywords? true}) 
+                :timeout         8000
+                :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map/data-loaded]
                 :on-failure      [:log-error]}})
 
 (defn calc-proj-scale [{:keys [map/state]}]
   ;; TODO: this is correct on wide windows, make it work
   ;; on windows that are higher than wider
-  
+
   (let [{:keys [height]} state
         width (* 2 height)]
     (/ width map-proj-width)))
@@ -122,7 +124,7 @@
                     [tx ty] translate
                     new-translate-x (+ tx x-scale-diff)
                     new-translate-y (+ ty y-scale-diff)]
-                
+
                 (if (< min-scale new-scale max-scale)
                   (assoc map-state
                          :translate [(int new-translate-x) (int new-translate-y)]
@@ -150,7 +152,7 @@
             [before-screen-x before-screen-y] before-screen-coord
             screen-drag-x (- screen-x before-screen-x)
             screen-drag-y (- screen-y before-screen-y)]
-        (-> db            
+        (-> db
             (assoc-in  [:map/state :grab :screen-current] current-screen-coord)
             (update-in [:map/state :translate 0] + screen-drag-x)
             (update-in [:map/state :translate 1] + screen-drag-y)))
@@ -170,8 +172,8 @@
         proj-scale (calc-proj-scale db)
         {:keys [translate scale zoom-rectangle]} state
         {:keys [origin current]} zoom-rectangle
-        [x1 y1] (math-utils/screen-coord->proj-coord translate scale proj-scale origin)              
-        [x2 y2] (math-utils/screen-coord->proj-coord translate scale proj-scale current)]     
+        [x1 y1] (math-utils/screen-coord->proj-coord translate scale proj-scale origin)
+        [x2 y2] (math-utils/screen-coord->proj-coord translate scale proj-scale current)]
     {:db (update db :map/state dissoc :zoom-rectangle)
      :dispatch [:map/set-view-box {:x1 x1 :y1 y1
                                    :x2 x2 :y2 y2}]}))
@@ -179,7 +181,7 @@
 (defn toggle-show-world [{:keys [db]} _]
   {:db (update-in db [:map/state :show-world?] not)})
 
-(defn download-current-as-svg [{:keys [db]} [_ ]]  
+(defn download-current-as-svg [{:keys [db]} [_ ]]
   (let [ui-params (:ui/parameters db)
         map-params (subs/build-map-parameters (:ui/parameters db)
                                               (:ui.switch-buttons/states db))]
@@ -205,28 +207,28 @@
   (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
         [_ crop-high] crop
         next-ts (advance-frame-timestamp frame-timestamp speed +)]
-    
+
     (if (>= next-ts crop-high)
       {:db (assoc db :animation/frame-timestamp crop-high)
        :ticker/stop nil}
-      
+
       {:db (assoc db :animation/frame-timestamp next-ts)})))
 
-(defn animation-prev [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]  
+(defn animation-prev [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]
   (let [[crop-low _] crop
         next-ts (advance-frame-timestamp frame-timestamp speed -)]
     (if (<= next-ts crop-low)
       (assoc db :animation/frame-timestamp crop-low)
       (assoc db :animation/frame-timestamp next-ts))))
 
-(defn animation-next [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]  
+(defn animation-next [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]
   (let [[_ crop-high] crop
         next-ts (advance-frame-timestamp frame-timestamp speed +)]
     (if (>= next-ts crop-high)
       (assoc db :animation/frame-timestamp crop-high)
       (assoc db :animation/frame-timestamp next-ts))))
 
-(defn animation-reset [{:keys [animation/crop] :as db} [_ dir]]  
+(defn animation-reset [{:keys [animation/crop] :as db} [_ dir]]
   (let [[crop-low crop-high] crop
         ts (case dir
              :start crop-low
@@ -240,7 +242,7 @@
     {:db (assoc db :animation/state :play)
      :ticker/start {:millis tick-duration}}))
 
-(defn animation-set-crop [db [_ [crop-low-millis crop-high-millis]]]  
+(defn animation-set-crop [db [_ [crop-low-millis crop-high-millis]]]
   (-> db
       (assoc :animation/crop [crop-low-millis crop-high-millis])
       (assoc :animation/frame-timestamp crop-low-millis)))
@@ -253,7 +255,7 @@
   (-> db
       (assoc-in [:map/state :width] width)
       (assoc-in [:map/state :height] height)))
- 
+
 
 (defn show-object-attributes [db [_ object-id coord]]
   (assoc db
@@ -268,7 +270,7 @@
          :analysis/possible-objects-ids (into [] objects-ids)
          :map/popup-coord coord))
 
-(defn hide-object-selector [db _]  
+(defn hide-object-selector [db _]
   (dissoc db
           :analysis/possible-objects-ids
           :map/popup-coord
