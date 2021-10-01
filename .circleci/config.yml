@@ -313,8 +313,8 @@ jobs:
             cat env/dev >> $BASH_ENV
             source $BASH_ENV
             echo "env: $SPREAD_ENV"
-      # - attach_workspace: # for libspread.jar
-      #     at: target
+      - attach_workspace: # for libspread.jar
+          at: target
       - attach_workspace:
           at: services
       - run:
@@ -364,7 +364,7 @@ jobs:
                 command: |
                   curl -O https://download.clojure.org/install/linux-install-1.10.3.986.sh
                   chmod +x linux-install-1.10.3.986.sh
-                  sudo ./linux-install-1.10.3.986.sh                  
+                  sudo ./linux-install-1.10.3.986.sh
                   # curl -O https://download.clojure.org/install/linux-install-1.10.1.536.sh
                   # chmod +x linux-install-1.10.1.536.sh
                   # sudo ./linux-install-1.10.1.536.sh
