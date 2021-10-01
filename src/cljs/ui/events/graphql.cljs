@@ -7,7 +7,7 @@
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt dispatch-n]]))
+            [ui.utils :refer [>evt dispatch-n dissoc-in]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -305,6 +305,31 @@
 (defmethod handler :touch-analysis
   [{:keys [db]} _ {:keys [id is-new]}]
   {:db (assoc-in db [:analysis id :new?] is-new)})
+
+(defmethod handler :delete-analysis
+  [{:keys [db]} _ {:keys [id]}]
+  {:db (dissoc-in db [:analysis id])})
+
+(defmethod handler :delete-file
+  [_ _ _]
+  ;; nothing to do
+  )
+
+(defmethod handler :delete-user-data
+  [{:keys [db]} _ _]
+  (>evt [:router/navigate :route/home])
+  {:db (-> db
+           (dissoc :analysis)
+           (dissoc :new-analysis))})
+
+(defmethod handler :delete-user-account
+  [{:keys [db]} _ {:keys [user-id]}]
+  ;; removes token
+  (>evt [:general/logout])
+  (>evt [:router/navigate :route/splash])
+  {:db (-> db
+           (dissoc-in [:users :authorized-user])
+           (dissoc-in [:users user-id]))})
 
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]

@@ -12,6 +12,13 @@ VALUES (
 ON DUPLICATE KEY UPDATE
 email = :email
 
+-- :name delete-user :! :1
+-- :doc Delete a user by id
+
+DELETE
+FROM user
+WHERE id = :id
+
 -- :name get-user-by-id :? :1
 -- :doc find user by id
 

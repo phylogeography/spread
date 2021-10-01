@@ -20,13 +20,13 @@
   [{:keys [access-key-id secret-access-key region s3-host s3-port]}]
   (aws/client (cond-> {:api :s3
                        :credentials-provider (credentials/basic-credentials-provider
-                                              {:access-key-id access-key-id
-                                               :secret-access-key secret-access-key})}
-                region (assoc :region region)
+                                               {:access-key-id access-key-id
+                                                :secret-access-key secret-access-key})}
+                region  (assoc :region region)
                 ;; only for dev
                 s3-host (assoc :endpoint-override {:protocol :http
                                                    :hostname s3-host
-                                                   :port s3-port})
+                                                   :port     s3-port})
 
                 ;; if we are in testing lets smash a real region
                 ;; the aws/invoke fails with "No region found by any region provider."
@@ -38,7 +38,7 @@
   "Creates a aws S3 url presigner. Needed for generating presigned URLs."
 
   [{:keys [access-key-id secret-access-key region s3-host s3-port]}]
-  (let [credentials (AwsBasicCredentials/create access-key-id secret-access-key)
+  (let [credentials         (AwsBasicCredentials/create access-key-id secret-access-key)
         credentialsProvider (StaticCredentialsProvider/create credentials)]
     (if region
       (-> (S3Presigner/builder)
@@ -57,19 +57,23 @@
   (aws/invoke s3 {:op :ListBuckets}))
 
 (defn create-bucket [s3 {:keys [bucket-name]}]
-  (aws/invoke s3 {:op :CreateBucket
+  (aws/invoke s3 {:op      :CreateBucket
                   :request {:Bucket bucket-name
-                            :ACL "public-read"}}))
+                            :ACL    "public-read"}}))
+
+#_(defn delete-bucket [s3 {:keys [bucket-name]}]
+    (aws/invoke s3 {:op      :DeleteBucket
+                    :request {:Bucket bucket-name}}))
 
 (defn get-signed-url [s3-presigner {:keys [bucket-name key]}]
-  (let [putObjectRequest (-> (PutObjectRequest/builder)
-                             (.bucket bucket-name)
-                             (.key key)
-                             (.build))
-        putObjectPresignRequest (-> (PutObjectPresignRequest/builder)
-                                    (.signatureDuration (Duration/ofMinutes 15))
-                                    (.putObjectRequest putObjectRequest)
-                                    (.build))
+  (let [putObjectRequest          (-> (PutObjectRequest/builder)
+                                      (.bucket bucket-name)
+                                      (.key key)
+                                      (.build))
+        putObjectPresignRequest   (-> (PutObjectPresignRequest/builder)
+                                      (.signatureDuration (Duration/ofMinutes 15))
+                                      (.putObjectRequest putObjectRequest)
+                                      (.build))
         presignedPutObjectRequest (-> s3-presigner
                                       (.presignPutObject putObjectPresignRequest))]
     (-> presignedPutObjectRequest (.url))))
@@ -79,12 +83,12 @@
   "Uploads the file at `file-path` under a s3 `bucket` under `key`."
 
   [s3 {:keys [bucket key file-path]}]
-  (-> (aws/invoke s3 {:op :PutObject
+  (-> (aws/invoke s3 {:op      :PutObject
                       :request {:Bucket bucket
-                                :Key key
-                                :Body (-> file-path
-                                          io/file
-                                          io/input-stream)}})
+                                :Key    key
+                                :Body   (-> file-path
+                                            io/file
+                                            io/input-stream)}})
       (throw-on-error {:api :s3 :fn ::upload-file})))
 
 (defn download-file
@@ -93,16 +97,42 @@
   stores it in a file at `dest-path`."
 
   [s3 {:keys [bucket key dest-path]}]
-  (log/info "Downloading file from s3" {:bucket bucket
-                                        :key key
+  (log/info "Downloading file from s3" {:bucket    bucket
+                                        :key       key
                                         :saving-in dest-path})
   (io/make-parents dest-path)
-  (-> (aws/invoke s3 {:op :GetObject
+  (-> (aws/invoke s3 {:op      :GetObject
                       :request {:Bucket bucket
-                                :Key key}})
+                                :Key    key}})
       (throw-on-error {:api :s3 :fn ::download-file})
       :Body
       (io/copy (io/file dest-path))))
+
+(defn list-objects [s3 {:keys [bucket prefix]}]
+  (aws/invoke s3 {:op      :ListObjectsV2
+                  :request {:Bucket bucket
+                            :Prefix prefix}}))
+
+(defn delete-objects
+
+  "Objects : [{:Key \"7c839acc-5e48-415b-a03e-391957cedc5d/124290fa-c895-4bb0-8271-e22acaaf605d.txt\"}]"
+
+  [s3 {:keys [bucket objects]}]
+  (aws/invoke s3 {:op      :DeleteObjects
+                  :request {:Delete {:Objects objects}
+                            :Bucket bucket}}))
+
+(defn delete-object
+
+  "Deletes the file from s3 `bucket` under `key`"
+
+  [s3 {:keys [bucket key]}]
+  (log/info "Deleting object from s3" {:bucket bucket
+                                       :key    key})
+  (-> (aws/invoke s3 {:op      :DeleteObject
+                      :request {:Bucket bucket
+                                :Key    key}})
+      (throw-on-error {:api :s3 :fn ::delete-file})))
 
 (defn build-url [aws-config bucket key]
   (if-let [s3-host (:s3-host aws-config)]

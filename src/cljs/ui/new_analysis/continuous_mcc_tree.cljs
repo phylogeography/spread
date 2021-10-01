@@ -106,7 +106,7 @@
                                   :label            "Choose a file"
                                   :class-name       (:upload-button classes)
                                   :icon             :upload
-                                  :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
+                                  :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
 
              (not= 1 trees-file-upload-progress)
              [linear-progress {:value      (* 100 trees-file-upload-progress)
@@ -269,5 +269,7 @@
                        :color     "primary"
                        :size      "large"
                        :className (:start-button classes)
+                       ;; TODO : remove that analysis along with S3 data
+                       ;; dissoc it from new-analysis
                        :on-click  #(prn "TODO")}
                "Reset"]]]])]))))

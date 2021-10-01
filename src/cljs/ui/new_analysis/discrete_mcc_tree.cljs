@@ -23,7 +23,7 @@
       (let [{:keys [id
                     tree-file tree-file-upload-progress
                     locations-file locations-file-url
-                    ;; locations-file-upload-progress
+                    locations-file-upload-progress
                     readable-name
                     locations-attribute
                     most-recent-sampling-date
@@ -33,7 +33,6 @@
                     most-recent-sampling-date (time/now)
                     time-scale-multiplier     1}}
             @discrete-mcc-tree]
-
         ;; main container
         [grid {:container true
                :direction :column
@@ -105,11 +104,26 @@
                 :xs        12 :xm 12}
           ;; col left
           [grid {:item true :xs 6 :xm 6}
-           [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
-                                :icon             :upload
-                                :class-name       (:upload-button classes)
-                                :label            "Choose a file"
-                                :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]]
+
+           (cond
+             (nil? locations-file)
+             [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
+                                  :icon             :upload
+                                  :class-name       (:upload-button classes)
+                                  :label            "Choose a file"
+                                  :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
+
+             (not= 1 locations-file-upload-progress)
+             [linear-progress {:value      (* 100 locations-file-upload-progress)
+                               :variant    "determinate"
+                               :class-name (:upload-progress classes)}]
+
+             locations-file
+             [loaded-input {:classes  classes
+                            :value    locations-file
+                            :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}]
+
+             :else nil)]
 
           ;; col right
           [grid {:item true

@@ -37,6 +37,13 @@ DELETE
 FROM analysis
 WHERE id = :id
 
+-- :name delete-all-user-analysis :! :n
+-- :doc Delete all analysis for that user
+
+DELETE
+FROM analysis
+WHERE user_id = :user-id
+
 -- :name get-analysis :? :1
 -- :doc Return a analysis by id
 
