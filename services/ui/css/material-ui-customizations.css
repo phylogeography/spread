@@ -1,0 +1,20 @@
+.MuiInputLabel-formControl {
+	background-color: white;
+}
+
+input {
+	font-size: 13px !important;
+}
+
+.MuiSelect-select {
+	font-size: 13px !important;
+}
+
+.react-datepicker-wrapper input {
+	border-color: #E2E2EA;
+	border-radius: 5px;
+	border-width: 1px;
+	padding: 10px;
+	font-family: 'Roboto', sans-serif;
+	font-size: 13px;
+}
