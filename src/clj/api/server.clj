@@ -76,6 +76,10 @@
    :query/getUserAnalysis       (auth-decorator resolvers/get-user-analysis)
    :resolve/analysis->error     resolvers/analysis->error
    :mutation/touchAnalysis      (auth-decorator mutations/touch-analysis)
+   :mutation/deleteFile         (auth-decorator mutations/delete-file)
+   :mutation/deleteAnalysis     (auth-decorator mutations/delete-analysis)
+   :mutation/deleteUserData     (auth-decorator mutations/delete-user-data)
+   :mutation/deleteUserAccount  (auth-decorator mutations/delete-user-account)
    :resolve/tree->user-analysis resolvers/tree->user-analysis})
 
 (defn streamer-map []
@@ -165,7 +169,7 @@
 
 (defn start [{:keys [api aws db env google public-key private-key] :as config}]
   (let [dev?                                    (= "dev" env)
-        {:keys [port host #_allowed-origins]}     api
+        {:keys [port host #_allowed-origins]}   api
         {:keys [workers-queue-url bucket-name]} aws
         schema                                  (load-schema)
         sqs                                     (aws-sqs/create-client aws)
@@ -200,6 +204,7 @@
                                                          ::http/type :jetty
                                                          ::http/join? false
                                                          ::http/allowed-origins   {:allowed-origins
+                                                                                   ;; TODO : bring that back, we have now origins we can use
                                                                                    (constantly true) :creds true
                                                                                    #_(fn [origin]
                                                                                        (log/debug "checking allowed CORS" {:origin origin})

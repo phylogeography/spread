@@ -12,7 +12,7 @@
             [clj-http.client :as http]
             [shared.errors :as errors]
             [shared.time :as time]
-            [shared.utils :refer [clj->gql decode-json new-uuid]]
+            [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
             [taoensso.timbre :as log]))
 
 (defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri} _]
@@ -359,3 +359,104 @@
     (catch Exception e
       (log/error "Exception occured when marking analysis as touched" {:analysis/id id
                                                                        :error       e}))))
+
+(defn- delete-s3-object! [{:keys [s3 bucket url user-id]}]
+  (let [object-id  (s3-url->id url user-id)
+        extension  (file-extension url)
+        object-key (str user-id "/" object-id extension)]
+    (log/info "delete-s3-object" {:object-key object-key})
+    (aws-s3/delete-object s3 {:bucket bucket :key object-key})
+    object-key))
+
+(defn- delete-continuous-tree-analysis! [{:keys [id db s3 bucket-name user-id]}]
+  (let [{:keys [tree-file-url output-file-url]} (continuous-tree-model/get-tree db {:id id})
+        {trees-file-url :trees-file-url time-slicer-analysis-id :id}
+        (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})]
+    (log/info "delete-continuous-tree-analysis" {:tree-file-url   tree-file-url
+                                                 :output-file-url output-file-url
+                                                 :trees-file-url  trees-file-url})
+    (doseq [url (remove nil? [tree-file-url output-file-url trees-file-url])]
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+    ;; TODO : in a transaction
+    (analysis-model/delete-analysis db {:id id})
+    (when time-slicer-analysis-id
+      (analysis-model/delete-analysis db {:id time-slicer-analysis-id}))))
+
+(defn- delete-discrete-tree-analysis! [{:keys [id db s3 bucket-name user-id]}]
+  (let [{:keys [tree-file-url locations-file-url output-file-url]}
+        (discrete-tree-model/get-tree db {:id id})]
+    (doseq [url (remove nil? [tree-file-url locations-file-url output-file-url])]
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+    (analysis-model/delete-analysis db {:id id})))
+
+(defn- delete-bayes-factor-analysis! [{:keys [id db s3 bucket-name user-id]}]
+  (let [{:keys [log-file-url locations-file-url output-file-url]}
+        (bayes-factor-model/get-bayes-factor-analysis db {:id id})]
+    (doseq [url (remove nil? [log-file-url locations-file-url output-file-url])]
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+    (analysis-model/delete-analysis db {:id id})))
+
+(defn- delete-time-slicer-analysis! [{:keys [id db s3 bucket-name user-id]}]
+  (let [{:keys [trees-file-url output-file-url]} (time-slicer-model/get-time-slicer db {:id id})]
+    (log/info "delete-time-slicer-analysis" {:trees-file-url  trees-file-url
+                                             :output-file-url output-file-url})
+    (doseq [url (remove nil? [output-file-url trees-file-url])]
+      (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
+    (analysis-model/delete-analysis db {:id id})))
+
+;; TODO : add tests for this mutation
+(defn delete-analysis
+  [{:keys [authed-user-id db s3 bucket-name]} {id :id :as args} _]
+  (try
+    (let [_                 (log/info "delete-analysis" {:user/id authed-user-id
+                                                         :args    args})
+          {:keys [of-type]} (analysis-model/get-analysis db {:id id})
+          args-map          {:id id :db db :s3 s3 :bucket-name bucket-name :user-id authed-user-id}]
+      (case (keyword of-type)
+        :CONTINUOUS_TREE       (delete-continuous-tree-analysis! args-map)
+        :DISCRETE_TREE         (delete-discrete-tree-analysis! args-map)
+        :BAYES_FACTOR_ANALYSIS (delete-bayes-factor-analysis! args-map)
+        :TIME_SLICER           (delete-time-slicer-analysis! args-map)
+        (log/error "Unknown analysis type" {:of-type of-type :id id}))
+      {:id id})
+    (catch Exception e
+      (log/error "Exception occured when deleting analysis" {:analysis/id id
+                                                             :error       e}))))
+
+(defn delete-file [{:keys [authed-user-id s3 bucket-name]} {url :url :as args} _]
+  (try
+    (let [_          (log/info "delete-file" {:user/id authed-user-id
+                                              :args    args})
+          object-key (delete-s3-object! {:url url :user-id authed-user-id :s3 s3 :bucket bucket-name})]
+      {:key object-key})
+    (catch Exception e
+      (log/error "Exception occured when deleting file" {:url   url
+                                                         :error e}))))
+
+(defn- delete-user-data!
+  [{:keys [user-id db s3 bucket-name]}]
+  (let [user-objects (:Contents (aws-s3/list-objects s3 {:bucket bucket-name
+                                                         :prefix user-id}))]
+    (aws-s3/delete-objects s3 {:bucket bucket-name :objects user-objects})
+    (analysis-model/delete-all-user-analysis db {:user-id user-id})))
+
+(defn delete-user-data
+  [{:keys [authed-user-id db s3 bucket-name]} _ _]
+  (try
+    (log/info "delete-user-data" {:user/id authed-user-id})
+    (delete-user-data! {:user-id authed-user-id :db db :s3 s3 :bucket-name bucket-name})
+    (clj->gql {:user-id authed-user-id})
+    (catch Exception e
+      (log/error "Exception occured when deleting user data" {:user/id authed-user-id
+                                                              :error   e}))))
+
+(defn delete-user-account
+  [{:keys [authed-user-id db s3 bucket-name]} _ _]
+  (try
+    (log/info "delete-user-account" {:user/id authed-user-id})
+    (delete-user-data! {:user-id authed-user-id :db db :s3 s3 :bucket-name bucket-name})
+    (user-model/delete-user db {:id authed-user-id})
+    (clj->gql {:user-id authed-user-id})
+    (catch Exception e
+      (log/error "Exception occured when deleting user account" {:user/id authed-user-id
+                                                                 :error   e}))))

@@ -28,6 +28,7 @@
             [ui.component.icon :refer [arg->icon icons]]
             [ui.component.search :refer [search-bar]]
             [ui.format :refer [format-percentage]]
+            [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
@@ -125,7 +126,8 @@
   (let [[anchorElement setAnchorElement] (react/useState nil)
         handle-close                     #(setAnchorElement nil)
         open?                            (not (nil? anchorElement))
-        error?                           (= "ERROR" status)]
+        error?                           (= "ERROR" status)
+        active-page                      (re-frame/subscribe [::router.subs/active-page])]
     [list-item {:button true
                 :on-click
                 #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id :tab "results"}]
@@ -138,45 +140,61 @@
                                                              }
                                                            }"
                                                  :variables {:analysisId id}}])])}
-     [list-item-text {:primary   (reagent/as-element [:div {:class-name (:primary classes)}
-                                                    [:span (or readable-name "Unknown")]
-                                                    (when error?
-                                                      [chip {:label   "Error"
-                                                             :size    :small
-                                                             :variant "outlined"
-                                                             :color   "secondary"}])
-                                                    (when new?
-                                                      [chip {:label   "New"
-                                                             :size    :small
-                                                             :variant "outlined"
-                                                             :color   "primary"}])
-                                                    [:div
-                                                     [icon-button {:aria-label    "analysis kebab menu"
-                                                                   :aria-controls "menu-kebab"
-                                                                   :aria-haspopup true
-                                                                   :color         "inherit"
-                                                                   :style         {:padding 0}
-                                                                   :on-click      (fn [event]
-                                                                                    (setAnchorElement (.-currentTarget event))
-                                                                                    (.stopPropagation event))}
-                                                      [:img {:src (:kebab-menu icons)}]]
-                                                     [menu {:id               "menu-kebab"
-                                                            :anchorEl         anchorElement
-                                                            :anchorOrigin     {:vertical   "top"
-                                                                               :horizontal "right"}
-                                                            :transform-origin {:vertical   "top"
-                                                                               :horizontal "right"}
-                                                            :keep-mounted     true
-                                                            :open             open?
-                                                            :on-close         handle-close}
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Edit"]
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Load different file"]
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Copy settings"]
-                                                      [menu-item {:on-click (fn []
-                                                                              (prn "TODO"))} "Delete"]]]])
+     [list-item-text {:primary (reagent/as-element [:div {:class-name (:primary classes)}
+                                                      [:span (or readable-name "Unknown")]
+                                                      (when error?
+                                                        [chip {:label   "Error"
+                                                               :size    :small
+                                                               :variant "outlined"
+                                                               :color   "secondary"}])
+                                                      (when new?
+                                                        [chip {:label   "New"
+                                                               :size    :small
+                                                               :variant "outlined"
+                                                               :color   "primary"}])
+                                                      [:div
+                                                       [icon-button {:aria-label    "analysis kebab menu"
+                                                                     :aria-controls "menu-kebab"
+                                                                     :aria-haspopup true
+                                                                     :color         "inherit"
+                                                                     :style         {:padding 0}
+                                                                     :on-click      (fn [event]
+                                                                                      (setAnchorElement (.-currentTarget event))
+                                                                                      (.stopPropagation event))}
+                                                        [:img {:src (:kebab-menu icons)}]]
+                                                       [menu {:id               "menu-kebab"
+                                                              :anchorEl         anchorElement
+                                                              :anchorOrigin     {:vertical   "top"
+                                                                                 :horizontal "right"}
+                                                              :transform-origin {:vertical   "top"
+                                                                                 :horizontal "right"}
+                                                              :keep-mounted     true
+                                                              :open             open?
+                                                              :on-close         handle-close}
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Edit"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Load different file"]
+                                                        [menu-item {:on-click (fn []
+                                                                                (prn "TODO"))} "Copy settings"]
+                                                        [menu-item {:on-click
+                                                                    (fn [event]
+                                                                      (let [{active-route-name :name query :query} @active-page]
+                                                                        (.stopPropagation event)
+
+                                                                        ;; if on results page for this analysis we need to nav back to home
+                                                                        (when (and (= :route/analysis-results  active-route-name)
+                                                                                   (= id (:id query)))
+                                                                          (>evt [:router/navigate :route/home]))
+
+                                                                        (>evt [:graphql/query {:query
+                                                                                               "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                                                                                  deleteAnalysis(id: $analysisId) {
+                                                                                                    id
+                                                                                                  }
+                                                                                                }"
+                                                                                               :variables {:analysisId id}}])))}
+                                                         "Delete"]]]])
                       :secondary (reagent/as-element [typography {:class-name (:secondary classes)}
                                                       (type->label of-type)])}]]))
 
@@ -209,7 +227,7 @@
            (doall
              (map (fn [{:keys [id] :as item}]
                     ^{:key id} [completed-menu-item (-> item
-                                                        ;; TODO : for dev
+                                                        ;; NOTE : for dev
                                                         #_(assoc :new? true)
                                                         #_(assoc :status "ERROR")
                                                         )
@@ -233,12 +251,7 @@
 (defn queue [classes {:keys [default-expanded?]}]
   (let [queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
     (fn []
-      (let [items
-            #_           [{:readable-name "Relaxed_sDollo_AllSingleton_v2"
-                           :progress      0.3
-                           :id            "fff-ff-fff"
-                           :of-type       "CONTINUOUS_TREE"}]
-            @queued-analysis
+      (let [items        @queued-analysis
             queued-count (count items)]
         [accordion {:defaultExpanded default-expanded?}
          [accordion-summary {:expand-icon (reagent/as-element [:img {:src (:dropdown icons)}])}
@@ -325,11 +338,22 @@
                               (handle-close)
                               (>evt [:general/logout]))} "Log out"]
       [menu-item {:on-click (fn []
-                              (prn "TODO")
+                              (>evt [:graphql/query {:query
+                                                     "mutation DeleteUserDataMutation {
+                                                                 deleteUserData {
+                                                                   userId
+                                                                 }
+                                                               }"}])
                               (handle-close))}
        "Clear data"]
       [menu-item {:on-click (fn []
-                              (prn "TODO")
+                              (>evt [:graphql/query {:query
+                                                     "mutation DeleteUserAccountMutation {
+                                                                 deleteUserAccount {
+                                                                   userId
+                                                                 }
+                                                               }"}])
+
                               (handle-close))}
        "Delete account"]]]))
 
