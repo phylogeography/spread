@@ -313,8 +313,8 @@ jobs:
             cat env/dev >> $BASH_ENV
             source $BASH_ENV
             echo "env: $SPREAD_ENV"
-      - attach_workspace:
-          at: target
+      # - attach_workspace:
+      #     at: target
       - attach_workspace:
           at: services
       - run:
