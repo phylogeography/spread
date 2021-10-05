@@ -9,6 +9,11 @@ html,body,#app,.app-container-grid {
 	font-family: 'Roboto', sans-serif;
 	background-color: #ECEFF8;
 }
+
+*, *::before, *::after {
+	box-sizing: border-box !important;
+}
+
 li {
 	list-style: none;
 }
@@ -484,3 +489,4 @@ li {
 	width:250px;
 	height: 40px;
 }
+

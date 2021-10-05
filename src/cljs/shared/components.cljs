@@ -12,7 +12,8 @@
         [:span.badge {:style {:color badge-color
                               :border-color badge-color}}
          badge-text])
-      [:span.arrow (if open? "▲" "▼")]]
+      #_[:span.arrow (if open? "▲" "▼")]
+      [:img.arrow {:src "/icons/icn_dropdown.svg" :class (if open? "open" "closed")}]]
      [:div.tab-body {:class (if open? "open" "collapsed")}
       child]]))
 
