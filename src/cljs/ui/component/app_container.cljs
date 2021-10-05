@@ -134,7 +134,6 @@
                       :child [:div.run-new
                               (map-indexed (fn [index {:keys [main-label sub-label target query]}]
                                              [:li.clickable {:key      index
-                                                             :button   true
                                                              :on-click #(>evt [:router/navigate target nil query])}
                                               [:span.label main-label]
                                               [:span.text sub-label]])
