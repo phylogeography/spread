@@ -78,14 +78,13 @@
     (fn []
       (let [items @completed-analysis
             new-count (count @new-completed)]
-
         [collapsible-tab (cond-> {:id :completed
                                   :title "Completed data analysis"
                                   :icon "icons/icn_previous_analysis.svg"
                                   :child [:div.completed
                                           [search-bar {:value       (or "" @search-term)
-                                                       :on-change   #(>evt [:general/set-search %])
-                                                       :placeholder "Search"}]
+                                                       :on-change   #(>evt [:general/set-search %])                                                       
+                                                       :placeholder "Search"}]                                          
                                           (for [{:keys [id] :as item} items]
                                             ^{:key id}
                                             [completed-menu-item (-> item)

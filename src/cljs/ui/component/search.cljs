@@ -1,5 +1,19 @@
 (ns ui.component.search
-  (:require ["material-ui-search-bar" :as SearchBar]
-            [reagent.core :as reagent]))
+  (:require [reagent.core :as reagent]))
 
-(def search-bar (reagent/adapt-react-class (.-default SearchBar)))
+(defn search-bar [{:keys [on-change placeholder]}]  
+  (let [val (reagent/atom "")]
+    (fn [{:keys [on-change placeholder]}]
+      [:div.search-bar
+       [:input {:type :text
+                :placeholder placeholder
+                :value @val
+                :on-change (fn [e]
+                             (let [v (-> e .-target .-value)]
+                               (reset! val v)                               
+                               (on-change v)))}]
+       (if (empty? @val)
+         [:i.zmdi.zmdi-search]
+         [:i.zmdi.zmdi-close {:on-click #(do
+                                           (reset! val "")
+                                           (on-change ""))}])])))
