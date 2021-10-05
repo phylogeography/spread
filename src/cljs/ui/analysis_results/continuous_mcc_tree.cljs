@@ -1,6 +1,7 @@
 (ns ui.analysis-results.continuous-mcc-tree
   (:require [shared.components :refer [labeled-field]]
-            [ui.time :as time]))
+            [goog.string :as gstr]))
+
 
 (defn continuous-mcc-tree [{:keys [readable-name x-coordinate-attribute-name y-coordinate-attribute-name
                                    most-recent-sampling-date
@@ -24,5 +25,5 @@
        [:h4 "Locations"]
        [labeled-field {:label "X attribute name" :text x-coordinate-attribute-name}]]
       [:div.field-card
-       [:h4 ""]
-       [labeled-field {:label "Y attribute name" :text y-coordinate-attribute-name}]]]]))
+       [:h4 (gstr/unescapeEntities "&nbsp;")]
+       [labeled-field {:label "Y attribute name" :text y-coordinate-attribute-name}]]]])))
