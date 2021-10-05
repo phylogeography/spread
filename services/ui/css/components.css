@@ -97,13 +97,18 @@
 	display: flex;
 	align-items: center;
 }
-.tab > .title img {
+
+.tab > .title > .text img {
 	margin-right: 10px;
+}
+
+.tab > .title img.arrow.open {
+    transform: rotateZ(180deg);
 }
 
 .tab-body {
 	min-height: 0px;
-    padding: 17px;
+    padding: 10px;
 	overflow: hidden;
 	border-bottom: 1px solid #E2E2EA;
 }
