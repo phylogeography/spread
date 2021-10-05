@@ -229,3 +229,27 @@
 }
 
 
+/* Search bar */
+
+.search-bar {
+	position:relative;
+}
+.search-bar input {
+	height: 40px;
+	padding-left: 10px;
+	border-radius: 5px;
+	border-top: 1px solid #eee;
+	border-right: 1px solid #eee;
+	border-left: 1px solid #eee;
+	border-bottom: 1px solid #908DA9;
+	width: 100%;
+}
+
+.search-bar i {
+	position: absolute;
+	right: 13px;
+	top: 6px;
+    font-size: 24px;
+	color: #908DA9;
+	cursor: pointer;
+}
