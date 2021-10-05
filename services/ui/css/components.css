@@ -70,6 +70,17 @@
 /********************/
 /* Collapsible tabs */
 /********************/
+.collapsible-tabs {
+	display: flex;
+	flex-direction: column;
+	min-height: 0px;    
+}
+
+.tab {
+	min-height: 55px;
+    display: flex;
+    flex-direction: column;
+}
 
 .tab > .title {
     font-weight: bold;
@@ -79,7 +90,7 @@
 	border-bottom: 1px solid #E2E2EA;
     padding: 15px 5px 15px 5px;
 	color: #3A3668;
-	cursor: pointer;
+	cursor: pointer;    
 }
 
 .tab > .title > .text {
@@ -91,13 +102,15 @@
 }
 
 .tab-body {
-    overflow: hidden;
-	padding: 17px;
+	min-height: 0px;
+    padding: 17px;
+	overflow: hidden;
 	border-bottom: 1px solid #E2E2EA;
 }
 
-.tab-body.open {
-	height: 100%;
+.tab-body.open {    
+	min-height: 0px;
+	overflow: auto;    
 }
 
 .tab-body.collapsed {
