@@ -1,6 +1,6 @@
 (ns ui.analysis-results.continuous-mcc-tree
-  (:require [shared.components :refer [labeled-field]]
-            [goog.string :as gstr]))
+  (:require [goog.string :as gstr]
+            [shared.components :refer [labeled-field]]))
 
 
 (defn continuous-mcc-tree [{:keys [readable-name x-coordinate-attribute-name y-coordinate-attribute-name

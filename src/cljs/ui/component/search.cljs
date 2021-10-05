@@ -1,7 +1,7 @@
 (ns ui.component.search
   (:require [reagent.core :as reagent]))
 
-(defn search-bar [{:keys [on-change placeholder]}]  
+(defn search-bar [_]  
   (let [val (reagent/atom "")]
     (fn [{:keys [on-change placeholder]}]
       [:div.search-bar
