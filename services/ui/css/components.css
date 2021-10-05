@@ -150,9 +150,19 @@
 	background: #3428CA;	
 }
 
+.button.primary:hover {
+	color: #3A3668;
+	background: #EEBE53;    
+}
+
 .button.secondary {
 	border: 1px solid #3428CA;
     color: #3428CA; 
+}
+
+.button.secondary:hover {
+	color: white;
+	background: #3428CA;	
 }
 
 .button.golden {
@@ -160,9 +170,20 @@
 	background: #EEBE53;    
 }
 
+.button.golden:hover {
+	color: white;
+	background: #3428CA;	
+}
+
 .button.danger {
 	color: #B20707;
 	background: white;
+	border: 1px solid #B20707;
+}
+
+.button.danger:hover {
+	color: white;
+	background: #B20707;
 	border: 1px solid #B20707;
 }
 
