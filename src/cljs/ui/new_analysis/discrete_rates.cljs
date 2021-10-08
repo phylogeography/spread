@@ -1,5 +1,5 @@
 (ns ui.new-analysis.discrete-rates
-  (:require [re-frame.core :as re-frame]            
+  (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.slider :refer [slider]]
@@ -58,7 +58,7 @@
            [:div
             [:h4 "Load log file"]
             (cond
-              (and (nil? log-file-upload-progress) (nil? log-file))            
+              (and (nil? log-file-upload-progress) (nil? log-file))
               [button-file-upload {:id               "bayes-factor-log-file-upload-button"
                                    :label            "Choose a file"
                                   :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
@@ -77,24 +77,32 @@
           [:section.load-locations-file
            [:div
             [:h4 "Load locations file"]
-            [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
-                                 :label            "Choose a file"
-                                 :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]]
+            (cond
+              (nil? locations-file)
+              [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
+
+              (not= 1 locations-file-upload-progress)
+              [linear-progress {:value   (* 100 locations-file-upload-progress)
+                                :variant "determinate"}]
+
+              locations-file
+              [loaded-input {:value    locations-file
+                             :on-click #(>evt [:bayes-factor/delete-locations-file])}]
+
+              :else nil)]
            (when (nil? locations-file)
              [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
-
-          [:div.upload-spinner
-           (when (= 1 log-file-upload-progress) 
-             [circular-progress {:size 100}])]
 
           (when (and (= 1 log-file-upload-progress)
                      (= 1 locations-file-upload-progress))
             [:div.field-table
-             [:div.field-line             
-              [:div.field-card 
+             [:div.field-line
+              [:div.field-card
                [:h4 "File info"]
                [text-field {:label     "Name" :variant :outlined
-                            :value     readable-name                           
+                            :value     readable-name
                             :on-change (fn [_ value] (>evt [:bayes-factor/set-readable-name value]))}]]
               [:div.field-card
                [:h4 "Select burn-in"]

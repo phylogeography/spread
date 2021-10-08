@@ -50,8 +50,10 @@
     (fn []
       (let [{:keys [id
                     readable-name
-                    tree-file tree-file-upload-progress
+                    tree-file
+                    tree-file-upload-progress
                     trees-file
+                    trees-file-upload-progress
                     y-coordinate x-coordinate
                     most-recent-sampling-date
                     time-scale-multiplier
@@ -62,14 +64,19 @@
                     time-scale-multiplier     1}}
             @continuous-mcc-tree
             controls-disabled? (or (not attribute-names) (not tree-file))]
-        [:<>
 
+
+        (prn "@@@    trees-file-upload-progress" trees-file-upload-progress)
+        (prn "@@@    tree-file-upload-progress"  tree-file-upload-progress)
+
+
+        [:<>
          [:div.data {}
           [:section.load-tree-file
            [:div
             [:h4 "Load tree file"]
             (cond
-              (and (nil? tree-file-upload-progress) (nil? tree-file))            
+              (and (nil? tree-file-upload-progress) (nil? tree-file))
               [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
@@ -85,13 +92,27 @@
               :else nil)]
            (when (nil? tree-file)
              [:p.doc "When upload is complete all unique attributes will be automatically filled.You can then select geographical coordinates and change other settings."])]
-          
+
           [:section.load-trees-file
            [:div
             [:h4 "Load trees file"]
-            [button-file-upload {:id               "mcc-trees-file-upload-button"
-                                 :label            "Choose a file"
-                                 :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]]
+            (cond
+              (and (nil? trees-file-upload-progress) (nil? trees-file))
+              [button-file-upload {:id               "mcc-trees-file-upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
+
+
+              (not= 1 trees-file-upload-progress)
+              [linear-progress {:value   (* 100 trees-file-upload-progress)
+                                :variant "determinate"}]
+
+              trees-file
+              [loaded-input {:value    trees-file
+                             :on-click #(>evt [:continuous-mcc-tree/delete-trees-file])}]
+
+              :else nil)]
+
            (when (nil? trees-file)
              [:p.doc "Optional: Select a file with corresponding trees distribution. This file will be used to compute a density interval around the MCC tree."])]
 
@@ -101,14 +122,14 @@
 
           (when (and attribute-names tree-file)
             [:div.field-table
-             [:div.field-line             
-              [:div.field-card 
+             [:div.field-line
+              [:div.field-card
                [:h4 "File info"]
-               [text-field {:label     "Name" 
-                            :value     readable-name                           
+               [text-field {:label     "Name"
+                            :value     readable-name
                             :on-change (fn [_ value] (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
-             [:div.field-line             
-              [:div.field-card 
+             [:div.field-line
+              [:div.field-card
                [:h4 "Select x coordinate"]
                [attributes-select {:id        "select-longitude"
                                    :value     x-coordinate
@@ -116,7 +137,7 @@
                                    :label     "Longitude"
                                    :on-change (fn [value]
                                                 (>evt [:continuous-mcc-tree/set-x-coordinate value]))}]]
-              [:div.field-card 
+              [:div.field-card
                [:h4 "Select y coordinate"]
                [attributes-select {:id        "select-latitude"
                                    :value     y-coordinate
@@ -124,7 +145,7 @@
                                    :label     "Latitude"
                                    :on-change (fn [value]
                                                 (>evt [:continuous-mcc-tree/set-y-coordinate value]))}]]]
-             [:div.field-line             
+             [:div.field-line
               [:div.field-card
                [:h4 "Most recent sampling date"]
                [date-picker {:date-format      time/date-format
@@ -138,7 +159,7 @@
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
                                              (>evt [:continuous-mcc-tree/set-time-scale-multiplier value]))}]]]])]
-         
+
          [controls {:id id
                     :readable-name readable-name
                     :y-coordinate y-coordinate

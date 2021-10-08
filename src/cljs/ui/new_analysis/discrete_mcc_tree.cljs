@@ -1,5 +1,5 @@
 (ns ui.new-analysis.discrete-mcc-tree
-  (:require [re-frame.core :as re-frame]                        
+  (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.text-field :refer [text-field]]
@@ -49,8 +49,7 @@
                     tree-file tree-file-upload-progress
                     locations-file
                     locations-file-url
-                    ;; locations-file-upload-progress
-
+                    locations-file-upload-progress
                     readable-name
                     locations-attribute
                     most-recent-sampling-date
@@ -67,7 +66,7 @@
            [:div
             [:h4 "Load tree file"]
             (cond
-              (and (nil? tree-file-upload-progress) (nil? tree-file))            
+              (and (nil? tree-file-upload-progress) (nil? tree-file))
               [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
@@ -86,24 +85,32 @@
           [:section.load-locations-file
            [:div
             [:h4 "Load locations file"]
-            [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
-                                 :label            "Choose a file"
-                                 :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]]
-           
-           (when (nil? locations-file)
-             [:p.doc "Select a file that maps geographical coordinates to the location attribute states. Once this file is uploaded you can start your analysis."])]
+            (cond
+              (nil? locations-file)
+              [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
+                                   :label            "Choose a file"
+                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
 
+              (not= 1 locations-file-upload-progress)
+              [linear-progress {:value   (* 100 locations-file-upload-progress)
+                                :variant "determinate"}]
+
+              locations-file
+              [loaded-input {:value    locations-file
+                             :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}]
+
+              :else nil)]]
           [:div.upload-spinner
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
              [circular-progress {:size 100}])]
 
           (when (and attribute-names locations-file)
             [:div.field-table
-             [:div.field-line             
-              [:div.field-card 
+             [:div.field-line
+              [:div.field-card
                [:h4 "File info"]
                [text-field {:label     "Name" :variant :outlined
-                            :value     readable-name                           
+                            :value     readable-name
                             :on-change (fn [_ value] (>evt [:discrete-mcc-tree/set-readable-name value]))}]]
               [:div.field-card
                [:h4 "Select location attributes"]
@@ -113,7 +120,7 @@
                                    :label     "Locations attribute"
                                    :on-change (fn [value]
                                                 (>evt [:discrete-mcc-tree/set-locations-attribute value]))}]]]
-             [:div.field-line             
+             [:div.field-line
               [:div.field-card
                [:h4 "Most recent sampling date"]
                [date-picker {:date-format      time/date-format
@@ -127,7 +134,7 @@
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
                                              (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]))}]]]])]
-         
+
          [controls {:id id
                     :readable-name readable-name
                     :locations-attribute locations-attribute

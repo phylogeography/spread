@@ -8,9 +8,10 @@
             [reagent-material-ui.core.typography :refer [typography]]
             [reagent.core :as reagent]
             [shared.components :refer [collapsible-tab spread-logo button]]
+            [ui.router.subs :as router.subs]
             [ui.component.icon :refer [icons]]
             [ui.component.search :refer [search-bar]]
-            [ui.format :refer [format-percentage]]            
+            [ui.format :refer [format-percentage]]
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
@@ -19,8 +20,9 @@
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
 (defn completed-menu-item [_]
-  (let [menu-open? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type status new?]}]      
+  (let [menu-open? (reagent/atom false)
+        active-page (re-frame/subscribe [::router.subs/active-page])]
+    (fn [{:keys [id readable-name of-type status new?]}]
       (let [badge-text (cond
                          (= status "ERROR") "Error"
                          new?               "New")]
@@ -32,7 +34,7 @@
                                                                                    id
                                                                                    isNew
                                                                                  }
-                                                                               }"	                                                                          
+                                                                               }"
                                                                                         :variables {:analysisId id}}])])}
          [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
          [:div.badges (when badge-text [:span.badge badge-text])]
@@ -45,7 +47,7 @@
             [:li {:on-click #()} "Edit"]
             [:li {:on-click #()} "Load different file"]
             [:li {:on-click #()} "Copy settings"]
-            [:li {:on-click #() #_(fn [event]
+            [:li {:on-click (fn [event]
                               (let [{active-route-name :name query :query} @active-page]
                                 (.stopPropagation event)
 
@@ -56,10 +58,10 @@
 
                                 (>evt [:graphql/query {:query
                                                        "mutation DeleteAnalysisMutation($analysisId: ID!) {
-                                                                                                  deleteAnalysis(id: $analysisId) {
-                                                                                                    id
-                                                                                                  }
-                                                                                                }"
+                                                                   deleteAnalysis(id: $analysisId) {
+                                                                     id
+                                                                   }
+                                                                 }"
                                                        :variables {:analysisId id}}])))}
              "Delete"]])]))))
 
@@ -73,34 +75,25 @@
 
         [collapsible-tab (cond-> {:id :completed
                                   :title "Completed data analysis"
-                                  :icon "icons/icn_previous_analysis.svg"                                  
+                                  :icon "icons/icn_previous_analysis.svg"
                                   :child [:div.completed
                                           [search-bar {:value       (or "" @search-term)
                                                        :on-change   #(>evt [:general/set-search %])
                                                        :placeholder "Search"}]
                                           (for [{:keys [id] :as item} items]
                                             ^{:key id}
-                                            [completed-menu-item (-> item
-                                                                     ;; TODO : for dev
-                                                                     #_(assoc :new? true)
-                                                                     #_(assoc :status "ERROR")
-                                                                     )
+                                            [completed-menu-item (-> item)
                                              {}])
                                           ]}
                            (> new-count 0) (assoc :badge-text (str new-count " New")
                                                   :badge-color "purple"))]))))
 
 (defn queued-menu-item [{:keys [readable-name of-type progress]}]
-  ;; TODO:
-  ;;     - implement pause/resume button
-  ;;     - minutes left
-  ;;     - delete button
-  ;;     - right top menu
   [:div.queued-menu-item
    [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
    [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
    [:div {:style {:grid-area "menu"}} [:img {:src "icons/icn_kebab_menu.svg"}]]
-   [:div {:style {:grid-area "play-pause"}} [:img {:src "icons/pause.svg" #_"icons/pause.svg"}]]
+   [:div {:style {:grid-area "play-pause"}} [:img {:src "icons/pause.svg"}]]
    [:div {:style {:grid-area "delete"}} [:img {:src "icons/icn_delete.svg"}]]
    [:div.progress {:style {:grid-area "progress"}}
     [linear-progress {:value      (* 100 progress)
@@ -109,12 +102,12 @@
 
 (defn queue []
   (let [queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
-    (fn []      
-      (let [items @queued-analysis            
+    (fn []
+      (let [items @queued-analysis
             queued-count (count items)]
         [collapsible-tab (cond-> {:id :queued
                                   :title "Queued"
-                                  :icon "icons/icn_queue.svg"                                
+                                  :icon "icons/icn_queue.svg"
                                   :child [:div.queued
                                           (map (fn [{:keys [id] :as item}]
                                                  ^{:key id} [queued-menu-item item])
@@ -216,6 +209,6 @@
      [header-logo]
      [header-menu]
      [:div.app-header-spacer-2]
-     [main-menu]     
+     [main-menu]
      [:div.app-body.panel
       child-page]]))
