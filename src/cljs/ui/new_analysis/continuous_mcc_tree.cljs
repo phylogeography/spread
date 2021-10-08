@@ -64,12 +64,6 @@
                     time-scale-multiplier     1}}
             @continuous-mcc-tree
             controls-disabled? (or (not attribute-names) (not tree-file))]
-
-
-        (prn "@@@    trees-file-upload-progress" trees-file-upload-progress)
-        (prn "@@@    tree-file-upload-progress"  tree-file-upload-progress)
-
-
         [:<>
          [:div.data {}
           [:section.load-tree-file

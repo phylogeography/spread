@@ -39,6 +39,9 @@
          [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
          [:div.badges (when badge-text [:span.badge badge-text])]
          [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
+
+         ;; TODO : just a button
+
          [:div {:style {:grid-area "menu"}
                 :on-click #(swap! menu-open? not)}
           [:img {:src "icons/icn_kebab_menu.svg"}]]

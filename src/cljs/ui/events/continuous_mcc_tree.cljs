@@ -113,7 +113,10 @@
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
                                               most-recent-sampling-date time-scale-multiplier]}]]
   (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
-    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
+    {:db       (-> db
+                   (assoc-in [:analysis id :readable-name] readable-name)
+                   ;; NOTE: this is a lazy solution
+                   (assoc-in [:analysis id :created-on] (str (.now js/Date))))
      :dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
                                                      $x: String!,

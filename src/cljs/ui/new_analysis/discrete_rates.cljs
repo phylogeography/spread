@@ -79,7 +79,7 @@
             [:h4 "Load locations file"]
             (cond
               (nil? locations-file)
-              [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
+              [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
 

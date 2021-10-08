@@ -121,7 +121,12 @@
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url locations-attribute-name
                                               most-recent-sampling-date time-scale-multiplier]}]]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
-    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
+    {:db (-> db
+             (assoc-in [:analysis id :readable-name] readable-name)
+             ;; NOTE: this is a lazy solution, "correct" one would be to make ParserStatus return createdOn,
+             ;; return it with the server mutation response,
+             ;; and assoc in the app-db in the graphql response handler
+             (assoc-in [:analysis id :created-on] (str (.now js/Date))))
      :dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
                                                      $name: String!,

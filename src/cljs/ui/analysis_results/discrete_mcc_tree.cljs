@@ -5,7 +5,7 @@
                                  most-recent-sampling-date timescale-multiplier]}]
   [:div.field-table
    [:div.field-line
-    [:div.field-card 
+    [:div.field-card
      [:h4 "Tree file"]
      [labeled-field {:label "Name" :text readable-name}]]]
    [:div.field-line

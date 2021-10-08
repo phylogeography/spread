@@ -5,8 +5,8 @@
             [reagent-material-ui.core.table-cell :refer [table-cell]]
             [reagent-material-ui.core.table-container :refer [table-container]]
             [reagent-material-ui.core.table-head :refer [table-head]]
-            [reagent-material-ui.core.table-row :refer [table-row]]           
-            [shared.components :refer [button collapsible-tab tabs]]            
+            [reagent-material-ui.core.table-row :refer [table-row]]
+            [shared.components :refer [button collapsible-tab tabs]]
             [ui.analysis-results.continuous-mcc-tree :refer [continuous-mcc-tree]]
             [ui.analysis-results.discrete-mcc-tree :refer [discrete-mcc-tree]]
             [ui.analysis-results.discrete-rates :refer [discrete-rates]]
@@ -19,17 +19,17 @@
 
 
 (defn data [{:keys [of-type error] :as analysis}]
-  [:div.data   
+  [:div.data
    (when error
          [:div.error
           [:img {:src "icons/icn_error.svg"}]
           [:div
            [:span.title "Error ocurred while running analysis"]
            [collapsible-tab (cond-> {:id :analysis-result-error-check-report
-                                     :title "Check full report"                             
+                                     :title "Check full report"
                                      :child [:div.check-full-report
                                              error]})]]])
-   
+
    (case of-type
      "CONTINUOUS_TREE"
      [continuous-mcc-tree analysis]
@@ -41,7 +41,7 @@
 
 ;; NOTE : the results tab
 ;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed3112972c3f62905120
-(defn results [{:keys [bayes-factors] :as analysis}]  
+(defn results [{:keys [bayes-factors] :as analysis}]
   (let [config @(re-frame/subscribe [::subs/config])
         viewer-host (:analysis-viewer-url config)
         {:keys [viewer-url-params]} (:analysis analysis)
@@ -88,7 +88,7 @@
                                    :align-items :center}}
         [tabs {:on-change (fn [_ value]
                                 (>evt [:router/navigate :route/analysis-results nil {:id id :tab value}]))
-                   :active active-tab 
+                   :active active-tab
                    :tabs-vec [{:id "data"    :label "Data" }
                               {:id "results" :label "Analysis results"}]}]]
        (case active-tab
@@ -102,8 +102,9 @@
 
 (defn analysis-header [{:keys [readable-name of-type created-on]}]
   (let [[label text] (type->label of-type)
-        date (time/format-date-str created-on) 
-        time (time/format-time-str created-on)]
+        date (when created-on (time/format-date-str created-on))
+        time (when created-on (time/format-time-str created-on))
+        ]
     [:div.analysis-header {:style {:grid-area "header"}}
      [:div.readable-name {:style {:grid-area "readable-name"}} readable-name]
      [:div.sub-name {:style {:grid-area "sub-name"}}
@@ -111,11 +112,11 @@
      [:div.datetime {:style {:grid-area "datetime"}}
       [:span.date date] [:span.time time]]]))
 
-(defn analysis-body [active-page]  
-  (let [{{:keys [id] :as query} :query} active-page            
+(defn analysis-body [active-page]
+  (let [{{:keys [id] :as query} :query} active-page
         active-tab (or (:tab query) "results")]
-    [:div.body {:style {:grid-area "body"}}     
-     [tab-pane {:id         id                
+    [:div.body {:style {:grid-area "body"}}
+     [tab-pane {:id         id
                 :active-tab active-tab}]]))
 
 (defn footer []

@@ -52,7 +52,7 @@
                                      }
                                    }"
                                 :variables {:url locations-file-url}}]
-     :db (-> db
+     :db       (-> db
              (dissoc-in [:new-analysis :bayes-factor :locations-file])
              (dissoc-in [:new-analysis :bayes-factor :locations-file-url])
              (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))}))
@@ -114,7 +114,11 @@
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
   (let [id (get-in db [:new-analysis :bayes-factor :id])]
-    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
+    {:db       (-> db
+                   (assoc-in [:analysis id :readable-name] readable-name)
+                   ;; NOTE : this is a lazy solution,
+                   ;; it's perfectly possible to return it from the server together with a mutation response
+                   (assoc-in [:analysis id :created-on] (str (.now js/Date))))
      :dispatch [:graphql/query {:query
                                 "mutation UpdateBayesFactor($id: ID!,
                                                             $name: String!,
