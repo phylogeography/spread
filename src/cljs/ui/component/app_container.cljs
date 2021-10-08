@@ -1,17 +1,17 @@
 (ns ui.component.app-container
   (:require ["react" :as react]
             [re-frame.core :as re-frame]
+            [reagent-material-ui.core.avatar :refer [avatar]]
             [reagent-material-ui.core.icon-button :refer [icon-button]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.menu :refer [menu]]
             [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.typography :refer [typography]]
-            [reagent.core :as reagent]
-            [shared.components :refer [collapsible-tab spread-logo button]]
-            [ui.router.subs :as router.subs]
-            [ui.component.icon :refer [icons]]
+            [shared.components :refer [button collapsible-tab spread-logo]]
+            [ui.component.icon :refer [arg->icon icons]]
             [ui.component.search :refer [search-bar]]
             [ui.format :refer [format-percentage]]
+            [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
@@ -20,8 +20,7 @@
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
 (defn completed-menu-item [_]
-  (let [menu-open? (reagent/atom false)
-        active-page (re-frame/subscribe [::router.subs/active-page])]
+  (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn [{:keys [id readable-name of-type status new?]}]
       (let [badge-text (cond
                          (= status "ERROR") "Error"
@@ -30,43 +29,36 @@
                                                                      (when new?
                                                                        [:graphql/query {:query
                                                                                         "mutation TouchAnalysisMutation($analysisId: ID!) {
-                                                                                 touchAnalysis(id: $analysisId) {
-                                                                                   id
-                                                                                   isNew
-                                                                                 }
-                                                                               }"
+                                                                                           touchAnalysis(id: $analysisId) {
+                                                                                             id
+                                                                                             isNew
+                                                                                           }
+                                                                                         }"
                                                                                         :variables {:analysisId id}}])])}
          [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
          [:div.badges (when badge-text [:span.badge badge-text])]
          [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
+         [:div {:style {:grid-area "menu"}}
+          [icon-button {:size :small
+                        :on-click (fn [event]
+                                    (let [{active-route-name :name query :query} @active-page]
+                                      (.stopPropagation event)
 
-         ;; TODO : just a button
+                                      ;; if on results page for this analysis we need to nav back to home
+                                      (when (and (= :route/analysis-results  active-route-name)
+                                                 (= id (:id query)))
+                                        (>evt [:router/navigate :route/home]))
 
-         [:div {:style {:grid-area "menu"}
-                :on-click #(swap! menu-open? not)}
-          [:img {:src "icons/icn_kebab_menu.svg"}]]
-         (when @menu-open?
-           [:ul.menu
-            [:li {:on-click #()} "Edit"]
-            [:li {:on-click #()} "Load different file"]
-            [:li {:on-click #()} "Copy settings"]
-            [:li {:on-click (fn [event]
-                              (let [{active-route-name :name query :query} @active-page]
-                                (.stopPropagation event)
-
-                                ;; if on results page for this analysis we need to nav back to home
-                                (when (and (= :route/analysis-results  active-route-name)
-                                           (= id (:id query)))
-                                  (>evt [:router/navigate :route/home]))
-
-                                (>evt [:graphql/query {:query
-                                                       "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                      (>evt [:graphql/query {:query
+                                                             "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                                                    deleteAnalysis(id: $analysisId) {
                                                                      id
                                                                    }
                                                                  }"
-                                                       :variables {:analysisId id}}])))}
-             "Delete"]])]))))
+                                                             :variables {:analysisId id}}])))}
+           [avatar {:alt     "delete"
+                    :variant "square"
+                    :src     (arg->icon (:delete icons))}]]]]))))
 
 (defn completed []
   (let [search-term        (re-frame/subscribe [::subs/search])
