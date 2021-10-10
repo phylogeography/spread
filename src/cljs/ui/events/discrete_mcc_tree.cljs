@@ -177,12 +177,12 @@
                                               id
                                               status
                                               timescaleMultiplier
+                                              mostRecentSamplingDate
                                             }
                                           }"
                                          :variables {:id                  id
                                                      :timescaleMultiplier value}}]}))))
 
-;; TODO
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url locations-attribute-name
                                               most-recent-sampling-date timescale-multiplier]}]]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
@@ -221,3 +221,6 @@
                                                :locationsAttributeName locations-attribute-name
                                                :timescaleMultiplier    timescale-multiplier
                                                :mostRecentSamplingDate (time/format most-recent-sampling-date)}}]]}))
+
+(defn reset [{:keys [db]} _]
+  {:db (dissoc-in db [:new-analysis :discrete-mcc-tree])})

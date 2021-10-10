@@ -116,6 +116,7 @@
 (re-frame/reg-event-fx :discrete-mcc-tree/set-time-scale-multiplier events.discrete-mcc-tree/set-time-scale-multiplier)
 (re-frame/reg-event-fx :discrete-mcc-tree/start-analysis events.discrete-mcc-tree/start-analysis)
 (re-frame/reg-event-fx :discrete-mcc-tree/delete-locations-file events.discrete-mcc-tree/delete-locations-file)
+(re-frame/reg-event-fx :discrete-mcc-tree/reset events.discrete-mcc-tree/reset)
 
 (re-frame/reg-event-fx :bayes-factor/on-log-file-selected events.bayes-factor/on-log-file-selected)
 (re-frame/reg-event-fx :bayes-factor/s3-log-file-upload events.bayes-factor/s3-log-file-upload)

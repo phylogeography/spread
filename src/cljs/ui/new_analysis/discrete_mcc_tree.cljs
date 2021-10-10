@@ -22,11 +22,11 @@
              :class "golden"
              :disabled? disabled?}]
     [button {:text "Paste settings"
-             :on-click #()
+             :on-click #(prn "TODO")
              :class "secondary"
              :disabled? disabled?}]
     [button {:text "Reset"
-             :on-click #(js/alert "Yeahhhhhhh")
+             :on-click #(>evt [:discrete-mcc-tree/reset])
              :class "danger"
              :disabled? disabled?}]]])
 
@@ -45,12 +45,7 @@
                     most-recent-sampling-date
                     timescale-multiplier
                     attribute-names]
-
-             :or {timescale-multiplier     1
-                  ;; most-recent-sampling-date (time/now)
-                  }
-
-             } @discrete-mcc-tree
+             :or {timescale-multiplier     1}} @discrete-mcc-tree
             locations-attribute-name  (or locations-attribute-name (first attribute-names))
             most-recent-sampling-date (or most-recent-sampling-date (time/now))
             controls-disabled?        (or (not attribute-names) (not locations-file-name))]
@@ -60,7 +55,7 @@
            [:div
             [:h4 "Load tree file"]
             (cond
-              (and #_(nil? tree-file-upload-progress) (nil? tree-file-name))
+              (and (nil? tree-file-name))
               [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
