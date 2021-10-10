@@ -32,3 +32,14 @@
                                                        [avatar {:class-name (:icon-button classes)
                                                                 :alt        "spread" :variant "square"
                                                                 :src        (arg->icon (:delete icons))}]]])}])
+
+(defn text-input [{:keys [value error? helper-text on-change label]}]
+  [text-field {:label      label
+               :variant    :outlined
+               :value      value
+               :error      error?
+               :helperText helper-text
+               :on-change  (fn [^js event]
+                             (let [value (-> event .-target .-value)]
+                               (when on-change
+                                 (on-change value))))}])

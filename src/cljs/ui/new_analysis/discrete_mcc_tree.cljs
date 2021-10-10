@@ -2,11 +2,10 @@
   (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
-            [reagent-material-ui.core.text-field :refer [text-field]]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.date-picker :refer [date-picker]]
-            [ui.component.input :refer [amount-input loaded-input]]
+            [ui.component.input :refer [amount-input loaded-input text-input]]
             [ui.component.select :refer [attributes-select]]
             [ui.subscriptions :as subs]
             [ui.time :as time]
@@ -53,16 +52,14 @@
                     locations-file-url
                     locations-file-upload-progress
                     readable-name
-                    locations-attribute
+                    locations-attribute-name
                     most-recent-sampling-date
                     time-scale-multiplier
-                    attribute-names]
-             :or   {most-recent-sampling-date (time/now)
-                    time-scale-multiplier     1}}
-            @discrete-mcc-tree
-            locations-attribute       (or locations-attribute (first attribute-names))
-
-            controls-disabled? (or (not attribute-names) (not locations-file-name))
+                    attribute-names]} @discrete-mcc-tree
+            locations-attribute-name  (or locations-attribute-name (first attribute-names))
+            most-recent-sampling-date (or most-recent-sampling-date (time/now))
+            time-scale-multiplier     (or time-scale-multiplier     1)
+            controls-disabled?        (or (not attribute-names) (not locations-file-name))
             ]
 
         (prn "@1" @discrete-mcc-tree)
@@ -98,7 +95,7 @@
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
 
-              (not= 1 locations-file-upload-progress)
+              (and (not (nil? locations-file-upload-progress)) (not= 1 locations-file-upload-progress))
               [linear-progress {:value   (* 100 locations-file-upload-progress)
                                 :variant "determinate"}]
 
@@ -116,16 +113,19 @@
              [:div.field-line
               [:div.field-card
                [:h4 "File info"]
-               [text-field {:label     "Name" :variant :outlined
+               [text-input {:label     "Name" :variant :outlined
                             :value     readable-name
-                            :on-change (fn [_ value] (>evt [:discrete-mcc-tree/set-readable-name value]))}]]
+                            :on-change (fn [value]
+                                         ;; TODO : debounce
+                                         (>evt [:discrete-mcc-tree/set-readable-name value]))}]]
               [:div.field-card
                [:h4 "Select location attributes"]
                [attributes-select {:id        "select-locations-attribute"
-                                   :value     locations-attribute
+                                   :value     locations-attribute-name
                                    :options   attribute-names
                                    :label     "Locations attribute"
                                    :on-change (fn [value]
+                                                ;; TODO : debounce
                                                 (>evt [:discrete-mcc-tree/set-locations-attribute value]))}]]]
              [:div.field-line
               [:div.field-card
@@ -144,7 +144,7 @@
 
          [controls {:id id
                     :readable-name readable-name
-                    :locations-attribute locations-attribute
+                    :locations-attribute locations-attribute-name
                     :locations-file-url locations-file-url
                     :most-recent-sampling-date most-recent-sampling-date
                     :time-scale-multiplier time-scale-multiplier}

@@ -6,6 +6,7 @@
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
+            [clojure.string :as string]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
@@ -137,36 +138,42 @@
         (errors/handle-analysis-error! db id e)))))
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
-                            {tree-file-url      :treeFileUrl
-                             tree-file-name     :treeFileName
+                            {tree-file-url  :treeFileUrl
+                             tree-file-name :treeFileName
                              ;; locations-file-url :locationsFileUrl
                              ;; readable-name      :readableName
-                             :as                args} _]
+                             ;; :or {readable-name (first (string/split tree-file-name "."))}
+                             :as            args} _]
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args    args})
-  (let [id     (s3-url->id tree-file-url authed-user-id)
-        status :UPLOADED]
+  (let [id (s3-url->id tree-file-url authed-user-id)]
     (try
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id            id
-                                  :user-id       authed-user-id
-                                  ;; :readable-name readable-name
-                                  :created-on    (time/millis (time/now))
-                                  :status        status
-                                  :of-type       :DISCRETE_TREE})
-      (discrete-tree-model/upsert! db {:id                 id
-                                       :tree-file-url      tree-file-url
-                                       :tree-file-name      tree-file-name
-                                       ;; :locations-file-url locations-file-url
-                                       })
-      ;; sends message to worker to parse attributes
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
-                                                   :id           id
-                                                   :user-id      authed-user-id})
-      #_{:id     id
-       :status status}
 
-      (clj->gql (discrete-tree-model/get-tree db {:id id}))
+      (let [status        :UPLOADED
+            readable-name (first (string/split tree-file-name #"\."))]
+
+        ;; (prn "@@@ readable-name" readable-name)
+
+        ;; TODO : in a transaction
+        (analysis-model/upsert! db {:id            id
+                                    :user-id       authed-user-id
+                                    :readable-name readable-name
+                                    :created-on    (time/millis (time/now))
+                                    :status        status
+                                    :of-type       :DISCRETE_TREE})
+        (discrete-tree-model/upsert! db {:id             id
+                                         :tree-file-url  tree-file-url
+                                         :tree-file-name tree-file-name
+                                         ;; :locations-file-url locations-file-url
+                                         })
+        ;; sends message to worker to parse attributes
+        (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
+                                                     :id           id
+                                                     :user-id      authed-user-id})
+        #_{:id     id
+           :status status}
+
+        (clj->gql (discrete-tree-model/get-tree db {:id id})))
 
       (catch Exception e
         (log/error "Exception occured" {:error e})
@@ -176,6 +183,7 @@
   [{:keys [authed-user-id db]} {id                        :id
                                 readable-name             :readableName
                                 locations-file-url        :locationsFileUrl
+                                locations-file-name        :locationsFileName
                                 locations-attribute-name  :locationsAttributeName
                                 timescale-multiplier      :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
@@ -188,6 +196,7 @@
       ;; in transaction
       (discrete-tree-model/upsert! db {:id                        id
                                        :locations-file-url        locations-file-url
+                                       :locations-file-name locations-file-name
                                        :locations-attribute-name  locations-attribute-name
                                        :timescale-multiplier      timescale-multiplier
                                        :most-recent-sampling-date most-recent-sampling-date})

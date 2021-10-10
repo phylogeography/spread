@@ -131,12 +131,13 @@
   ;; start the status subscription for an ongoing analysis
   (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
-                                                           parserStatus(id: $id) {
-                                                             id
-                                                             status
-                                                             progress
-                                                             ofType
-                                                           }}"
+                                              parserStatus(id: $id) {
+                                                id
+                                                status
+                                                progress
+                                                ofType
+                                              }
+                                            }"
                                 :variables {:id id}}])
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :id] id)
@@ -146,10 +147,11 @@
   [{:keys [db]} _ {:keys [id status]}]
   (when (= "ARGUMENTS_SET" status)
     (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                  startContinuousTreeParser(id: $id) {
-                                                    id
-                                                    status
-                                                }}"
+                                                startContinuousTreeParser(id: $id) {
+                                                  id
+                                                  status
+                                                }
+                                              }"
                                   :variables {:id id}}]]))
 
   {:db (assoc-in db [:analysis id :status] status)})
@@ -170,12 +172,15 @@
 
 (defmethod handler :upload-discrete-tree
   [{:keys [db]} _ {:keys [id status tree-file-name created-on] :as analysis}]
-  (let [;; NOTE: this is just a sensible default to use for a readable name
-        readable-name (first (string/split tree-file-name "."))]
+  (let [
+        ;; NOTE: this is just a sensible default to use for a readable name
+        ;; readable-name (first (string/split tree-file-name "."))
+        ]
     (>evt [:graphql/subscription {:id        id
                                   :query     "subscription SubscriptionRoot($id: ID!) {
                                                 parserStatus(id: $id) {
                                                   id
+                                                  readableName
                                                   status
                                                   progress
                                                   ofType
@@ -186,7 +191,8 @@
              ;; NOTE: make sure id is the only link at all times between the ongoing analysis
              ;; and what we store under the `:analysis` key
              (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
-             (update-in [:analysis id] merge (merge {:readable-name readable-name} analysis)))}))
+             (update-in [:analysis id] merge analysis
+                        #_(merge {:readable-name readable-name} analysis)))}))
 
 (defmethod handler :get-discrete-tree
   [{:keys [db]} _ {:keys [id #_attribute-names] :as analysis}]
@@ -200,16 +206,19 @@
            (update-in [:analysis id] merge analysis))}))
 
 (defmethod handler :update-discrete-tree
-  [{:keys [db]} _ {:keys [id status]}]
-  (when (= "ARGUMENTS_SET" status)
-    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+
+(prn "@update-discrete-tree" analysis)
+
+  #_(when (= "ARGUMENTS_SET" status)
+      (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
                                                   startDiscreteTreeParser(id: $id) {
                                                     id
                                                     status
                                                 }
                                               }"
-                                  :variables {:id id}}]]))
-  {:db (assoc-in db [:analysis id :status] status)})
+                                    :variables {:id id}}]]))
+  {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :start-discrete-tree-parser
   [{:keys [db]} _ {:keys [id status]}]

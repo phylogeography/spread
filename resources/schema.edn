@@ -231,16 +231,13 @@
                               :args        {:id {:type (non-null ID)}}
                               :resolve     :mutation/startContinuousTreeParser}
 
-  :uploadDiscreteTree {:type        :DiscreteTree #_:ParserStatus
+  :uploadDiscreteTree {:type        :DiscreteTree
                        :description "Persists discrete tree. Returns a ParserStatus with id."
                        :args        {:treeFileUrl      {:type (non-null String)}
-                                     :treeFileName     {:type (non-null String)}
-                                     ;; :readableName     {:type String}
-                                     ;; :locationsFileUrl {:type String}
-                                     }
+                                     :treeFileName     {:type (non-null String)}}
                        :resolve     :mutation/uploadDiscreteTree}
 
-  :updateDiscreteTree {:type        :DiscreteTree #_:ParserStatus
+  :updateDiscreteTree {:type        :DiscreteTree
                        :description "Updates the entity with settings for parsing the tree graph."
                        :args        {:id                     {:type (non-null ID)}
                                      :readableName           {:type String}

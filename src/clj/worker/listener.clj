@@ -66,10 +66,10 @@
   [{:keys [id] :as args} {:keys [db s3 bucket-name aws-config maps-boxes]}]
   (log/info "handling parse-discrete-tree" args)
   (try
-    (let [{:keys [user-id locations-attribute-name
-                  timescale-multiplier most-recent-sampling-date
-                  locations-file-url]}
+    (let [{:keys [user-id locations-attribute-name timescale-multiplier most-recent-sampling-date locations-file-url]
+           :as   tree}
           (discrete-tree-model/get-tree db {:id id})
+          _                    (log/info "parse-discrete-tree" tree)
           tree-object-key      (str user-id "/" id tree-object-extension)
           tree-file-path       (str tmp-dir "/" tree-object-key)
           ;; is it cached on disk?
