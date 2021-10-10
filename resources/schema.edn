@@ -240,14 +240,15 @@
                                      }
                        :resolve     :mutation/uploadDiscreteTree}
 
-  :updateDiscreteTree {:type        :ParserStatus
+  :updateDiscreteTree {:type        :DiscreteTree #_:ParserStatus
                        :description "Updates the entity with settings for parsing the tree graph."
                        :args        {:id                     {:type (non-null ID)}
                                      :readableName           {:type String}
                                      :locationsFileUrl       {:type String}
-                                     :locationsAttributeName {:type (non-null String)}
+                                     :locationsFileName      {:type String}
+                                     :locationsAttributeName {:type String}
                                      :timescaleMultiplier    {:type Float}
-                                     :mostRecentSamplingDate {:type (non-null String)}}
+                                     :mostRecentSamplingDate {:type String}}
                        :resolve     :mutation/updateDiscreteTree}
 
   :startDiscreteTreeParser {:type        :ParserStatus

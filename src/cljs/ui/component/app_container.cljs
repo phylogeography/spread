@@ -136,36 +136,35 @@
                                               [:span.text sub-label]])
                                            items)]}]))
 
-
-;; TODO
 (defn ongoing-menu-item [_]
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn [{:keys [id readable-name of-type]}]
-      [:div.ongoing-menu-item.clickable {:on-click
-                                         #(>evt [:router/navigate :route/new-analysis nil {:tab (type->tab of-type) :id id}])}
-       [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
-       [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
-       [:div {:style {:grid-area "menu"}}
-        [icon-button {:size     :small
-                      :on-click (fn [event]
-                                  (let [{active-route-name :name query :query} @active-page]
-                                    (.stopPropagation event)
+      (let [{:keys [tree-file-name]} @(re-frame/subscribe [::subs/analysis-results id])]
+        [:div.ongoing-menu-item.clickable {:on-click
+                                           #(>evt [:router/navigate :route/new-analysis nil {:tab (type->tab of-type) :id id}])}
+         [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name tree-file-name "Unknown")]
+         [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
+         [:div {:style {:grid-area "menu"}}
+          [icon-button {:size     :small
+                        :on-click (fn [event]
+                                    (let [{active-route-name :name query :query} @active-page]
+                                      (.stopPropagation event)
 
-                                    ;; if on results page for this analysis we need to nav back to home
-                                    (when (and (= :route/analysis-results  active-route-name)
-                                               (= id (:id query)))
-                                      (>evt [:router/navigate :route/home]))
+                                      ;; if on results page for this analysis we need to nav back to home
+                                      (when (and (= :route/analysis-results  active-route-name)
+                                                 (= id (:id query)))
+                                        (>evt [:router/navigate :route/home]))
 
-                                    (>evt [:graphql/query {:query
-                                                           "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                      (>evt [:graphql/query {:query
+                                                             "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                                                    deleteAnalysis(id: $analysisId) {
                                                                      id
                                                                    }
                                                                  }"
-                                                           :variables {:analysisId id}}])))}
-         [avatar {:alt     "delete"
-                  :variant "square"
-                  :src     (arg->icon (:delete icons))}]]]])))
+                                                             :variables {:analysisId id}}])))}
+           [avatar {:alt     "delete"
+                    :variant "square"
+                    :src     (arg->icon (:delete icons))}]]]]))))
 
 (defn ongoing []
   (let [ongoing-analysis (re-frame/subscribe [::subs/ongoing-analysis])]

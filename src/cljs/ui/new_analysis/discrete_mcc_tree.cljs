@@ -61,7 +61,9 @@
                     time-scale-multiplier     1}}
             @discrete-mcc-tree
             locations-attribute       (or locations-attribute (first attribute-names))
-            controls-disabled? (or (not attribute-names) (not locations-file-name))]
+
+            controls-disabled? (or (not attribute-names) (not locations-file-name))
+            ]
 
         (prn "@1" @discrete-mcc-tree)
 

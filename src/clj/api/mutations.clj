@@ -194,7 +194,10 @@
       (analysis-model/upsert! db {:id            id
                                   :readable-name readable-name
                                   :status        status})
-      {:id     id
+
+      (clj->gql (discrete-tree-model/get-tree db {:id id}))
+
+#_      {:id     id
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
