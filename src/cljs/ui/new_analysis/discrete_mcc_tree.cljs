@@ -9,7 +9,7 @@
             [ui.component.select :refer [attributes-select]]
             [ui.subscriptions :as subs]
             [ui.time :as time]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
+            [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
 
 (defn controls [{:keys [id readable-name locations-attribute locations-file-url most-recent-sampling-date time-scale-multiplier]} {:keys [disabled?]}]
   [:div.controls-wrapper
@@ -57,12 +57,20 @@
                     time-scale-multiplier
                     attribute-names]} @discrete-mcc-tree
             locations-attribute-name  (or locations-attribute-name (first attribute-names))
-            most-recent-sampling-date (or most-recent-sampling-date (time/now))
+            most-recent-sampling-date (or
+
+                                        ;; TODO : parse again
+                                        most-recent-sampling-date
+
+                                        (time/now))
             time-scale-multiplier     (or time-scale-multiplier     1)
             controls-disabled?        (or (not attribute-names) (not locations-file-name))
             ]
 
-        (prn "@1" @discrete-mcc-tree)
+        ;; (prn "@1" @discrete-mcc-tree)
+        (prn "@render 1" most-recent-sampling-date)
+
+        (prn "@render 2" most-recent-sampling-date)
 
         [:<>
          [:div.data {:style {:grid-area "data"}}
@@ -116,8 +124,7 @@
                [text-input {:label     "Name" :variant :outlined
                             :value     readable-name
                             :on-change (fn [value]
-                                         ;; TODO : debounce
-                                         (>evt [:discrete-mcc-tree/set-readable-name value]))}]]
+                                         (debounce (>evt [:discrete-mcc-tree/set-readable-name value]) 10))}]]
               [:div.field-card
                [:h4 "Select location attributes"]
                [attributes-select {:id        "select-locations-attribute"
@@ -125,13 +132,13 @@
                                    :options   attribute-names
                                    :label     "Locations attribute"
                                    :on-change (fn [value]
-                                                ;; TODO : debounce
-                                                (>evt [:discrete-mcc-tree/set-locations-attribute value]))}]]]
+                                                (debounce (>evt [:discrete-mcc-tree/set-locations-attribute value]) 10))}]]]
              [:div.field-line
               [:div.field-card
                [:h4 "Most recent sampling date"]
                [date-picker {:date-format      time/date-format
-                             :on-change        #(>evt [:discrete-mcc-tree/set-most-recent-sampling-date %])
+                             :on-change        (fn [value]
+                                                 (debounce (>evt [:discrete-mcc-tree/set-most-recent-sampling-date value]) 10))
                              :selected         most-recent-sampling-date}]]
               [:div.field-card
                [:h4 "Time scale"]
@@ -140,7 +147,7 @@
                               :error?      (not (nil? (:time-scale-multiplier @field-errors)))
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
-                                             (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]))}]]]])]
+                                             (debounce (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]) 10))}]]]])]
 
          [controls {:id id
                     :readable-name readable-name
@@ -148,4 +155,4 @@
                     :locations-file-url locations-file-url
                     :most-recent-sampling-date most-recent-sampling-date
                     :time-scale-multiplier time-scale-multiplier}
-          {:disabled? controls-disabled? }]]))))
+          {:disabled? controls-disabled?}]]))))

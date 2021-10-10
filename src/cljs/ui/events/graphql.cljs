@@ -7,7 +7,8 @@
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt dispatch-n dissoc-in]]))
+            [ui.utils :refer [>evt dispatch-n dissoc-in]]
+            [ui.time :as time]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -195,30 +196,23 @@
                         #_(merge {:readable-name readable-name} analysis)))}))
 
 (defmethod handler :get-discrete-tree
-  [{:keys [db]} _ {:keys [id #_attribute-names] :as analysis}]
-  {:db (update-in db [:analysis id] merge analysis)}
-  #_(let [active-analysis-id (-> db :new-analysis :discrete-mcc-tree :id)]
-    {:db (cond-> db
-           (= id active-analysis-id)
-           (assoc-in [:new-analysis :discrete-mcc-tree :attribute-names] attribute-names)
-
-           true
-           (update-in [:analysis id] merge analysis))}))
+  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  ;; NOTE : parse date to an internal representation
+  (let [most-recent-sampling-date (when most-recent-sampling-date
+                                    (new js/Date most-recent-sampling-date))]
+    {:db (-> db
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 (defmethod handler :update-discrete-tree
-  [{:keys [db]} _ {:keys [id] :as analysis}]
-
-(prn "@update-discrete-tree" analysis)
-
-  #_(when (= "ARGUMENTS_SET" status)
-      (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                  startDiscreteTreeParser(id: $id) {
-                                                    id
-                                                    status
-                                                }
-                                              }"
-                                    :variables {:id id}}]]))
-  {:db (update-in db [:analysis id] merge analysis)})
+  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  ;; NOTE : parse date to an internal representation
+  (let [most-recent-sampling-date (when most-recent-sampling-date
+                                    (new js/Date most-recent-sampling-date))]
+    (prn "@update-discrete-tree" analysis)
+    {:db (-> db
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 (defmethod handler :start-discrete-tree-parser
   [{:keys [db]} _ {:keys [id status]}]

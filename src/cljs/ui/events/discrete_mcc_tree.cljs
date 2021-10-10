@@ -30,9 +30,7 @@
   {:db (assoc-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress] progress)})
 
 (defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")
-        ;; readable-name (first (string/split filename "."))
-        ]
+  (let [[url _]       (string/split url "?")]
     {:dispatch [:graphql/query {:query     "mutation UploadDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
                                                 uploadDiscreteTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
                                                   id
@@ -43,23 +41,16 @@
                                                 }
                                               }"
                                 :variables {:treeFileUrl url
-                                            :treeFileName filename}}]
-
-     ;; :db       (-> db
-     ;;               (assoc-in [:new-analysis :discrete-mcc-tree :tree-file] filename)
-     ;;               ;; default name: file name root
-     ;;               (assoc-in [:new-analysis :discrete-mcc-tree :readable-name] readable-name))
-
-     }))
+                                            :treeFileName filename}}]}))
 
 (defn delete-tree-file [{:keys [db]}]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
     {:dispatch [:graphql/query {:query
                                 "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                    deleteAnalysis(id: $analysisId) {
-                                          id
-                                        }
-                                     }"
+                                     id
+                                   }
+                                 }"
                                 :variables {:analysisId id}}]
      :db       (-> db
                    (dissoc-in [:analysis id])
@@ -157,8 +148,20 @@
                                             :locationsAttributeName locations-attribute}}]}))
 
 ;; TODO
-(defn set-most-recent-sampling-date [{:keys [db]} [_ date]]
-  {:db (assoc-in db [:new-analysis :discrete-mcc-tree :most-recent-sampling-date] date)})
+(defn set-most-recent-sampling-date [{:keys [db]} [_ most-recent-sampling-date]]
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $mostRecentSamplingDate: String!) {
+                                                   updateDiscreteTree(id: $id,
+                                                                      mostRecentSamplingDate: $mostRecentSamplingDate) {
+                                                     id
+                                                     status
+                                                     mostRecentSamplingDate
+                                                   }
+                                              }"
+                                :variables {:id                     id
+                                            :mostRecentSamplingDate (time/format most-recent-sampling-date)}}]}))
 
 ;; TODO
 (defn set-time-scale-multiplier [{:keys [db]} [_ value]]
