@@ -3,12 +3,12 @@
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.slider :refer [slider]]
-            [reagent-material-ui.core.text-field :refer [text-field]]
+            ;; [reagent-material-ui.core.text-field :refer [text-field]]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
-            [ui.component.input :refer [loaded-input]]
+            [ui.component.input :refer [loaded-input text-input]]
             [ui.subscriptions :as subs]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
+            [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
 
 (defn controls [{:keys [id readable-name burn-in locations-file-url]} {:keys [disabled?]}]
   [:div.controls-wrapper
@@ -53,6 +53,7 @@
             @bayes-factor
             controls-disabled? (or @field-errors (not log-file-name))]
 
+        ;; TODO
         (prn "@ discrete-rates" @bayes-factor)
 
         [:<>
@@ -104,21 +105,23 @@
              [:div.field-line
               [:div.field-card
                [:h4 "File info"]
-               [text-field {:label     "Name" :variant :outlined
+               [text-input {:label     "Name"
+                            :variant :outlined
                             :value     readable-name
-                            :on-change (fn [_ value] (>evt [:bayes-factor/set-readable-name value]))}]]
+                            :on-change (fn [value]
+                                         (debounce (>evt [:bayes-factor/set-readable-name value]) 10))}]]
               [:div.field-card
                [:h4 "Select burn-in"]
                [slider {:value             burn-in
-                       :min               0.0
-                       :max               0.9
-                       :step              0.1
-                       :valueLabelDisplay :auto
+                        :min               0.0
+                        :max               0.9
+                        :step              0.1
+                        :valueLabelDisplay :auto
                         :marks             true
-                       :on-change         (fn [_ value]
-                                            (>evt [:bayes-factor/set-burn-in value]))}]]]])]
-         [controls {:id id
-                    :readable-name readable-name
-                    :burn-in burn-in
+                        :on-change         (fn [_ value]
+                                             (debounce (>evt [:bayes-factor/set-burn-in value]) 10))}]]]])]
+         [controls {:id                 id
+                    :readable-name      readable-name
+                    :burn-in            burn-in
                     :locations-file-url locations-file-url}
           {:disabled? controls-disabled?}]]))))

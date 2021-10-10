@@ -101,7 +101,6 @@
 (defn locations-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :bayes-factor :locations-file-upload-progress] progress)})
 
-;; TODO
 (defn locations-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _] (string/split url "?")
         id      (get-in db [:new-analysis :bayes-factor :id])]
@@ -122,13 +121,35 @@
                                             :locationsFileName filename
                                             :locationsFileUrl  url}}]}))
 
-;; TODO
 (defn set-readable-name [{:keys [db]} [_ readable-name]]
-#_  {:db (assoc-in db [:new-analysis :bayes-factor :readable-name] readable-name)})
+  (let [id (get-in db [:new-analysis :bayes-factor :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateBayesFactor($id: ID!,
+                                                            $readableName: String!) {
+                                            updateBayesFactorAnalysis(id: $id,
+                                                                      readableName: $readableName) {
+                                                id
+                                                status
+                                                readableName
+                                              }
+                                            }"
+                                :variables {:id           id
+                                            :readableName readable-name}}]}))
 
-;; TODO
 (defn set-burn-in [{:keys [db]} [_ burn-in]]
-#_  {:db (assoc-in db [:new-analysis :bayes-factor :burn-in] burn-in)})
+  (let [id (get-in db [:new-analysis :bayes-factor :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateBayesFactor($id: ID!,
+                                                            $burnIn: Float!) {
+                                            updateBayesFactorAnalysis(id: $id,
+                                                                      burnIn: $burnIn) {
+                                                id
+                                                status
+                                                burnIn
+                                              }
+                                            }"
+                                :variables {:id     id
+                                            :burnIn burn-in}}]}))
 
 ;; TODO
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
