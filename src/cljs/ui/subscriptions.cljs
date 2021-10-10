@@ -111,7 +111,10 @@
 (re-frame/reg-sub
   ::bayes-factor
   (fn [db]
-    (get-in db [:new-analysis :bayes-factor])))
+    (let [ongoing-analysis (get-in db [:new-analysis :bayes-factor])
+          id               (:id ongoing-analysis)]
+      (merge ongoing-analysis
+             (get-in db [:analysis id])))))
 
 (re-frame/reg-sub
   ::bayes-factor-field-errors

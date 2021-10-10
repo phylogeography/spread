@@ -284,31 +284,30 @@
 
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
                                     {log-file-url        :logFileUrl
-                                     locations-file-url  :locationsFileUrl
-                                     readable-name       :readableName
-                                     number-of-locations :numberOfLocations
-                                     burn-in             :burnIn
-                                     :or                 {burn-in 0.1}
+                                     log-file-name        :logFileName
+                                     ;; locations-file-url  :locationsFileUrl
+                                     ;; readable-name       :readableName
+                                     ;; number-of-locations :numberOfLocations
+                                     ;; burn-in             :burnIn
+                                     ;; :or                 {burn-in 0.1}
                                      :as                 args} _]
   (log/info "upload-bayes-factor" {:user/id authed-user-id
                                    :args    args})
-  (let [id     (s3-url->id log-file-url authed-user-id)
-        status :UPLOADED]
+  (let [id     (s3-url->id log-file-url authed-user-id)]
     (try
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id            id
-                                  :user-id       authed-user-id
-                                  :readable-name readable-name
-                                  :created-on    (time/millis (time/now))
-                                  :status        status
-                                  :of-type       :BAYES_FACTOR_ANALYSIS})
-      (bayes-factor-model/upsert! db {:id                  id
-                                      :log-file-url        log-file-url
-                                      :locations-file-url  locations-file-url
-                                      :number-of-locations number-of-locations
-                                      :burn-in             burn-in})
-      {:id     id
-       :status status}
+      (let [status :UPLOADED
+            readable-name (first (string/split log-file-name #"\."))]
+        ;; TODO : in a transaction
+        (analysis-model/upsert! db {:id            id
+                                    :user-id       authed-user-id
+                                    :readable-name readable-name
+                                    :created-on    (time/millis (time/now))
+                                    :status        status
+                                    :of-type       :BAYES_FACTOR_ANALYSIS})
+        (bayes-factor-model/upsert! db {:id                  id
+                                        :log-file-url        log-file-url
+                                        :log-file-name        log-file-name})
+        (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
@@ -317,6 +316,7 @@
   [{:keys [authed-user-id db]} {id                  :id
                                 readable-name       :readableName
                                 locations-file-url  :locationsFileUrl
+                                locations-file-name :locationsFileName
                                 number-of-locations :numberOfLocations
                                 burn-in             :burnIn
                                 :or                 {burn-in 0.1}
@@ -328,13 +328,13 @@
       ;; TODO : in a transaction
       (bayes-factor-model/upsert! db {:id                  id
                                       :locations-file-url  locations-file-url
+                                      :locations-file-name locations-file-name
                                       :number-of-locations number-of-locations
                                       :burn-in             burn-in})
       (analysis-model/upsert! db {:id            id
                                   :readable-name readable-name
                                   :status        status})
-      {:id     id
-       :status status})
+      (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
     (catch Exception e
       (log/error "Exception occured" {:error e})
       (errors/handle-analysis-error! db id e))))

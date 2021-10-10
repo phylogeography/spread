@@ -15,7 +15,9 @@
 (def ^:private nil-bayes-factor-analysis
   {:id                  nil
    :log-file-url        nil
+   :log-file-name       nil
    :locations-file-url  nil
+   :locations-file-name nil
    :number-of-locations nil
    :burn-in             nil
    :output-file-url     nil})

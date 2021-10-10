@@ -29,6 +29,13 @@
        (js->clj)
        (camel-snake-extras/transform-keys gql-name->kw)))
 
+(defn- with-safe-date [{:keys [most-recent-sampling-date] :as analysis}]
+  "turns YYYY/mm/dd representation to a js/Date that can be used with the date component
+   NOTE: we should revisit how we treat this argument to avoid going bakc and forth between representations"
+  (let [js-date (when most-recent-sampling-date
+                  (new js/Date most-recent-sampling-date))]
+    (assoc analysis :most-recent-sampling-date js-date)))
+
 (defmulti handler
   (fn [_ key value]
     (cond
@@ -172,7 +179,7 @@
            (update-in [:analysis id] merge tree))}))
 
 (defmethod handler :upload-discrete-tree
-  [{:keys [db]} _ {:keys [id status tree-file-name created-on] :as analysis}]
+  [{:keys [db]} _ {:keys [id] :as analysis}]
   (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
                                                 parserStatus(id: $id) {
@@ -185,17 +192,10 @@
                                               }"
                                 :variables {:id id}}])
   {:db (-> db
-           ;; NOTE: make sure id is the only link at all times between the ongoing analysis
+           ;; NOTE: id is the link between the ongoing analysis
            ;; and what we store under the `:analysis` key
            (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
            (update-in [:analysis id] merge analysis))})
-
-(defn- with-safe-date [{:keys [most-recent-sampling-date] :as analysis}]
-  "turns YYYY/mm/dd representation to a js/Date that can be used with the date component
-   NOTE: we should revisit how we treat this argument to avoid going bakc and forth between representations"
-  (let [js-date (when most-recent-sampling-date
-                  (new js/Date most-recent-sampling-date))]
-    (assoc analysis :most-recent-sampling-date js-date)))
 
 (defmethod handler :get-discrete-tree
   [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
@@ -220,36 +220,32 @@
   {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
 (defmethod handler :upload-bayes-factor-analysis
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [id] :as analysis}]
   (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
                                                            parserStatus(id: $id) {
                                                              id
+                                                             readableName
                                                              status
                                                              progress
                                                              ofType
                                                            }}"
                                 :variables {:id id}}])
   {:db (-> db
+           ;; NOTE: id is the link between the ongoing analysis
+           ;; and what we store under the `:analysis` key
            (assoc-in [:new-analysis :bayes-factor :id] id)
-           (assoc-in [:analysis id :status] status))})
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :update-bayes-factor-analysis
-  [{:keys [db]} _ {:keys [id status]}]
-  (when (= "ARGUMENTS_SET" status)
-    (>evt [:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                startBayesFactorParser(id: $id) {
-                                                 id
-                                                 status
-                                                }
-                                              }"
-                           :variables {:id id}}]))
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id] :as analysis}]
   {:db (update-in db [:analysis id] merge analysis)})
 
+;; TODO
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id status]}]
   {:db (assoc-in db [:analysis id :status] status)})

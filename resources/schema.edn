@@ -113,8 +113,7 @@
                                                         :resolve :resolve/tree->user-analysis}}}
 
   :TimeSlicer {:description "Represents TimeSlicer entity."
-               :fields      {:id                                 {:description "Unique identifier."
-                                                                  :type        (non-null ID)}
+               :fields      {:id                                 {:type (non-null ID)}
                              :userId                             {:type (non-null ID)}
                              :readableName                       {:type String}
                              :createdOn                          {:type (non-null :BigInt)}
@@ -144,8 +143,7 @@
                               :posteriorProbability {:type Float}}}
 
   :BayesFactorAnalysis {:description "Represents BayesFactorAnalysis entity."
-                        :fields      {:id                {:description "Unique identifier."
-                                                          :type        (non-null ID)}
+                        :fields      {:id                {:type (non-null ID)}
                                       :userId            {:type (non-null ID)}
                                       :readableName      {:type String}
                                       :createdOn         {:type (non-null :BigInt)}
@@ -171,6 +169,7 @@
   :getAuthorizedUser {:type        :User
                       :description "Returns a current user. Does not need ID which is read from the Authorization header."
                       :resolve     :query/getAuthorizedUser}
+
   :getContinuousTree {:type        :ContinuousTree
                       :description "Returns a ContinuousTree entity by id."
                       :args        {:id {:type (non-null ID)}}
@@ -277,20 +276,18 @@
                                    :mostRecentSamplingDate             {:type (non-null String)}}
                      :resolve     :mutation/updateTimeSlicer}
 
-  :uploadBayesFactorAnalysis {:type        :ParserStatus
+  :uploadBayesFactorAnalysis {:type        :BayesFactorAnalysis
                               :description "Persists bayes factor trees. Returns a ParserStatus with id."
-                              :args        {:readableName      {:type String}
-                                            :logFileUrl        {:type (non-null String)}
-                                            :locationsFileUrl  {:type String}
-                                            :numberOfLocations {:type Int}
-                                            :burnIn            {:type Float}}
+                              :args        {:logFileUrl        {:type (non-null String)}
+                                            :logFileName        {:type (non-null String)}}
                               :resolve     :mutation/uploadBayesFactorAnalysis}
 
-  :updateBayesFactorAnalysis {:type        :ParserStatus
+  :updateBayesFactorAnalysis {:type        :BayesFactorAnalysis
                               :description "Updates the entity with settings for parsing the tree graph."
                               :args        {:id                {:type (non-null ID)}
                                             :readableName      {:type String}
                                             :locationsFileUrl  {:type String}
+                                            :locationsFileName  {:type String}
                                             :numberOfLocations {:type Int}
                                             :burnIn            {:type Float}}
                               :resolve     :mutation/updateBayesFactorAnalysis}

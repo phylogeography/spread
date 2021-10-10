@@ -30,17 +30,17 @@
   {:db (assoc-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress] progress)})
 
 (defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")]
+  (let [[url _] (string/split url "?")]
     {:dispatch [:graphql/query {:query     "mutation UploadDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
-                                                uploadDiscreteTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
-                                                  id
-                                                  status
-                                                  readableName
-                                                  treeFileName
-                                                  createdOn
+                                              uploadDiscreteTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
+                                                id
+                                                status
+                                                readableName
+                                                treeFileName
+                                                createdOn
                                                 }
                                               }"
-                                :variables {:treeFileUrl url
+                                :variables {:treeFileUrl  url
                                             :treeFileName filename}}]}))
 
 (defn delete-tree-file [{:keys [db]}]
@@ -60,7 +60,7 @@
   (let [id                           (get-in db [:new-analysis :discrete-mcc-tree :id])
         {:keys [locations-file-url]} (get-in db [:new-analysis :discrete-mcc-tree])]
     {:dispatch [:graphql/query {:query
-                                ;; TODO : delete DB content and too! [another mutation needed!]
+                                ;; TODO : delete DB content too! [another mutation needed!]
                                 "mutation DeleteFile($url: String!) {
                                    deleteFile(url: $url) {
                                      key
