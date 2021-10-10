@@ -187,7 +187,7 @@
                                 locations-attribute-name  :locationsAttributeName
                                 timescale-multiplier      :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
-                                :or                       {timescale-multiplier 1}
+                                ;; :or                       {timescale-multiplier 1}
                                 :as                       args} _]
   (log/info "update discrete tree" {:user/id authed-user-id
                                     :args    args})
@@ -203,26 +203,35 @@
       (analysis-model/upsert! db {:id            id
                                   :readable-name readable-name
                                   :status        status})
-
-      (clj->gql (discrete-tree-model/get-tree db {:id id}))
-
-#_      {:id     id
-       :status status})
+      (clj->gql (discrete-tree-model/get-tree db {:id id})))
     (catch Exception e
       (log/error "Exception occured" {:error e})
       (errors/handle-analysis-error! db id e))))
 
 (defn start-discrete-tree-parser
-  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  [{:keys [db sqs workers-queue-url]} {id                        :id
+                                       readable-name             :readableName
+                                       locations-attribute-name  :locationsAttributeName
+                                       timescale-multiplier      :timescaleMultiplier
+                                       most-recent-sampling-date :mostRecentSamplingDate
+                                       :as                       args} _]
   (log/info "start-discrete-tree-parser" args)
   (let [status :QUEUED]
     (try
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-discrete-tree
-                                                   :id           id})
+      ;; TODO : in a tx
+      (discrete-tree-model/upsert! db {:id                        id
+                                       :readable-name             readable-name
+                                       :locations-attribute-name  locations-attribute-name
+                                       :timescale-multiplier      timescale-multiplier
+                                       :most-recent-sampling-date most-recent-sampling-date})
+
       (analysis-model/upsert! db {:id     id
                                   :status status})
-      {:id     id
-       :status status}
+
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-discrete-tree
+                                                   :id           id})
+
+      (clj->gql (discrete-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))

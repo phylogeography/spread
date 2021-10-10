@@ -173,12 +173,8 @@
 
 (defmethod handler :upload-discrete-tree
   [{:keys [db]} _ {:keys [id status tree-file-name created-on] :as analysis}]
-  (let [
-        ;; NOTE: this is just a sensible default to use for a readable name
-        ;; readable-name (first (string/split tree-file-name "."))
-        ]
-    (>evt [:graphql/subscription {:id        id
-                                  :query     "subscription SubscriptionRoot($id: ID!) {
+  (>evt [:graphql/subscription {:id        id
+                                :query     "subscription SubscriptionRoot($id: ID!) {
                                                 parserStatus(id: $id) {
                                                   id
                                                   readableName
@@ -187,13 +183,19 @@
                                                   ofType
                                                 }
                                               }"
-                                  :variables {:id id}}])
-    {:db (-> db
-             ;; NOTE: make sure id is the only link at all times between the ongoing analysis
-             ;; and what we store under the `:analysis` key
-             (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
-             (update-in [:analysis id] merge analysis
-                        #_(merge {:readable-name readable-name} analysis)))}))
+                                :variables {:id id}}])
+  {:db (-> db
+           ;; NOTE: make sure id is the only link at all times between the ongoing analysis
+           ;; and what we store under the `:analysis` key
+           (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
+           (update-in [:analysis id] merge analysis))})
+
+(defn- with-safe-date [{:keys [most-recent-sampling-date] :as analysis}]
+  "turns YYYY/mm/dd representation to a js/Date that can be used with the date component
+   NOTE: we should revisit how we treat this argument to avoid going bakc and forth between representations"
+  (let [js-date (when most-recent-sampling-date
+                  (new js/Date most-recent-sampling-date))]
+    (assoc analysis :most-recent-sampling-date js-date)))
 
 (defmethod handler :get-discrete-tree
   [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
@@ -209,14 +211,13 @@
   ;; NOTE : parse date to an internal representation
   (let [most-recent-sampling-date (when most-recent-sampling-date
                                     (new js/Date most-recent-sampling-date))]
-    (prn "@update-discrete-tree" analysis)
     {:db (-> db
              (update-in [:analysis id] merge analysis)
              (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 (defmethod handler :start-discrete-tree-parser
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
 (defmethod handler :upload-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id status]}]

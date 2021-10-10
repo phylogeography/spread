@@ -248,9 +248,13 @@
                                      :mostRecentSamplingDate {:type String}}
                        :resolve     :mutation/updateDiscreteTree}
 
-  :startDiscreteTreeParser {:type        :ParserStatus
+  :startDiscreteTreeParser {:type        :DiscreteTree
                             :description "Starts executing a parser. Returns a ParserStatus with id."
-                            :args        {:id {:type (non-null ID)}}
+                            :args        {:id                     {:type (non-null ID)}
+                                          :readableName           {:type String}
+                                          :locationsAttributeName {:type String}
+                                          :timescaleMultiplier    {:type Float}
+                                          :mostRecentSamplingDate {:type String}}
                             :resolve     :mutation/startDiscreteTreeParser}
 
   :uploadTimeSlicer {:type        :ParserStatus

@@ -11,25 +11,14 @@
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
 
-(defn controls [{:keys [id readable-name locations-attribute locations-file-url most-recent-sampling-date time-scale-multiplier]} {:keys [disabled?]}]
+(defn controls [{:keys [id readable-name locations-attribute locations-file-url most-recent-sampling-date timescale-multiplier]} {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
     [button {:text "Start analysis"
-             :on-click #(dispatch-n [[:discrete-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                         :locations-attribute-name  locations-attribute
-                                                                         :locations-file-url        locations-file-url
-                                                                         :most-recent-sampling-date most-recent-sampling-date
-                                                                         :time-scale-multiplier     time-scale-multiplier}]
-                                     [:graphql/subscription {:id        id
-                                                             :query     "subscription SubscriptionRoot($id: ID!) {
-                                                                           parserStatus(id: $id) {
-                                                                             id
-                                                                             status
-                                                                             progress
-                                                                             ofType
-                                                                           }
-                                                                         }"
-                                                             :variables {"id" id}}]])
+             :on-click #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                  :locations-attribute-name  locations-attribute
+                                                                  :most-recent-sampling-date most-recent-sampling-date
+                                                                  :timescale-multiplier      timescale-multiplier}])
              :class "golden"
              :disabled? disabled?}]
     [button {:text "Paste settings"
@@ -54,24 +43,17 @@
                     readable-name
                     locations-attribute-name
                     most-recent-sampling-date
-                    time-scale-multiplier
-                    attribute-names]} @discrete-mcc-tree
+                    timescale-multiplier
+                    attribute-names]
+
+             :or {timescale-multiplier     1
+                  ;; most-recent-sampling-date (time/now)
+                  }
+
+             } @discrete-mcc-tree
             locations-attribute-name  (or locations-attribute-name (first attribute-names))
-            most-recent-sampling-date (or
-
-                                        ;; TODO : parse again
-                                        most-recent-sampling-date
-
-                                        (time/now))
-            time-scale-multiplier     (or time-scale-multiplier     1)
-            controls-disabled?        (or (not attribute-names) (not locations-file-name))
-            ]
-
-        ;; (prn "@1" @discrete-mcc-tree)
-        (prn "@render 1" most-recent-sampling-date)
-
-        (prn "@render 2" most-recent-sampling-date)
-
+            most-recent-sampling-date (or most-recent-sampling-date (time/now))
+            controls-disabled?        (or (not attribute-names) (not locations-file-name))]
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-tree-file
@@ -143,10 +125,13 @@
               [:div.field-card
                [:h4 "Time scale"]
                [amount-input {:label       "Multiplier"
-                              :value       time-scale-multiplier
-                              :error?      (not (nil? (:time-scale-multiplier @field-errors)))
+                              :value       timescale-multiplier
+                              :error?      (not (nil? (:timescale-multiplier @field-errors)))
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
+
+                                             (prn "@ input/val" value)
+
                                              (debounce (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]) 10))}]]]])]
 
          [controls {:id id
@@ -154,5 +139,5 @@
                     :locations-attribute locations-attribute-name
                     :locations-file-url locations-file-url
                     :most-recent-sampling-date most-recent-sampling-date
-                    :time-scale-multiplier time-scale-multiplier}
+                    :timescale-multiplier timescale-multiplier}
           {:disabled? controls-disabled?}]]))))

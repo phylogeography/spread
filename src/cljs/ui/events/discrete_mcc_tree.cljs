@@ -147,75 +147,77 @@
                                 :variables {:id                     id
                                             :locationsAttributeName locations-attribute}}]}))
 
-;; TODO
 (defn set-most-recent-sampling-date [{:keys [db]} [_ most-recent-sampling-date]]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
     {:dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
                                                      $mostRecentSamplingDate: String!) {
-                                                   updateDiscreteTree(id: $id,
-                                                                      mostRecentSamplingDate: $mostRecentSamplingDate) {
-                                                     id
-                                                     status
-                                                     mostRecentSamplingDate
-                                                   }
-                                              }"
+                                   updateDiscreteTree(id: $id,
+                                                      mostRecentSamplingDate: $mostRecentSamplingDate) {
+                                     id
+                                     status
+                                     mostRecentSamplingDate
+                                   }
+                                 }"
                                 :variables {:id                     id
                                             :mostRecentSamplingDate (time/format most-recent-sampling-date)}}]}))
 
-;; TODO
 (defn set-time-scale-multiplier [{:keys [db]} [_ value]]
-  {:db (cond-> db
-         true                           (assoc-in [:new-analysis :discrete-mcc-tree :time-scale-multiplier] value)
-         (> value 0)                    (dissoc-in [:new-analysis :discrete-mcc-tree :errors :time-scale-multiplier])
-         (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :discrete-mcc-tree :errors :time-scale-multiplier] "Set positive value"))})
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    (merge {:db (cond-> db
+                  true                           (assoc-in [:analysis id :timescale-multiplier] value)
+                  (> value 0)                    (dissoc-in [:new-analysis :discrete-mcc-tree :errors :timescale-multiplier])
+                  (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :discrete-mcc-tree :errors :timescale-multiplier] "Set positive value"))}
+           (when (> value 0)
+             {:dispatch [:graphql/query {:query
+                                         "mutation UpdateTree($id: ID!,
+                                                              $timescaleMultiplier: Float!) {
+                                            updateDiscreteTree(id: $id,
+                                                               timescaleMultiplier: $timescaleMultiplier) {
+                                              id
+                                              status
+                                              timescaleMultiplier
+                                            }
+                                          }"
+                                         :variables {:id                  id
+                                                     :timescaleMultiplier value}}]}))))
 
 ;; TODO
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url locations-attribute-name
-                                              most-recent-sampling-date time-scale-multiplier]}]]
+                                              most-recent-sampling-date timescale-multiplier]}]]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
-    {:db (-> db
-             (assoc-in [:analysis id :readable-name] readable-name)
-             ;; NOTE: this is a lazy solution, "correct" one would be to make ParserStatus return createdOn,
-             ;; return it with the server mutation response,
-             ;; and assoc in the app-db in the graphql response handler
-#_             (assoc-in [:analysis id :created-on] (str (.now js/Date))))
-
-     ;; TODO each setter updates, this call startParser
-
-
-
-#_     :dispatch
-
-  #_   [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                  startDiscreteTreeParser(id: $id) {
-                                                    id
-                                                    status
-                                                }
-                                              }"
-                                    :variables {:id id}}]]
-
-
-#_     [:graphql/query {:query
-                                "mutation UpdateTree($id: ID!,
-                                                     $name: String!,
-                                                     $locationsFileUrl: String!,
-                                                     $locationsAttributeName: String!,
-                                                     $multiplier: Float!,
-                                                     $mrsd: String!) {
-                                                   updateDiscreteTree(id: $id,
-                                                                        readableName: $name,
-                                                                        locationsFileUrl: $locationsFileUrl,
-                                                                        locationsAttributeName: $locationsAttributeName,
-                                                                        timescaleMultiplier: $multiplier,
-                                                                        mostRecentSamplingDate: $mrsd) {
-                                                     id
-                                                     status
-                                                   }
-                                              }"
-                                :variables {:id                     id
-                                            :name                   readable-name
-                                            :locationsFileUrl       locations-file-url
-                                            :locationsAttributeName locations-attribute-name
-                                            :multiplier             time-scale-multiplier
-                                            :mrsd                   (time/format most-recent-sampling-date)}}]}))
+    {:dispatch-n [[:graphql/subscription {:id        id
+                                          :query
+                                          "subscription SubscriptionRoot($id: ID!) {
+                                             parserStatus(id: $id) {
+                                               id
+                                               status
+                                               progress
+                                               ofType
+                                             }
+                                           }"
+                                          :variables {"id" id}}]
+                  [:graphql/query {:query
+                                   "mutation QueueJob($id: ID!,
+                                                      $readableName: String!,
+                                                      $locationsAttributeName: String!,
+                                                      $mostRecentSamplingDate: String!,
+                                                      $timescaleMultiplier: Float!) {
+                                               startDiscreteTreeParser(id: $id
+                                                                       readableName: $readableName,
+                                                                       locationsAttributeName: $locationsAttributeName,
+                                                                       mostRecentSamplingDate: $mostRecentSamplingDate,
+                                                                       timescaleMultiplier: $timescaleMultiplier) {
+                                                 id
+                                                 status
+                                                 readableName
+                                                 locationsAttributeName
+                                                 mostRecentSamplingDate
+                                                 timescaleMultiplier
+                                               }
+                                             }"
+                                   :variables {:id                     id
+                                               :readableName           readable-name
+                                               :locationsAttributeName locations-attribute-name
+                                               :timescaleMultiplier    timescale-multiplier
+                                               :mostRecentSamplingDate (time/format most-recent-sampling-date)}}]]}))
