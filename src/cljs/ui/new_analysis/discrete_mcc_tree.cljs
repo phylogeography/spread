@@ -124,9 +124,6 @@
                               :error?      (not (nil? (:timescale-multiplier @field-errors)))
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
-
-                                             (prn "@ input/val" value)
-
                                              (debounce (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]) 10))}]]]])]
 
          [controls {:id id

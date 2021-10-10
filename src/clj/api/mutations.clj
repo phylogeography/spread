@@ -140,20 +140,13 @@
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url  :treeFileUrl
                              tree-file-name :treeFileName
-                             ;; locations-file-url :locationsFileUrl
-                             ;; readable-name      :readableName
-                             ;; :or {readable-name (first (string/split tree-file-name "."))}
                              :as            args} _]
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args    args})
   (let [id (s3-url->id tree-file-url authed-user-id)]
     (try
-
       (let [status        :UPLOADED
             readable-name (first (string/split tree-file-name #"\."))]
-
-        ;; (prn "@@@ readable-name" readable-name)
-
         ;; TODO : in a transaction
         (analysis-model/upsert! db {:id            id
                                     :user-id       authed-user-id
@@ -163,18 +156,12 @@
                                     :of-type       :DISCRETE_TREE})
         (discrete-tree-model/upsert! db {:id             id
                                          :tree-file-url  tree-file-url
-                                         :tree-file-name tree-file-name
-                                         ;; :locations-file-url locations-file-url
-                                         })
+                                         :tree-file-name tree-file-name})
         ;; sends message to worker to parse attributes
         (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
                                                      :id           id
                                                      :user-id      authed-user-id})
-        #_{:id     id
-           :status status}
-
         (clj->gql (discrete-tree-model/get-tree db {:id id})))
-
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
@@ -183,11 +170,10 @@
   [{:keys [authed-user-id db]} {id                        :id
                                 readable-name             :readableName
                                 locations-file-url        :locationsFileUrl
-                                locations-file-name        :locationsFileName
+                                locations-file-name       :locationsFileName
                                 locations-attribute-name  :locationsAttributeName
                                 timescale-multiplier      :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
-                                ;; :or                       {timescale-multiplier 1}
                                 :as                       args} _]
   (log/info "update discrete tree" {:user/id authed-user-id
                                     :args    args})
@@ -196,7 +182,7 @@
       ;; in transaction
       (discrete-tree-model/upsert! db {:id                        id
                                        :locations-file-url        locations-file-url
-                                       :locations-file-name locations-file-name
+                                       :locations-file-name       locations-file-name
                                        :locations-attribute-name  locations-attribute-name
                                        :timescale-multiplier      timescale-multiplier
                                        :most-recent-sampling-date most-recent-sampling-date})
@@ -224,13 +210,10 @@
                                        :locations-attribute-name  locations-attribute-name
                                        :timescale-multiplier      timescale-multiplier
                                        :most-recent-sampling-date most-recent-sampling-date})
-
       (analysis-model/upsert! db {:id     id
                                   :status status})
-
       (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-discrete-tree
                                                    :id           id})
-
       (clj->gql (discrete-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
@@ -310,8 +293,6 @@
   (log/info "upload-bayes-factor" {:user/id authed-user-id
                                    :args    args})
   (let [id     (s3-url->id log-file-url authed-user-id)
-        ;; NOTE: uploads mutation generates different ids for each uploaded file
-        ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
         status :UPLOADED]
     (try
       ;; TODO : in a transaction
