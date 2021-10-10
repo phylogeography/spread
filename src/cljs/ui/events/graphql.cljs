@@ -29,9 +29,10 @@
        (js->clj)
        (camel-snake-extras/transform-keys gql-name->kw)))
 
-(defn- with-safe-date [{:keys [most-recent-sampling-date] :as analysis}]
+(defn- with-safe-date
   "turns YYYY/mm/dd representation to a js/Date that can be used with the date component
    NOTE: we should revisit how we treat this argument to avoid going bakc and forth between representations"
+  [{:keys [most-recent-sampling-date] :as analysis}]
   (let [js-date (when most-recent-sampling-date
                   (new js/Date most-recent-sampling-date))]
     (assoc analysis :most-recent-sampling-date js-date)))
@@ -134,10 +135,11 @@
   (log/debug "default handler" {:k k})
   (reduce-handlers cofx values))
 
+;; TODO
 (defmethod handler :upload-continuous-tree
   [{:keys [db]} _ {:keys [id status]}]
   ;; start the status subscription for an ongoing analysis
-  (>evt [:graphql/subscription {:id        id
+#_  (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
                                               parserStatus(id: $id) {
                                                 id
@@ -147,13 +149,14 @@
                                               }
                                             }"
                                 :variables {:id id}}])
-  {:db (-> db
+#_  {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :id] id)
            (assoc-in [:analysis id :status] status))})
 
+;; TODO
 (defmethod handler :update-continuous-tree
   [{:keys [db]} _ {:keys [id status]}]
-  (when (= "ARGUMENTS_SET" status)
+  #_(when (= "ARGUMENTS_SET" status)
     (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
                                                 startContinuousTreeParser(id: $id) {
                                                   id
@@ -162,15 +165,17 @@
                                               }"
                                   :variables {:id id}}]]))
 
-  {:db (assoc-in db [:analysis id :status] status)})
+  #_{:db (assoc-in db [:analysis id :status] status)})
 
+;; TODO
 (defmethod handler :start-continuous-tree-parser
   [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:analysis id :status] status)})
+#_  {:db (assoc-in db [:analysis id :status] status)})
 
+;; TODO
 (defmethod handler :get-continuous-tree
   [{:keys [db]} _ {:keys [id attribute-names] :as tree}]
-  (let [active-analysis-id (-> db :new-analysis :continuous-mcc-tree :id)]
+#_  (let [active-analysis-id (-> db :new-analysis :continuous-mcc-tree :id)]
     {:db (cond-> db
            (= id active-analysis-id)
            (assoc-in [:new-analysis :continuous-mcc-tree :attribute-names] attribute-names)
@@ -245,15 +250,13 @@
   [{:keys [db]} _ {:keys [id] :as analysis}]
   {:db (update-in db [:analysis id] merge analysis)})
 
-;; TODO
 (defmethod handler :start-bayes-factor-parser
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :parser-status
   [{:keys [db]} _ {:keys [id status of-type] :as parser}]
   (log/debug "parser-status handler" parser)
-
   (match [status of-type]
          ["ATTRIBUTES_PARSED" "CONTINUOUS_TREE"]
          ;; when worker has parsed attributes we can query them
@@ -293,9 +296,10 @@
                     ;; since there is an ongoing subscription for it
                     (assoc parser :new? true))})
 
+;; TODO
 (defmethod handler :upload-time-slicer
   [{:keys [db]} _ {:keys [id status]}]
-  {:db (-> db
+#_  {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
            (assoc-in [:analysis id :status] status))})
 
@@ -333,7 +337,6 @@
 
 (defmethod handler :delete-user-account
   [{:keys [db]} _ {:keys [user-id]}]
-  ;; removes token
   (>evt [:general/logout])
   (>evt [:router/navigate :route/splash])
   {:db (-> db

@@ -232,8 +232,8 @@
 
   :uploadDiscreteTree {:type        :DiscreteTree
                        :description "Persists discrete tree. Returns a ParserStatus with id."
-                       :args        {:treeFileUrl      {:type (non-null String)}
-                                     :treeFileName     {:type (non-null String)}}
+                       :args        {:treeFileUrl  {:type (non-null String)}
+                                     :treeFileName {:type (non-null String)}}
                        :resolve     :mutation/uploadDiscreteTree}
 
   :updateDiscreteTree {:type        :DiscreteTree
@@ -248,7 +248,7 @@
                        :resolve     :mutation/updateDiscreteTree}
 
   :startDiscreteTreeParser {:type        :DiscreteTree
-                            :description "Starts executing a parser. Returns a ParserStatus with id."
+                            :description "Starts executing a parser."
                             :args        {:id                     {:type (non-null ID)}
                                           :readableName           {:type String}
                                           :locationsAttributeName {:type String}
@@ -257,7 +257,7 @@
                             :resolve     :mutation/startDiscreteTreeParser}
 
   :uploadTimeSlicer {:type        :ParserStatus
-                     :description "Persists continuous trees. Returns a ParserStatus with id."
+                     :description "Persists continuous trees."
                      :args        {:continuousTreeId    {:type (non-null ID)}
                                    :treesFileUrl        {:type (non-null String)}
                                    :sliceHeightsFileUrl {:type String}}
@@ -277,9 +277,9 @@
                      :resolve     :mutation/updateTimeSlicer}
 
   :uploadBayesFactorAnalysis {:type        :BayesFactorAnalysis
-                              :description "Persists bayes factor trees. Returns a ParserStatus with id."
-                              :args        {:logFileUrl        {:type (non-null String)}
-                                            :logFileName        {:type (non-null String)}}
+                              :description "Persists bayes factor trees."
+                              :args        {:logFileUrl  {:type (non-null String)}
+                                            :logFileName {:type (non-null String)}}
                               :resolve     :mutation/uploadBayesFactorAnalysis}
 
   :updateBayesFactorAnalysis {:type        :BayesFactorAnalysis
@@ -287,14 +287,16 @@
                               :args        {:id                {:type (non-null ID)}
                                             :readableName      {:type String}
                                             :locationsFileUrl  {:type String}
-                                            :locationsFileName  {:type String}
+                                            :locationsFileName {:type String}
                                             :numberOfLocations {:type Int}
                                             :burnIn            {:type Float}}
                               :resolve     :mutation/updateBayesFactorAnalysis}
 
-  :startBayesFactorParser {:type        :ParserStatus
-                           :description "Starts executing a parser. Returns a ParserStatus with id."
-                           :args        {:id {:type (non-null ID)}}
+  :startBayesFactorParser {:type        :BayesFactorAnalysis
+                           :description "Starts executing a parser."
+                           :args        {:id           {:type (non-null ID)}
+                                         :readableName {:type String}
+                                         :burnIn       {:type Float}}
                            :resolve     :mutation/startBayesFactorParser}
 
   :touchAnalysis {:type        :TouchAnalysisReturnType

@@ -152,27 +152,35 @@
                                             :burnIn burn-in}}]}))
 
 ;; TODO
-(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
+(defn start-analysis [{:keys [db]} [_ {:keys [readable-name burn-in]}]]
   (let [id (get-in db [:new-analysis :bayes-factor :id])]
-    #_{:db       (-> db
-                   (assoc-in [:analysis id :readable-name] readable-name)
-                   ;; NOTE : this is a lazy solution,
-                   ;; it's perfectly possible to return it from the server together with a mutation response
-                   (assoc-in [:analysis id :created-on] (str (.now js/Date))))
-     :dispatch [:graphql/query {:query
-                                "mutation UpdateBayesFactor($id: ID!,
-                                                            $name: String!,
-                                                            $locationsFileUrl: String!,
-                                                            $burnIn: Float!) {
-                                            updateBayesFactorAnalysis(id: $id,
-                                                                      readableName: $name,
-                                                                      locationsFileUrl: $locationsFileUrl,
+    {:dispatch-n [[:graphql/subscription {:id        id
+                                          :query
+                                          "subscription SubscriptionRoot($id: ID!) {
+                                             parserStatus(id: $id) {
+                                               id
+                                               status
+                                               progress
+                                               ofType
+                                             }
+                                           }"
+                                          :variables {"id" id}}]
+                  [:graphql/query {:query
+                                   "mutation QueueJob($id: ID!,
+                                                      $readableName: String!,
+                                                      $burnIn: Float!) {
+                                               startBayesFactorParser(id: $id
+                                                                      readableName: $readableName,
                                                                       burnIn: $burnIn) {
-                                                id
-                                                status
-                                              }
-                                            }"
-                                :variables {:id               id
-                                            :name             readable-name
-                                            :locationsFileUrl locations-file-url
-                                            :burnIn           burn-in}}]}))
+                                                 id
+                                                 status
+                                                 readableName
+                                                 burnIn
+                                               }
+                                             }"
+                                   :variables {:id           id
+                                               :readableName readable-name
+                                               :burnIn       burn-in}}]]}))
+
+(defn reset [{:keys [db]} _]
+  {:db (dissoc-in db [:new-analysis :bayes-factor])})

@@ -61,6 +61,7 @@
                              :key         (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
+;; TODO
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                               {tree-file-url :treeFileUrl
                                readable-name :readableName
@@ -89,6 +90,7 @@
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
+;; TODO
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id                          :id
                                 readable-name               :readableName
@@ -122,6 +124,7 @@
       (log/error "Exception occured" {:error e})
       (errors/handle-analysis-error! db id e))))
 
+;; TODO
 (defn start-continuous-tree-parser
   [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
   (log/info "start-continuous-tree-parser" args)
@@ -219,6 +222,7 @@
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
+;; TODO
 (defn upload-time-slicer [{:keys [authed-user-id db]}
                           {continuous-tree-id     :continuousTreeId
                            trees-file-url         :treesFileUrl
@@ -246,6 +250,7 @@
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
+;; TODO
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
                                 burn-in                                 :burnIn
@@ -340,16 +345,22 @@
       (errors/handle-analysis-error! db id e))))
 
 (defn start-bayes-factor-parser
-  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  [{:keys [db sqs workers-queue-url]} {id            :id
+                                       readable-name :readableName
+                                       burn-in       :burnIn
+                                       :as           args} _]
   (log/info "start-bayes-factor-parser" args)
   (let [status :QUEUED]
     (try
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-bayes-factors
-                                                   :id           id})
+      ;; TODO : in a transaction
+      (bayes-factor-model/upsert! db {:id            id
+                                      :readable-name readable-name
+                                      :burn-in       burn-in})
       (analysis-model/upsert! db {:id     id
                                   :status status})
-      {:id     id
-       :status status}
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-bayes-factors
+                                                   :id           id})
+      (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))
