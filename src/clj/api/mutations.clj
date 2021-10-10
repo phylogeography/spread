@@ -138,32 +138,36 @@
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url      :treeFileUrl
-                             locations-file-url :locationsFileUrl
-                             readable-name      :readableName
+                             tree-file-name     :treeFileName
+                             ;; locations-file-url :locationsFileUrl
+                             ;; readable-name      :readableName
                              :as                args} _]
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args    args})
   (let [id     (s3-url->id tree-file-url authed-user-id)
-        ;; NOTE: uploads mutation generates different ids for each uploaded file
-        ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
         status :UPLOADED]
     (try
       ;; TODO : in a transaction
       (analysis-model/upsert! db {:id            id
                                   :user-id       authed-user-id
-                                  :readable-name readable-name
+                                  ;; :readable-name readable-name
                                   :created-on    (time/millis (time/now))
                                   :status        status
                                   :of-type       :DISCRETE_TREE})
       (discrete-tree-model/upsert! db {:id                 id
                                        :tree-file-url      tree-file-url
-                                       :locations-file-url locations-file-url})
+                                       :tree-file-name      tree-file-name
+                                       ;; :locations-file-url locations-file-url
+                                       })
       ;; sends message to worker to parse attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
                                                    :id           id
                                                    :user-id      authed-user-id})
-      {:id     id
+      #_{:id     id
        :status status}
+
+      (clj->gql (discrete-tree-model/get-tree db {:id id}))
+
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))

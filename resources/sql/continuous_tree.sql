@@ -4,6 +4,7 @@
 INSERT INTO continuous_tree(
 id,
 tree_file_url,
+tree_file_name,
 x_coordinate_attribute_name,
 y_coordinate_attribute_name,
 timescale_multiplier,
@@ -13,6 +14,7 @@ output_file_url
 VALUES (
 :id,
 :tree-file-url,
+:tree-file-name,
 :x-coordinate-attribute-name,
 :y-coordinate-attribute-name,
 :timescale-multiplier,
@@ -21,6 +23,7 @@ VALUES (
 )
 ON DUPLICATE KEY UPDATE
 tree_file_url =               IF(:tree-file-url IS NOT NULL, :tree-file-url, tree_file_url),
+tree_file_name =              IF(:tree-file-name IS NOT NULL, :tree-file-name, tree_file_name),
 x_coordinate_attribute_name = IF(:x-coordinate-attribute-name IS NOT NULL, :x-coordinate-attribute-name, x_coordinate_attribute_name),
 y_coordinate_attribute_name = IF(:y-coordinate-attribute-name IS NOT NULL, :y-coordinate-attribute-name, y_coordinate_attribute_name),
 timescale_multiplier =        IF(:timescale-multiplier IS NOT NULL, :timescale-multiplier, timescale_multiplier),
@@ -54,6 +57,7 @@ readable_name,
 status,
 progress,
 tree_file_url,
+tree_file_name,
 x_coordinate_attribute_name,
 y_coordinate_attribute_name,
 timescale_multiplier,

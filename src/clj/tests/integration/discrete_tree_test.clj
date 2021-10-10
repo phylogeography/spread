@@ -39,6 +39,8 @@
                                          [:data :getUploadUrls])
         _                        (http/put tree-url {:body (io/file "src/test/resources/discrete/H5N1_HA_discrete_MCC.tree")})
         _                        (http/put locations-url {:body (io/file "src/test/resources/discrete/locationCoordinates_H5N1")})
+
+        ;; TODO : asjust to fit new API
         {:keys [id status]}      (get-in (run-query {:query
                                                      "mutation UploadTree($treeUrl: String!,
                                                                           $locationsUrl: String!,

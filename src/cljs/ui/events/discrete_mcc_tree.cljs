@@ -31,18 +31,25 @@
 
 (defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _]       (string/split url "?")
-        readable-name (first (string/split filename "."))]
-    {:dispatch [:graphql/query {:query     "mutation UploadDiscreteTree($treeFileUrl: String!) {
-                                                uploadDiscreteTree(treeFileUrl: $treeFileUrl) {
+        ;; readable-name (first (string/split filename "."))
+        ]
+    {:dispatch [:graphql/query {:query     "mutation UploadDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
+                                                uploadDiscreteTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
                                                   id
                                                   status
+                                                  treeFileName
+                                                  createdOn
                                                 }
                                               }"
-                                :variables {:treeFileUrl url}}]
-     :db       (-> db
-                   (assoc-in [:new-analysis :discrete-mcc-tree :tree-file] filename)
-                   ;; default name: file name root
-                   (assoc-in [:new-analysis :discrete-mcc-tree :readable-name] readable-name))}))
+                                :variables {:treeFileUrl url
+                                            :treeFileName filename}}]
+
+     ;; :db       (-> db
+     ;;               (assoc-in [:new-analysis :discrete-mcc-tree :tree-file] filename)
+     ;;               ;; default name: file name root
+     ;;               (assoc-in [:new-analysis :discrete-mcc-tree :readable-name] readable-name))
+
+     }))
 
 (defn delete-tree-file [{:keys [db]}]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]

@@ -19,6 +19,11 @@
                   "DISCRETE_TREE"         "Discrete: MCC tree"
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
+
+(def type->tab {"CONTINUOUS_TREE"       "continuous-mcc-tree"
+                "DISCRETE_TREE"         "discrete-mcc-tree"
+                "BAYES_FACTOR_ANALYSIS" "discrete-rates"})
+
 (defn completed-menu-item [_]
   (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn [{:keys [id readable-name of-type status new?]}]
@@ -58,6 +63,7 @@
                                                              :variables {:analysisId id}}])))}
            [avatar {:alt     "delete"
                     :variant "square"
+                    :sx { :width 24 :height 24 }
                     :src     (arg->icon (:delete icons))}]]]]))))
 
 (defn completed []
@@ -130,10 +136,57 @@
                                               [:span.text sub-label]])
                                            items)]}]))
 
+
+;; TODO
+(defn ongoing-menu-item [_]
+  (let [active-page (re-frame/subscribe [::router.subs/active-page])]
+    (fn [{:keys [id readable-name of-type]}]
+      [:div.ongoing-menu-item.clickable {:on-click
+                                         #(>evt [:router/navigate :route/new-analysis nil {:tab (type->tab of-type) :id id}])}
+       [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
+       [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
+       [:div {:style {:grid-area "menu"}}
+        [icon-button {:size     :small
+                      :on-click (fn [event]
+                                  (let [{active-route-name :name query :query} @active-page]
+                                    (.stopPropagation event)
+
+                                    ;; if on results page for this analysis we need to nav back to home
+                                    (when (and (= :route/analysis-results  active-route-name)
+                                               (= id (:id query)))
+                                      (>evt [:router/navigate :route/home]))
+
+                                    (>evt [:graphql/query {:query
+                                                           "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                                                   deleteAnalysis(id: $analysisId) {
+                                                                     id
+                                                                   }
+                                                                 }"
+                                                           :variables {:analysisId id}}])))}
+         [avatar {:alt     "delete"
+                  :variant "square"
+                  :src     (arg->icon (:delete icons))}]]]])))
+
+(defn ongoing []
+  (let [ongoing-analysis (re-frame/subscribe [::subs/ongoing-analysis])]
+    (fn []
+      (let [items         @ongoing-analysis
+            ongoing-count (count @ongoing-analysis)]
+        [collapsible-tab (cond-> {:id :ongoing
+                                  :title "Ongoing data analysis"
+                                  :icon "icons/icn_upload.svg"
+                                  :child [:div.ongoing
+                                          (for [{:keys [id] :as item} items]
+                                            ^{:key id}
+                                            [ongoing-menu-item item])]}
+                           (> ongoing-count 0) (assoc :badge-text (str ongoing-count " Ongoing")
+                                                      :badge-color "purple"))]))))
+
 (defn main-menu []
   [:div.app-sidebar.panel
    [:div.collapsible-tabs
     [run-new]
+    [ongoing]
     [completed]
     [queue]]
    [:div.footer

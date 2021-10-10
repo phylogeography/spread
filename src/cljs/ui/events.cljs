@@ -4,6 +4,7 @@
    [re-frame.core :as re-frame :refer [reg-event-fx]]
    [ui.events.analysis-results :as events.analysis-results]
    [ui.events.bayes-factor :as events.bayes-factor]
+   [ui.events.new-analysis :as events.new-analysis]
    [ui.events.continuous-mcc-tree :as events.continuous-mcc-tree]
    [ui.events.discrete-mcc-tree :as events.discrete-mcc-tree]
    [ui.events.general :as events.general]
@@ -51,6 +52,7 @@
 (reg-event-fx :general/initialize [(re-frame/inject-cofx :localstorage)] events.general/initialize)
 (reg-event-fx :general/logout [(re-frame/inject-cofx :localstorage)] events.general/logout)
 (reg-event-fx :general/set-search events.general/set-search)
+(reg-event-fx :general/query-analysis events.general/query-analysis)
 
 ;;;;;;;;;;;;;;;;;
 ;; Home events ;;
@@ -76,6 +78,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
+(re-frame/reg-event-fx :new-analysis/initialize-page events.new-analysis/initialize-page)
+(re-frame/reg-event-fx :new-analysis/initial-query events.new-analysis/initial-query)
 
 (re-frame/reg-event-fx :continuous-mcc-tree/on-tree-file-selected events.continuous-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :continuous-mcc-tree/upload-tree-file events.continuous-mcc-tree/upload-tree-file)

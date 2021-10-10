@@ -21,9 +21,9 @@
          [:div.run-new-analysis
           [:div.header
            [:h2 "Run new analysis"]]
-          [tabs {:on-change (fn [_ value]                       
+          [tabs {:on-change (fn [_ value]
                               (>evt [:router/navigate :route/new-analysis nil {:tab value}]))
-                 :active active-tab 
+                 :active active-tab
                  :tabs-vec [{:id "discrete-mcc-tree"   :label "Discrete"   :sub-label "MCC tree"}
                             {:id "discrete-rates"      :label "Discrete"   :sub-label "Rates"}
                             {:id "continuous-mcc-tree" :label "Continuous" :sub-label "MCC tree"}]}]

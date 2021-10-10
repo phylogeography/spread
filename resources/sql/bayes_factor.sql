@@ -3,7 +3,9 @@
 INSERT INTO bayes_factor_analysis(
 id,
 log_file_url,
+log_file_name,
 locations_file_url,
+locations_file_name,
 number_of_locations,
 burn_in,
 output_file_url
@@ -11,14 +13,18 @@ output_file_url
 VALUES (
 :id,
 :log-file-url,
+:log-file-name,
 :locations-file-url,
+:locations-file-name,
 :number-of-locations,
 :burn-in,
 :output-file-url
 )
 ON DUPLICATE KEY UPDATE
 log_file_url =        IF(:log-file-url IS NOT NULL, :log-file-url, log_file_url),
+log_file_name =       IF(:log-file-name IS NOT NULL, :log-file-name, log_file_name),
 locations_file_url =  IF(:locations-file-url IS NOT NULL, :locations-file-url, locations_file_url),
+locations_file_name = IF(:locations-file-name IS NOT NULL, :locations-file-name, locations_file_name),
 number_of_locations = IF(:number-of-locations IS NOT NULL, :number-of-locations, number_of_locations),
 burn_in =             IF(:burn-in IS NOT NULL, :burn-in, burn_in),
 output_file_url =     IF(:output-file-url IS NOT NULL, :output-file-url, output_file_url)

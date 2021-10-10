@@ -23,12 +23,13 @@
                                                                          :time-scale-multiplier     time-scale-multiplier}]
                                      [:graphql/subscription {:id        id
                                                              :query     "subscription SubscriptionRoot($id: ID!) {
-                                                                                                parserStatus(id: $id) {
-                                                                                                  id
-                                                                                                  status
-                                                                                                  progress
-                                                                                                  ofType
-                                                                                                }}"
+                                                                           parserStatus(id: $id) {
+                                                                             id
+                                                                             status
+                                                                             progress
+                                                                             ofType
+                                                                           }
+                                                                         }"
                                                              :variables {"id" id}}]])
              :class "golden"
              :disabled? disabled?}]
@@ -46,8 +47,9 @@
         field-errors      (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
     (fn []
       (let [{:keys [id
-                    tree-file tree-file-upload-progress
-                    locations-file
+                    tree-file-name
+                    tree-file-upload-progress
+                    locations-file-name
                     locations-file-url
                     locations-file-upload-progress
                     readable-name
@@ -59,34 +61,37 @@
                     time-scale-multiplier     1}}
             @discrete-mcc-tree
             locations-attribute       (or locations-attribute (first attribute-names))
-            controls-disabled? (or (not attribute-names) (not locations-file))]
+            controls-disabled? (or (not attribute-names) (not locations-file-name))]
+
+        (prn "@1" @discrete-mcc-tree)
+
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-tree-file
            [:div
             [:h4 "Load tree file"]
             (cond
-              (and (nil? tree-file-upload-progress) (nil? tree-file))
+              (and #_(nil? tree-file-upload-progress) (nil? tree-file-name))
               [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
 
-              (not= 1 tree-file-upload-progress)
+              (and (not (nil? tree-file-upload-progress)) (not= 1 tree-file-upload-progress))
               [linear-progress {:value      (* 100 tree-file-upload-progress)
                                 :variant    "determinate"}]
 
-              tree-file
-              [loaded-input {:value    tree-file
+              tree-file-name
+              [loaded-input {:value    tree-file-name
                              :on-click #(>evt [:discrete-mcc-tree/delete-tree-file])}]
 
               :else nil)]
-           (when (nil? tree-file)
+           (when (nil? tree-file-name)
              [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select location attribute and change other settings."])]
           [:section.load-locations-file
            [:div
             [:h4 "Load locations file"]
             (cond
-              (nil? locations-file)
+              (nil? locations-file-name)
               [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
@@ -95,8 +100,8 @@
               [linear-progress {:value   (* 100 locations-file-upload-progress)
                                 :variant "determinate"}]
 
-              locations-file
-              [loaded-input {:value    locations-file
+              locations-file-name
+              [loaded-input {:value    locations-file-name
                              :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}]
 
               :else nil)]]
@@ -104,7 +109,7 @@
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
              [circular-progress {:size 100}])]
 
-          (when (and attribute-names locations-file)
+          (when (and attribute-names locations-file-name)
             [:div.field-table
              [:div.field-line
               [:div.field-card

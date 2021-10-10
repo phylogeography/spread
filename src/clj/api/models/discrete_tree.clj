@@ -15,7 +15,9 @@
 (def ^:private nil-tree
   {:id                        nil
    :tree-file-url             nil
+   :tree-file-name            nil
    :locations-file-url        nil
+   :locations-file-name       nil
    :locations-attribute-name  nil
    :timescale-multiplier      nil
    :most-recent-sampling-date nil

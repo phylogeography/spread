@@ -169,23 +169,29 @@
            (update-in [:analysis id] merge tree))}))
 
 (defmethod handler :upload-discrete-tree
-  [{:keys [db]} _ {:keys [id status]}]
-  (>evt [:graphql/subscription {:id        id
-                                :query     "subscription SubscriptionRoot($id: ID!) {
-                                                           parserStatus(id: $id) {
-                                                             id
-                                                             status
-                                                             progress
-                                                             ofType
-                                                           }}"
-                                :variables {:id id}}])
-  {:db (-> db
-           (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
-           (assoc-in [:analysis id :status] status))})
+  [{:keys [db]} _ {:keys [id status tree-file-name created-on] :as analysis}]
+  (let [;; NOTE: this is just a sensible default to use for a readable name
+        readable-name (first (string/split tree-file-name "."))]
+    (>evt [:graphql/subscription {:id        id
+                                  :query     "subscription SubscriptionRoot($id: ID!) {
+                                                parserStatus(id: $id) {
+                                                  id
+                                                  status
+                                                  progress
+                                                  ofType
+                                                }
+                                              }"
+                                  :variables {:id id}}])
+    {:db (-> db
+             ;; NOTE: make sure id is the only link at all times between the ongoing analysis
+             ;; and what we store under the `:analysis` key
+             (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
+             (update-in [:analysis id] merge (merge {:readable-name readable-name} analysis)))}))
 
 (defmethod handler :get-discrete-tree
-  [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
-  (let [active-analysis-id (-> db :new-analysis :discrete-mcc-tree :id)]
+  [{:keys [db]} _ {:keys [id #_attribute-names] :as analysis}]
+  {:db (update-in db [:analysis id] merge analysis)}
+  #_(let [active-analysis-id (-> db :new-analysis :discrete-mcc-tree :id)]
     {:db (cond-> db
            (= id active-analysis-id)
            (assoc-in [:new-analysis :discrete-mcc-tree :attribute-names] attribute-names)
@@ -247,30 +253,33 @@
 (defmethod handler :parser-status
   [{:keys [db]} _ {:keys [id status of-type] :as parser}]
   (log/debug "parser-status handler" parser)
+
   (match [status of-type]
          ["ATTRIBUTES_PARSED" "CONTINUOUS_TREE"]
-         ;; if worker parsed attributes query them
-         ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
-         (when-not (-> db :new-analysis :continuous-mcc-tree :attribute-names)
-           (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
-                                                        getContinuousTree(id: $id) {
-                                                          id
-                                                          attributeNames
-                                                        }
-                                                      }"
-                                  :variables {:id id}}]))
+         ;; when worker has parsed attributes we can query them
+         (let [ongoing-analysis-id (-> db :new-analysis :continuous-mcc-tree :id)]
+           ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
+           (when-not (get-in db [:analysis ongoing-analysis-id :attribute-names])
+             (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
+                                                  getContinuousTree(id: $id) {
+                                                    id
+                                                    attributeNames
+                                                  }
+                                                }"
+                                    :variables {:id id}}])))
 
          ["ATTRIBUTES_PARSED" "DISCRETE_TREE"]
          ;; if worker parsed attributes query them
          ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
-         (when-not (-> db :new-analysis :discrete-mcc-tree :attribute-names)
-           (>evt [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
-                                                        getDiscreteTree(id: $id) {
-                                                          id
-                                                          attributeNames
-                                                        }
-                                                      }"
-                                  :variables {:id id}}]))
+         (let [ongoing-analysis-id (-> db :new-analysis :discrete-mcc-tree :id)]
+           (when-not (get-in db [:analysis ongoing-analysis-id :attribute-names])
+             (>evt [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
+                                                  getDiscreteTree(id: $id) {
+                                                    id
+                                                    attributeNames
+                                                  }
+                                                }"
+                                    :variables {:id id}}])))
 
          [(:or "SUCCEEDED" "ERROR") _]
          ;; if analysis ended stop the subscription
