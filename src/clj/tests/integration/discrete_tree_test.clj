@@ -92,8 +92,8 @@
                                               }"
                                              :variables {:id                     id
                                                          :locationsFileUrl       (-> locations-url
-                                                                                 (string/split  #"\?")
-                                                                                 first)
+                                                                                     (string/split  #"\?")
+                                                                                     first)
                                                          :locationsFileName      locations-file-name
                                                          :mostRecentSamplingDate 1
                                                          :locationsAttribute     "states"
@@ -120,7 +120,7 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id readableName createdOn status progress outputFileUrl attributeNames]}
+        {:keys [id readableName createdOn status progress outputFileUrl]}
         (get-in (run-query {:query
                             "query GetTree($id: ID!) {
                                      getDiscreteTree(id: $id) {

@@ -6,11 +6,11 @@
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
-            [clojure.string :as string]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
             [clj-http.client :as http]
+            [clojure.string :as string]
             [shared.errors :as errors]
             [shared.time :as time]
             [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
@@ -95,11 +95,9 @@
                                 readable-name               :readableName
                                 x-coordinate-attribute-name :xCoordinateAttributeName
                                 y-coordinate-attribute-name :yCoordinateAttributeName
-                                has-external-annotations    :hasExternalAnnotations
                                 timescale-multiplier        :timescaleMultiplier
                                 most-recent-sampling-date   :mostRecentSamplingDate
-                                :or                         {has-external-annotations true
-                                                             timescale-multiplier     1.0}
+                                :or                         {timescale-multiplier     1.0}
                                 :as                         args} _]
   (log/info "update continuous tree" {:user/id authed-user-id
                                       :args    args})
