@@ -41,19 +41,20 @@
                     readable-name
                     tree-file-name
                     tree-file-upload-progress
-                    trees-file-name
+                    ;; trees-file-name
                     trees-file-upload-progress
                     y-coordinate-attribute-name
                     x-coordinate-attribute-name
                     most-recent-sampling-date
                     timescale-multiplier
-                    attribute-names]
-             :or   {timescale-multiplier 1}}
-            @continuous-mcc-tree
+                    attribute-names
+                    time-slicer]
+             :or   {timescale-multiplier 1}} @continuous-mcc-tree
             y-coordinate-attribute-name (or y-coordinate-attribute-name (first attribute-names))
             x-coordinate-attribute-name (or x-coordinate-attribute-name (first attribute-names))
             most-recent-sampling-date   (or most-recent-sampling-date (time/now))
-            controls-disabled?          (or (not attribute-names) (not tree-file-name))]
+            controls-disabled?          (or (not attribute-names) (not tree-file-name))
+            {:keys [trees-file-name]} time-slicer]
 
         (prn "@1" @continuous-mcc-tree)
 

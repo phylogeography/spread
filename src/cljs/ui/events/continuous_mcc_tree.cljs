@@ -7,7 +7,6 @@
 (defn tree-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress] progress)})
 
-;; TODO
 (defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
   (let [[url _]       (string/split url "?")
         readable-name (first (string/split filename "."))]
@@ -83,17 +82,19 @@
   (let [[url _]            (string/split url "?")
         continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :id])]
     {:dispatch [:graphql/query {:query
-                                "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
+                                "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!, $name: String!) {
                                                    uploadTimeSlicer(continuousTreeId: $continuousTreeId,
-                                                                    treesFileUrl: $url) {
+                                                                    treesFileUrl: $url
+                                                                    treesFileName: $name) {
                                                      id
+                                                     continuousTreeId
                                                      status
+                                                     treesFileName
                                                    }
                                                 }"
                                 :variables {:url              url
-                                            :continuousTreeId continuous-tree-id}}]
-     :db       (-> db
-                   (assoc-in [:new-analysis :continuous-mcc-tree :trees-file] filename))}))
+                                            :name             filename
+                                            :continuousTreeId continuous-tree-id}}]}))
 
 (defn trees-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :trees-file-upload-progress] progress)})

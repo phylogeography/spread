@@ -236,10 +236,12 @@
 
 ;; TODO
 (defn upload-time-slicer [{:keys [authed-user-id db]}
-                          {continuous-tree-id     :continuousTreeId
-                           trees-file-url         :treesFileUrl
-                           slice-heights-file-url :sliceHeightsFileUrl
-                           :as                    args} _]
+                          {continuous-tree-id      :continuousTreeId
+                           trees-file-url          :treesFileUrl
+                           trees-file-name         :treesFileName
+                           slice-heights-file-url  :sliceHeightsFileUrl
+                           slice-heights-file-name :sliceHeightsFileName
+                           :as                     args} _]
   (log/info "upload-time-slicer" {:user/id authed-user-id
                                   :args    args})
   (let [id     (s3-url->id trees-file-url authed-user-id)
@@ -251,13 +253,13 @@
                                   :created-on (time/millis (time/now))
                                   :status     status
                                   :of-type    :TIME_SLICER})
-      (time-slicer-model/upsert! db {:id                     id
-                                     :continuous-tree-id     continuous-tree-id
-                                     :trees-file-url         trees-file-url
-                                     :slice-heights-file-url slice-heights-file-url})
-      {:id                 id
-       :continuous-tree-id continuous-tree-id
-       :status             status}
+      (time-slicer-model/upsert! db {:id                      id
+                                     :continuous-tree-id      continuous-tree-id
+                                     :trees-file-url          trees-file-url
+                                     :trees-file-name         trees-file-name
+                                     :slice-heights-file-url  slice-heights-file-url
+                                     :slice-heights-file-name slice-heights-file-name})
+      (clj->gql (time-slicer-model/get-time-slicer db {:id id}))
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))

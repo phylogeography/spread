@@ -65,6 +65,10 @@
                                             xCoordinateAttributeName
                                             yCoordinateAttributeName
                                             mostRecentSamplingDate
+                                            timeSlicer {
+                                              id
+                                              treesFileName
+                                            }
                                             timescaleMultiplier
                                             analysis {
                                                 viewerUrlParams

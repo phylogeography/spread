@@ -287,12 +287,10 @@
                     ;; since there is an ongoing subscription for it
                     (assoc parser :new? true))})
 
-;; TODO
 (defmethod handler :upload-time-slicer
-  [{:keys [db]} _ {:keys [id status]}]
-#_  {:db (-> db
-           (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
-           (assoc-in [:analysis id :status] status))})
+  [{:keys [db]} _ {:keys [id continuous-tree-id] :as analysis}]
+  {:db (-> db
+           (update-in [:analysis continuous-tree-id :time-slicer] merge analysis))})
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]

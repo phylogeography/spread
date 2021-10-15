@@ -114,6 +114,7 @@
 
   :TimeSlicer {:description "Represents TimeSlicer entity."
                :fields      {:id                                 {:type (non-null ID)}
+                             :continuousTreeId                   {:type (non-null ID)}
                              :userId                             {:type (non-null ID)}
                              :readableName                       {:type String}
                              :createdOn                          {:type (non-null :BigInt)}
@@ -266,7 +267,9 @@
                      :description "Persists continuous trees."
                      :args        {:continuousTreeId    {:type (non-null ID)}
                                    :treesFileUrl        {:type (non-null String)}
-                                   :sliceHeightsFileUrl {:type String}}
+                                   :treesFileName        {:type (non-null String)}
+                                   :sliceHeightsFileUrl {:type String}
+                                   :sliceHeightsFileName {:type String}}
                      :resolve     :mutation/uploadTimeSlicer}
 
   ;; TODO
