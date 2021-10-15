@@ -355,7 +355,8 @@ li {
 	grid-template-areas:
 		"header"
 		"body"
-		"footer"
+		"footer";
+	color: #3A3668;		
 }
 
 .analysis-results .analysis-header {
