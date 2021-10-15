@@ -131,6 +131,7 @@
 (re-frame/reg-event-fx :bayes-factor/set-burn-in events.bayes-factor/set-burn-in)
 (re-frame/reg-event-fx :bayes-factor/set-readable-name events.bayes-factor/set-readable-name)
 (re-frame/reg-event-fx :bayes-factor/start-analysis events.bayes-factor/start-analysis)
+(re-frame/reg-event-fx :bayes-factor/reset events.bayes-factor/reset)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Websockets events ;;

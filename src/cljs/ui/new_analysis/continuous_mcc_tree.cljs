@@ -24,7 +24,7 @@
                                                                            :time-scale-multiplier     time-scale-multiplier}]
                                      ;; NOTE : normally we have a running subscription already, but in case the user re-starts the analysis here we dispatch it again.
                                      ;; it is de-duplicated by the id anyway
-                                     [:graphql/subscription {:id        id
+                                     #_[:graphql/subscription {:id        id
                                                              :query     "subscription SubscriptionRoot($id: ID!) {
                                                                                                 parserStatus(id: $id) {
                                                                                                   id
@@ -64,6 +64,9 @@
                     time-scale-multiplier     1}}
             @continuous-mcc-tree
             controls-disabled? (or (not attribute-names) (not tree-file))]
+
+        (prn "@1" @continuous-mcc-tree)
+
         [:<>
          [:div.data {}
           [:section.load-tree-file
@@ -85,7 +88,7 @@
 
               :else nil)]
            (when (nil? tree-file)
-             [:p.doc "When upload is complete all unique attributes will be automatically filled.You can then select geographical coordinates and change other settings."])]
+             [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select geographical coordinates and change other settings."])]
 
           [:section.load-trees-file
            [:div

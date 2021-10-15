@@ -3,38 +3,27 @@
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.slider :refer [slider]]
-            ;; [reagent-material-ui.core.text-field :refer [text-field]]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.input :refer [loaded-input text-input]]
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
 
-(defn controls [{:keys [id readable-name burn-in locations-file-url]} {:keys [disabled?]}]
+(defn controls [{:keys [id readable-name burn-in]} {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
-    [button {:text "Start analysis"
-             :on-click #(dispatch-n [[:bayes-factor/start-analysis {:readable-name      readable-name
-                                                                    :burn-in            (/ burn-in 100)
-                                                                    :locations-file-url locations-file-url}]
-                                     [:graphql/subscription {:id        id
-                                                             :query     "subscription SubscriptionRoot($id: ID!) {
-                                                                                                parserStatus(id: $id) {
-                                                                                                  id
-                                                                                                  status
-                                                                                                  progress
-                                                                                                  ofType
-                                                                                                }}"
-                                                             :variables {"id" id}}]])
-             :class "golden"
+    [button {:text      "Start analysis"
+             :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name readable-name
+                                                              :burn-in       (/ burn-in 100)}])
+             :class     "golden"
              :disabled? disabled?}]
-    [button {:text "Paste settings"
-             :on-click #()
-             :class "secondary"
+    [button {:text      "Paste settings"
+             :on-click  #(prn "TODO")
+             :class     "secondary"
              :disabled? disabled?}]
-    [button {:text "Reset"
-             :on-click #(js/alert "Yeahhhhhhh")
-             :class "danger"
+    [button {:text      "Reset"
+             :on-click  #(>evt [:bayes-factor/reset])
+             :class     "danger"
              :disabled? disabled?}]]])
 
 (defn discrete-rates []

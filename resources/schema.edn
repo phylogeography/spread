@@ -209,13 +209,15 @@
                   :args        {:files {:type (non-null (list :File))}}
                   :resolve     :mutation/getUploadUrls}
 
-  :uploadContinuousTree {:type        :ParserStatus
+    ;; TODO
+  :uploadContinuousTree {:type        :ContinuousTree #_:ParserStatus
                          :description "Persists continuous tree. Returns a ParserStatus with id."
                          :args        {:readableName {:type String}
                                        :treeFileUrl  {:type (non-null String)}}
                          :resolve     :mutation/uploadContinuousTree}
 
-  :updateContinuousTree {:type        :ParserStatus
+    ;; TODO
+  :updateContinuousTree {:type        :ContinuousTree  #_:ParserStatus
                          :description "Updates the entity with settings for parsing the tree graph."
                          :args        {:id                       {:type (non-null ID)}
                                        :readableName             {:type String}
@@ -225,7 +227,8 @@
                                        :mostRecentSamplingDate   {:type (non-null String)}}
                          :resolve     :mutation/updateContinuousTree}
 
-  :startContinuousTreeParser {:type        :ParserStatus
+  ;; TODO
+  :startContinuousTreeParser {:type        :ContinuousTree
                               :description "Starts executing a parser. Returns a ParserStatus with id."
                               :args        {:id {:type (non-null ID)}}
                               :resolve     :mutation/startContinuousTreeParser}
@@ -256,14 +259,16 @@
                                           :mostRecentSamplingDate {:type String}}
                             :resolve     :mutation/startDiscreteTreeParser}
 
-  :uploadTimeSlicer {:type        :ParserStatus
+  ;; TODO
+  :uploadTimeSlicer {:type        :TimeSlicer #_:ParserStatus
                      :description "Persists continuous trees."
                      :args        {:continuousTreeId    {:type (non-null ID)}
                                    :treesFileUrl        {:type (non-null String)}
                                    :sliceHeightsFileUrl {:type String}}
                      :resolve     :mutation/uploadTimeSlicer}
 
-  :updateTimeSlicer {:type        :ParserStatus
+  ;; TODO
+  :updateTimeSlicer {:type        :TimeSlicer #_:ParserStatus
                      :description "Updates the entity with settings for parsing."
                      :args        {:id                                 {:type (non-null ID)}
                                    :burnIn                             {:type Float}
