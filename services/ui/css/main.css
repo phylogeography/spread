@@ -185,6 +185,10 @@ li {
 	width: 80%;
 }
 
+.app-sidebar .collapsible-tabs:first-child .tab-body.open {
+	min-height: 94px;
+}
+
 /* Body */
 .app-body {
 	grid-area: app-body;
