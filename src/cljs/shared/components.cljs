@@ -11,8 +11,7 @@
       (when (and badge-text badge-color)
         [:span.badge {:style {:color badge-color
                               :border-color badge-color}}
-         badge-text])
-      #_[:span.arrow (if open? "▲" "▼")]
+         badge-text])      
       [:img.arrow {:src "/icons/icn_dropdown.svg" :class (if open? "open" "closed")}]]
      [:div.tab-body {:class (if open? "open" "collapsed")}
       child]]))

@@ -92,6 +92,10 @@ li {
 .app-sidebar .readable-name {
 	font-size: 14px;
 	color: #3A3668;
+	max-width: 200px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 .app-sidebar .sub-name {
