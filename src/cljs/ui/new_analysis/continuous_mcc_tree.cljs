@@ -12,36 +12,25 @@
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
-(defn controls [{:keys [id readable-name y-coordinate x-coordinate most-recent-sampling-date time-scale-multiplier]}
+(defn controls [{:keys [id readable-name y-coordinate-attribute-name x-coordinate-attribute-name most-recent-sampling-date timescale-multiplier]}
                 {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
-    [button {:text "Start analysis"
-             :on-click #(dispatch-n [[:continuous-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                           :y-coordinate              y-coordinate
-                                                                           :x-coordinate              x-coordinate
-                                                                           :most-recent-sampling-date most-recent-sampling-date
-                                                                           :time-scale-multiplier     time-scale-multiplier}]
-                                     ;; NOTE : normally we have a running subscription already, but in case the user re-starts the analysis here we dispatch it again.
-                                     ;; it is de-duplicated by the id anyway
-                                     #_[:graphql/subscription {:id        id
-                                                             :query     "subscription SubscriptionRoot($id: ID!) {
-                                                                                                parserStatus(id: $id) {
-                                                                                                  id
-                                                                                                  status
-                                                                                                  progress
-                                                                                                  ofType
-                                                                                                }}"
-                                                             :variables {"id" id}}]])
-             :class "golden"
+    [button {:text     "Start analysis"
+             :on-click #(>evt [:continuous-mcc-tree/start-analysis {:readable-name               readable-name
+                                                                    :y-coordinate-attribute-name y-coordinate-attribute-name
+                                                                    :x-coordinate-attribute-name x-coordinate-attribute-name
+                                                                    :most-recent-sampling-date   most-recent-sampling-date
+                                                                    :timescale-multiplier        timescale-multiplier}])
+             :class     "golden"
              :disabled? disabled?}]
-    [button {:text "Paste settings"
-             :on-click #()
-             :class "secondary"
+    [button {:text      "Paste settings"
+             :on-click  #()
+             :class     "secondary"
              :disabled? disabled?}]
-    [button {:text "Reset"
-             :on-click #()
-             :class "danger"
+    [button {:text      "Reset"
+             :on-click  #()
+             :class     "danger"
              :disabled? disabled?}]]])
 
 (defn continuous-mcc-tree []
@@ -50,20 +39,21 @@
     (fn []
       (let [{:keys [id
                     readable-name
-                    tree-file
+                    tree-file-name
                     tree-file-upload-progress
-                    trees-file
+                    trees-file-name
                     trees-file-upload-progress
-                    y-coordinate x-coordinate
+                    y-coordinate-attribute-name
+                    x-coordinate-attribute-name
                     most-recent-sampling-date
-                    time-scale-multiplier
+                    timescale-multiplier
                     attribute-names]
-             :or   {y-coordinate              (first attribute-names)
-                    x-coordinate              (first attribute-names)
-                    most-recent-sampling-date (time/now)
-                    time-scale-multiplier     1}}
+             :or   {timescale-multiplier 1}}
             @continuous-mcc-tree
-            controls-disabled? (or (not attribute-names) (not tree-file))]
+            y-coordinate-attribute-name (or y-coordinate-attribute-name (first attribute-names))
+            x-coordinate-attribute-name (or x-coordinate-attribute-name (first attribute-names))
+            most-recent-sampling-date   (or most-recent-sampling-date (time/now))
+            controls-disabled?          (or (not attribute-names) (not tree-file-name))]
 
         (prn "@1" @continuous-mcc-tree)
 
@@ -73,51 +63,51 @@
            [:div
             [:h4 "Load tree file"]
             (cond
-              (and (nil? tree-file-upload-progress) (nil? tree-file))
+              (nil? tree-file-name)
               [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
 
-              (not= 1 tree-file-upload-progress)
+              (and (not (nil? tree-file-upload-progress)) (not= 1 tree-file-upload-progress))
               [linear-progress {:value      (* 100 tree-file-upload-progress)
                                 :variant    "determinate"}]
 
-              tree-file
-              [loaded-input {:value    tree-file
+              tree-file-name
+              [loaded-input {:value    tree-file-name
                              :on-click #(>evt [:continuous-mcc-tree/delete-tree-file])}]
 
               :else nil)]
-           (when (nil? tree-file)
+           (when (nil? tree-file-name)
              [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select geographical coordinates and change other settings."])]
 
           [:section.load-trees-file
            [:div
             [:h4 "Load trees file"]
             (cond
-              (and (nil? trees-file-upload-progress) (nil? trees-file))
+              (nil? trees-file-name)
               [button-file-upload {:id               "mcc-trees-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
 
 
-              (not= 1 trees-file-upload-progress)
+              (and (not (nil? trees-file-upload-progress)) (not= 1 trees-file-upload-progress))
               [linear-progress {:value   (* 100 trees-file-upload-progress)
                                 :variant "determinate"}]
 
-              trees-file
-              [loaded-input {:value    trees-file
+              trees-file-name
+              [loaded-input {:value    trees-file-name
                              :on-click #(>evt [:continuous-mcc-tree/delete-trees-file])}]
 
               :else nil)]
 
-           (when (nil? trees-file)
+           (when (nil? trees-file-name)
              [:p.doc "Optional: Select a file with corresponding trees distribution. This file will be used to compute a density interval around the MCC tree."])]
 
           [:div.upload-spinner
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
              [circular-progress {:size 100}])]
 
-          (when (and attribute-names tree-file)
+          (when (and attribute-names tree-file-name)
             [:div.field-table
              [:div.field-line
               [:div.field-card
@@ -129,7 +119,7 @@
               [:div.field-card
                [:h4 "Select x coordinate"]
                [attributes-select {:id        "select-longitude"
-                                   :value     x-coordinate
+                                   :value     x-coordinate-attribute-name
                                    :options   attribute-names
                                    :label     "Longitude"
                                    :on-change (fn [value]
@@ -137,7 +127,7 @@
               [:div.field-card
                [:h4 "Select y coordinate"]
                [attributes-select {:id        "select-latitude"
-                                   :value     y-coordinate
+                                   :value     y-coordinate-attribute-name
                                    :options   attribute-names
                                    :label     "Latitude"
                                    :on-change (fn [value]
@@ -151,7 +141,7 @@
               [:div.field-card
                [:h4 "Time scale"]
                [amount-input {:label       "Multiplier"
-                              :value       time-scale-multiplier
+                              :value       timescale-multiplier
                               :error?      (not (nil? (:time-scale-multiplier @field-errors)))
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
@@ -159,8 +149,8 @@
 
          [controls {:id id
                     :readable-name readable-name
-                    :y-coordinate y-coordinate
-                    :x-coordinate x-coordinate
+                    :y-coordinate-attribute-name y-coordinate-attribute-name
+                    :x-coordinate-attribute-name x-coordinate-attribute-name
                     :most-recent-sampling-date most-recent-sampling-date
-                    :time-scale-multiplier time-scale-multiplier}
+                    :timescale-multiplier timescale-multiplier}
           {:disabled? controls-disabled? }]]))))

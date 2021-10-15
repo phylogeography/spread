@@ -135,53 +135,48 @@
   (log/debug "default handler" {:k k})
   (reduce-handlers cofx values))
 
-;; TODO
 (defmethod handler :upload-continuous-tree
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [id] :as analysis}]
   ;; start the status subscription for an ongoing analysis
-#_  (>evt [:graphql/subscription {:id        id
+  (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
                                               parserStatus(id: $id) {
                                                 id
+                                                readableName
                                                 status
                                                 progress
                                                 ofType
                                               }
                                             }"
                                 :variables {:id id}}])
-#_  {:db (-> db
+  {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :id] id)
-           (assoc-in [:analysis id :status] status))})
+           (update-in [:analysis id] merge analysis))})
 
-;; TODO
 (defmethod handler :update-continuous-tree
-  [{:keys [db]} _ {:keys [id status]}]
-  #_(when (= "ARGUMENTS_SET" status)
-    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                startContinuousTreeParser(id: $id) {
-                                                  id
-                                                  status
-                                                }
-                                              }"
-                                  :variables {:id id}}]]))
-
-  #_{:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  ;; NOTE : parse date to an internal representation
+  (let [most-recent-sampling-date (when most-recent-sampling-date
+                                    (new js/Date most-recent-sampling-date))]
+    {:db (-> db
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 ;; TODO
 (defmethod handler :start-continuous-tree-parser
   [{:keys [db]} _ {:keys [id status]}]
+
+    (prn "@TODO" :start-continuous-tree-parser)
+
 #_  {:db (assoc-in db [:analysis id :status] status)})
 
-;; TODO
 (defmethod handler :get-continuous-tree
-  [{:keys [db]} _ {:keys [id attribute-names] :as tree}]
-#_  (let [active-analysis-id (-> db :new-analysis :continuous-mcc-tree :id)]
-    {:db (cond-> db
-           (= id active-analysis-id)
-           (assoc-in [:new-analysis :continuous-mcc-tree :attribute-names] attribute-names)
-
-           true
-           (update-in [:analysis id] merge tree))}))
+  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  (let [most-recent-sampling-date (when most-recent-sampling-date
+                                    (new js/Date most-recent-sampling-date))]
+    {:db (-> db
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 (defmethod handler :upload-discrete-tree
   [{:keys [db]} _ {:keys [id] :as analysis}]

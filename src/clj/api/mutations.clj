@@ -61,15 +61,15 @@
                              :key         (str authed-user-id "/" uuid "." extension)}))))
       urls)))
 
-;; TODO
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                               {tree-file-url :treeFileUrl
-                               readable-name :readableName
+                               tree-file-name :treeFileName
                                :as           args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args    args})
   (let [id     (s3-url->id tree-file-url authed-user-id)
-        status :UPLOADED]
+        status :UPLOADED
+        readable-name (first (string/split tree-file-name #"\."))]
     (try
       ;; TODO : in a transaction
       (analysis-model/upsert! db {:id            id
@@ -79,24 +79,23 @@
                                   :status        status
                                   :of-type       :CONTINUOUS_TREE})
       (continuous-tree-model/upsert! db {:id            id
-                                         :tree-file-url tree-file-url})
+                                         :tree-file-url tree-file-url
+                                         :tree-file-name tree-file-name})
       ;; sends message to the worker queue to parse hpd levels and attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
                                                    :id           id
                                                    :user-id      authed-user-id})
-      {:id     id
-       :status status}
+      (clj->gql (continuous-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
-;; TODO
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id                          :id
                                 readable-name               :readableName
                                 x-coordinate-attribute-name :xCoordinateAttributeName
                                 y-coordinate-attribute-name :yCoordinateAttributeName
-                                hpd-level                   :hpdLevel
+                                ;; hpd-level                   :hpdLevel
                                 has-external-annotations    :hasExternalAnnotations
                                 timescale-multiplier        :timescaleMultiplier
                                 most-recent-sampling-date   :mostRecentSamplingDate
@@ -111,22 +110,27 @@
       (continuous-tree-model/upsert! db {:id                          id
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
-                                         :hpd-level                   hpd-level
+                                         ;; :hpd-level                   hpd-level
                                          :has-external-annotations    has-external-annotations
                                          :timescale-multiplier        timescale-multiplier
                                          :most-recent-sampling-date   most-recent-sampling-date})
       (analysis-model/upsert! db {:id            id
                                   :readable-name readable-name
-                                  :status        status})
-      {:id     id
-       :status status})
+                                  :status        status}))
+    (clj->gql (continuous-tree-model/get-tree db {:id id}))
     (catch Exception e
       (log/error "Exception occured" {:error e})
       (errors/handle-analysis-error! db id e))))
 
-;; TODO
 (defn start-continuous-tree-parser
-  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  [{:keys [db sqs workers-queue-url]} {id                          :id
+                                       readable-name               :readableName
+                                       x-coordinate-attribute-name :xCoordinateAttributeName
+                                       y-coordinate-attribute-name :yCoordinateAttributeName
+                                       ;; hpd-level                   :hpdLevel
+                                       timescale-multiplier        :timescaleMultiplier
+                                       most-recent-sampling-date   :mostRecentSamplingDate
+                                       :as                         args} _]
   (log/info "start-continuous-tree-parser" args)
   (let [status :QUEUED]
     (try
@@ -134,8 +138,7 @@
                                                    :id           id})
       (continuous-tree-model/upsert! db {:id     id
                                          :status status})
-      {:id     id
-       :status status}
+      (clj->gql (continuous-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))

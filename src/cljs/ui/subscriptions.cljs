@@ -88,7 +88,10 @@
 (re-frame/reg-sub
   ::continuous-mcc-tree
   (fn [db]
-    (get-in db [:new-analysis :continuous-mcc-tree])))
+    (let [ongoing-analysis (get-in db [:new-analysis :continuous-mcc-tree])
+          id               (:id ongoing-analysis)]
+      (merge ongoing-analysis
+             (get-in db [:analysis id])))))
 
 (re-frame/reg-sub
   ::continuous-mcc-tree-field-errors

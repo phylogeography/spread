@@ -45,7 +45,8 @@
                     most-recent-sampling-date
                     timescale-multiplier
                     attribute-names]
-             :or {timescale-multiplier     1}} @discrete-mcc-tree
+             :or   {timescale-multiplier 1}}
+            @discrete-mcc-tree
             locations-attribute-name  (or locations-attribute-name (first attribute-names))
             most-recent-sampling-date (or most-recent-sampling-date (time/now))
             controls-disabled?        (or (not attribute-names) (not locations-file-name))]
@@ -55,7 +56,7 @@
            [:div
             [:h4 "Load tree file"]
             (cond
-              (and (nil? tree-file-name))
+              (nil? tree-file-name)
               [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
                                    :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
