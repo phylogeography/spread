@@ -26,6 +26,7 @@
                 "BAYES_FACTOR_ANALYSIS" "discrete-rates"})
 
 (defn completed-menu-item [_]
+
   (let [menu-open?  (reagent/atom false)
         active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn [{:keys [id readable-name of-type status new?]}]
@@ -43,7 +44,10 @@
                                                                                }"
                                                                                         :variables {:analysisId id}}])])}
          [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
-         [:div.badges (when badge-text [:span.badge badge-text])]
+         [:div.badges (when badge-text
+                        [:span.badge {:class (cond
+                                               (= status "ERROR") "error"
+                                               new? "new")} badge-text])]
          [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
          [:div {:style    {:grid-area "menu"}
                 :on-click #(swap! menu-open? not)}
@@ -83,8 +87,8 @@
                                   :icon "icons/icn_previous_analysis.svg"
                                   :child [:div.completed
                                           [search-bar {:value       (or "" @search-term)
-                                                       :on-change   #(>evt [:general/set-search %])                                                       
-                                                       :placeholder "Search"}]                                          
+                                                       :on-change   #(>evt [:general/set-search %])
+                                                       :placeholder "Search"}]
                                           (for [{:keys [id] :as item} items]
                                             ^{:key id}
                                             [completed-menu-item (-> item)

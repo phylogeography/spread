@@ -157,7 +157,7 @@ li {
 	padding: 15px;
 	border-radius: 10px;
 	grid-row-gap: 5px;
-	grid-template-columns: 80% 10% 10%;
+	grid-template-columns: 75% 15% 10%;
 	grid-template-rows: 50% 50%;
 	grid-template-areas:
 		"readable-name badges   menu"
@@ -356,6 +356,10 @@ li {
 	color: #3A3668;		
 }
 
+.analysis-results .field-table {
+	margin-top: 15px;
+}
+
 .analysis-results .analysis-header {
 	display: grid;
 	grid-template-columns: 50% 50%;
@@ -453,7 +457,7 @@ li {
 }
 
 .analysis-results .data .error .tab {
-	width: 200px;
+	width: 100%;
 }
 
 .analysis-results .data .error > div {
