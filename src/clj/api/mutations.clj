@@ -95,7 +95,6 @@
                                 readable-name               :readableName
                                 x-coordinate-attribute-name :xCoordinateAttributeName
                                 y-coordinate-attribute-name :yCoordinateAttributeName
-                                ;; hpd-level                   :hpdLevel
                                 has-external-annotations    :hasExternalAnnotations
                                 timescale-multiplier        :timescaleMultiplier
                                 most-recent-sampling-date   :mostRecentSamplingDate
@@ -110,8 +109,6 @@
       (continuous-tree-model/upsert! db {:id                          id
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
-                                         ;; :hpd-level                   hpd-level
-                                         ;; :has-external-annotations    has-external-annotations
                                          :timescale-multiplier        timescale-multiplier
                                          :most-recent-sampling-date   most-recent-sampling-date})
       (analysis-model/upsert! db {:id            id
@@ -127,7 +124,6 @@
                                        readable-name               :readableName
                                        x-coordinate-attribute-name :xCoordinateAttributeName
                                        y-coordinate-attribute-name :yCoordinateAttributeName
-                                       ;; hpd-level                   :hpdLevel
                                        timescale-multiplier        :timescaleMultiplier
                                        most-recent-sampling-date   :mostRecentSamplingDate
                                        :as                         args} _]
@@ -139,12 +135,10 @@
                                          :readable-name               readable-name
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
-                                         ;; :hpd-level                   hpd-level
-                                         ;; :has-external-annotations    has-external-annotations
                                          :timescale-multiplier        timescale-multiplier
                                          :most-recent-sampling-date   most-recent-sampling-date})
-      (continuous-tree-model/upsert! db {:id     id
-                                         :status status})
+      (analysis-model/upsert! db {:id     id
+                                  :status status})
       (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
                                                    :id           id})
       (clj->gql (continuous-tree-model/get-tree db {:id id}))
