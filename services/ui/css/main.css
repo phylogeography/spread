@@ -247,6 +247,10 @@ li {
 	margin-right: auto;
 }
 
+.run-new-analysis .field-table {
+	margin-top: 15px;
+}
+
 .run-new-analysis .upload-spinner {
 	display: flex;
 	justify-content: center;
@@ -267,18 +271,6 @@ li {
 	display:flex;    
 }
 
-.run-new-discrete .file-upload-button {
-	width: 200px;
-}
-
-.run-new-discrete p.doc {
-    display: flex;
-	flex-direction: column;
-	justify-content: flex-end;
-	margin-left: 10px;
-	margin-bottom: 0px;
-}
-
 .run-new-analysis .data {
 	flex: 1;
 	flex-shrink: 1;
@@ -287,6 +279,7 @@ li {
 	margin-right: auto;
 	min-height: 0px;
 	overflow: auto;
+	color: #3A3668;
 }
 
 .run-new-analysis .load-tree-file,.load-trees-file  {

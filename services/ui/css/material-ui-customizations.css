@@ -18,3 +18,13 @@ input {
 	font-family: 'Roboto', sans-serif;
 	font-size: 13px;
 }
+
+/* Icons on input file types  */
+.MuiInputBase-root button {
+	padding: 12px 0px 12px 0px !important;
+}
+
+.MuiInputBase-root .MuiAvatar-img {
+	width: 50%  !important;
+	height: 50% !important;
+}
