@@ -183,6 +183,7 @@
                                 locations-attribute-name  :locationsAttributeName
                                 timescale-multiplier      :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
+                                :or                       {timescale-multiplier 1.0}
                                 :as                       args} _]
   (log/info "update discrete tree" {:user/id authed-user-id
                                     :args    args})
@@ -228,7 +229,6 @@
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
-;; TODO
 (defn upload-time-slicer [{:keys [authed-user-id db]}
                           {continuous-tree-id      :continuousTreeId
                            trees-file-url          :treesFileUrl
@@ -258,7 +258,6 @@
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
-;; TODO
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
                                 burn-in                                 :burnIn

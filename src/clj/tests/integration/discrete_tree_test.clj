@@ -28,7 +28,8 @@
           (recur (query-status id)))))))
 
 (deftest discrete-tree-test
-  (let [[tree-url locations-url] (get-in (run-query {:query
+  (let [locations-file-name      "locationCoordinates_H5N1"
+        [tree-url locations-url] (get-in (run-query {:query
                                                      "mutation GetUploadUrls($files: [File]) {
                                                         getUploadUrls(files: $files)
                                                       }"
@@ -38,28 +39,25 @@
                                                                           :extension "txt"}]}})
                                          [:data :getUploadUrls])
         _                        (http/put tree-url {:body (io/file "src/test/resources/discrete/H5N1_HA_discrete_MCC.tree")})
-        _                        (http/put locations-url {:body (io/file "src/test/resources/discrete/locationCoordinates_H5N1")})
+        _                        (http/put locations-url {:body (io/file (str "src/test/resources/discrete/" locations-file-name))})
 
-        ;; TODO : adjust to fit the new API
-        {:keys [id status]}      (get-in (run-query {:query
-                                                     "mutation UploadTree($treeUrl: String!,
-                                                                          $locationsUrl: String!,
-                                                                          $name: String!) {
-                                                        uploadDiscreteTree(readableName: $name,
-                                                                           treeFileUrl: $treeUrl,
-                                                                           locationsFileUrl: $locationsUrl) {
+        {:keys [id status]} (get-in (run-query {:query
+                                                "mutation UploadTree($treeUrl: String!,
+                                                                     $name: String!) {
+                                                        uploadDiscreteTree(treeFileUrl: $treeUrl,
+                                                                           treeFileName: $name) {
                                                           id
+                                                          readableName
+                                                          treeFileName
+                                                          createdOn
                                                           status
                                                         }
                                                       }"
-                                                     :variables {:name         "H5N1_HA_discrete_MCC"
-                                                                 :treeUrl      (-> tree-url
-                                                                                   (string/split  #"\?")
-                                                                                   first)
-                                                                 :locationsUrl (-> locations-url
-                                                                                   (string/split  #"\?")
-                                                                                   first)}})
-                                         [:data :uploadDiscreteTree])
+                                                :variables {:name    "H5N1_HA_discrete_MCC"
+                                                            :treeUrl (-> tree-url
+                                                                         (string/split  #"\?")
+                                                                         first)}})
+                                    [:data :uploadDiscreteTree])
 
         _ (is (= :UPLOADED (keyword status)))
 
@@ -67,26 +65,39 @@
 
         {:keys [attributeNames]} (get-in (run-query {:query
                                                      "query GetTree($id: ID!) {
-                                                                            getDiscreteTree(id: $id) {
-                                                                              attributeNames
-                                                                            }
-                                                                          }"
+                                                        getDiscreteTree(id: $id) {
+                                                          attributeNames
+                                                        }
+                                                      }"
                                                      :variables {:id id}})
                                          [:data :getDiscreteTree])
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateTree($id: ID!,
+                                                                  $locationsFileUrl: String!,
+                                                                  $locationsFileName: String!
                                                                   $locationsAttribute: String!,
                                                                   $mrsd: String!) {
                                                 updateDiscreteTree(id: $id,
+                                                                   locationsFileUrl: $locationsFileUrl,
+                                                                   locationsFileName: $locationsFileName,
                                                                    locationsAttributeName: $locationsAttribute,
                                                                    mostRecentSamplingDate: $mrsd) {
+                                                  id
                                                   status
+                                                  locationsFileUrl
+                                                  locationsFileName
+                                                  mostRecentSamplingDate
                                                 }
                                               }"
-                                             :variables {:id                 id
-                                                         :locationsAttribute "states"
-                                                         :mrsd               "2019/02/12"}})
+                                             :variables {:id                     id
+                                                         :locationsFileUrl       (-> locations-url
+                                                                                 (string/split  #"\?")
+                                                                                 first)
+                                                         :locationsFileName      locations-file-name
+                                                         :mostRecentSamplingDate 1
+                                                         :locationsAttribute     "states"
+                                                         :mrsd                   "2019/02/12"}})
                                  [:data :updateDiscreteTree])
 
         _ (is (= :ARGUMENTS_SET (keyword status)))
@@ -94,7 +105,12 @@
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
                                                 startDiscreteTreeParser(id: $id) {
+                                                 id
                                                  status
+                                                 readableName
+                                                 locationsAttributeName
+                                                 mostRecentSamplingDate
+                                                 timescaleMultiplier
                                                 }
                                               }"
                                              :variables {:id id}})
@@ -104,28 +120,41 @@
 
         _ (block-on-status id :SUCCEEDED)
 
-        {:keys [id readableName createdOn status progress outputFileUrl]}
+        {:keys [id readableName createdOn status progress outputFileUrl attributeNames]}
         (get-in (run-query {:query
                             "query GetTree($id: ID!) {
                                      getDiscreteTree(id: $id) {
-                                       id
-                                       readableName
-                                       createdOn
-                                       status
-                                       progress
-                                       outputFileUrl
+                                            id
+                                            readableName
+                                            treeFileName
+                                            locationsFileName
+                                            status
+                                            progress
+                                            createdOn
+                                            attributeNames
+                                            outputFileUrl
+                                            locationsAttributeName
+                                            mostRecentSamplingDate
+                                            timescaleMultiplier
+                                            analysis {
+                                              viewerUrlParams
+                                            }
                                      }
                                    }"
                             :variables {:id id}})
-                [:data :getDiscreteTree])]
+                [:data :getDiscreteTree])
+        ]
 
-    (log/debug "response" {:id            id
-                           :name          readableName
-                           :created-on    createdOn
-                           :status        status
-                           :progress      progress
-                           :tree/url      tree-url
-                           :locations/url locations-url})
+    (log/debug "response" {:id             id
+                           :name           readableName
+                           :created-on     createdOn
+                           :attributeNames attributeNames
+                           :status         status
+                           :progress       progress
+                           :tree/url       tree-url
+                           :locations/url  locations-url})
+
+    (is createdOn)
 
     (is (= (:dd (time/now))
            (:dd (time/from-millis createdOn))))
@@ -137,4 +166,6 @@
 
     (is (= 1.0 progress))
 
-    (is outputFileUrl)))
+    (is outputFileUrl)
+
+    ))

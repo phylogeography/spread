@@ -262,7 +262,6 @@
                                           :mostRecentSamplingDate {:type String}}
                             :resolve     :mutation/startDiscreteTreeParser}
 
-  ;; TODO
   :uploadTimeSlicer {:type        :TimeSlicer
                      :description "Persists continuous trees."
                      :args        {:continuousTreeId    {:type (non-null ID)}
@@ -272,7 +271,6 @@
                                    :sliceHeightsFileName {:type String}}
                      :resolve     :mutation/uploadTimeSlicer}
 
-  ;; TODO
   :updateTimeSlicer {:type        :TimeSlicer
                      :description "Updates the entity with settings for parsing."
                      :args        {:id                                 {:type (non-null ID)}
