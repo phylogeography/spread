@@ -40,35 +40,49 @@
         _                       (http/put log-url {:body (io/file "src/test/resources/bayesFactor/H5N1_HA_discrete_rateMatrix.log")})
         _                       (http/put locations-url {:body (io/file "src/test/resources/bayesFactor/locationCoordinates_H5N1")})
 
+        log-file-name       "H5N1_HA_discrete_rateMatrix.log"
         {:keys [id status]} (get-in (run-query {:query
                                                 "mutation UploadBayesFactor($logUrl: String!,
-                                                                            $locationsUrl: String!) {
+                                                                            $logFileName: String!) {
                                                    uploadBayesFactorAnalysis(logFileUrl: $logUrl,
-                                                                             locationsFileUrl: $locationsUrl) {
+                                                                             logFileName: $logFileName) {
                                                      id
                                                      status
+                                                     readableName
+                                                     logFileName
+                                                     createdOn
                                                   }
                                                 }"
-                                                :variables {:logUrl       (-> log-url
-                                                                              (string/split  #"\?")
-                                                                              first)
-                                                            :locationsUrl (-> locations-url
-                                                                              (string/split  #"\?")
-                                                                              first)}})
+                                                :variables {:logUrl      (-> log-url
+                                                                             (string/split  #"\?")
+                                                                             first)
+                                                            :logFileName log-file-name
+                                                            }})
                                     [:data :uploadBayesFactorAnalysis])
 
         _ (is (= :UPLOADED (keyword status)))
 
         {:keys [status]} (get-in (run-query {:query
                                              "mutation UpdateBayesFactor($id: ID!,
-                                                                         $burnIn: Float!) {
+                                                                         $burnIn: Float!,
+                                                                         $locationsFileName: String!,
+                                                                         $locationsFileUrl: String!) {
                                                 updateBayesFactorAnalysis(id: $id,
-                                                                          burnIn: $burnIn) {
-                                                  status
+                                                                          locationsFileUrl: $locationsFileUrl,
+                                                                          locationsFileName: $locationsFileName
+                                                                         ) {
+                                                id
+                                                status
+                                                locationsFileUrl
+                                                locationsFileName
                                                 }
                                               }"
-                                             :variables {:id     id
-                                                         :burnIn 0.1}})
+                                             :variables {:id                id
+                                                         :burnIn            0.1
+                                                         :locationsFileUrl  (-> locations-url
+                                                                                (string/split  #"\?")
+                                                                                first)
+                                                         :locationsFileName "locationCoordinates_H5N1"}})
                                  [:data :updateBayesFactorAnalysis])
 
         _ (is (= :ARGUMENTS_SET (keyword status)))
@@ -76,7 +90,10 @@
         {:keys [status]} (get-in (run-query {:query
                                              "mutation QueueJob($id: ID!) {
                                                 startBayesFactorParser(id: $id) {
+                                                 id
                                                  status
+                                                 readableName
+                                                 burnIn
                                                 }
                                               }"
                                              :variables {:id id}})
@@ -106,7 +123,8 @@
                                      }
                                    }"
                             :variables {:id id}})
-                [:data :getBayesFactorAnalysis])]
+                [:data :getBayesFactorAnalysis])
+        ]
 
     (log/debug "response" {:id            id
                            :name          readableName
@@ -130,4 +148,6 @@
 
     (is (= 1.0 progress))
 
-    (is outputFileUrl)))
+    (is outputFileUrl)
+
+    ))
