@@ -84,7 +84,7 @@
     {:dispatch [:graphql/query {:query
                                 "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!, $name: String!) {
                                                    uploadTimeSlicer(continuousTreeId: $continuousTreeId,
-                                                                    treesFileUrl: $url
+                                                                    treesFileUrl: $url,
                                                                     treesFileName: $name) {
                                                      id
                                                      continuousTreeId
