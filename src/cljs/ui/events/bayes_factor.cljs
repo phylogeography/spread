@@ -40,7 +40,6 @@
                                 :variables {:analysisId id}}]
      :db       (dissoc-in db [:new-analysis :bayes-factor])}))
 
-;; TODO
 (defn delete-locations-file [{:keys [db]}]
   ;; NOTE : we just delete the object from S3 and dissoc the app-db values
   ;; there is no need to change the analysis settings in the DB as they are not set yet
@@ -59,7 +58,7 @@
                    (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))}))
 
 (defn log-file-upload-success [_ [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")]
+  (let [[url _] (string/split url "?")]
     {:dispatch [:graphql/query {:query     "mutation UploadBayesFactor($logUrl: String!,
                                                                        $logFileName: String!) {
                                                    uploadBayesFactorAnalysis(logFileUrl: $logUrl,
@@ -87,8 +86,7 @@
 
 (defn s3-locations-file-upload [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
-    {;;:db         (assoc-in db [:new-analysis :bayes-factor :status] "UPLOADING")
-     ::s3/upload {:url             url
+    {::s3/upload {:url             url
                   :data            data
                   :on-success      #(>evt [:bayes-factor/locations-file-upload-success {:url      url
                                                                                         :filename filename}])

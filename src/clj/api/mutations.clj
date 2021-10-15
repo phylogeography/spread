@@ -62,13 +62,13 @@
       urls)))
 
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url authed-user-id db]}
-                              {tree-file-url :treeFileUrl
+                              {tree-file-url  :treeFileUrl
                                tree-file-name :treeFileName
-                               :as           args} _]
+                               :as            args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args    args})
-  (let [id     (s3-url->id tree-file-url authed-user-id)
-        status :UPLOADED
+  (let [id            (s3-url->id tree-file-url authed-user-id)
+        status        :UPLOADED
         readable-name (first (string/split tree-file-name #"\."))]
     (try
       ;; TODO : in a transaction
@@ -78,8 +78,8 @@
                                   :created-on    (time/millis (time/now))
                                   :status        status
                                   :of-type       :CONTINUOUS_TREE})
-      (continuous-tree-model/upsert! db {:id            id
-                                         :tree-file-url tree-file-url
+      (continuous-tree-model/upsert! db {:id             id
+                                         :tree-file-url  tree-file-url
                                          :tree-file-name tree-file-name})
       ;; sends message to the worker queue to parse hpd levels and attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
@@ -295,19 +295,14 @@
       (errors/handle-analysis-error! db id e))))
 
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
-                                    {log-file-url        :logFileUrl
-                                     log-file-name        :logFileName
-                                     ;; locations-file-url  :locationsFileUrl
-                                     ;; readable-name       :readableName
-                                     ;; number-of-locations :numberOfLocations
-                                     ;; burn-in             :burnIn
-                                     ;; :or                 {burn-in 0.1}
-                                     :as                 args} _]
+                                    {log-file-url  :logFileUrl
+                                     log-file-name :logFileName
+                                     :as           args} _]
   (log/info "upload-bayes-factor" {:user/id authed-user-id
                                    :args    args})
-  (let [id     (s3-url->id log-file-url authed-user-id)]
+  (let [id (s3-url->id log-file-url authed-user-id)]
     (try
-      (let [status :UPLOADED
+      (let [status        :UPLOADED
             readable-name (first (string/split log-file-name #"\."))]
         ;; TODO : in a transaction
         (analysis-model/upsert! db {:id            id
@@ -316,9 +311,9 @@
                                     :created-on    (time/millis (time/now))
                                     :status        status
                                     :of-type       :BAYES_FACTOR_ANALYSIS})
-        (bayes-factor-model/upsert! db {:id                  id
-                                        :log-file-url        log-file-url
-                                        :log-file-name        log-file-name})
+        (bayes-factor-model/upsert! db {:id            id
+                                        :log-file-url  log-file-url
+                                        :log-file-name log-file-name})
         (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
       (catch Exception e
         (log/error "Exception occured" {:error e})

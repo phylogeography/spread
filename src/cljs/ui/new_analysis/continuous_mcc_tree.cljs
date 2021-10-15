@@ -49,14 +49,11 @@
                     attribute-names
                     time-slicer]
              :or   {timescale-multiplier 1}} @continuous-mcc-tree
-            y-coordinate-attribute-name (or y-coordinate-attribute-name (first attribute-names))
-            x-coordinate-attribute-name (or x-coordinate-attribute-name (first attribute-names))
-            most-recent-sampling-date   (or most-recent-sampling-date (time/now))
-            controls-disabled?          (or (not attribute-names) (not tree-file-name))
-            {:keys [trees-file-name]} time-slicer]
-
-        (prn "@1" @continuous-mcc-tree)
-
+            y-coordinate-attribute-name      (or y-coordinate-attribute-name (first attribute-names))
+            x-coordinate-attribute-name      (or x-coordinate-attribute-name (first attribute-names))
+            most-recent-sampling-date        (or most-recent-sampling-date (time/now))
+            controls-disabled?               (or (not attribute-names) (not tree-file-name))
+            {:keys [trees-file-name]}        time-slicer]
         [:<>
          [:div.data {}
           [:section.load-tree-file

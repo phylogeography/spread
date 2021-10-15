@@ -40,10 +40,6 @@
              :or   {burn-in 0.1}}
             @bayes-factor
             controls-disabled? (or @field-errors (not log-file-name))]
-
-        ;; TODO
-        (prn "@ discrete-rates" @bayes-factor)
-
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-log-file

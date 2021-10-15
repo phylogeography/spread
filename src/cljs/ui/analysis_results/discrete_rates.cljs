@@ -1,11 +1,7 @@
 (ns ui.analysis-results.discrete-rates
   (:require [shared.components :refer [labeled-field]]))
 
-(defn discrete-rates [{:keys [readable-name burn-in] :as all}]
-
-  ;; TODO
-  (prn all)
-
+(defn discrete-rates [{:keys [readable-name burn-in]}]
   [:div.field-table
    [:div.field-line
     [:div.field-card
