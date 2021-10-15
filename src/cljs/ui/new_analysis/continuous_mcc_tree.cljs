@@ -112,15 +112,10 @@
               [:div.field-card
                [:h4 "File info"]
                [text-field {:label     "Name"
-                            <<<<<<< HEAD
+                            :variant :outlined
                             :value     readable-name
-                            :on-change (fn [_ value]
-                                         (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
-             =======
-             :variant :outlined
-             :value     readable-name
-             :on-change (fn [_ value] (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
-        >>>>>>> Fix run new analysis styles
+                            :on-change (fn [_ value] (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
+
         [:div.field-line
          [:div.field-card
           [:h4 "Select x coordinate"]

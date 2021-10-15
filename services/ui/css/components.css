@@ -131,6 +131,14 @@
 	background-color: #FBFCFE;
 }
 
+.tab .badge.new {
+	color: #3428CA;
+}
+
+.tab .badge.error {
+	color: #B20707;
+}
+
 /* Buttons  */
 
 .button {
@@ -227,8 +235,13 @@
 }
 
 .tabs .tab-wrapper {
-	color: #3A3668;
+	color: #bbb;
 	display: inline-block;
+}
+
+.tabs .tab-wrapper:hover {
+	color: #EEBE53;
+	opacity: 0.4;
 }
 
 .tabs .tab-wrapper.active {
