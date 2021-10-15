@@ -7,7 +7,6 @@
 (def >evt re-frame/dispatch)
 
 (defn debounce [f millis]
-  "Debouncer will perform a specified action exactly once for any sequence of signals fired repeatedly so long as they are fired less than a specified interval apart (in milliseconds)"
   (let [dbnc (Debouncer. f millis)]
     (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
 

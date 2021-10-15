@@ -7,13 +7,13 @@
             [reagent-material-ui.core.menu :refer [menu]]
             [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.typography :refer [typography]]
+            [reagent.core :as reagent]
             [shared.components :refer [button collapsible-tab spread-logo]]
             [ui.component.icon :refer [arg->icon icons]]
             [ui.component.search :refer [search-bar]]
             [ui.format :refer [format-percentage]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
-            [reagent.core :as reagent]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
 (def type->label {"CONTINUOUS_TREE"       "Continuous: MCC tree"

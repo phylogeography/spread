@@ -14,7 +14,7 @@
                                 :variables  {:filename fname :extension "log"}
                                 :on-success [:bayes-factor/s3-log-file-upload file-with-meta]}]}))
 
-(defn s3-log-file-upload [{:keys [db]} [_ {:keys [data filename]} response]]
+(defn s3-log-file-upload [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
     {;;:db         (assoc-in db [:new-analysis :bayes-factor :upload-status] "UPLOADING")
      ::s3/upload {:url             url
@@ -58,9 +58,8 @@
                    (dissoc-in [:new-analysis :bayes-factor :locations-file-url])
                    (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))}))
 
-(defn log-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")
-        readable-name (first (string/split filename "."))]
+(defn log-file-upload-success [_ [_ {:keys [url filename]}]]
+  (let [[url _]       (string/split url "?")]
     {:dispatch [:graphql/query {:query     "mutation UploadBayesFactor($logUrl: String!,
                                                                        $logFileName: String!) {
                                                    uploadBayesFactorAnalysis(logFileUrl: $logUrl,
@@ -86,7 +85,7 @@
                                 :variables  {:filename fname :extension "txt"}
                                 :on-success [:bayes-factor/s3-locations-file-upload file-with-meta]}]}))
 
-(defn s3-locations-file-upload [{:keys [db]} [_ {:keys [data filename]} response]]
+(defn s3-locations-file-upload [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
     {;;:db         (assoc-in db [:new-analysis :bayes-factor :status] "UPLOADING")
      ::s3/upload {:url             url
@@ -151,7 +150,6 @@
                                 :variables {:id     id
                                             :burnIn burn-in}}]}))
 
-;; TODO
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name burn-in]}]]
   (let [id (get-in db [:new-analysis :bayes-factor :id])]
     {:dispatch-n [[:graphql/subscription {:id        id

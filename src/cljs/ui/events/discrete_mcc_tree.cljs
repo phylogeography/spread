@@ -29,7 +29,7 @@
 (defn tree-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress] progress)})
 
-(defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
+(defn tree-file-upload-success [_ [_ {:keys [url filename]}]]
   (let [[url _] (string/split url "?")]
     {:dispatch [:graphql/query {:query     "mutation UploadDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
                                               uploadDiscreteTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
@@ -183,7 +183,7 @@
                                          :variables {:id                  id
                                                      :timescaleMultiplier value}}]}))))
 
-(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url locations-attribute-name
+(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-attribute-name
                                               most-recent-sampling-date timescale-multiplier]}]]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
     {:dispatch-n [[:graphql/subscription {:id        id

@@ -10,9 +10,9 @@
             [ui.component.select :refer [attributes-select]]
             [ui.subscriptions :as subs]
             [ui.time :as time]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
+            [ui.utils :as ui-utils :refer [>evt debounce]]))
 
-(defn controls [{:keys [id readable-name y-coordinate-attribute-name x-coordinate-attribute-name most-recent-sampling-date timescale-multiplier]}
+(defn controls [{:keys [readable-name y-coordinate-attribute-name x-coordinate-attribute-name most-recent-sampling-date timescale-multiplier]}
                 {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
@@ -41,7 +41,6 @@
                     readable-name
                     tree-file-name
                     tree-file-upload-progress
-                    ;; trees-file-name
                     trees-file-upload-progress
                     y-coordinate-attribute-name
                     x-coordinate-attribute-name

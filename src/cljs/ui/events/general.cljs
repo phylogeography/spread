@@ -52,7 +52,7 @@
 (defn set-search [{:keys [db]} [_ text]]
   {:db (assoc db :search text)})
 
-(defn query-analysis [_ [_ {:keys [id of-type] :as analysis}]]
+(defn query-analysis [_ [_ {:keys [id of-type]}]]
   {:dispatch [:graphql/query {:query (case (keyword of-type)
                                        :CONTINUOUS_TREE
                                        "query GetContinuousTree($id: ID!) {

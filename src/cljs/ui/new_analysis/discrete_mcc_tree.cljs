@@ -9,9 +9,9 @@
             [ui.component.select :refer [attributes-select]]
             [ui.subscriptions :as subs]
             [ui.time :as time]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
+            [ui.utils :as ui-utils :refer [>evt debounce]]))
 
-(defn controls [{:keys [id readable-name locations-attribute locations-file-url most-recent-sampling-date timescale-multiplier]} {:keys [disabled?]}]
+(defn controls [{:keys [readable-name locations-attribute most-recent-sampling-date timescale-multiplier]} {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
     [button {:text "Start analysis"

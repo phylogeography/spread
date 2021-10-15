@@ -7,9 +7,8 @@
 (defn tree-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress] progress)})
 
-(defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")
-        readable-name (first (string/split filename "."))]
+(defn tree-file-upload-success [_ [_ {:keys [url filename]}]]
+  (let [[url _]       (string/split url "?")]
     {:dispatch [:graphql/query {:query
                                 "mutation UploadContinuousTreeDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
                                               uploadContinuousTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
@@ -196,7 +195,7 @@
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name
                                               y-coordinate-attribute-name x-coordinate-attribute-name
-                                              most-recent-sampling-date timescale-multiplier] :as all}]]
+                                              most-recent-sampling-date timescale-multiplier]}]]
   (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
     {:dispatch-n [[:graphql/subscription {:id        id
                                           :query     "subscription SubscriptionRoot($id: ID!) {

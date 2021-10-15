@@ -7,8 +7,7 @@
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt dispatch-n dissoc-in]]
-            [ui.time :as time]))
+            [ui.utils :refer [>evt dissoc-in]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -288,7 +287,7 @@
                     (assoc parser :new? true))})
 
 (defmethod handler :upload-time-slicer
-  [{:keys [db]} _ {:keys [id continuous-tree-id] :as analysis}]
+  [{:keys [db]} _ {:keys [continuous-tree-id] :as analysis}]
   {:db (-> db
            (update-in [:analysis continuous-tree-id :time-slicer] merge analysis))})
 

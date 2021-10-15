@@ -1,15 +1,14 @@
 (ns ui.new-analysis.discrete-rates
   (:require [re-frame.core :as re-frame]
-            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.slider :refer [slider]]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.input :refer [loaded-input text-input]]
             [ui.subscriptions :as subs]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
+            [ui.utils :as ui-utils :refer [>evt debounce]]))
 
-(defn controls [{:keys [id readable-name burn-in]} {:keys [disabled?]}]
+(defn controls [{:keys [readable-name burn-in]} {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
     [button {:text      "Start analysis"
