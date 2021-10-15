@@ -60,6 +60,7 @@
            [:div
             [:h4 "Load tree file"]
             (cond
+
               (nil? tree-file-name)
               [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
@@ -74,6 +75,7 @@
                              :on-click #(>evt [:continuous-mcc-tree/delete-tree-file])}]
 
               :else nil)]
+
            (when (nil? tree-file-name)
              [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select geographical coordinates and change other settings."])]
 
@@ -110,45 +112,52 @@
               [:div.field-card
                [:h4 "File info"]
                [text-field {:label     "Name"
+                            <<<<<<< HEAD
                             :value     readable-name
                             :on-change (fn [_ value]
                                          (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
-             [:div.field-line
-              [:div.field-card
-               [:h4 "Select x coordinate"]
-               [attributes-select {:id        "select-longitude"
-                                   :value     x-coordinate-attribute-name
-                                   :options   attribute-names
-                                   :label     "Longitude"
-                                   :on-change (fn [value]
-                                                (>evt [:continuous-mcc-tree/set-x-coordinate value]))}]]
-              [:div.field-card
-               [:h4 "Select y coordinate"]
-               [attributes-select {:id        "select-latitude"
-                                   :value     y-coordinate-attribute-name
-                                   :options   attribute-names
-                                   :label     "Latitude"
-                                   :on-change (fn [value]
-                                                (>evt [:continuous-mcc-tree/set-y-coordinate value]))}]]]
-             [:div.field-line
-              [:div.field-card
-               [:h4 "Most recent sampling date"]
-               [date-picker {:date-format time/date-format
-                             :on-change   (fn [value]
-                                            (>evt [:continuous-mcc-tree/set-most-recent-sampling-date value]))
-                             :selected    most-recent-sampling-date}]]
-              [:div.field-card
-               [:h4 "Time scale"]
-               [amount-input {:label       "Multiplier"
-                              :value       timescale-multiplier
-                              :error?      (not (nil? (:time-scale-multiplier @field-errors)))
-                              :helper-text (:time-scale-multiplier @field-errors)
-                              :on-change   (fn [value]
-                                             (debounce (>evt [:continuous-mcc-tree/set-time-scale-multiplier value]) 10))}]]]])]
-         [controls {:id                          id
-                    :readable-name               readable-name
-                    :y-coordinate-attribute-name y-coordinate-attribute-name
-                    :x-coordinate-attribute-name x-coordinate-attribute-name
-                    :most-recent-sampling-date   most-recent-sampling-date
-                    :timescale-multiplier        timescale-multiplier}
-          {:disabled? controls-disabled? }]]))))
+             =======
+             :variant :outlined
+             :value     readable-name
+             :on-change (fn [_ value] (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
+        >>>>>>> Fix run new analysis styles
+        [:div.field-line
+         [:div.field-card
+          [:h4 "Select x coordinate"]
+          [attributes-select {:id        "select-longitude"
+                              :value     x-coordinate-attribute-name
+                              :options   attribute-names
+                              :label     "Longitude"
+                              :on-change (fn [value]
+                                           (>evt [:continuous-mcc-tree/set-x-coordinate value]))}]]
+         [:div.field-card
+          [:h4 "Select y coordinate"]
+          [attributes-select {:id        "select-latitude"
+                              :value     y-coordinate-attribute-name
+                              :options   attribute-names
+                              :label     "Latitude"
+                              :on-change (fn [value]
+                                           (>evt [:continuous-mcc-tree/set-y-coordinate value]))}]]]
+        [:div.field-line
+         [:div.field-card
+          [:h4 "Most recent sampling date"]
+          [date-picker {:date-format time/date-format
+                        :on-change   (fn [value]
+                                       (>evt [:continuous-mcc-tree/set-most-recent-sampling-date value]))
+                        :selected    most-recent-sampling-date}]]
+         [:div.field-card
+          [:h4 "Time scale"]
+          [amount-input {:label       "Multiplier"
+                         :value       timescale-multiplier
+                         :error?      (not (nil? (:time-scale-multiplier @field-errors)))
+                         :helper-text (:time-scale-multiplier @field-errors)
+                         :on-change   (fn [value]
+                                        (debounce (>evt [:continuous-mcc-tree/set-time-scale-multiplier value]) 10))}]]]])]
+  [controls {:id                          id
+             :readable-name               readable-name
+             :y-coordinate-attribute-name y-coordinate-attribute-name
+             :x-coordinate-attribute-name x-coordinate-attribute-name
+             :most-recent-sampling-date   most-recent-sampling-date
+             :timescale-multiplier        timescale-multiplier}
+
+   {:disabled? controls-disabled? }]]))))

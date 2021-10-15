@@ -75,6 +75,7 @@
           [:section.load-locations-file
            [:div
             [:h4 "Load locations file"]
+
             (cond
               (nil? locations-file-name)
               [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
@@ -110,6 +111,7 @@
                                    :options   attribute-names
                                    :label     "Locations attribute"
                                    :on-change (fn [value]
+
                                                 (debounce (>evt [:discrete-mcc-tree/set-locations-attribute value]) 10))}]]]
              [:div.field-line
               [:div.field-card
