@@ -111,7 +111,7 @@
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
                                          ;; :hpd-level                   hpd-level
-                                         :has-external-annotations    has-external-annotations
+                                         ;; :has-external-annotations    has-external-annotations
                                          :timescale-multiplier        timescale-multiplier
                                          :most-recent-sampling-date   most-recent-sampling-date})
       (analysis-model/upsert! db {:id            id
@@ -134,10 +134,19 @@
   (log/info "start-continuous-tree-parser" args)
   (let [status :QUEUED]
     (try
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
-                                                   :id           id})
+      ;; TODO : in a tx
+      (continuous-tree-model/upsert! db {:id                          id
+                                         :readable-name               readable-name
+                                         :x-coordinate-attribute-name x-coordinate-attribute-name
+                                         :y-coordinate-attribute-name y-coordinate-attribute-name
+                                         ;; :hpd-level                   hpd-level
+                                         ;; :has-external-annotations    has-external-annotations
+                                         :timescale-multiplier        timescale-multiplier
+                                         :most-recent-sampling-date   most-recent-sampling-date})
       (continuous-tree-model/upsert! db {:id     id
                                          :status status})
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
+                                                   :id           id})
       (clj->gql (continuous-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})

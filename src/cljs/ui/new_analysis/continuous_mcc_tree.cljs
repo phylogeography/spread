@@ -10,18 +10,18 @@
             [ui.component.select :refer [attributes-select]]
             [ui.subscriptions :as subs]
             [ui.time :as time]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
+            [ui.utils :as ui-utils :refer [>evt dispatch-n debounce]]))
 
 (defn controls [{:keys [id readable-name y-coordinate-attribute-name x-coordinate-attribute-name most-recent-sampling-date timescale-multiplier]}
                 {:keys [disabled?]}]
   [:div.controls-wrapper
    [:div.controls {:style {:grid-area "controls"}}
-    [button {:text     "Start analysis"
-             :on-click #(>evt [:continuous-mcc-tree/start-analysis {:readable-name               readable-name
-                                                                    :y-coordinate-attribute-name y-coordinate-attribute-name
-                                                                    :x-coordinate-attribute-name x-coordinate-attribute-name
-                                                                    :most-recent-sampling-date   most-recent-sampling-date
-                                                                    :timescale-multiplier        timescale-multiplier}])
+    [button {:text      "Start analysis"
+             :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name               readable-name
+                                                                     :y-coordinate-attribute-name y-coordinate-attribute-name
+                                                                     :x-coordinate-attribute-name x-coordinate-attribute-name
+                                                                     :most-recent-sampling-date   most-recent-sampling-date
+                                                                     :timescale-multiplier        timescale-multiplier}])
              :class     "golden"
              :disabled? disabled?}]
     [button {:text      "Paste settings"
@@ -69,8 +69,8 @@
                                    :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
 
               (and (not (nil? tree-file-upload-progress)) (not= 1 tree-file-upload-progress))
-              [linear-progress {:value      (* 100 tree-file-upload-progress)
-                                :variant    "determinate"}]
+              [linear-progress {:value   (* 100 tree-file-upload-progress)
+                                :variant "determinate"}]
 
               tree-file-name
               [loaded-input {:value    tree-file-name
@@ -114,7 +114,8 @@
                [:h4 "File info"]
                [text-field {:label     "Name"
                             :value     readable-name
-                            :on-change (fn [_ value] (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
+                            :on-change (fn [_ value]
+                                         (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
              [:div.field-line
               [:div.field-card
                [:h4 "Select x coordinate"]
@@ -135,9 +136,10 @@
              [:div.field-line
               [:div.field-card
                [:h4 "Most recent sampling date"]
-               [date-picker {:date-format      time/date-format
-                             :on-change        #(>evt [:continuous-mcc-tree/set-most-recent-sampling-date %])
-                             :selected         most-recent-sampling-date}]]
+               [date-picker {:date-format time/date-format
+                             :on-change   (fn [value]
+                                            (>evt [:continuous-mcc-tree/set-most-recent-sampling-date value]))
+                             :selected    most-recent-sampling-date}]]
               [:div.field-card
                [:h4 "Time scale"]
                [amount-input {:label       "Multiplier"
@@ -145,12 +147,11 @@
                               :error?      (not (nil? (:time-scale-multiplier @field-errors)))
                               :helper-text (:time-scale-multiplier @field-errors)
                               :on-change   (fn [value]
-                                             (>evt [:continuous-mcc-tree/set-time-scale-multiplier value]))}]]]])]
-
-         [controls {:id id
-                    :readable-name readable-name
+                                             (debounce (>evt [:continuous-mcc-tree/set-time-scale-multiplier value]) 10))}]]]])]
+         [controls {:id                          id
+                    :readable-name               readable-name
                     :y-coordinate-attribute-name y-coordinate-attribute-name
                     :x-coordinate-attribute-name x-coordinate-attribute-name
-                    :most-recent-sampling-date most-recent-sampling-date
-                    :timescale-multiplier timescale-multiplier}
+                    :most-recent-sampling-date   most-recent-sampling-date
+                    :timescale-multiplier        timescale-multiplier}
           {:disabled? controls-disabled? }]]))))

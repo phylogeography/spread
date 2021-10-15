@@ -163,7 +163,7 @@
            :as                                     time-slicer}
           (time-slicer-model/get-time-slicer-by-continuous-tree-id db {:continuous-tree-id id})
 
-          _ (log/info "TimeSlicer retrieved by continuous tree id" time-slicer)
+          _ (when time-slicer-id (log/info "TimeSlicer retrieved by continuous tree id" time-slicer))
 
           tree-object-key  (str user-id "/" id tree-object-extension)
           tree-file-path   (str tmp-dir "/" tree-object-key)

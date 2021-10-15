@@ -162,13 +162,9 @@
              (update-in [:analysis id] merge analysis)
              (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
-;; TODO
 (defmethod handler :start-continuous-tree-parser
-  [{:keys [db]} _ {:keys [id status]}]
-
-    (prn "@TODO" :start-continuous-tree-parser)
-
-#_  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
 (defmethod handler :get-continuous-tree
   [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]

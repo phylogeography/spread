@@ -195,7 +195,7 @@
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name
                                               y-coordinate-attribute-name x-coordinate-attribute-name
-                                              most-recent-sampling-date timescale-multiplier]}]]
+                                              most-recent-sampling-date timescale-multiplier] :as all}]]
   (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
     {:dispatch-n [[:graphql/subscription {:id        id
                                           :query     "subscription SubscriptionRoot($id: ID!) {
@@ -209,17 +209,17 @@
                                           :variables {"id" id}}]
                   [:graphql/query {:query
                                    "mutation QueueJob($id: ID!,
-                                                     $x: String!,
-                                                     $y: String!,
-                                                     $mrsd: String!,
-                                                     $name: String!,
-                                                     $multiplier: Float!) {
+                                                      $x: String!,
+                                                      $y: String!,
+                                                      $mrsd: String!,
+                                                      $name: String!,
+                                                      $multiplier: Float!) {
                                                    startContinuousTreeParser(id: $id,
-                                                                        readableName: $name,
-                                                                        timescaleMultiplier: $multiplier,
-                                                                        xCoordinateAttributeName: $x,
-                                                                        yCoordinateAttributeName: $y,
-                                                                        mostRecentSamplingDate: $mrsd) {
+                                                                             readableName: $name,
+                                                                             timescaleMultiplier: $multiplier,
+                                                                             xCoordinateAttributeName: $x,
+                                                                             yCoordinateAttributeName: $y,
+                                                                             mostRecentSamplingDate: $mrsd) {
                                                      id
                                                      status
                                                      readableName

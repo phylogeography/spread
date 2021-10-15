@@ -225,7 +225,6 @@
                                        :mostRecentSamplingDate   {:type String}}
                          :resolve     :mutation/updateContinuousTree}
 
-  ;; TODO
   :startContinuousTreeParser {:type        :ContinuousTree
                               :description "Starts executing a parser."
                               :args        {:id                       {:type (non-null ID)}
