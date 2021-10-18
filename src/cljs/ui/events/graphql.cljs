@@ -155,11 +155,7 @@
 (defmethod handler :update-continuous-tree
   [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
   ;; NOTE : parse date to an internal representation
-  (let [most-recent-sampling-date (when most-recent-sampling-date
-                                    (new js/Date most-recent-sampling-date))]
-    {:db (-> db
-             (update-in [:analysis id] merge analysis)
-             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
+  {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
 (defmethod handler :start-continuous-tree-parser
   [{:keys [db]} _ {:keys [id] :as analysis}]

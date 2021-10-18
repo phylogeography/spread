@@ -16,8 +16,7 @@
 
 (defn s3-log-file-upload [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
-    {;;:db         (assoc-in db [:new-analysis :bayes-factor :upload-status] "UPLOADING")
-     ::s3/upload {:url             url
+    {::s3/upload {:url             url
                   :data            data
                   :on-success      #(>evt [:bayes-factor/log-file-upload-success {:url      url
                                                                                   :filename filename}])
