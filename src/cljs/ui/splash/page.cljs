@@ -5,6 +5,7 @@
             [reagent-material-ui.core.card :refer [card]]
             [reagent-material-ui.core.card-content :refer [card-content]]
             [reagent-material-ui.core.card-header :refer [card-header]]
+            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.divider :refer [divider]]
             [reagent-material-ui.core.grid :refer [grid]]
             [reagent-material-ui.core.typography :refer [typography]]
@@ -62,28 +63,31 @@
                                                                 (>evt [:splash/send-google-verification-code code redirect-uri])
                                                                 nil))))
         classes                          (use-styles)]
-    [grid {:class-name  (:root classes)
-           :container   true
-           :spacing     0
-           :align-items "center"
-           :justify     "center"}
-     [card {:class-name (:card classes)}
-      [:div {:class-name (:centered classes)}
-       [card-header {:class-name (:header classes)
-                     :avatar     (reagent/as-element [avatar {:alt     "spread"
-                                                              :variant "square"
-                                                              :src     (arg->icon (:spread icons))}])
-                     :title      (reagent/as-element [typography {:class-name (:typography classes)}
-                                                      "Spread"])}]]
-      [divider {:variant "fullWidth"}]
-      [card-content {:class-name (:centered classes)}
-       [:div {:class-name (:middle classes)}
-        [button {:class-name (:button classes)
-                 :variant    "contained"
-                 :start-icon (reagent/as-element [:img {:src (arg->icon (:google icons))}])
-                 :href       (str "https://accounts.google.com/o/oauth2/v2/auth"
-                            "?client_id=" client-id
-                            "&scope=email%20profile"
-                            "&response_type=code"
-                            "&redirect_uri=" (utils/url-encode redirect-uri))}
-         "Continue with Google"]]]]]))
+    (if (:auth query) ;; if we have :auth key on query means google is redirecting so show a loading-spinner
+      [:div.loading-spinner
+       [circular-progress {:size 100}]]
+      [grid {:class-name  (:root classes)
+             :container   true
+             :spacing     0
+             :align-items "center"
+             :justify     "center"}
+       [card {:class-name (:card classes)}
+        [:div {:class-name (:centered classes)}
+         [card-header {:class-name (:header classes)
+                       :avatar     (reagent/as-element [avatar {:alt     "spread"
+                                                                :variant "square"
+                                                                :src     (arg->icon (:spread icons))}])
+                       :title      (reagent/as-element [typography {:class-name (:typography classes)}
+                                                        "Spread"])}]]
+        [divider {:variant "fullWidth"}]
+        [card-content {:class-name (:centered classes)}
+         [:div {:class-name (:middle classes)}
+          [button {:class-name (:button classes)
+                   :variant    "contained"
+                   :start-icon (reagent/as-element [:img {:src (arg->icon (:google icons))}])
+                   :href       (str "https://accounts.google.com/o/oauth2/v2/auth"
+                                    "?client_id=" client-id
+                                    "&scope=email%20profile"
+                                    "&response_type=code"
+                                    "&redirect_uri=" (utils/url-encode redirect-uri))}
+           "Continue with Google"]]]]])))

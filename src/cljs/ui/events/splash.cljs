@@ -1,6 +1,7 @@
 (ns ui.events.splash
   (:require [taoensso.timbre :as log]
-            [ui.auth :as auth]))
+            [ui.auth :as auth]
+            [ui.events.general :refer [initial-user-data-query]]))
 
 (defn initialize-page [{:keys [localstorage]}]
   ;; if no token or expired stay at page, else navigate to the home page
@@ -23,11 +24,13 @@
                                   }"
                               :variables {:googleCode code :redirectUri redirect-uri}}]})
 
-;; TODO : this event likely should also connect the WS and getAuthorizedUser
-;; to popultate left pane and the header with user data
+
+;; TODO : this event likely should also connect the WS
 ;; see general/initialize
 (defn login-success [{:keys [localstorage]} [_ access-token]]
   (log/debug "login success" {:access-token access-token})
   ;; saves token in browser localstorage and navigates to the home page
   {:localstorage (assoc localstorage :access-token access-token)
-   :dispatch     [:router/navigate :route/home]})
+   ;; retrieve user initial data and navigate home
+   :dispatch-n   [[:graphql/query {:query initial-user-data-query}]
+                  [:router/navigate :route/home]]})
