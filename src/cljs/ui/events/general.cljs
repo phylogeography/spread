@@ -18,36 +18,35 @@
   {:localstorage (dissoc localstorage :access-token)
    :dispatch     [:router/navigate :route/splash]})
 
-;; FIXME : there is a problem here, immeditaely after logging
-;; the token is not persisted
-;; and the requests for user data fail
-(defn initialize [{:keys [db]} [_ config]]
-  {:db             (assoc db :config config)
-   :dispatch-n
-   [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
-                                   :format     :json
-                                   :on-connect [:graphql/ws-authorize
-                                                {:on-timeout [:graphql/ws-authorize-failed]}]
-                                   :protocols  ["graphql-ws"]}]
-    [:graphql/query {:query
-                     "query SearchAnalysis {
-                        getAuthorizedUser {
-                          id
-                          email
-                        }
-                        getUserAnalysis {
-                          id
-                          ofType
-                          readableName
-                          status
-                          error
-                          isNew
-                          createdOn
-                        }
-                      }"}]]
-   :forward-events {:register    :active-page-changed
-                    :events      #{:router/active-page-changed}
-                    :dispatch-to [:general/active-page-changed]}})
+(def initial-user-data-query "query SearchAnalysis {
+                                        getAuthorizedUser {
+                                          id
+                                          email
+                                        }
+                                        getUserAnalysis {
+                                          id
+                                          ofType
+                                          readableName
+                                          status
+                                          error
+                                          isNew
+                                          createdOn
+                                        }
+                                      }")
+
+(defn initialize [{:keys [db localstorage]} [_ config]]
+  (let [{:keys [access-token]} localstorage]
+    {:db             (assoc db :config config)
+     :dispatch-n (cond-> [[:websocket/connect socket-id {:url        (-> config :graphql :ws-url)
+                                                         :format     :json
+                                                         :on-connect [:graphql/ws-authorize
+                                                                      {:on-timeout [:graphql/ws-authorize-failed]}]
+                                                         :protocols  ["graphql-ws"]}]]
+                   ;; if we are authenticated we can retrieve user data
+                   access-token (into [[:graphql/query {:query initial-user-data-query}]]))
+     :forward-events {:register    :active-page-changed
+                      :events      #{:router/active-page-changed}
+                      :dispatch-to [:general/active-page-changed]}}))
 
 (defn set-search [{:keys [db]} [_ text]]
   {:db (assoc db :search text)})
