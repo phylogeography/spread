@@ -70,8 +70,7 @@
 
                   (#{:subscription} proto)
                   (let [xform         (filter (fn [msg]
-                                                (or
-                                                  (= (:id msg) id))))
+                                                (= (:id msg) id)))
                         response-chan (async/tap mult (async/chan 1 xform))]
                     (async/go-loop []
                       (when-some [{:keys [close] :as response} (async/<! response-chan)]

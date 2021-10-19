@@ -4,7 +4,7 @@
 
 (defn initialize-page [{:keys [localstorage]}]
   ;; if no token or expired stay at page, else navigate to the home page
-  (if-let [access-token (:access-token localstorage)]
+  (when-let [access-token (:access-token localstorage)]
     (let [{:keys [exp]} (auth/decode-token access-token)]
       ;; NOTE: if the token is not expired navigate to home
       ;; this does nothing to check the token validity

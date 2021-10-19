@@ -153,7 +153,7 @@
            (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :update-continuous-tree
-  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  [{:keys [db]} _ {:keys [id] :as analysis}]
   ;; NOTE : parse date to an internal representation
   {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
