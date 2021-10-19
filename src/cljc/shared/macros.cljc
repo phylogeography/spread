@@ -25,9 +25,6 @@
                                                         (ex-data error#)
                                                         ~(compiletime-info &env &form *ns*))))))
 
-(defmacro slurpit [path]
-  (clojure.core/slurp path))
-
 (defmacro try-catch [& body]
   `(try
      ~@body

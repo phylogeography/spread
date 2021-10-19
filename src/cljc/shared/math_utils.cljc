@@ -64,7 +64,7 @@
         ;; a line perp to `line` that pass thru its center
         center-perp (fn [x] (- (+ (* perp-m x) cy) (* cx perp-m)))
                 
-        length (sqrt (+ (pow (- x2 x1) 2) (pow (- y2 y1) 2)))
+        ;; length (sqrt (+ (pow (- x2 x1) 2) (pow (- y2 y1) 2)))
         
         ;; calculates focus x, a point that belongs to `center-perp` line and is at distance `k`
         ;; from `cx`,`cy`
