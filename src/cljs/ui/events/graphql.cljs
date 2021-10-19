@@ -7,7 +7,7 @@
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
-            [ui.utils :refer [>evt dispatch-n dissoc-in]]))
+            [ui.utils :refer [>evt dissoc-in]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -27,6 +27,14 @@
   (->> m
        (js->clj)
        (camel-snake-extras/transform-keys gql-name->kw)))
+
+(defn- with-safe-date
+  "turns YYYY/mm/dd representation to a js/Date that can be used with the date component
+   NOTE: we should revisit how we treat this argument to avoid going bakc and forth between representations"
+  [{:keys [most-recent-sampling-date] :as analysis}]
+  (let [js-date (when most-recent-sampling-date
+                  (new js/Date most-recent-sampling-date))]
+    (assoc analysis :most-recent-sampling-date js-date)))
 
 (defmulti handler
   (fn [_ key value]
@@ -127,150 +135,140 @@
   (reduce-handlers cofx values))
 
 (defmethod handler :upload-continuous-tree
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [id] :as analysis}]
   ;; start the status subscription for an ongoing analysis
   (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
-                                                           parserStatus(id: $id) {
-                                                             id
-                                                             status
-                                                             progress
-                                                             ofType
-                                                           }}"
+                                              parserStatus(id: $id) {
+                                                id
+                                                readableName
+                                                status
+                                                progress
+                                                ofType
+                                              }
+                                            }"
                                 :variables {:id id}}])
   {:db (-> db
            (assoc-in [:new-analysis :continuous-mcc-tree :id] id)
-           (assoc-in [:analysis id :status] status))})
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :update-continuous-tree
-  [{:keys [db]} _ {:keys [id status]}]
-  (when (= "ARGUMENTS_SET" status)
-    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                  startContinuousTreeParser(id: $id) {
-                                                    id
-                                                    status
-                                                }}"
-                                  :variables {:id id}}]]))
-
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  ;; NOTE : parse date to an internal representation
+  {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
 (defmethod handler :start-continuous-tree-parser
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
 (defmethod handler :get-continuous-tree
-  [{:keys [db]} _ {:keys [id attribute-names] :as tree}]
-  (let [active-analysis-id (-> db :new-analysis :continuous-mcc-tree :id)]
-    {:db (cond-> db
-           (= id active-analysis-id)
-           (assoc-in [:new-analysis :continuous-mcc-tree :attribute-names] attribute-names)
-
-           true
-           (update-in [:analysis id] merge tree))}))
+  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  (let [most-recent-sampling-date (when most-recent-sampling-date
+                                    (new js/Date most-recent-sampling-date))]
+    {:db (-> db
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 (defmethod handler :upload-discrete-tree
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [id] :as analysis}]
   (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
-                                                           parserStatus(id: $id) {
-                                                             id
-                                                             status
-                                                             progress
-                                                             ofType
-                                                           }}"
+                                                parserStatus(id: $id) {
+                                                  id
+                                                  readableName
+                                                  status
+                                                  progress
+                                                  ofType
+                                                }
+                                              }"
                                 :variables {:id id}}])
   {:db (-> db
+           ;; NOTE: id is the link between the ongoing analysis
+           ;; and what we store under the `:analysis` key
            (assoc-in [:new-analysis :discrete-mcc-tree :id] id)
-           (assoc-in [:analysis id :status] status))})
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :get-discrete-tree
-  [{:keys [db]} _ {:keys [id attribute-names] :as analysis}]
-  (let [active-analysis-id (-> db :new-analysis :discrete-mcc-tree :id)]
-    {:db (cond-> db
-           (= id active-analysis-id)
-           (assoc-in [:new-analysis :discrete-mcc-tree :attribute-names] attribute-names)
-
-           true
-           (update-in [:analysis id] merge analysis))}))
+  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  ;; NOTE : parse date to an internal representation
+  (let [most-recent-sampling-date (when most-recent-sampling-date
+                                    (new js/Date most-recent-sampling-date))]
+    {:db (-> db
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 (defmethod handler :update-discrete-tree
-  [{:keys [db]} _ {:keys [id status]}]
-  (when (= "ARGUMENTS_SET" status)
-    (dispatch-n [[:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                  startDiscreteTreeParser(id: $id) {
-                                                    id
-                                                    status
-                                                }
-                                              }"
-                                  :variables {:id id}}]]))
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id most-recent-sampling-date] :as analysis}]
+  ;; NOTE : parse date to an internal representation
+  (let [most-recent-sampling-date (when most-recent-sampling-date
+                                    (new js/Date most-recent-sampling-date))]
+    {:db (-> db
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
 (defmethod handler :start-discrete-tree-parser
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge (with-safe-date analysis))})
 
 (defmethod handler :upload-bayes-factor-analysis
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [id] :as analysis}]
   (>evt [:graphql/subscription {:id        id
                                 :query     "subscription SubscriptionRoot($id: ID!) {
                                                            parserStatus(id: $id) {
                                                              id
+                                                             readableName
                                                              status
                                                              progress
                                                              ofType
                                                            }}"
                                 :variables {:id id}}])
   {:db (-> db
+           ;; NOTE: id is the link between the ongoing analysis
+           ;; and what we store under the `:analysis` key
            (assoc-in [:new-analysis :bayes-factor :id] id)
-           (assoc-in [:analysis id :status] status))})
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :update-bayes-factor-analysis
-  [{:keys [db]} _ {:keys [id status]}]
-  (when (= "ARGUMENTS_SET" status)
-    (>evt [:graphql/query {:query     "mutation QueueJob($id: ID!) {
-                                                startBayesFactorParser(id: $id) {
-                                                 id
-                                                 status
-                                                }
-                                              }"
-                           :variables {:id id}}]))
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id] :as analysis}]
   {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :start-bayes-factor-parser
-  [{:keys [db]} _ {:keys [id status]}]
-  {:db (assoc-in db [:analysis id :status] status)})
+  [{:keys [db]} _ {:keys [id] :as analysis}]
+  {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :parser-status
   [{:keys [db]} _ {:keys [id status of-type] :as parser}]
   (log/debug "parser-status handler" parser)
   (match [status of-type]
          ["ATTRIBUTES_PARSED" "CONTINUOUS_TREE"]
-         ;; if worker parsed attributes query them
-         ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
-         (when-not (-> db :new-analysis :continuous-mcc-tree :attribute-names)
-           (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
-                                                        getContinuousTree(id: $id) {
-                                                          id
-                                                          attributeNames
-                                                        }
-                                                      }"
-                                  :variables {:id id}}]))
+         ;; when worker has parsed attributes we can query them
+         (let [ongoing-analysis-id (-> db :new-analysis :continuous-mcc-tree :id)]
+           ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
+           (when-not (get-in db [:analysis ongoing-analysis-id :attribute-names])
+             (>evt [:graphql/query {:query     "query GetContinuousTree($id: ID!) {
+                                                  getContinuousTree(id: $id) {
+                                                    id
+                                                    attributeNames
+                                                  }
+                                                }"
+                                    :variables {:id id}}])))
 
          ["ATTRIBUTES_PARSED" "DISCRETE_TREE"]
          ;; if worker parsed attributes query them
          ;; NOTE : guard so that it does not continuosly query if the subscriptions is running
-         (when-not (-> db :new-analysis :discrete-mcc-tree :attribute-names)
-           (>evt [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
-                                                        getDiscreteTree(id: $id) {
-                                                          id
-                                                          attributeNames
-                                                        }
-                                                      }"
-                                  :variables {:id id}}]))
+         (let [ongoing-analysis-id (-> db :new-analysis :discrete-mcc-tree :id)]
+           (when-not (get-in db [:analysis ongoing-analysis-id :attribute-names])
+             (>evt [:graphql/query {:query     "query GetDiscreteTree($id: ID!) {
+                                                  getDiscreteTree(id: $id) {
+                                                    id
+                                                    attributeNames
+                                                  }
+                                                }"
+                                    :variables {:id id}}])))
 
          [(:or "SUCCEEDED" "ERROR") _]
          ;; if analysis ended stop the subscription
@@ -285,10 +283,9 @@
                     (assoc parser :new? true))})
 
 (defmethod handler :upload-time-slicer
-  [{:keys [db]} _ {:keys [id status]}]
+  [{:keys [db]} _ {:keys [continuous-tree-id] :as analysis}]
   {:db (-> db
-           (assoc-in [:new-analysis :continuous-mcc-tree :time-slicer-parser-id] id)
-           (assoc-in [:analysis id :status] status))})
+           (update-in [:analysis continuous-tree-id :time-slicer] merge analysis))})
 
 (defmethod handler :get-user-analysis
   [{:keys [db]} _ analysis]
@@ -324,7 +321,6 @@
 
 (defmethod handler :delete-user-account
   [{:keys [db]} _ {:keys [user-id]}]
-  ;; removes token
   (>evt [:general/logout])
   (>evt [:router/navigate :route/splash])
   {:db (-> db

@@ -6,8 +6,8 @@
 (def <sub (comp deref re-frame/subscribe))
 (def >evt re-frame/dispatch)
 
-(defn debounce [f interval]
-  (let [dbnc (Debouncer. f interval)]
+(defn debounce [f millis]
+  (let [dbnc (Debouncer. f millis)]
     (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))
 
 (defn url-encode

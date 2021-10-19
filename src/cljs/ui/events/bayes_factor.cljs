@@ -14,10 +14,9 @@
                                 :variables  {:filename fname :extension "log"}
                                 :on-success [:bayes-factor/s3-log-file-upload file-with-meta]}]}))
 
-(defn s3-log-file-upload [{:keys [db]} [_ {:keys [data filename]} response]]
+(defn s3-log-file-upload [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
-    {:db         (assoc-in db [:new-analysis :bayes-factor :upload-status] "UPLOADING")
-     ::s3/upload {:url             url
+    {::s3/upload {:url             url
                   :data            data
                   :on-success      #(>evt [:bayes-factor/log-file-upload-success {:url      url
                                                                                   :filename filename}])
@@ -52,26 +51,26 @@
                                      }
                                    }"
                                 :variables {:url locations-file-url}}]
-     :db (-> db
-             (dissoc-in [:new-analysis :bayes-factor :locations-file])
-             (dissoc-in [:new-analysis :bayes-factor :locations-file-url])
-             (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))}))
+     :db       (-> db
+                   (dissoc-in [:new-analysis :bayes-factor :locations-file])
+                   (dissoc-in [:new-analysis :bayes-factor :locations-file-url])
+                   (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))}))
 
-(defn log-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")
-        readable-name (first (string/split filename "."))]
-    {:dispatch [:graphql/query {:query     "mutation UploadBayesFactor($logUrl: String!) {
-                                                   uploadBayesFactorAnalysis(logFileUrl: $logUrl) {
+(defn log-file-upload-success [_ [_ {:keys [url filename]}]]
+  (let [[url _] (string/split url "?")]
+    {:dispatch [:graphql/query {:query     "mutation UploadBayesFactor($logUrl: String!,
+                                                                       $logFileName: String!) {
+                                                   uploadBayesFactorAnalysis(logFileUrl: $logUrl,
+                                                                             logFileName: $logFileName) {
                                                      id
                                                      status
+                                                     readableName
+                                                     logFileName
+                                                     createdOn
                                                   }
                                                 }"
-                                :variables {:logUrl url}}]
-     :db       (-> db
-                   (assoc-in [:new-analysis :bayes-factor :upload-status] "UPLOADED")
-                   (assoc-in [:new-analysis :bayes-factor :log-file] filename)
-                   ;; default name: file name root
-                   (assoc-in [:new-analysis :bayes-factor :readable-name] readable-name))}))
+                                :variables {:logUrl      url
+                                            :logFileName filename}}]}))
 
 (defn on-locations-file-selected [_ [_ file-with-meta]]
   (let [{:keys [filename]} file-with-meta
@@ -84,10 +83,9 @@
                                 :variables  {:filename fname :extension "txt"}
                                 :on-success [:bayes-factor/s3-locations-file-upload file-with-meta]}]}))
 
-(defn s3-locations-file-upload [{:keys [db]} [_ {:keys [data filename]} response]]
+(defn s3-locations-file-upload [_ [_ {:keys [data filename]} response]]
   (let [url (-> response :data :getUploadUrls first)]
-    {:db         (assoc-in db [:new-analysis :bayes-factor :status] "UPLOADING")
-     ::s3/upload {:url             url
+    {::s3/upload {:url             url
                   :data            data
                   :on-success      #(>evt [:bayes-factor/locations-file-upload-success {:url      url
                                                                                         :filename filename}])
@@ -100,35 +98,84 @@
   {:db (assoc-in db [:new-analysis :bayes-factor :locations-file-upload-progress] progress)})
 
 (defn locations-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _] (string/split url "?")]
-    {:db (-> db
-             (assoc-in [:new-analysis :bayes-factor :status] "UPLOADED")
-             (assoc-in [:new-analysis :bayes-factor :locations-file-url] url)
-             (assoc-in [:new-analysis :bayes-factor :locations-file] filename))}))
+  (let [[url _] (string/split url "?")
+        id      (get-in db [:new-analysis :bayes-factor :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateBayesFactor($id: ID!,
+                                                            $locationsFileName: String!,
+                                                            $locationsFileUrl: String!) {
+                                            updateBayesFactorAnalysis(id: $id,
+                                                                      locationsFileUrl: $locationsFileUrl,
+                                                                      locationsFileName: $locationsFileName) {
+                                                id
+                                                status
+                                                locationsFileUrl
+                                                locationsFileName
+                                              }
+                                            }"
+                                :variables {:id                id
+                                            :locationsFileName filename
+                                            :locationsFileUrl  url}}]}))
 
 (defn set-readable-name [{:keys [db]} [_ readable-name]]
-  {:db (assoc-in db [:new-analysis :bayes-factor :readable-name] readable-name)})
+  (let [id (get-in db [:new-analysis :bayes-factor :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateBayesFactor($id: ID!,
+                                                            $readableName: String!) {
+                                            updateBayesFactorAnalysis(id: $id,
+                                                                      readableName: $readableName) {
+                                                id
+                                                status
+                                                readableName
+                                              }
+                                            }"
+                                :variables {:id           id
+                                            :readableName readable-name}}]}))
 
 (defn set-burn-in [{:keys [db]} [_ burn-in]]
-  {:db (assoc-in db [:new-analysis :bayes-factor :burn-in] burn-in)})
-
-(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url burn-in]}]]
   (let [id (get-in db [:new-analysis :bayes-factor :id])]
-    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
-     :dispatch [:graphql/query {:query
+    {:dispatch [:graphql/query {:query
                                 "mutation UpdateBayesFactor($id: ID!,
-                                                            $name: String!,
-                                                            $locationsFileUrl: String!,
                                                             $burnIn: Float!) {
                                             updateBayesFactorAnalysis(id: $id,
-                                                                      readableName: $name,
-                                                                      locationsFileUrl: $locationsFileUrl,
                                                                       burnIn: $burnIn) {
                                                 id
                                                 status
+                                                burnIn
                                               }
                                             }"
-                                :variables {:id               id
-                                            :name             readable-name
-                                            :locationsFileUrl locations-file-url
-                                            :burnIn           burn-in}}]}))
+                                :variables {:id     id
+                                            :burnIn burn-in}}]}))
+
+(defn start-analysis [{:keys [db]} [_ {:keys [readable-name burn-in]}]]
+  (let [id (get-in db [:new-analysis :bayes-factor :id])]
+    {:dispatch-n [[:graphql/subscription {:id        id
+                                          :query
+                                          "subscription SubscriptionRoot($id: ID!) {
+                                             parserStatus(id: $id) {
+                                               id
+                                               status
+                                               progress
+                                               ofType
+                                             }
+                                           }"
+                                          :variables {"id" id}}]
+                  [:graphql/query {:query
+                                   "mutation QueueJob($id: ID!,
+                                                      $readableName: String!,
+                                                      $burnIn: Float!) {
+                                               startBayesFactorParser(id: $id
+                                                                      readableName: $readableName,
+                                                                      burnIn: $burnIn) {
+                                                 id
+                                                 status
+                                                 readableName
+                                                 burnIn
+                                               }
+                                             }"
+                                   :variables {:id           id
+                                               :readableName readable-name
+                                               :burnIn       burn-in}}]]}))
+
+(defn reset [{:keys [db]} _]
+  {:db (dissoc-in db [:new-analysis :bayes-factor])})

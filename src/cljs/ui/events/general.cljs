@@ -11,6 +11,7 @@
       :route/splash           {:dispatch [:splash/initialize-page]}
       :route/home             {:dispatch [:home/initialize-page]}
       :route/analysis-results {:dispatch [:analysis-results/initialize-page]}
+      :route/new-analysis     {:dispatch [:new-analysis/initialize-page]}
       nil)))
 
 (defn logout [{:keys [localstorage]}]
@@ -30,23 +31,89 @@
                                    :protocols  ["graphql-ws"]}]
     [:graphql/query {:query
                      "query SearchAnalysis {
-                                        getAuthorizedUser {
-                                          id
-                                          email
-                                        }
-                                        getUserAnalysis {
-                                          id
-                                          ofType
-                                          readableName
-                                          status
-                                          error
-                                          isNew
-                                          createdOn
-                                        }
-                                      }"}]]
+                        getAuthorizedUser {
+                          id
+                          email
+                        }
+                        getUserAnalysis {
+                          id
+                          ofType
+                          readableName
+                          status
+                          error
+                          isNew
+                          createdOn
+                        }
+                      }"}]]
    :forward-events {:register    :active-page-changed
                     :events      #{:router/active-page-changed}
                     :dispatch-to [:general/active-page-changed]}})
 
 (defn set-search [{:keys [db]} [_ text]]
   {:db (assoc db :search text)})
+
+(defn query-analysis [_ [_ {:keys [id of-type]}]]
+  {:dispatch [:graphql/query {:query (case (keyword of-type)
+                                       :CONTINUOUS_TREE
+                                       "query GetContinuousTree($id: ID!) {
+                                          getContinuousTree(id: $id) {
+                                            id
+                                            readableName
+                                            treeFileName
+                                            attributeNames
+                                            outputFileUrl
+                                            xCoordinateAttributeName
+                                            yCoordinateAttributeName
+                                            mostRecentSamplingDate
+                                            timeSlicer {
+                                              id
+                                              treesFileName
+                                            }
+                                            timescaleMultiplier
+                                            analysis {
+                                                viewerUrlParams
+                                            }
+                                          }
+                                        }"
+
+                                       :DISCRETE_TREE
+                                       "query GetDiscreteTree($id: ID!) {
+                                          getDiscreteTree(id: $id) {
+                                            id
+                                            readableName
+                                            treeFileName
+                                            locationsFileName
+                                            attributeNames
+                                            outputFileUrl
+                                            locationsAttributeName
+                                            mostRecentSamplingDate
+                                            timescaleMultiplier
+                                            analysis {
+                                              viewerUrlParams
+                                            }
+                                          }
+                                        }"
+
+                                       :BAYES_FACTOR_ANALYSIS
+                                       "query GetBayesFactorAnalysis($id: ID!) {
+                                          getBayesFactorAnalysis(id: $id) {
+                                            id
+                                            readableName
+                                            logFileName
+                                            locationsFileName
+                                            burnIn
+                                            bayesFactors {
+                                              from
+                                              to
+                                              bayesFactor
+                                              posteriorProbability
+                                            }
+                                            outputFileUrl
+                                            analysis {
+                                              viewerUrlParams
+                                            }
+                                          }
+                                        }"
+
+                                       nil)
+                              :variables {:id id}}]})

@@ -5,9 +5,10 @@
  :enums
  {:Status {:values [:OK]}
 
-  :AnalysisType   {:values [:CONTINUOUS_TREE
-                            :DISCRETE_TREE
-                            :BAYES_FACTOR_ANALYSIS]}
+  :AnalysisType {:values [:CONTINUOUS_TREE
+                          :DISCRETE_TREE
+                          :BAYES_FACTOR_ANALYSIS]}
+
   :AnalysisStatus {:values [:UPLOADED
                             :ATTRIBUTES_PARSED
                             :ARGUMENTS_SET
@@ -76,6 +77,7 @@
                                  :readableName             {:type String}
                                  :createdOn                {:type (non-null :BigInt)}
                                  :treeFileUrl              {:type (non-null String)}
+                                 :treeFileName             {:type (non-null String)}
                                  :xCoordinateAttributeName {:type String}
                                  :yCoordinateAttributeName {:type String}
                                  :timescaleMultiplier      {:type Float}
@@ -91,13 +93,14 @@
                                                             :resolve :resolve/tree->user-analysis}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
-                 :fields      {:id                     {:description "Unique identifier."
-                                                        :type        (non-null ID)}
+                 :fields      {:id                     {:type (non-null ID)}
                                :userId                 {:type (non-null ID)}
                                :readableName           {:type String}
                                :createdOn              {:type (non-null :BigInt)}
+                               :treeFileName           {:type (non-null String)}
                                :treeFileUrl            {:type (non-null String)}
-                               :locationsFileUrl       {:type (non-null String)}
+                               :locationsFileName      {:type String}
+                               :locationsFileUrl       {:type String}
                                :locationsAttributeName {:type String}
                                :timescaleMultiplier    {:type Float}
                                :mostRecentSamplingDate {:type String}
@@ -110,12 +113,13 @@
                                                         :resolve :resolve/tree->user-analysis}}}
 
   :TimeSlicer {:description "Represents TimeSlicer entity."
-               :fields      {:id                                 {:description "Unique identifier."
-                                                                  :type        (non-null ID)}
+               :fields      {:id                                 {:type (non-null ID)}
+                             :continuousTreeId                   {:type (non-null ID)}
                              :userId                             {:type (non-null ID)}
                              :readableName                       {:type String}
                              :createdOn                          {:type (non-null :BigInt)}
                              :treesFileUrl                       {:type (non-null String)}
+                             :treesFileName                      {:type (non-null String)}
                              :sliceHeightsFileUrl                {:type String}
                              :burnIn                             {:type Float}
                              :relaxedRandomWalkRateAttributeName {:type String}
@@ -140,21 +144,22 @@
                               :posteriorProbability {:type Float}}}
 
   :BayesFactorAnalysis {:description "Represents BayesFactorAnalysis entity."
-                        :fields      {:id               {:description "Unique identifier."
-                                                         :type        (non-null ID)}
-                                      :userId           {:type (non-null ID)}
-                                      :readableName     {:type String}
-                                      :createdOn        {:type (non-null :BigInt)}
-                                      :logFileUrl       {:type (non-null String)}
-                                      :locationsFileUrl {:type String}
-                                      :status           {:type (non-null :AnalysisStatus)}
-                                      :progress         {:type Float}
-                                      :burnIn           {:type Float}
-                                      :outputFileUrl    {:type String}
-                                      :analysis         {:type    (non-null :Analysis)
-                                                         :resolve :resolve/tree->user-analysis}
-                                      :bayesFactors     {:type    (list :BayesFactor)
-                                                         :resolve :resolve/bayes-factor-analysis->bayes-factors}}}}
+                        :fields      {:id                {:type (non-null ID)}
+                                      :userId            {:type (non-null ID)}
+                                      :readableName      {:type String}
+                                      :createdOn         {:type (non-null :BigInt)}
+                                      :logFileUrl        {:type (non-null String)}
+                                      :logFileName       {:type (non-null String)}
+                                      :locationsFileUrl  {:type String}
+                                      :locationsFileName {:type String}
+                                      :status            {:type (non-null :AnalysisStatus)}
+                                      :progress          {:type Float}
+                                      :burnIn            {:type Float}
+                                      :outputFileUrl     {:type String}
+                                      :analysis          {:type    (non-null :Analysis)
+                                                          :resolve :resolve/tree->user-analysis}
+                                      :bayesFactors      {:type    (list :BayesFactor)
+                                                          :resolve :resolve/bayes-factor-analysis->bayes-factors}}}}
 
  :queries
  {:ping {:type        :Pong
@@ -165,6 +170,7 @@
   :getAuthorizedUser {:type        :User
                       :description "Returns a current user. Does not need ID which is read from the Authorization header."
                       :resolve     :query/getAuthorizedUser}
+
   :getContinuousTree {:type        :ContinuousTree
                       :description "Returns a ContinuousTree entity by id."
                       :args        {:id {:type (non-null ID)}}
@@ -204,57 +210,68 @@
                   :args        {:files {:type (non-null (list :File))}}
                   :resolve     :mutation/getUploadUrls}
 
-  :uploadContinuousTree {:type        :ParserStatus
-                         :description "Persists continuous tree. Returns a ParserStatus with id."
-                         :args        {:readableName {:type String}
-                                       :treeFileUrl  {:type (non-null String)}}
+  :uploadContinuousTree {:type        :ContinuousTree
+                         :description "Persists continuous tree."
+                         :args        {:treeFileUrl  {:type (non-null String)}
+                                       :treeFileName {:type (non-null String)}}
                          :resolve     :mutation/uploadContinuousTree}
 
-  :updateContinuousTree {:type        :ParserStatus
+  :updateContinuousTree {:type        :ContinuousTree
                          :description "Updates the entity with settings for parsing the tree graph."
                          :args        {:id                       {:type (non-null ID)}
                                        :readableName             {:type String}
-                                       :xCoordinateAttributeName {:type (non-null String)}
-                                       :yCoordinateAttributeName {:type (non-null String)}
+                                       :xCoordinateAttributeName {:type String}
+                                       :yCoordinateAttributeName {:type String}
                                        :timescaleMultiplier      {:type Float}
-                                       :mostRecentSamplingDate   {:type (non-null String)}}
+                                       :mostRecentSamplingDate   {:type String}}
                          :resolve     :mutation/updateContinuousTree}
 
-  :startContinuousTreeParser {:type        :ParserStatus
-                              :description "Starts executing a parser. Returns a ParserStatus with id."
-                              :args        {:id {:type (non-null ID)}}
+  :startContinuousTreeParser {:type        :ContinuousTree
+                              :description "Starts executing a parser."
+                              :args        {:id                       {:type (non-null ID)}
+                                            :readableName             {:type String}
+                                            :xCoordinateAttributeName {:type String}
+                                            :yCoordinateAttributeName {:type String}
+                                            :timescaleMultiplier      {:type Float}
+                                            :mostRecentSamplingDate   {:type String}}
                               :resolve     :mutation/startContinuousTreeParser}
 
-  :uploadDiscreteTree {:type        :ParserStatus
-                       :description "Persists discrete tree. Returns a ParserStatus with id."
-                       :args        {:readableName     {:type String}
-                                     :treeFileUrl      {:type (non-null String)}
-                                     :locationsFileUrl {:type String}}
+  :uploadDiscreteTree {:type        :DiscreteTree
+                       :description "Persists discrete tree."
+                       :args        {:treeFileUrl  {:type (non-null String)}
+                                     :treeFileName {:type (non-null String)}}
                        :resolve     :mutation/uploadDiscreteTree}
 
-  :updateDiscreteTree {:type        :ParserStatus
+  :updateDiscreteTree {:type        :DiscreteTree
                        :description "Updates the entity with settings for parsing the tree graph."
                        :args        {:id                     {:type (non-null ID)}
                                      :readableName           {:type String}
                                      :locationsFileUrl       {:type String}
-                                     :locationsAttributeName {:type (non-null String)}
+                                     :locationsFileName      {:type String}
+                                     :locationsAttributeName {:type String}
                                      :timescaleMultiplier    {:type Float}
-                                     :mostRecentSamplingDate {:type (non-null String)}}
+                                     :mostRecentSamplingDate {:type String}}
                        :resolve     :mutation/updateDiscreteTree}
 
-  :startDiscreteTreeParser {:type        :ParserStatus
-                            :description "Starts executing a parser. Returns a ParserStatus with id."
-                            :args        {:id {:type (non-null ID)}}
+  :startDiscreteTreeParser {:type        :DiscreteTree
+                            :description "Starts executing a parser."
+                            :args        {:id                     {:type (non-null ID)}
+                                          :readableName           {:type String}
+                                          :locationsAttributeName {:type String}
+                                          :timescaleMultiplier    {:type Float}
+                                          :mostRecentSamplingDate {:type String}}
                             :resolve     :mutation/startDiscreteTreeParser}
 
-  :uploadTimeSlicer {:type        :ParserStatus
-                     :description "Persists continuous trees. Returns a ParserStatus with id."
+  :uploadTimeSlicer {:type        :TimeSlicer
+                     :description "Persists continuous trees."
                      :args        {:continuousTreeId    {:type (non-null ID)}
                                    :treesFileUrl        {:type (non-null String)}
-                                   :sliceHeightsFileUrl {:type String}}
+                                   :treesFileName        {:type (non-null String)}
+                                   :sliceHeightsFileUrl {:type String}
+                                   :sliceHeightsFileName {:type String}}
                      :resolve     :mutation/uploadTimeSlicer}
 
-  :updateTimeSlicer {:type        :ParserStatus
+  :updateTimeSlicer {:type        :TimeSlicer
                      :description "Updates the entity with settings for parsing."
                      :args        {:id                                 {:type (non-null ID)}
                                    :burnIn                             {:type Float}
@@ -267,27 +284,27 @@
                                    :mostRecentSamplingDate             {:type (non-null String)}}
                      :resolve     :mutation/updateTimeSlicer}
 
-  :uploadBayesFactorAnalysis {:type        :ParserStatus
-                              :description "Persists bayes factor trees. Returns a ParserStatus with id."
-                              :args        {:readableName      {:type String}
-                                            :logFileUrl        {:type (non-null String)}
-                                            :locationsFileUrl  {:type String}
-                                            :numberOfLocations {:type Int}
-                                            :burnIn            {:type Float}}
+  :uploadBayesFactorAnalysis {:type        :BayesFactorAnalysis
+                              :description "Persists bayes factor trees."
+                              :args        {:logFileUrl  {:type (non-null String)}
+                                            :logFileName {:type (non-null String)}}
                               :resolve     :mutation/uploadBayesFactorAnalysis}
 
-  :updateBayesFactorAnalysis {:type        :ParserStatus
+  :updateBayesFactorAnalysis {:type        :BayesFactorAnalysis
                               :description "Updates the entity with settings for parsing the tree graph."
                               :args        {:id                {:type (non-null ID)}
                                             :readableName      {:type String}
                                             :locationsFileUrl  {:type String}
+                                            :locationsFileName {:type String}
                                             :numberOfLocations {:type Int}
                                             :burnIn            {:type Float}}
                               :resolve     :mutation/updateBayesFactorAnalysis}
 
-  :startBayesFactorParser {:type        :ParserStatus
-                           :description "Starts executing a parser. Returns a ParserStatus with id."
-                           :args        {:id {:type (non-null ID)}}
+  :startBayesFactorParser {:type        :BayesFactorAnalysis
+                           :description "Starts executing a parser."
+                           :args        {:id           {:type (non-null ID)}
+                                         :readableName {:type String}
+                                         :burnIn       {:type Float}}
                            :resolve     :mutation/startBayesFactorParser}
 
   :touchAnalysis {:type        :TouchAnalysisReturnType

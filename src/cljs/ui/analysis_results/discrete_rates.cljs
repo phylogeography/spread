@@ -4,8 +4,8 @@
 (defn discrete-rates [{:keys [readable-name burn-in]}]
   [:div.field-table
    [:div.field-line
-    [:div.field-card 
-     [:h4 "Tree file"]
+    [:div.field-card
+     [:h4 "Log file"]
      [labeled-field {:label "Name" :text readable-name}]]]
    [:div.field-line
     [:div.field-card

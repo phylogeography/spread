@@ -7,20 +7,20 @@
 (defn tree-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress] progress)})
 
-(defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")
-        readable-name (first (string/split filename "."))]
-    {:dispatch [:graphql/query {:query     "mutation UploadContinuousTree($treeFileUrl: String!) {
-                                                uploadContinuousTree(treeFileUrl: $treeFileUrl) {
-                                                  id
-                                                  status
+(defn tree-file-upload-success [_ [_ {:keys [url filename]}]]
+  (let [[url _]       (string/split url "?")]
+    {:dispatch [:graphql/query {:query
+                                "mutation UploadContinuousTreeDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
+                                              uploadContinuousTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
+                                                id
+                                                status
+                                                readableName
+                                                treeFileName
+                                                createdOn
                                                 }
                                               }"
-                                :variables {:treeFileUrl url}}]
-     :db       (-> db
-                   (assoc-in [:new-analysis :continuous-mcc-tree :tree-file] filename)
-                   ;; default name: file name root
-                   (assoc-in [:new-analysis :continuous-mcc-tree :readable-name] readable-name))}))
+                                :variables {:treeFileUrl  url
+                                            :treeFileName filename}}]}))
 
 (defn delete-tree-file [{:keys [db]}]
   (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
@@ -81,17 +81,19 @@
   (let [[url _]            (string/split url "?")
         continuous-tree-id (get-in db [:new-analysis :continuous-mcc-tree :id])]
     {:dispatch [:graphql/query {:query
-                                "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
+                                "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!, $name: String!) {
                                                    uploadTimeSlicer(continuousTreeId: $continuousTreeId,
-                                                                    treesFileUrl: $url) {
+                                                                    treesFileUrl: $url,
+                                                                    treesFileName: $name) {
                                                      id
+                                                     continuousTreeId
                                                      status
+                                                     treesFileName
                                                    }
                                                 }"
                                 :variables {:url              url
-                                            :continuousTreeId continuous-tree-id}}]
-     :db       (-> db
-                   (assoc-in [:new-analysis :continuous-mcc-tree :trees-file] filename))}))
+                                            :name             filename
+                                            :continuousTreeId continuous-tree-id}}]}))
 
 (defn trees-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :trees-file-upload-progress] progress)})
@@ -110,48 +112,126 @@
                    (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file])
                    (dissoc-in [:new-analysis :continuous-mcc-tree :trees-file-upload-progress]))}))
 
-(defn start-analysis [{:keys [db]} [_ {:keys [readable-name y-coordinate x-coordinate
-                                              most-recent-sampling-date time-scale-multiplier]}]]
+(defn set-readable-name [{:keys [db]} [_ readable-name]]
   (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
-    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
-     :dispatch [:graphql/query {:query
+    {:dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
-                                                     $x: String!,
-                                                     $y: String!,
-                                                     $mrsd: String!,
-                                                     $name: String!,
-                                                     $multiplier: Float!) {
+                                                     $readableName: String!) {
                                                    updateContinuousTree(id: $id,
-                                                                        readableName: $name,
-                                                                        timescaleMultiplier: $multiplier,
-                                                                        xCoordinateAttributeName: $x,
-                                                                        yCoordinateAttributeName: $y,
-                                                                        mostRecentSamplingDate: $mrsd) {
+                                                                        readableName: $readableName) {
                                                      id
                                                      status
+                                                     readableName
                                                    }
                                               }"
-                                :variables {:id         id
-                                            :x          x-coordinate
-                                            :y          y-coordinate
-                                            :multiplier time-scale-multiplier
-                                            :name       readable-name
-                                            :mrsd       (time/format most-recent-sampling-date)}}]}))
-
-(defn set-readable-name [{:keys [db]} [_ readable-name]]
-  {:db (assoc-in db [:new-analysis :continuous-mcc-tree :readable-name] readable-name)})
+                                :variables {:id           id
+                                            :readableName readable-name}}]}))
 
 (defn set-y-coordinate [{:keys [db]} [_ attribute-name]]
-  {:db (assoc-in db [:new-analysis :continuous-mcc-tree :y-coordinate] attribute-name)})
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $y: String!) {
+                                                   updateContinuousTree(id: $id,
+                                                                        yCoordinateAttributeName: $y) {
+                                                     id
+                                                     status
+                                                     yCoordinateAttributeName
+                                                   }
+                                              }"
+                                :variables {:id id
+                                            :y  attribute-name}}]}))
 
 (defn set-x-coordinate [{:keys [db]} [_ attribute-name]]
-  {:db (assoc-in db [:new-analysis :continuous-mcc-tree :x-coordinate] attribute-name)})
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $x: String!) {
+                                                   updateContinuousTree(id: $id,
+                                                                        xCoordinateAttributeName: $x) {
+                                                     id
+                                                     status
+                                                     xCoordinateAttributeName
+                                                   }
+                                              }"
+                                :variables {:id id
+                                            :x  attribute-name}}]}))
 
 (defn set-most-recent-sampling-date [{:keys [db]} [_ date]]
-  {:db (assoc-in db [:new-analysis :continuous-mcc-tree :most-recent-sampling-date] date)})
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $mostRecentSamplingDate: String!) {
+                                   updateContinuousTree(id: $id,
+                                                        mostRecentSamplingDate: $mostRecentSamplingDate) {
+                                     id
+                                     status
+                                     mostRecentSamplingDate
+                                   }
+                                 }"
+                                :variables {:id                     id
+                                            :mostRecentSamplingDate (time/format date)}}]}))
 
 (defn set-time-scale-multiplier [{:keys [db]} [_ value]]
-  {:db (cond-> db
-         true                           (assoc-in [:new-analysis :continuous-mcc-tree :time-scale-multiplier] value)
-         (> value 0)                    (dissoc-in [:new-analysis :continuous-mcc-tree :errors :time-scale-multiplier])
-         (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :continuous-mcc-tree :errors :time-scale-multiplier] "Set positive value"))})
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+    (merge {:db (cond-> db
+                  true                           (assoc-in [:analysis id :timescale-multiplier] value)
+                  (> value 0)                    (dissoc-in [:new-analysis :continuous-mcc-tree :errors :timescale-multiplier])
+                  (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :continuous-mcc-tree :errors :timescale-multiplier] "Set positive value"))}
+           (when (> value 0)
+             {:dispatch [:graphql/query {:query
+                                         "mutation UpdateTree($id: ID!,
+                                                              $timescaleMultiplier: Float!) {
+                                            updateContinuousTree(id: $id,
+                                                                 timescaleMultiplier: $timescaleMultiplier) {
+                                              id
+                                              status
+                                              timescaleMultiplier
+                                              mostRecentSamplingDate
+                                            }
+                                          }"
+                                         :variables {:id                  id
+                                                     :timescaleMultiplier value}}]}))))
+
+(defn start-analysis [{:keys [db]} [_ {:keys [readable-name
+                                              y-coordinate-attribute-name x-coordinate-attribute-name
+                                              most-recent-sampling-date timescale-multiplier]}]]
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+    {:dispatch-n [[:graphql/subscription {:id        id
+                                          :query     "subscription SubscriptionRoot($id: ID!) {
+                                                        parserStatus(id: $id) {
+                                                          id
+                                                          status
+                                                          progress
+                                                          ofType
+                                                        }
+                                                      }"
+                                          :variables {"id" id}}]
+                  [:graphql/query {:query
+                                   "mutation QueueJob($id: ID!,
+                                                      $x: String!,
+                                                      $y: String!,
+                                                      $mrsd: String!,
+                                                      $name: String!,
+                                                      $multiplier: Float!) {
+                                                   startContinuousTreeParser(id: $id,
+                                                                             readableName: $name,
+                                                                             timescaleMultiplier: $multiplier,
+                                                                             xCoordinateAttributeName: $x,
+                                                                             yCoordinateAttributeName: $y,
+                                                                             mostRecentSamplingDate: $mrsd) {
+                                                     id
+                                                     status
+                                                     readableName
+                                                     timescaleMultiplier
+                                                     xCoordinateAttributeName
+                                                     yCoordinateAttributeName
+                                                     mostRecentSamplingDate
+                                                   }
+                                              }"
+                                   :variables {:id         id
+                                               :x          x-coordinate-attribute-name
+                                               :y          y-coordinate-attribute-name
+                                               :multiplier timescale-multiplier
+                                               :name       readable-name
+                                               :mrsd       (time/format most-recent-sampling-date)}}]]}))

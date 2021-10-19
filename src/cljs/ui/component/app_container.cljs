@@ -1,16 +1,18 @@
 (ns ui.component.app-container
   (:require ["react" :as react]
             [re-frame.core :as re-frame]
+            [reagent-material-ui.core.avatar :refer [avatar]]
             [reagent-material-ui.core.icon-button :refer [icon-button]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.menu :refer [menu]]
             [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.typography :refer [typography]]
             [reagent.core :as reagent]
-            [shared.components :refer [collapsible-tab spread-logo button]]
-            [ui.component.icon :refer [icons]]
+            [shared.components :refer [button collapsible-tab spread-logo]]
+            [ui.component.icon :refer [arg->icon icons]]
             [ui.component.search :refer [search-bar]]
-            [ui.format :refer [format-percentage]]            
+            [ui.format :refer [format-percentage]]
+            [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
 
@@ -18,9 +20,15 @@
                   "DISCRETE_TREE"         "Discrete: MCC tree"
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
+
+(def type->tab {"CONTINUOUS_TREE"       "continuous-mcc-tree"
+                "DISCRETE_TREE"         "discrete-mcc-tree"
+                "BAYES_FACTOR_ANALYSIS" "discrete-rates"})
+
 (defn completed-menu-item [_]
-  (let [menu-open? (reagent/atom false)]
-    (fn [{:keys [id readable-name of-type status new?]}]      
+  (let [menu-open?  (reagent/atom false)
+        active-page (re-frame/subscribe [::router.subs/active-page])]
+    (fn [{:keys [id readable-name of-type status new?]}]
       (let [badge-text (cond
                          (= status "ERROR") "Error"
                          new?               "New")]
@@ -32,12 +40,12 @@
                                                                                    id
                                                                                    isNew
                                                                                  }
-                                                                               }"	                                                                          
+                                                                               }"
                                                                                         :variables {:analysisId id}}])])}
          [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
          [:div.badges (when badge-text [:span.badge badge-text])]
          [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
-         [:div {:style {:grid-area "menu"}
+         [:div {:style    {:grid-area "menu"}
                 :on-click #(swap! menu-open? not)}
           [:img {:src "icons/icn_kebab_menu.svg"}]]
          (when @menu-open?
@@ -45,7 +53,7 @@
             [:li {:on-click #()} "Edit"]
             [:li {:on-click #()} "Load different file"]
             [:li {:on-click #()} "Copy settings"]
-            [:li {:on-click #() #_(fn [event]
+            [:li {:on-click (fn [event]
                               (let [{active-route-name :name query :query} @active-page]
                                 (.stopPropagation event)
 
@@ -56,10 +64,10 @@
 
                                 (>evt [:graphql/query {:query
                                                        "mutation DeleteAnalysisMutation($analysisId: ID!) {
-                                                                                                  deleteAnalysis(id: $analysisId) {
-                                                                                                    id
-                                                                                                  }
-                                                                                                }"
+                                                                   deleteAnalysis(id: $analysisId) {
+                                                                     id
+                                                                   }
+                                                                 }"
                                                        :variables {:analysisId id}}])))}
              "Delete"]])]))))
 
@@ -73,34 +81,25 @@
 
         [collapsible-tab (cond-> {:id :completed
                                   :title "Completed data analysis"
-                                  :icon "icons/icn_previous_analysis.svg"                                  
+                                  :icon "icons/icn_previous_analysis.svg"
                                   :child [:div.completed
                                           [search-bar {:value       (or "" @search-term)
                                                        :on-change   #(>evt [:general/set-search %])
                                                        :placeholder "Search"}]
                                           (for [{:keys [id] :as item} items]
                                             ^{:key id}
-                                            [completed-menu-item (-> item
-                                                                     ;; TODO : for dev
-                                                                     #_(assoc :new? true)
-                                                                     #_(assoc :status "ERROR")
-                                                                     )
+                                            [completed-menu-item (-> item)
                                              {}])
                                           ]}
                            (> new-count 0) (assoc :badge-text (str new-count " New")
                                                   :badge-color "purple"))]))))
 
 (defn queued-menu-item [{:keys [readable-name of-type progress]}]
-  ;; TODO:
-  ;;     - implement pause/resume button
-  ;;     - minutes left
-  ;;     - delete button
-  ;;     - right top menu
   [:div.queued-menu-item
    [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
    [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
    [:div {:style {:grid-area "menu"}} [:img {:src "icons/icn_kebab_menu.svg"}]]
-   [:div {:style {:grid-area "play-pause"}} [:img {:src "icons/pause.svg" #_"icons/pause.svg"}]]
+   [:div {:style {:grid-area "play-pause"}} [:img {:src "icons/pause.svg"}]]
    [:div {:style {:grid-area "delete"}} [:img {:src "icons/icn_delete.svg"}]]
    [:div.progress {:style {:grid-area "progress"}}
     [linear-progress {:value      (* 100 progress)
@@ -109,12 +108,12 @@
 
 (defn queue []
   (let [queued-analysis (re-frame/subscribe [::subs/queued-analysis])]
-    (fn []      
-      (let [items @queued-analysis            
+    (fn []
+      (let [items @queued-analysis
             queued-count (count items)]
         [collapsible-tab (cond-> {:id :queued
                                   :title "Queued"
-                                  :icon "icons/icn_queue.svg"                                
+                                  :icon "icons/icn_queue.svg"
                                   :child [:div.queued
                                           (map (fn [{:keys [id] :as item}]
                                                  ^{:key id} [queued-menu-item item])
@@ -142,10 +141,56 @@
                                               [:span.text sub-label]])
                                            items)]}]))
 
+(defn ongoing-menu-item [_]
+  (let [active-page (re-frame/subscribe [::router.subs/active-page])]
+    (fn [{:keys [id readable-name of-type]}]
+      (let [{:keys [tree-file-name]} @(re-frame/subscribe [::subs/analysis-results id])]
+        [:div.ongoing-menu-item.clickable {:on-click
+                                           #(>evt [:router/navigate :route/new-analysis nil {:tab (type->tab of-type) :id id}])}
+         [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name tree-file-name "Unknown")]
+         [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
+         [:div {:style {:grid-area "menu"}}
+          [icon-button {:size     :small
+                        :on-click (fn [event]
+                                    (let [{active-route-name :name query :query} @active-page]
+                                      (.stopPropagation event)
+
+                                      ;; if on results page for this analysis we need to nav back to home
+                                      (when (and (= :route/analysis-results  active-route-name)
+                                                 (= id (:id query)))
+                                        (>evt [:router/navigate :route/home]))
+
+                                      (>evt [:graphql/query {:query
+                                                             "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                                                   deleteAnalysis(id: $analysisId) {
+                                                                     id
+                                                                   }
+                                                                 }"
+                                                             :variables {:analysisId id}}])))}
+           [avatar {:alt     "delete"
+                    :variant "square"
+                    :src     (arg->icon (:delete icons))}]]]]))))
+
+(defn ongoing []
+  (let [ongoing-analysis (re-frame/subscribe [::subs/ongoing-analysis])]
+    (fn []
+      (let [items         @ongoing-analysis
+            ongoing-count (count @ongoing-analysis)]
+        [collapsible-tab (cond-> {:id :ongoing
+                                  :title "Ongoing data analysis"
+                                  :icon "icons/icn_upload.svg"
+                                  :child [:div.ongoing
+                                          (for [{:keys [id] :as item} items]
+                                            ^{:key id}
+                                            [ongoing-menu-item item])]}
+                           (> ongoing-count 0) (assoc :badge-text (str ongoing-count " Ongoing")
+                                                      :badge-color "purple"))]))))
+
 (defn main-menu []
   [:div.app-sidebar.panel
    [:div.collapsible-tabs
     [run-new]
+    [ongoing]
     [completed]
     [queue]]
    [:div.footer
@@ -216,6 +261,6 @@
      [header-logo]
      [header-menu]
      [:div.app-header-spacer-2]
-     [main-menu]     
+     [main-menu]
      [:div.app-body.panel
       child-page]]))

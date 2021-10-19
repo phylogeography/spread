@@ -2,6 +2,8 @@
   (:require [mount.core :as mount :refer [defstate]]
             [taoensso.timbre :as timbre]))
 
+(declare logging)
+
 (def ^:private timbre->devtools-level
   {:fatal js/console.error
    :error js/console.error

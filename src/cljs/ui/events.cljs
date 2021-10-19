@@ -9,6 +9,7 @@
    [ui.events.general :as events.general]
    [ui.events.graphql :as events.graphql]
    [ui.events.home :as events.home]
+   [ui.events.new-analysis :as events.new-analysis]
    [ui.events.router :as events.router]
    [ui.events.splash :as events.splash]
    [ui.events.utils :as events.utils]
@@ -51,6 +52,7 @@
 (reg-event-fx :general/initialize [(re-frame/inject-cofx :localstorage)] events.general/initialize)
 (reg-event-fx :general/logout [(re-frame/inject-cofx :localstorage)] events.general/logout)
 (reg-event-fx :general/set-search events.general/set-search)
+(reg-event-fx :general/query-analysis events.general/query-analysis)
 
 ;;;;;;;;;;;;;;;;;
 ;; Home events ;;
@@ -76,6 +78,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
+(re-frame/reg-event-fx :new-analysis/initialize-page events.new-analysis/initialize-page)
+(re-frame/reg-event-fx :new-analysis/initial-query events.new-analysis/initial-query)
 
 (re-frame/reg-event-fx :continuous-mcc-tree/on-tree-file-selected events.continuous-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :continuous-mcc-tree/upload-tree-file events.continuous-mcc-tree/upload-tree-file)
@@ -112,6 +116,7 @@
 (re-frame/reg-event-fx :discrete-mcc-tree/set-time-scale-multiplier events.discrete-mcc-tree/set-time-scale-multiplier)
 (re-frame/reg-event-fx :discrete-mcc-tree/start-analysis events.discrete-mcc-tree/start-analysis)
 (re-frame/reg-event-fx :discrete-mcc-tree/delete-locations-file events.discrete-mcc-tree/delete-locations-file)
+(re-frame/reg-event-fx :discrete-mcc-tree/reset events.discrete-mcc-tree/reset)
 
 (re-frame/reg-event-fx :bayes-factor/on-log-file-selected events.bayes-factor/on-log-file-selected)
 (re-frame/reg-event-fx :bayes-factor/s3-log-file-upload events.bayes-factor/s3-log-file-upload)
@@ -126,6 +131,7 @@
 (re-frame/reg-event-fx :bayes-factor/set-burn-in events.bayes-factor/set-burn-in)
 (re-frame/reg-event-fx :bayes-factor/set-readable-name events.bayes-factor/set-readable-name)
 (re-frame/reg-event-fx :bayes-factor/start-analysis events.bayes-factor/start-analysis)
+(re-frame/reg-event-fx :bayes-factor/reset events.bayes-factor/reset)
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Websockets events ;;

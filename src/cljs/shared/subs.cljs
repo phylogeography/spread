@@ -10,4 +10,4 @@
  :collapsible-tabs/open?
  :<- [:collapsible-tabs/tabs]
  (fn [tabs [_ tab-id]]
-   (get-in tabs [tab-id])))
+   (get tabs tab-id)))

@@ -19,7 +19,7 @@ services:
       MYSQL_ROOT_PASSWORD: Pa55w0rd
 
   sqs:
-    image: softwaremill/elasticmq:latest
+    image: softwaremill/elasticmq:1.2.1
     container_name: dev_sqs
     ports:
       - 127.0.0.1:9324:9324

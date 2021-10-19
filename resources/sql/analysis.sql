@@ -73,7 +73,7 @@ progress,
 is_new,
 viewer_url_params
 FROM analysis
-WHERE user_id = :user-id
+WHERE user_id = :user-id AND of_type <> "TIME_SLICER"
 
 -- :name touch-analysis :! :n
 -- :doc Mark analysis as seen by the user

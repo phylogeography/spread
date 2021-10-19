@@ -21,22 +21,28 @@
                                                                           :extension "tree"}]}})
                                          [:data :getUploadUrls])
 
-        _ (http/put trees-url {:body (io/file "src/test/resources/timeSlicer/WNV_small.trees")})
-        _ (http/put mcc-tree-url {:body (io/file "src/test/resources/timeSlicer/WNV_MCC.tre")})
+        trees-file-name "WNV_small.trees"
+        _               (http/put trees-url {:body (io/file (str "src/test/resources/timeSlicer/" trees-file-name))})
+
+        tree-filename "WNV_MCC.tre"
+        _             (http/put mcc-tree-url {:body (io/file (str "src/test/resources/timeSlicer/" tree-filename))})
+
+        url (-> mcc-tree-url (string/split  #"\?") first)
 
         {continuous-tree-id :id status :status}
-        (get-in (run-query {:query
-                            "mutation UploadTree($url: String!, $name: String!) {
-                                                   uploadContinuousTree(treeFileUrl: $url,
-                                                                        readableName: $name) {
-                                                     id
-                                                     status
-                                                   }
-                                                }"
-                            :variables {:name "WNV.tre"
-                                        :url  (-> mcc-tree-url
-                                                  (string/split  #"\?")
-                                                  first)}})
+        (get-in (run-query
+                  {:query
+                   "mutation UploadContinuousTreeDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
+                      uploadContinuousTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
+                        id
+                        status
+                        readableName
+                        treeFileName
+                        createdOn
+                      }
+                    }"
+                   :variables {:treeFileUrl  url
+                               :treeFileName tree-filename}})
                 [:data :uploadContinuousTree])
 
         _ (is (= :UPLOADED (keyword status)))
@@ -45,28 +51,33 @@
 
         {:keys [attributeNames]} (get-in (run-query {:query
                                                      "query GetTree($id: ID!) {
-                                                                            getContinuousTree(id: $id) {
-                                                                              id
-                                                                              status
-                                                                              attributeNames
-                                                                            }
-                                                                          }"
+                                                        getContinuousTree(id: $id) {
+                                                          id
+                                                          status
+                                                          attributeNames
+                                                        }
+                                                      }"
                                                      :variables {:id continuous-tree-id}})
                                          [:data :getContinuousTree])
 
         {status :status}
         (get-in (run-query {:query
-                            "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!) {
+                            "mutation UploadTimeSlicer($continuousTreeId: ID!, $url: String!, $name: String!) {
                                                    uploadTimeSlicer(continuousTreeId: $continuousTreeId,
-                                                                    treesFileUrl: $url) {
+                                                                    treesFileUrl: $url
+                                                                    treesFileName: $name) {
                                                      id
                                                      status
+                                                     continuousTreeId
+                                                     status
+                                                     treesFileName
                                                    }
                                                 }"
                             :variables {:url              (-> trees-url
                                                               (string/split  #"\?")
                                                               first)
-                                        :continuousTreeId continuous-tree-id}})
+                                        :continuousTreeId continuous-tree-id
+                                        :name             trees-file-name}})
                 [:data :uploadTimeSlicer])
 
         _ (is (= :UPLOADED (keyword status)))
@@ -118,11 +129,14 @@
                                        timeSlicer {
                                          id
                                          status
+                                         treesFileName
+                                         continuousTreeId
                                        }
                                      }
                                    }"
                             :variables {:id continuous-tree-id}})
-                [:data :getContinuousTree])]
+                [:data :getContinuousTree])
+        ]
 
     (log/debug "response" {:id         continuous-tree-id
                            :name       readableName
@@ -137,9 +151,15 @@
 
     (is (= :SUCCEEDED (-> timeSlicer :status keyword)))
 
+    (is (= continuous-tree-id (:continuousTreeId timeSlicer)))
+
+    (is (= trees-file-name (:treesFileName timeSlicer)))
+
     (is (= (:dd (time/now))
            (:dd (time/from-millis createdOn))))
 
     (is (= 1.0 progress))
 
-    (is outputFileUrl)))
+    (is outputFileUrl)
+
+    ))

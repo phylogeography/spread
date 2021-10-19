@@ -49,7 +49,7 @@ orbs:
           - run:
               name: Lint namespaces
               command: |
-                clojure -A:lint --lint src/clj
+                clojure -A:lint --lint src/clj src/cljc
               # working_directory: services/<< parameters.service >>
           - run:
               name: Build docker image
@@ -313,7 +313,7 @@ jobs:
             cat env/dev >> $BASH_ENV
             source $BASH_ENV
             echo "env: $SPREAD_ENV"
-      - attach_workspace:
+      - attach_workspace: # for libspread.jar
           at: target
       - attach_workspace:
           at: services
@@ -362,13 +362,9 @@ jobs:
             - run:
                 name: Install Clojure
                 command: |
-                  curl -O https://download.clojure.org/install/linux-install-1.10.1.536.sh
-                  chmod +x linux-install-1.10.1.536.sh
-                  sudo ./linux-install-1.10.1.536.sh
-            - run:
-                name: Print versions
-                command: |
-                  clojure -e '(println (System/getProperty "java.runtime.name") (System/getProperty "java.runtime.version") "\nClojure" (clojure-version))'
+                  curl -O https://download.clojure.org/install/linux-install-1.10.3.986.sh
+                  chmod +x linux-install-1.10.3.986.sh
+                  sudo ./linux-install-1.10.3.986.sh
             - run:
                 name: Run test suite
                 command: |

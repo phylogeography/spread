@@ -41,6 +41,14 @@
     (get analysis id)))
 
 (re-frame/reg-sub
+  ::ongoing-analysis
+  :<- [::sorted-analysis]
+  (fn [analysis]
+    (filter (fn [elem]
+              (#{"UPLOADED" "ATTRIBUTES_PARSED" "ARGUMENTS_SET"} (:status elem)))
+            analysis)))
+
+(re-frame/reg-sub
   ::completed-analysis
   :<- [::sorted-analysis]
   (fn [analysis]
@@ -80,7 +88,10 @@
 (re-frame/reg-sub
   ::continuous-mcc-tree
   (fn [db]
-    (get-in db [:new-analysis :continuous-mcc-tree])))
+    (let [ongoing-analysis (get-in db [:new-analysis :continuous-mcc-tree])
+          id               (:id ongoing-analysis)]
+      (merge ongoing-analysis
+             (get-in db [:analysis id])))))
 
 (re-frame/reg-sub
   ::continuous-mcc-tree-field-errors
@@ -90,7 +101,10 @@
 (re-frame/reg-sub
   ::discrete-mcc-tree
   (fn [db]
-    (get-in db [:new-analysis :discrete-mcc-tree])))
+    (let [ongoing-analysis (get-in db [:new-analysis :discrete-mcc-tree])
+          id               (:id ongoing-analysis)]
+      (merge ongoing-analysis
+             (get-in db [:analysis id])))))
 
 (re-frame/reg-sub
   ::discrete-mcc-tree-field-errors
@@ -100,7 +114,10 @@
 (re-frame/reg-sub
   ::bayes-factor
   (fn [db]
-    (get-in db [:new-analysis :bayes-factor])))
+    (let [ongoing-analysis (get-in db [:new-analysis :bayes-factor])
+          id               (:id ongoing-analysis)]
+      (merge ongoing-analysis
+             (get-in db [:analysis id])))))
 
 (re-frame/reg-sub
   ::bayes-factor-field-errors

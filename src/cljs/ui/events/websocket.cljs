@@ -74,7 +74,7 @@
 
 (defn subscription-closed [{:keys [db]} [_ socket-id subscription-id & more]]
   (let [path [::sockets socket-id :subscriptions subscription-id]]
-    (if-some [subscription (get-in db path)]
+    (when-some [subscription (get-in db path)]
       (cond-> {:db (dissoc-in db path)}
         (contains? subscription :on-close)
         (assoc :dispatch (concatv (:on-close subscription) more))))))

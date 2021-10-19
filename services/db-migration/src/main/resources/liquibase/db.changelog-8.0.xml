@@ -1,0 +1,46 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet author="filip" id="8.0-1">
+    <addColumn tableName="discrete_tree">
+      <column name="tree_file_name"
+              type="VARCHAR(50)">
+      </column>
+    </addColumn>
+    <addColumn tableName="discrete_tree">
+      <column name="locations_file_name"
+              type="VARCHAR(50)">
+      </column>
+    </addColumn>        
+  </changeSet>
+
+  <changeSet author="filip" id="8.0-2">
+    <addColumn tableName="bayes_factor_analysis">
+      <column name="log_file_name"
+              type="VARCHAR(50)">
+      </column>
+    </addColumn>
+    <addColumn tableName="bayes_factor_analysis">
+      <column name="locations_file_name"
+              type="VARCHAR(50)">
+      </column>
+    </addColumn>        
+  </changeSet>
+
+  <changeSet author="filip" id="8.0-3">
+    <addColumn tableName="continuous_tree">
+      <column name="tree_file_name"
+              type="VARCHAR(50)">
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="filip" id="8.0-4">
+    <addColumn tableName="time_slicer">
+      <column name="trees_file_name"
+              type="VARCHAR(50)">
+      </column>
+    </addColumn>
+  </changeSet>
+  
+</databaseChangeLog>

@@ -36,34 +36,40 @@
                                                          :extension "tree"}]}})
                         [:data :getUploadUrls])
 
-        _ (http/put url {:body (io/file "src/test/resources/continuous/speciesDiffusion.MCC.tre")})
+        filename "speciesDiffusion.MCC.tre"
 
-        {:keys [id status]} (get-in (run-query {:query
-                                                "mutation UploadTree($url: String!, $name: String!) {
-                                                   uploadContinuousTree(treeFileUrl: $url,
-                                                                        readableName: $name) {
-                                                     id
-                                                     status
-                                                   }
-                                                }"
-                                                :variables {:name "speciesDiffusion.MCC.tre"
-                                                            :url  (-> url
-                                                                      (string/split  #"\?")
-                                                                      first)}})
-                                    [:data :uploadContinuousTree])
+        _ (http/put url {:body (io/file (str "src/test/resources/continuous/" filename))})
+
+        url (-> url (string/split  #"\?") first)
+
+        {:keys [id status treeFileName]} (get-in (run-query
+                                                   {:query
+                                                    "mutation UploadContinuousTreeDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
+                                              uploadContinuousTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
+                                                id
+                                                status
+                                                readableName
+                                                treeFileName
+                                                createdOn
+                                                }
+                                              }"
+                                                    :variables {:treeFileUrl  url
+                                                                :treeFileName filename}})
+                                                 [:data :uploadContinuousTree])
 
         _ (is (= :UPLOADED (keyword status)))
+        _ (is (= filename treeFileName))
 
         _ (block-on-status id :ATTRIBUTES_PARSED)
 
         {:keys [id attributeNames]} (get-in (run-query {:query
                                                         "query GetTree($id: ID!) {
-                                                                            getContinuousTree(id: $id) {
-                                                                              id
-                                                                              status
-                                                                              attributeNames
-                                                                            }
-                                                                          }"
+                                                           getContinuousTree(id: $id) {
+                                                             id
+                                                             status
+                                                             attributeNames
+                                                           }
+                                                         }"
                                                         :variables {:id id}})
                                             [:data :getContinuousTree])
 
@@ -76,6 +82,7 @@
                                                                         xCoordinateAttributeName: $x,
                                                                         yCoordinateAttributeName: $y,
                                                                         mostRecentSamplingDate: $mrsd) {
+                                                     id
                                                      status
                                                    }
                                               }"
@@ -113,18 +120,21 @@
                                      }
                                    }"
                             :variables {:id id}})
-                [:data :getContinuousTree])]
+                [:data :getContinuousTree])
 
-    (log/debug "response" {:id         id
-                           :name       readableName
-                           :created-on createdOn
-                           :status     status
-                           :progress   progress })
+        ]
+
+    (log/debug "response" {:id              id
+                           :name            readableName
+                           :created-on      createdOn
+                           :status          status
+                           :progress        progress
+                           :output-file-url outputFileUrl})
 
     (is (= (:dd (time/now))
            (:dd (time/from-millis createdOn))))
 
-    (is (= "speciesDiffusion.MCC.tre" readableName))
+    (is (= "speciesDiffusion" readableName))
 
     (is #{"height" "height_95%_HPD" "height_median" "height_range"
           "length" "length_95%_HPD" "length_median" "length_range"
@@ -141,4 +151,6 @@
 
     (is (= 1.0 progress))
 
-    (is outputFileUrl)))
+    (is outputFileUrl)
+
+    ))

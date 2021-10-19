@@ -29,48 +29,48 @@
 (defn tree-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :discrete-mcc-tree :tree-file-upload-progress] progress)})
 
-(defn tree-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _]       (string/split url "?")
-        readable-name (first (string/split filename "."))]
-    {:dispatch [:graphql/query {:query     "mutation UploadDiscreteTree($treeFileUrl: String!) {
-                                                uploadDiscreteTree(treeFileUrl: $treeFileUrl) {
-                                                  id
-                                                  status
+(defn tree-file-upload-success [_ [_ {:keys [url filename]}]]
+  (let [[url _] (string/split url "?")]
+    {:dispatch [:graphql/query {:query     "mutation UploadDiscreteTree($treeFileUrl: String!, $treeFileName: String!) {
+                                              uploadDiscreteTree(treeFileUrl: $treeFileUrl, treeFileName: $treeFileName) {
+                                                id
+                                                status
+                                                readableName
+                                                treeFileName
+                                                createdOn
                                                 }
                                               }"
-                                :variables {:treeFileUrl url}}]
-     :db       (-> db
-                   (assoc-in [:new-analysis :discrete-mcc-tree :tree-file] filename)
-                   ;; default name: file name root
-                   (assoc-in [:new-analysis :discrete-mcc-tree :readable-name] readable-name))}))
+                                :variables {:treeFileUrl  url
+                                            :treeFileName filename}}]}))
 
 (defn delete-tree-file [{:keys [db]}]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
     {:dispatch [:graphql/query {:query
                                 "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                    deleteAnalysis(id: $analysisId) {
-                                          id
-                                        }
-                                     }"
+                                     id
+                                   }
+                                 }"
                                 :variables {:analysisId id}}]
-     :db       (dissoc-in db [:new-analysis :discrete-mcc-tree])}))
+     :db       (-> db
+                   (dissoc-in [:analysis id])
+                   (dissoc-in [:new-analysis :discrete-mcc-tree]))}))
 
 (defn delete-locations-file [{:keys [db]}]
-  ;; NOTE : we just delete the object from S3 and dissoc the app-db values
-  ;; there is no need to change the analysis settings in the DB as they are not set yet
-  ;; this happens only when the analysis is started
-  (let [{:keys [locations-file-url]} (get-in db [:new-analysis :discrete-mcc-tree])]
+  (let [id                           (get-in db [:new-analysis :discrete-mcc-tree :id])
+        {:keys [locations-file-url]} (get-in db [:new-analysis :discrete-mcc-tree])]
     {:dispatch [:graphql/query {:query
+                                ;; TODO : delete DB content too! [another mutation needed!]
                                 "mutation DeleteFile($url: String!) {
-                                     deleteFile(url: $url) {
-                                       key
-                                     }
-                                   }"
+                                   deleteFile(url: $url) {
+                                     key
+                                   }
+                                 }"
                                 :variables {:url locations-file-url}}]
      :db       (-> db
-                   (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file])
                    (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-url])
-                   (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-upload-progress]))}))
+                   (dissoc-in [:analysis id :locations-file])
+                   (dissoc-in [:analysis id :locations-file-upload-progress]))}))
 
 (defn on-locations-file-selected [_ [_ file-with-meta]]
   (let [{:keys [filename]} file-with-meta
@@ -78,8 +78,8 @@
         fname              (first splitted)]
     {:dispatch [:graphql/query {:query
                                 "mutation GetUploadUrls($filename: String!, $extension: String!) {
-                                     getUploadUrls(files: [ {name: $filename, extension: $extension }])
-                                   }"
+                                   getUploadUrls(files: [ {name: $filename, extension: $extension }])
+                                 }"
                                 :variables  {:filename fname :extension "txt"}
                                 :on-success [:discrete-mcc-tree/s3-locations-file-upload file-with-meta]}]}))
 
@@ -98,50 +98,129 @@
   {:db (assoc-in db [:new-analysis :discrete-mcc-tree :locations-file-upload-progress] progress)})
 
 (defn locations-file-upload-success [{:keys [db]} [_ {:keys [url filename]}]]
-  (let [[url _] (string/split url "?")]
-    {:db (-> db
-             (assoc-in [:new-analysis :discrete-mcc-tree :locations-file-url] url)
-             (assoc-in [:new-analysis :discrete-mcc-tree :locations-file] filename))}))
-
-(defn set-readable-name [{:keys [db]} [_ readable-name]]
-  {:db (assoc-in db [:new-analysis :discrete-mcc-tree :readable-name] readable-name)})
-
-(defn set-locations-attribute [{:keys [db]} [_ locations-attribute]]
-  {:db (assoc-in db [:new-analysis :discrete-mcc-tree :locations-attribute] locations-attribute)})
-
-(defn set-most-recent-sampling-date [{:keys [db]} [_ date]]
-  {:db (assoc-in db [:new-analysis :discrete-mcc-tree :most-recent-sampling-date] date)})
-
-(defn set-time-scale-multiplier [{:keys [db]} [_ value]]
-  {:db (cond-> db
-         true                           (assoc-in [:new-analysis :discrete-mcc-tree :time-scale-multiplier] value)
-         (> value 0)                    (dissoc-in [:new-analysis :discrete-mcc-tree :errors :time-scale-multiplier])
-         (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :discrete-mcc-tree :errors :time-scale-multiplier] "Set positive value"))})
-
-(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-file-url locations-attribute-name
-                                              most-recent-sampling-date time-scale-multiplier]}]]
-  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
-    {:db       (assoc-in db [:analysis id :readable-name] readable-name)
-     :dispatch [:graphql/query {:query
+  (let [[url _] (string/split url "?")
+        id      (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
                                 "mutation UpdateTree($id: ID!,
-                                                     $name: String!,
                                                      $locationsFileUrl: String!,
-                                                     $locationsAttributeName: String!,
-                                                     $multiplier: Float!,
-                                                     $mrsd: String!) {
+                                                     $locationsFileName: String!) {
                                                    updateDiscreteTree(id: $id,
-                                                                        readableName: $name,
-                                                                        locationsFileUrl: $locationsFileUrl,
-                                                                        locationsAttributeName: $locationsAttributeName,
-                                                                        timescaleMultiplier: $multiplier,
-                                                                        mostRecentSamplingDate: $mrsd) {
+                                                                      locationsFileUrl: $locationsFileUrl,
+                                                                      locationsFileName: $locationsFileName) {
                                                      id
                                                      status
+                                                     locationsFileUrl
+                                                     locationsFileName
+                                                   }
+                                              }"
+                                :variables {:id                id
+                                            :locationsFileUrl  url
+                                            :locationsFileName filename}}]}))
+
+(defn set-readable-name [{:keys [db]} [_ readable-name]]
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $readableName: String!) {
+                                                   updateDiscreteTree(id: $id,
+                                                                      readableName: $readableName) {
+                                                     id
+                                                     status
+                                                     readableName
+                                                   }
+                                              }"
+                                :variables {:id           id
+                                            :readableName readable-name}}]}))
+
+(defn set-locations-attribute [{:keys [db]} [_ locations-attribute]]
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $locationsAttributeName: String!) {
+                                                   updateDiscreteTree(id: $id,
+                                                                      locationsAttributeName: $locationsAttributeName) {
+                                                     id
+                                                     status
+                                                     locationsAttributeName
                                                    }
                                               }"
                                 :variables {:id                     id
-                                            :name                   readable-name
-                                            :locationsFileUrl       locations-file-url
-                                            :locationsAttributeName locations-attribute-name
-                                            :multiplier             time-scale-multiplier
-                                            :mrsd                   (time/format most-recent-sampling-date)}}]}))
+                                            :locationsAttributeName locations-attribute}}]}))
+
+(defn set-most-recent-sampling-date [{:keys [db]} [_ most-recent-sampling-date]]
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    {:dispatch [:graphql/query {:query
+                                "mutation UpdateTree($id: ID!,
+                                                     $mostRecentSamplingDate: String!) {
+                                   updateDiscreteTree(id: $id,
+                                                      mostRecentSamplingDate: $mostRecentSamplingDate) {
+                                     id
+                                     status
+                                     mostRecentSamplingDate
+                                   }
+                                 }"
+                                :variables {:id                     id
+                                            :mostRecentSamplingDate (time/format most-recent-sampling-date)}}]}))
+
+(defn set-time-scale-multiplier [{:keys [db]} [_ value]]
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    (merge {:db (cond-> db
+                  true                           (assoc-in [:analysis id :timescale-multiplier] value)
+                  (> value 0)                    (dissoc-in [:new-analysis :discrete-mcc-tree :errors :timescale-multiplier])
+                  (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :discrete-mcc-tree :errors :timescale-multiplier] "Set positive value"))}
+           (when (> value 0)
+             {:dispatch [:graphql/query {:query
+                                         "mutation UpdateTree($id: ID!,
+                                                              $timescaleMultiplier: Float!) {
+                                            updateDiscreteTree(id: $id,
+                                                               timescaleMultiplier: $timescaleMultiplier) {
+                                              id
+                                              status
+                                              timescaleMultiplier
+                                              mostRecentSamplingDate
+                                            }
+                                          }"
+                                         :variables {:id                  id
+                                                     :timescaleMultiplier value}}]}))))
+
+(defn start-analysis [{:keys [db]} [_ {:keys [readable-name locations-attribute-name
+                                              most-recent-sampling-date timescale-multiplier]}]]
+  (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
+    {:dispatch-n [[:graphql/subscription {:id        id
+                                          :query
+                                          "subscription SubscriptionRoot($id: ID!) {
+                                             parserStatus(id: $id) {
+                                               id
+                                               status
+                                               progress
+                                               ofType
+                                             }
+                                           }"
+                                          :variables {"id" id}}]
+                  [:graphql/query {:query
+                                   "mutation QueueJob($id: ID!,
+                                                      $readableName: String!,
+                                                      $locationsAttributeName: String!,
+                                                      $mostRecentSamplingDate: String!,
+                                                      $timescaleMultiplier: Float!) {
+                                               startDiscreteTreeParser(id: $id
+                                                                       readableName: $readableName,
+                                                                       locationsAttributeName: $locationsAttributeName,
+                                                                       mostRecentSamplingDate: $mostRecentSamplingDate,
+                                                                       timescaleMultiplier: $timescaleMultiplier) {
+                                                 id
+                                                 status
+                                                 readableName
+                                                 locationsAttributeName
+                                                 mostRecentSamplingDate
+                                                 timescaleMultiplier
+                                               }
+                                             }"
+                                   :variables {:id                     id
+                                               :readableName           readable-name
+                                               :locationsAttributeName locations-attribute-name
+                                               :timescaleMultiplier    timescale-multiplier
+                                               :mostRecentSamplingDate (time/format most-recent-sampling-date)}}]]}))
+
+(defn reset [{:keys [db]} _]
+  {:db (dissoc-in db [:new-analysis :discrete-mcc-tree])})

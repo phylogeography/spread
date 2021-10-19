@@ -10,6 +10,7 @@
             [aws.sqs :as aws-sqs]
             [aws.utils :refer [s3-url->id]]
             [clj-http.client :as http]
+            [clojure.string :as string]
             [shared.errors :as errors]
             [shared.time :as time]
             [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
@@ -61,13 +62,14 @@
       urls)))
 
 (defn upload-continuous-tree [{:keys [sqs workers-queue-url authed-user-id db]}
-                              {tree-file-url :treeFileUrl
-                               readable-name :readableName
-                               :as           args} _]
+                              {tree-file-url  :treeFileUrl
+                               tree-file-name :treeFileName
+                               :as            args} _]
   (log/info "upload-continuous-tree" {:user/id authed-user-id
                                       :args    args})
-  (let [id     (s3-url->id tree-file-url authed-user-id)
-        status :UPLOADED]
+  (let [id            (s3-url->id tree-file-url authed-user-id)
+        status        :UPLOADED
+        readable-name (first (string/split tree-file-name #"\."))]
     (try
       ;; TODO : in a transaction
       (analysis-model/upsert! db {:id            id
@@ -76,14 +78,14 @@
                                   :created-on    (time/millis (time/now))
                                   :status        status
                                   :of-type       :CONTINUOUS_TREE})
-      (continuous-tree-model/upsert! db {:id            id
-                                         :tree-file-url tree-file-url})
+      (continuous-tree-model/upsert! db {:id             id
+                                         :tree-file-url  tree-file-url
+                                         :tree-file-name tree-file-name})
       ;; sends message to the worker queue to parse hpd levels and attributes
       (aws-sqs/send-message sqs workers-queue-url {:message/type :continuous-tree-upload
                                                    :id           id
                                                    :user-id      authed-user-id})
-      {:id     id
-       :status status}
+      (clj->gql (continuous-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
@@ -93,12 +95,9 @@
                                 readable-name               :readableName
                                 x-coordinate-attribute-name :xCoordinateAttributeName
                                 y-coordinate-attribute-name :yCoordinateAttributeName
-                                hpd-level                   :hpdLevel
-                                has-external-annotations    :hasExternalAnnotations
                                 timescale-multiplier        :timescaleMultiplier
                                 most-recent-sampling-date   :mostRecentSamplingDate
-                                :or                         {has-external-annotations true
-                                                             timescale-multiplier     1.0}
+                                :or                         {timescale-multiplier     1.0}
                                 :as                         args} _]
   (log/info "update continuous tree" {:user/id authed-user-id
                                       :args    args})
@@ -108,62 +107,68 @@
       (continuous-tree-model/upsert! db {:id                          id
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
-                                         :hpd-level                   hpd-level
-                                         :has-external-annotations    has-external-annotations
                                          :timescale-multiplier        timescale-multiplier
                                          :most-recent-sampling-date   most-recent-sampling-date})
       (analysis-model/upsert! db {:id            id
                                   :readable-name readable-name
-                                  :status        status})
-      {:id     id
-       :status status})
+                                  :status        status}))
+    (clj->gql (continuous-tree-model/get-tree db {:id id}))
     (catch Exception e
       (log/error "Exception occured" {:error e})
       (errors/handle-analysis-error! db id e))))
 
 (defn start-continuous-tree-parser
-  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  [{:keys [db sqs workers-queue-url]} {id                          :id
+                                       readable-name               :readableName
+                                       x-coordinate-attribute-name :xCoordinateAttributeName
+                                       y-coordinate-attribute-name :yCoordinateAttributeName
+                                       timescale-multiplier        :timescaleMultiplier
+                                       most-recent-sampling-date   :mostRecentSamplingDate
+                                       :as                         args} _]
   (log/info "start-continuous-tree-parser" args)
   (let [status :QUEUED]
     (try
+      ;; TODO : in a tx
+      (continuous-tree-model/upsert! db {:id                          id
+                                         :readable-name               readable-name
+                                         :x-coordinate-attribute-name x-coordinate-attribute-name
+                                         :y-coordinate-attribute-name y-coordinate-attribute-name
+                                         :timescale-multiplier        timescale-multiplier
+                                         :most-recent-sampling-date   most-recent-sampling-date})
+      (analysis-model/upsert! db {:id     id
+                                  :status status})
       (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-continuous-tree
                                                    :id           id})
-      (continuous-tree-model/upsert! db {:id     id
-                                         :status status})
-      {:id     id
-       :status status}
+      (clj->gql (continuous-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
-                            {tree-file-url      :treeFileUrl
-                             locations-file-url :locationsFileUrl
-                             readable-name      :readableName
-                             :as                args} _]
+                            {tree-file-url  :treeFileUrl
+                             tree-file-name :treeFileName
+                             :as            args} _]
   (log/info "upload-discrete-tree" {:user/id authed-user-id
                                     :args    args})
-  (let [id     (s3-url->id tree-file-url authed-user-id)
-        ;; NOTE: uploads mutation generates different ids for each uploaded file
-        ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
-        status :UPLOADED]
+  (let [id (s3-url->id tree-file-url authed-user-id)]
     (try
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id            id
-                                  :user-id       authed-user-id
-                                  :readable-name readable-name
-                                  :created-on    (time/millis (time/now))
-                                  :status        status
-                                  :of-type       :DISCRETE_TREE})
-      (discrete-tree-model/upsert! db {:id                 id
-                                       :tree-file-url      tree-file-url
-                                       :locations-file-url locations-file-url})
-      ;; sends message to worker to parse attributes
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
-                                                   :id           id
-                                                   :user-id      authed-user-id})
-      {:id     id
-       :status status}
+      (let [status        :UPLOADED
+            readable-name (first (string/split tree-file-name #"\."))]
+        ;; TODO : in a transaction
+        (analysis-model/upsert! db {:id            id
+                                    :user-id       authed-user-id
+                                    :readable-name readable-name
+                                    :created-on    (time/millis (time/now))
+                                    :status        status
+                                    :of-type       :DISCRETE_TREE})
+        (discrete-tree-model/upsert! db {:id             id
+                                         :tree-file-url  tree-file-url
+                                         :tree-file-name tree-file-name})
+        ;; sends message to worker to parse attributes
+        (aws-sqs/send-message sqs workers-queue-url {:message/type :discrete-tree-upload
+                                                     :id           id
+                                                     :user-id      authed-user-id})
+        (clj->gql (discrete-tree-model/get-tree db {:id id})))
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
@@ -172,10 +177,11 @@
   [{:keys [authed-user-id db]} {id                        :id
                                 readable-name             :readableName
                                 locations-file-url        :locationsFileUrl
+                                locations-file-name       :locationsFileName
                                 locations-attribute-name  :locationsAttributeName
                                 timescale-multiplier      :timescaleMultiplier
                                 most-recent-sampling-date :mostRecentSamplingDate
-                                :or                       {timescale-multiplier 1}
+                                :or                       {timescale-multiplier 1.0}
                                 :as                       args} _]
   (log/info "update discrete tree" {:user/id authed-user-id
                                     :args    args})
@@ -184,38 +190,50 @@
       ;; in transaction
       (discrete-tree-model/upsert! db {:id                        id
                                        :locations-file-url        locations-file-url
+                                       :locations-file-name       locations-file-name
                                        :locations-attribute-name  locations-attribute-name
                                        :timescale-multiplier      timescale-multiplier
                                        :most-recent-sampling-date most-recent-sampling-date})
       (analysis-model/upsert! db {:id            id
                                   :readable-name readable-name
                                   :status        status})
-      {:id     id
-       :status status})
+      (clj->gql (discrete-tree-model/get-tree db {:id id})))
     (catch Exception e
       (log/error "Exception occured" {:error e})
       (errors/handle-analysis-error! db id e))))
 
 (defn start-discrete-tree-parser
-  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  [{:keys [db sqs workers-queue-url]} {id                        :id
+                                       readable-name             :readableName
+                                       locations-attribute-name  :locationsAttributeName
+                                       timescale-multiplier      :timescaleMultiplier
+                                       most-recent-sampling-date :mostRecentSamplingDate
+                                       :as                       args} _]
   (log/info "start-discrete-tree-parser" args)
   (let [status :QUEUED]
     (try
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-discrete-tree
-                                                   :id           id})
+      ;; TODO : in a tx
+      (discrete-tree-model/upsert! db {:id                        id
+                                       :readable-name             readable-name
+                                       :locations-attribute-name  locations-attribute-name
+                                       :timescale-multiplier      timescale-multiplier
+                                       :most-recent-sampling-date most-recent-sampling-date})
       (analysis-model/upsert! db {:id     id
                                   :status status})
-      {:id     id
-       :status status}
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-discrete-tree
+                                                   :id           id})
+      (clj->gql (discrete-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))
 
 (defn upload-time-slicer [{:keys [authed-user-id db]}
-                          {continuous-tree-id     :continuousTreeId
-                           trees-file-url         :treesFileUrl
-                           slice-heights-file-url :sliceHeightsFileUrl
-                           :as                    args} _]
+                          {continuous-tree-id      :continuousTreeId
+                           trees-file-url          :treesFileUrl
+                           trees-file-name         :treesFileName
+                           slice-heights-file-url  :sliceHeightsFileUrl
+                           slice-heights-file-name :sliceHeightsFileName
+                           :as                     args} _]
   (log/info "upload-time-slicer" {:user/id authed-user-id
                                   :args    args})
   (let [id     (s3-url->id trees-file-url authed-user-id)
@@ -227,13 +245,13 @@
                                   :created-on (time/millis (time/now))
                                   :status     status
                                   :of-type    :TIME_SLICER})
-      (time-slicer-model/upsert! db {:id                     id
-                                     :continuous-tree-id     continuous-tree-id
-                                     :trees-file-url         trees-file-url
-                                     :slice-heights-file-url slice-heights-file-url})
-      {:id                 id
-       :continuous-tree-id continuous-tree-id
-       :status             status}
+      (time-slicer-model/upsert! db {:id                      id
+                                     :continuous-tree-id      continuous-tree-id
+                                     :trees-file-url          trees-file-url
+                                     :trees-file-name         trees-file-name
+                                     :slice-heights-file-url  slice-heights-file-url
+                                     :slice-heights-file-name slice-heights-file-name})
+      (clj->gql (time-slicer-model/get-time-slicer db {:id id}))
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
@@ -275,34 +293,26 @@
       (errors/handle-analysis-error! db id e))))
 
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
-                                    {log-file-url        :logFileUrl
-                                     locations-file-url  :locationsFileUrl
-                                     readable-name       :readableName
-                                     number-of-locations :numberOfLocations
-                                     burn-in             :burnIn
-                                     :or                 {burn-in 0.1}
-                                     :as                 args} _]
+                                    {log-file-url  :logFileUrl
+                                     log-file-name :logFileName
+                                     :as           args} _]
   (log/info "upload-bayes-factor" {:user/id authed-user-id
                                    :args    args})
-  (let [id     (s3-url->id log-file-url authed-user-id)
-        ;; NOTE: uploads mutation generates different ids for each uploaded file
-        ;; _ (assert (= id (s3-url->id locations-file-url bucket-name authed-user-id)))
-        status :UPLOADED]
+  (let [id (s3-url->id log-file-url authed-user-id)]
     (try
-      ;; TODO : in a transaction
-      (analysis-model/upsert! db {:id            id
-                                  :user-id       authed-user-id
-                                  :readable-name readable-name
-                                  :created-on    (time/millis (time/now))
-                                  :status        status
-                                  :of-type       :BAYES_FACTOR_ANALYSIS})
-      (bayes-factor-model/upsert! db {:id                  id
-                                      :log-file-url        log-file-url
-                                      :locations-file-url  locations-file-url
-                                      :number-of-locations number-of-locations
-                                      :burn-in             burn-in})
-      {:id     id
-       :status status}
+      (let [status        :UPLOADED
+            readable-name (first (string/split log-file-name #"\."))]
+        ;; TODO : in a transaction
+        (analysis-model/upsert! db {:id            id
+                                    :user-id       authed-user-id
+                                    :readable-name readable-name
+                                    :created-on    (time/millis (time/now))
+                                    :status        status
+                                    :of-type       :BAYES_FACTOR_ANALYSIS})
+        (bayes-factor-model/upsert! db {:id            id
+                                        :log-file-url  log-file-url
+                                        :log-file-name log-file-name})
+        (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
       (catch Exception e
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)))))
@@ -311,6 +321,7 @@
   [{:keys [authed-user-id db]} {id                  :id
                                 readable-name       :readableName
                                 locations-file-url  :locationsFileUrl
+                                locations-file-name :locationsFileName
                                 number-of-locations :numberOfLocations
                                 burn-in             :burnIn
                                 :or                 {burn-in 0.1}
@@ -322,28 +333,34 @@
       ;; TODO : in a transaction
       (bayes-factor-model/upsert! db {:id                  id
                                       :locations-file-url  locations-file-url
+                                      :locations-file-name locations-file-name
                                       :number-of-locations number-of-locations
                                       :burn-in             burn-in})
       (analysis-model/upsert! db {:id            id
                                   :readable-name readable-name
                                   :status        status})
-      {:id     id
-       :status status})
+      (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
     (catch Exception e
       (log/error "Exception occured" {:error e})
       (errors/handle-analysis-error! db id e))))
 
 (defn start-bayes-factor-parser
-  [{:keys [db sqs workers-queue-url]} {id :id :as args} _]
+  [{:keys [db sqs workers-queue-url]} {id            :id
+                                       readable-name :readableName
+                                       burn-in       :burnIn
+                                       :as           args} _]
   (log/info "start-bayes-factor-parser" args)
   (let [status :QUEUED]
     (try
-      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-bayes-factors
-                                                   :id           id})
+      ;; TODO : in a transaction
+      (bayes-factor-model/upsert! db {:id            id
+                                      :readable-name readable-name
+                                      :burn-in       burn-in})
       (analysis-model/upsert! db {:id     id
                                   :status status})
-      {:id     id
-       :status status}
+      (aws-sqs/send-message sqs workers-queue-url {:message/type :parse-bayes-factors
+                                                   :id           id})
+      (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
         (errors/handle-analysis-error! db id e)))))
