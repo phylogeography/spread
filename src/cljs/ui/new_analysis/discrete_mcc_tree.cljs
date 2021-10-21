@@ -55,42 +55,35 @@
           [:section.load-tree-file
            [:div
             [:h4 "Load tree file"]
-            (cond
-              (nil? tree-file-name)
-              [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
+            (if (not tree-file-name)
+              (if (not (pos? tree-file-upload-progress))
+                [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
                                    :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+                                     :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
 
-              (and (not (nil? tree-file-upload-progress)) (not= 1 tree-file-upload-progress))
-              [linear-progress {:value      (* 100 tree-file-upload-progress)
-                                :variant    "determinate"}]
+                [linear-progress {:value      (* 100 tree-file-upload-progress)
+                                  :variant    "determinate"}])
 
-              tree-file-name
+              ;; we have a file name
               [loaded-input {:value    tree-file-name
-                             :on-click #(>evt [:discrete-mcc-tree/delete-tree-file])}]
-
-              :else nil)]
+                             :on-click #(>evt [:discrete-mcc-tree/delete-tree-file])}])]
            (when (nil? tree-file-name)
              [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select location attribute and change other settings."])]
           [:section.load-locations-file
            [:div
             [:h4 "Load locations file"]
 
-            (cond
-              (nil? locations-file-name)
-              [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
+            (if (not locations-file-name)
+              (if (not (pos? locations-file-upload-progress))
+                [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
                                    :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
+                                     :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
+                [linear-progress {:value   (* 100 locations-file-upload-progress)
+                                  :variant "determinate"}])
 
-              (and (not (nil? locations-file-upload-progress)) (not= 1 locations-file-upload-progress))
-              [linear-progress {:value   (* 100 locations-file-upload-progress)
-                                :variant "determinate"}]
-
-              locations-file-name
+              ;; we have a filename
               [loaded-input {:value    locations-file-name
-                             :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}]
-
-              :else nil)]]
+                             :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}])]]
           [:div.upload-spinner
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
              [circular-progress {:size 100}])]

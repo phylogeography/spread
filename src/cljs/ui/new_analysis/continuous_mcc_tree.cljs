@@ -59,22 +59,19 @@
           [:section.load-tree-file
            [:div
             [:h4 "Load tree file"]
-            (cond
+            (if (not tree-file-name)
 
-              (nil? tree-file-name)
-              [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
-                                   :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
+              (if (not (pos? tree-file-upload-progress))
+                [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
+                                     :label            "Choose a file"
+                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
 
-              (and (not (nil? tree-file-upload-progress)) (not= 1 tree-file-upload-progress))
-              [linear-progress {:value   (* 100 tree-file-upload-progress)
-                                :variant "determinate"}]
+                [linear-progress {:value   (* 100 tree-file-upload-progress)
+                                  :variant "determinate"}])
 
-              tree-file-name
+              ;; we have a  filename
               [loaded-input {:value    tree-file-name
-                             :on-click #(>evt [:continuous-mcc-tree/delete-tree-file])}]
-
-              :else nil)]
+                             :on-click #(>evt [:continuous-mcc-tree/delete-tree-file])}])]
 
            (when (nil? tree-file-name)
              [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select geographical coordinates and change other settings."])]
@@ -82,22 +79,18 @@
           [:section.load-trees-file
            [:div
             [:h4 "Load trees file"]
-            (cond
-              (nil? trees-file-name)
-              [button-file-upload {:id               "mcc-trees-file-upload-button"
-                                   :label            "Choose a file"
-                                   :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
+            (if (not trees-file-name)
+              (if (not (pos? trees-file-upload-progress))
+                [button-file-upload {:id               "mcc-trees-file-upload-button"
+                                     :label            "Choose a file"
+                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
 
+                [linear-progress {:value   (* 100 trees-file-upload-progress)
+                                  :variant "determinate"}])
 
-              (and (not (nil? trees-file-upload-progress)) (not= 1 trees-file-upload-progress))
-              [linear-progress {:value   (* 100 trees-file-upload-progress)
-                                :variant "determinate"}]
-
-              trees-file-name
+              ;; we have a  filename
               [loaded-input {:value    trees-file-name
-                             :on-click #(>evt [:continuous-mcc-tree/delete-trees-file])}]
-
-              :else nil)]
+                             :on-click #(>evt [:continuous-mcc-tree/delete-trees-file])}])]
 
            (when (nil? trees-file-name)
              [:p.doc "Optional: Select a file with corresponding trees distribution. This file will be used to compute a density interval around the MCC tree."])]
