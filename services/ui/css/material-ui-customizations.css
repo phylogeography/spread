@@ -24,7 +24,7 @@ input {
 	padding: 12px 0px 12px 0px !important;
 }
 
-.MuiInputBase-root .MuiAvatar-img {
-	width: 50%  !important;
-	height: 50% !important;
+.MuiAvatar-root {
+	width: 22px !important;
+	height: 22px !important;
 }
