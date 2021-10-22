@@ -2,11 +2,10 @@
   (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
-            [reagent-material-ui.core.text-field :refer [text-field]]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.date-picker :refer [date-picker]]
-            [ui.component.input :refer [amount-input loaded-input]]
+            [ui.component.input :refer [amount-input loaded-input text-input]]
             [ui.component.select :refer [attributes-select]]
             [ui.subscriptions :as subs]
             [ui.time :as time]
@@ -104,10 +103,11 @@
              [:div.field-line
               [:div.field-card
                [:h4 "File info"]
-               [text-field {:label     "Name"
+               [text-input {:label     "Name"
                             :variant :outlined
                             :value     readable-name
-                            :on-change (fn [_ value] (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
+                            :on-change (fn [value]
+                                         (>evt [:continuous-mcc-tree/set-readable-name value]))}]]]
 
         [:div.field-line
          [:div.field-card
