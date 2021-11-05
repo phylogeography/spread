@@ -110,8 +110,8 @@ orbs:
 
 #
 # cljs-service orb
-# - build: builds a ClojureScript service docker image and persists it to workspace
-# - deploy: gets the docker image from build and an environment parameter and deploys the service to the environment
+# - build: builds a static content archive
+# - deploy: retrieves the static content archive and deploys it
 #
   cljs-service:
     orbs:
@@ -151,11 +151,11 @@ orbs:
               command: |
                 yarn lint
           - run:
-              name: Build docker image
+              name: Build static content
               command: |
                 cd services/<< parameters.service >>
                 ./build.sh -b true -p false
-                docker save -o << parameters.service >>.tar << parameters.service >>-service:latest
+                tar -zcvf << parameters.service >>.tar.gz << parameters.service >>/
           - save_cache:
               key: maven-<< parameters.service >>-{{ checksum "shadow-cljs.edn" }}
               paths:
@@ -163,7 +163,7 @@ orbs:
           - persist_to_workspace:
               root: services
               paths:
-                - << parameters.service >>/<< parameters.service >>.tar
+                - << parameters.service >>/<< parameters.service >>.tar.gz
       deploy:
         working_directory: ~/ci-spread
         environment:
@@ -192,19 +192,13 @@ orbs:
               name: Configure serverless with AWS credentials
               command: |
                 echo "env: $SPREAD_ENV"
+                # TODO : aws config
                 serverless config credentials --provider aws --key $CI_AWS_ACCESS_KEY_ID --secret $CI_AWS_SECRET_ACCESS_KEY
           - run:
               name: Deploy with serverless
               command: |
-                docker load -i << parameters.service >>.tar
+                tar -zxvf << parameters.service >>.tar.gz
                 ./build.sh -b false -p true
-                serverless deploy --stage $SPREAD_ENV
-              working_directory: services/<< parameters.service >>
-          - run:
-              name: Force redeployment of the ECS service
-              command: |
-                # NOTE : force service redeployment or sls doesn't seem to understand the image has changed
-                aws ecs update-service --region $API_AWS_REGION --cluster spread-ecs-$SPREAD_ENV --service spread-<< parameters.service >> --force-new-deployment
               working_directory: services/<< parameters.service >>
 
 executors:

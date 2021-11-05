@@ -1,0 +1,28 @@
+org: kuleuven
+app: spread
+service: spread-ui
+
+custom:
+  stage: prod
+  CertificateArn: arn:aws:acm:us-east-2:816997647674:certificate/0cca2aa7-5343-446c-ad36-d210aeec5c16
+
+provider:
+  name: aws
+  region: us-east-2
+  stage: prod
+  deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
+
+resources:
+  Resources:
+
+     UIWebsiteBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: spreadviz.org
+        AccessControl: PublicRead
+
+     UIRedirectBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: www.spreadviz.org
+        AccessControl: LogDeliveryWrite
