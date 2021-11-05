@@ -155,6 +155,7 @@ orbs:
               command: |
                 cd services/<< parameters.service >>
                 ./build.sh -b true -p false
+                cd ../
                 tar -zcvf << parameters.service >>.tar.gz << parameters.service >>/
           - save_cache:
               key: maven-<< parameters.service >>-{{ checksum "shadow-cljs.edn" }}
