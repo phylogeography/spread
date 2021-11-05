@@ -49,3 +49,10 @@
   (when (sequential? events)
     (doseq [event (remove nil? events)]
       (re-frame/dispatch event))))
+
+(defn fully-typed-number
+  "Given a number as a string, parse it to float only if it is a fully typed number,
+  return nil otherwise. "
+  [n-str]
+  (when (and n-str (re-matches #"^\d+((\.|\,)\d+)?" n-str))
+    (js/parseFloat n-str)))

@@ -173,12 +173,14 @@
                                             :mostRecentSamplingDate (time/format date)}}]}))
 
 (defn set-time-scale-multiplier [{:keys [db]} [_ value]]
-  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])]
+  (let [id (get-in db [:new-analysis :continuous-mcc-tree :id])
+        tsm (let [nval (ui-utils/fully-typed-number value)]
+                (when (pos? nval) nval))]
     (merge {:db (cond-> db
-                  true                           (assoc-in [:analysis id :timescale-multiplier] value)
-                  (> value 0)                    (dissoc-in [:new-analysis :continuous-mcc-tree :errors :timescale-multiplier])
-                  (or (nil? value) (<= value 0)) (assoc-in [:new-analysis :continuous-mcc-tree :errors :timescale-multiplier] "Set positive value"))}
-           (when (> value 0)
+                  true       (assoc-in [:analysis id :timescale-multiplier] value)
+                  tsm        (dissoc-in [:new-analysis :continuous-mcc-tree :errors :timescale-multiplier])
+                  (nil? tsm) (assoc-in [:new-analysis :continuous-mcc-tree :errors :timescale-multiplier] "Set positive value"))}
+           (when tsm
              {:dispatch [:graphql/query {:query
                                          "mutation UpdateTree($id: ID!,
                                                               $timescaleMultiplier: Float!) {
@@ -191,7 +193,7 @@
                                             }
                                           }"
                                          :variables {:id                  id
-                                                     :timescaleMultiplier value}}]}))))
+                                                     :timescaleMultiplier tsm}}]}))))
 
 (defn start-analysis [{:keys [db]} [_ {:keys [readable-name
                                               y-coordinate-attribute-name x-coordinate-attribute-name
