@@ -77,9 +77,9 @@
 }
 
 .tab {
-	min-height: 1em;
+	min-height: 50px;
     display: flex;
-    flex-direction: column;
+    flex-direction: column;    
 }
 
 .tab > .title {
@@ -88,7 +88,7 @@
 	justify-content: space-between;
 	align-items: center;
 	border-bottom: 1px solid #E2E2EA;
-    padding: 15px 5px 15px 5px;
+    padding: 10px 5px 10px 5px;
 	color: #3A3668;
 	cursor: pointer;    
 }
@@ -119,8 +119,8 @@
 }
 
 .tab-body.collapsed {
-	height: 0;
-	padding: 0;
+    
+    display: none;
 }
 
 .tab .badge {
