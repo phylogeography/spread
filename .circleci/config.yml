@@ -164,7 +164,7 @@ orbs:
           - persist_to_workspace:
               root: services
               paths:
-                - << parameters.service >>/<< parameters.service >>.tar.gz
+                - << parameters.service >>.tar.gz
       deploy:
         working_directory: ~/ci-spread
         environment:
