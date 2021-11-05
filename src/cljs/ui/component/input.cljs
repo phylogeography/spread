@@ -15,12 +15,9 @@
                :helperText helper-text
                :on-change  (fn [^js event]
                              (let [value (-> event .-target .-value)
-                                   value (if (re-matches #"^\d*(\.|\.)?\d*$" value)
-                                           (js/parseFloat value)
-                                           value)
-                                   value (if (js/isNaN value) nil value)]
+                                   is-num? (boolean (re-matches #"^\d+(\.|\,)?\d*$" value))]
                                (when on-change
-                                 (on-change value))))}])
+                                 (on-change (if is-num? value nil)))))}])
 
 (defn loaded-input [{:keys [value on-click classes]}]
   [outlined-input {:class-name   (:outlined-input classes)
