@@ -164,6 +164,24 @@ li {
 		"sub-name      sub-name sub-name";        
 }
 
+.app-sidebar .ongoing {
+	display: grid;
+	grid-row-gap: 10px;    
+}
+
+.app-sidebar .ongoing-menu-item {
+	display: grid;
+    background-color: #FBFCFE;
+	padding: 15px;
+	border-radius: 10px;
+	grid-row-gap: 5px;
+	grid-template-columns: 75% 15% 10%;
+	grid-template-rows: 50% 50%;
+	grid-template-areas:
+		"readable-name .        menu"
+		"sub-name      sub-name sub-name";        
+}
+
 .app-sidebar .menu {
 	position: absolute;
 	right: 0px;
