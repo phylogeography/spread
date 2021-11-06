@@ -1,0 +1,27 @@
+org: kuleuven
+app: spread
+service: spread-analysis-viewer
+
+custom:
+  stage: prod
+
+provider:
+  name: aws
+  region: us-east-2
+  stage: prod
+  deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
+
+resources:
+  Resources:
+
+     UIWebsiteBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: view.spreadviz.org
+        AccessControl: PublicRead
+
+     UIRedirectBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: www.view.spreadviz.org
+        AccessControl: LogDeliveryWrite
