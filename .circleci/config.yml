@@ -193,14 +193,13 @@ orbs:
               name: Configure serverless with AWS credentials
               command: |
                 echo "env: $SPREAD_ENV"
-                # TODO : aws config
                 serverless config credentials --provider aws --key $CI_AWS_ACCESS_KEY_ID --secret $CI_AWS_SECRET_ACCESS_KEY
           - run:
-              name: Deploy with serverless
+              name: Deploy to CloudFront
               command: |
                 tar -zxvf << parameters.service >>.tar.gz
                 ./build.sh -b false -p true
-              working_directory: services/<< parameters.service >>
+              working_directory: services/
 
 executors:
   java-builder:
