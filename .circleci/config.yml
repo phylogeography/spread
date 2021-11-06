@@ -198,7 +198,7 @@ orbs:
               name: Deploy to CloudFront
               command: |
                 tar -zxvf << parameters.service >>.tar.gz
-                ./build.sh -b false -p true
+                ./<< parameters.service >>/build.sh -b false -p true
               working_directory: services/
 
 executors:
