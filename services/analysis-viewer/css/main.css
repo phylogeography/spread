@@ -23,61 +23,11 @@ button {
 
 .top-bar{
 	grid-area: top-bar;
-    border-bottom: 1px solid #DEDEE7
+    border-bottom: 1px solid #DEDEE7;
+	display: flex;
+	align-items: center;
+	padding-left: 25px;
 }
-
-.top-bar .text {
-	position: absolute;
-	top: 33px;
-	left: 95px;
-	width: 134px;
-	height: 35px;
-    text-align: left;
-	font: normal normal 900 30px/35px Roboto;
-	letter-spacing: 3.9px;
-	color: #3A3668;
-	text-transform: uppercase;
-	opacity: 1;	
-}
-
-.top-bar > .logo .logo-img {
-    display: inline-block;
-}
-.top-bar > .logo .logo-img .hex {
-	width: 16px;
-	height: 18px;
-	transform: matrix(0, 1, -1, 0, 0, 0);    
-	opacity: 1;
-	position: absolute;
-}
-.top-bar > .logo .logo-img .hex1 {
-	top: 33px;
-	left: 50px;	
-	background: #3A3668 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #39376529;
-}
-
-.top-bar > .logo .logo-img .hex2 {
-	top: 33px;
-	left: 69px;	
-	background: #EEBE53 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #EEBE53;
-}
-
-.top-bar > .logo .logo-img .hex3 {
-	top: 50px;
-	left: 40px;
-	background: #3A3668 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #39376529;
-}
-
-.top-bar > .logo .logo-img .hex4 {
-	top: 50px;
-	left: 59px;
-	background: #3A3668 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #39376529;
-}
-
 
 .main-screen {
 	height: 100%;    
@@ -353,6 +303,7 @@ button {
 	font-size: 35px;
 	margin: 5px;
 	color: #3A3668;
+	cursor: pointer;
 }
 
 .animation-controls .inner .buttons i.zmdi-play{

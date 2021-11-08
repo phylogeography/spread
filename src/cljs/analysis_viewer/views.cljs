@@ -8,7 +8,8 @@
             [goog.string :as gstr]
             [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [reagent.core :as reagent]
-            [reagent.dom :as rdom]            
+            [reagent.dom :as rdom]
+            [shared.components :refer [collapsible-tab spread-logo]]
             [shared.math-utils :as math-utils]))
 
 (def data-box-padding
@@ -29,10 +30,10 @@
                    nodes?)
         [x1 y1] coord]
 
-    
+
     (if-not show?
       [:g]
-      [:g {}     
+      [:g {}
        [:circle {:id id
                  :cx x1
                  :cy y1
@@ -48,7 +49,7 @@
                    circles?)
         [x1 y1] coord
         effective-color (or attr-color circles-color)]
-    
+
     (if-not show?
       [:g]
       [:g {}
@@ -65,7 +66,7 @@
   (let [{:keys [polygons? polygons-color polygons-opacity]} params
         show? (and (<= show-start time-perc show-end)
                    polygons?)]
-    
+
     (if-not show?
       [:g]
       [:g {:style {:display (if show? :block :none)}}
@@ -74,7 +75,7 @@
         :points (->> coords
                      (map (fn [coord] (str/join " " coord)))
                      (str/join ","))
-        
+
         :fill (if hl?
                 hl-color
                 polygons-color)
@@ -86,7 +87,7 @@
                    transitions?)
         clip-perc (when show?
                     (/ (- time-perc show-start)
-                       (- show-end show-start)))        
+                       (- show-end show-start)))
         [x1 y1] from-coord
         [x2 y2] to-coord
         {:keys [f1]} (math-utils/quad-curve-focuses x1 y1 x2 y2 transitions-curvature)
@@ -100,11 +101,11 @@
                          :stroke-width transitions-width
                          :fill :transparent}
         missile-size 0.3]
-    
+
     (if-not show?
       [:g]
       [:g {:style {:display (if show? :block :none)}}
-       [:circle {:cx x1 :cy y1 :r 0.05 :fill effective-color}] 
+       [:circle {:cx x1 :cy y1 :r 0.05 :fill effective-color}]
        [:circle {:cx x2 :cy y2 :r 0.05 :fill effective-color}]
        [:path (if clip-perc
 
@@ -113,9 +114,9 @@
                   (assoc curve-path-info
                          :stroke-dasharray (if missiles?
                                              [(* missile-size c-length) (* (- 1 missile-size) c-length)]
-                                             c-length) 
+                                             c-length)
                          :stroke-dashoffset (- c-length (* c-length clip-perc))))
-                
+
                 ;; normal curves
                 curve-path-info)]])))
 
@@ -130,16 +131,16 @@
   (let [text-color (if (get params :labels?)
                      (get params :labels-color "#079DAB")
                      :transparent)
-        font-size (str (:labels-size params) "px")]    
+        font-size (str (:labels-size params) "px")]
     [:g {}
      (for [{:keys [show-start show-end] :as obj} data-objects]
-       
-       (let [show? (<= show-start time show-end)]         
+
+       (let [show? (<= show-start time show-end)]
          (if-not show?
            [:g {:key (:id obj)}]
            [:g {:key (:id obj)}
            (if (= :transition (:type obj))
-             ;; it is a transition add labels for src and dst         
+             ;; it is a transition add labels for src and dst
              (let [[x1 y1] (:from-coord obj)
                    [x2 y2] (:to-coord obj)]
                [:g {}
@@ -184,7 +185,7 @@
         playing? (= :play @(subscribe [:animation/state]))
         ticks-data @(subscribe [:analysis/data-timeline])
         full-length-px (apply max (map :x ticks-data))
-        date-range->px-rescale (math-utils/build-scaler date-from-millis date-to-millis 0 full-length-px)        
+        date-range->px-rescale (math-utils/build-scaler date-from-millis date-to-millis 0 full-length-px)
         crop-sides 20
         ticks-y-base 80
         timeline-start crop-sides
@@ -193,7 +194,7 @@
                       (* 2 timeline-start)
                       (- 7))
         frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
-    
+
     [:div.animation-controls
      [mui-slider {:inc-buttons 0.8
                   :class "speed-slider"
@@ -214,30 +215,30 @@
          [:i.zmdi.zmdi-caret-right {:on-click #(dispatch [:animation/next])} ""]
          [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/reset :end])} ""]]
         [:div.timeline {:width "100%" :height "100%"}
-         [:div.crop-box {:style {:left crop-left 
+         [:div.crop-box {:style {:left crop-left
                                  :width crop-width}}
-          [:i.left.zmdi.zmdi-chevron-left   {:style {:width (str crop-sides "px")}}]        
+          [:i.left.zmdi.zmdi-chevron-left   {:style {:width (str crop-sides "px")}}]
           [:i.right.zmdi.zmdi-chevron-right {:style {:width (str crop-sides "px")}}]]
          [:svg {:width "100%" :height "110px"}
           [:g
-           [:line {:x1 frame-line-x :y1 0 
+           [:line {:x1 frame-line-x :y1 0
                    :x2 frame-line-x :y2 120
                    :stroke "#EEBE53"
                    :stroke-width 2}]
-           (for [{:keys [label x type]} ticks-data]             
+           (for [{:keys [label x type]} ticks-data]
              (let [x (+ x timeline-start)]
               ^{:key (str x)}
               [:g
                [:line {:x1 x :y1 ticks-y-base
                        :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
                        :stroke "#3A3668"}]
-               
+
                ;; TODO: are we going to keep this red lines? for DT?
                #_(when (pos? perc)
                    [:line {:x1 x :y1 ticks-bars-y-base
                            :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
                            :stroke "red"}])
-               
+
                (when label
                  [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
                   label])]))]]]])]))
@@ -247,7 +248,7 @@
         map-options @(re-frame/subscribe [:map/parameters])]
     (when geo-json-map
       [:g {}
-       
+
        (binding [svg-renderer/*coord-transform-fn* math-utils/map-coord->proj-coord]
          (svg-renderer/geojson->svg geo-json-map
                                    map-options))])))
@@ -259,13 +260,13 @@
         params (merge @(subscribe [:ui/parameters])
                       @(subscribe [:switch-buttons/states]))
         hl-object-id @(subscribe [:analysis/highlighted-object-id])]
-    
+
     (when analysis-data
       [:g {}
        ;; for debugging the data view-box
        #_(let [{:keys [x1 y1 x2 y2]} (events.maps/get-analysis-objects-view-box analysis-data)]
          [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke :red :stroke-width 0.1 :fill :transparent}])
-       
+
        (for [primitive-object analysis-data]
          ^{:key (str (:id primitive-object))}
          [map-primitive-object
@@ -298,7 +299,7 @@
     [:div.pop-up.possible-objects-popup
      {:style {:left x
               :top y}}
-     (when possible-objects       
+     (when possible-objects
        (for [po possible-objects]
          ^{:key (:id po)}
          [:div.selectable-object {:on-click #(dispatch [:map/show-object-attributes (:id po) [x y]])
@@ -307,9 +308,9 @@
           (str (:id po))]))]))
 
 (defn data-map []
-  (let [update-after-render (fn [div-cmp]                             
-                              (let [dom-node (rdom/dom-node div-cmp)                                   
-                                    brect (.getBoundingClientRect dom-node)]                                
+  (let [update-after-render (fn [div-cmp]
+                              (let [dom-node (rdom/dom-node div-cmp)
+                                    brect (.getBoundingClientRect dom-node)]
                                 (dispatch [:map/set-dimensions {:width (.-width brect)
                                                                 :height (.-height brect)}])))
         last-mouse-down-coord (reagent/atom nil)]
@@ -336,14 +337,14 @@
                                                (cond
 
                                                  ;; left button pressed
-                                                 (= left-button (.-button evt))                                  
+                                                 (= left-button (.-button evt))
                                                  (dispatch [:map/grab {:x x :y y}])
 
                                                  ;; wheel button pressed
                                                  (= wheel-button (.-button evt))
                                                  (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))
                                                (reset! last-mouse-down-coord [x y])))
-                            
+
                             :on-mouse-move (fn [evt]
                                              (let [x (-> evt .-nativeEvent .-offsetX)
                                                    y (-> evt .-nativeEvent .-offsetY)]
@@ -356,13 +357,13 @@
                             :on-mouse-up (fn [evt]
                                            (.stopPropagation evt)
                                            (.preventDefault evt)
-                                           
+
                                            (let [x (-> evt .-nativeEvent .-offsetX)
                                                  y (-> evt .-nativeEvent .-offsetY)]
                                              (cond
 
                                                ;; left button pressed
-                                               (= left-button (.-button evt))                                               
+                                               (= left-button (.-button evt))
                                                (do
                                                  (dispatch [:map/hide-object-attributes])
                                                  (dispatch [:map/hide-object-selector])
@@ -378,26 +379,26 @@
                                                                          eid)))
                                                                    elements-under-mouse)]
                                                      (cond
-                                                       (= (count ids) 1)                                                     
+                                                       (= (count ids) 1)
                                                        (dispatch [:map/show-object-attributes (first ids) offset-coord])
-                                                       
-                                                       (> (count ids) 1)                                                     
+
+                                                       (> (count ids) 1)
                                                        (dispatch [:map/show-object-selector ids offset-coord]))))
 
                                                  (when grab
                                                    (dispatch [:map/grab-release])))
-                                               
-                                               
+
+
                                                ;; wheel button pressed
                                                (= wheel-button (.-button evt))
-                                               (dispatch [:map/zoom-rectangle-release]))))}                   
+                                               (dispatch [:map/zoom-rectangle-release]))))}
 
           (when-let [selected-obj @(re-frame/subscribe [:analysis/selected-object])]
             [object-attributes-popup selected-obj])
-          
+
           (when-let [possible-objects @(re-frame/subscribe [:analysis/possible-objects])]
             [possible-objects-selector-popup possible-objects])
-          
+
           [:div.zoom-bar-outer
            [:div.zoom-bar-back]
            [slider {:inc-buttons 0.8
@@ -408,7 +409,7 @@
                     :subs-vec [:map/scale]
                     :ev-vec [:map/zoom 100 100]
                     :class "map-zoom"}]]
-         
+
           ;; SVG data map
           [:svg {:xmlns "http://www.w3.org/2000/svg"
                  :xmlns:amcharts "http://amcharts.com/ammap"
@@ -425,7 +426,7 @@
            [:g {:transform (gstr/format "translate(%f %f) scale(%f %f)"
                                         (or translate-x 0)
                                         (or translate-y 0)
-                                        scale scale)}            
+                                        scale scale)}
             [:svg {:view-box "0 0 360 180" :preserve-aspect-ratio "xMinYMin"}
              (when show-map? [map-group])
              [data-group]
@@ -438,26 +439,15 @@
 
 (defn top-bar []
   [:div.top-bar
-   [:div.logo
-    [:div.logo-img
-     [:div.hex.hex1] [:div.hex.hex2] [:div.hex.hex3] [:div.hex.hex4] ]
-    [:span.text "spread"]]])
+   [spread-logo]])
 
-(defn collapsible-tab [parent-id {:keys [id title child]}]
-  (let [open? @(subscribe [:collapsible-tabs/open? parent-id id])]
-    [:div.tab 
-     [:div.title {:on-click #(dispatch [:collapsible-tabs/toggle parent-id id])}
-      [:span.text title] [:span.arrow (if open? "▲" "▼")]]
-     [:div.tab-body {:class (if open? "open" "collapsed")}
-      child]]))
-
-(defn collapsible-tabs [{:keys [id title childs]}]
+(defn collapsible-tabs [{:keys [title childs]}]
   [:div.collapsible-tabs
    [:div.title title]
    [:div.tabs
     (for [c childs]
       ^{:key (str (:id c))}
-      [collapsible-tab id c])]])
+      [collapsible-tab c])]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Continuous tree settings ;;
@@ -518,7 +508,7 @@
   [:div.transitions-settings
    [:div
     [:label.missile "Missiles"] [switch-button {:id :missiles?}]]
-   
+
    [color-chooser {:param-name :transitions-color}]
 
    [attribute-color-chooser :transitions-attribute]
@@ -550,7 +540,7 @@
                 :subs-vec [:ui/parameters :polygons-opacity]
                 :ev-vec [:parameters/select :polygons-opacity]}]])
 
-(defn continuous-animation-settings []  
+(defn continuous-animation-settings []
   (let [[from-millis to-millis] @(subscribe [:analysis/date-range])
         [crop-from-millis crop-to-millis] @(subscribe [:animation/crop])
         df (js/Date. from-millis)
@@ -563,7 +553,7 @@
         crop-max-date-str (gstr/format "%d-%02d-%02d" (.getUTCFullYear ct) (inc (.getUTCMonth ct)) (.getUTCDate ct))
         set-new-crop (fn [crop]
                        (dispatch [:animation/set-crop crop]))]
-    
+
     [:div.animation-settings
      [:label "From:"]
      [:input {:type :date
@@ -582,7 +572,7 @@
               :max max-date-str
               :value crop-max-date-str}]]))
 
-(defn ordinal-attribute-filter [f]  
+(defn ordinal-attribute-filter [f]
   (let [checked-set (:filter-set f)]
     [:div.ordinal-attribute-filter
      (for [item (:domain (:attribute f))]
@@ -593,14 +583,14 @@
                   :name item
                   :on-change (fn [evt]
                                (let [checked? (-> evt .-target .-checked)
-                                     item (-> evt .-target .-name)]                                 
+                                     item (-> evt .-target .-name)]
                                  (if checked?
                                    (dispatch [:filters/add-ordinal-attribute-filter-item (:filter/id f) item])
                                    (dispatch [:filters/rm-ordinal-attribute-filter-item  (:filter/id f) item]))))
                   :checked (boolean (checked-set item))}]
          [:span.text item]]])]))
 
-(defn linear-attribute-filter [f]  
+(defn linear-attribute-filter [f]
   [:div.linear-attribute-filter
    [mui-slider {:inc-buttons 0.1
                 :min-val 0
@@ -609,10 +599,10 @@
                 :subs-vec [:analysis.data/linear-attribute-filter-range (:filter/id f)]
                 :ev-vec [:filters/set-linear-attribute-filter-range (:filter/id f)]}]])
 
-(defn continuous-attributes-filters []  
+(defn continuous-attributes-filters []
   (let [attributes (subscribe [:analysis/attributes])
         filters (subscribe [:analysis.data/attribute-filters])
-        selected-attr (reagent/atom (first (keys @attributes)))]    
+        selected-attr (reagent/atom (first (keys @attributes)))]
     (fn []
       [:div.attribute-filters
       [:div.selection
@@ -622,7 +612,7 @@
           ^{:key (str a)}
           [:option {:value a} a])]
        [:i.zmdi.zmdi-plus-circle {:on-click #(dispatch [:filters/add-attribute-filter @selected-attr])}]]
-      
+
       (for [f (vals @filters)]
         ^{:key (:filter/id f)}
         [:div.filter
@@ -630,7 +620,7 @@
           [:span (:attribute/id f)]
           [:i.zmdi.zmdi-close-circle {:on-click #(dispatch [:filters/rm-attribute-filter (:filter/id f)])}]]
          (case (:filter/type f)
-           :linear-filter  [linear-attribute-filter f] 
+           :linear-filter  [linear-attribute-filter f]
            :ordinal-filter [ordinal-attribute-filter f])])])))
 
 (defn continuous-tree-side-bar []
@@ -767,8 +757,8 @@
 (defn main-screen []
   (let [analysis-type @(re-frame/subscribe [:analysis.data/type])]
     [:div.main-screen
-     [top-bar]     
+     [top-bar]
      [controls-side-bar analysis-type]
-     [:div.animated-data-map      
+     [:div.animated-data-map
       [data-map]
       [animation-controls]]]))

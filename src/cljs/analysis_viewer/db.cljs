@@ -63,7 +63,7 @@
 
 (s/def :analysis/attributes (s/map-of :attribute/id :analysis/attribute))
 
-(s/def :ui.collapsible-tabs/tabs (s/map-of keyword? (s/map-of keyword? boolean?)))
+
 (s/def :ui.switch-buttons/states (s/map-of keyword? boolean?))
 (s/def :parameter/border-color string?)
 (s/def :parameter/polygons-opacity (s/and number? #(<= 0 % 1)))
@@ -138,7 +138,6 @@
                           :animation/state
                           :animation/speed
                           :animation/crop
-                          :ui.collapsible-tabs/tabs
                           :ui.switch-buttons/states
                           :ui/parameters
                           :analysis.data/filters]
@@ -164,9 +163,9 @@
    :animation/speed 100
    :animation/state :stop
    :analysis.data/filters {}
-   :ui.collapsible-tabs/tabs {:parameters {:layer-visibility true,
-                                           :map-color true,
-                                           :polygon-opacity true}}
+   :ui.collapsible-tabs/tabs {:layer-visibility true,
+                              :map-color true,
+                              :polygon-opacity true}
    :ui.switch-buttons/states {:show-map? true
                               :map-borders? true
                               :map-labels? true
