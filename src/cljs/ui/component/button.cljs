@@ -2,18 +2,23 @@
   (:require [shared.components :refer [button]]))
 
 (defn- file-select-handler [{:keys [file-with-meta file-accept-predicate on-file-accepted on-file-rejected]}]
-  (if (file-accept-predicate file-with-meta)
-    (let [{:keys [file]}      file-with-meta
-          array-buffer-reader (js/FileReader.)]
-      (set! (.-onload array-buffer-reader) (fn [^js e]
-                                             (let [data (-> e .-target .-result)]
-                                               (on-file-accepted (merge file-with-meta
-                                                                        {:data data})))))
-      (.readAsArrayBuffer array-buffer-reader file))
-    (when on-file-rejected
-      (on-file-rejected))))
+  (-> (file-accept-predicate file-with-meta)
+      (.then (fn [ok?]
+               (if ok?
+                 (let [{:keys [file]}      file-with-meta
+                       array-buffer-reader (js/FileReader.)]
+                   (set! (.-onload array-buffer-reader) (fn [^js e]
+                                                          (let [data (-> e .-target .-result)]
+                                                            (on-file-accepted (merge file-with-meta
+                                                                                     {:data data})))))
+                   (.readAsArrayBuffer array-buffer-reader file))
+                 (if on-file-rejected
+                   (on-file-rejected)
+                   (js/console.error (str (-> file-with-meta :filename) " rejected"))))))))
 
 (defn button-file-upload
+  "`file-accept-predicate` should be a fn that expects a map with :file, :filename, :type, :size and
+  returns a js/Promise that resolves to true/false."
   [{:keys [id
            disabled?
            label
@@ -33,12 +38,12 @@
                                                :type     (if (empty? (.-type file))
                                                            "text/plain charset=utf-8"
                                                            (.-type file))
-                                               :size     (.-size file)}]                           
+                                               :size     (.-size file)}]
                            (file-select-handler {:file-with-meta        file-with-meta
                                                  :file-accept-predicate file-accept-predicate
                                                  :on-file-accepted      on-file-accepted
                                                  :on-file-rejected      on-file-rejected})))}]
    [:label {:for (or id "file-upload-button")}
     [button {:text label
-             :icon "icons/icn_upload_white.svg"             
+             :icon "icons/icn_upload_white.svg"
              :class "primary"}]]])

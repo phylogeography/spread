@@ -2,9 +2,11 @@
   (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
             [reagent-material-ui.core.slider :refer [slider]]
+            [reagent.core :as r]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.input :refer [loaded-input text-input]]
+            [ui.new-analysis.file-formats :as file-formats]
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt debounce]]))
 
@@ -27,7 +29,7 @@
 
 (defn discrete-rates []
   (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
-        field-errors (re-frame/subscribe [::subs/bayes-factor-field-errors])]
+        field-errors (r/atom nil)]
     (fn []
       (let [{:keys [id
                     readable-name
@@ -42,6 +44,10 @@
             controls-disabled? (or @field-errors (not log-file-name))]
         [:<>
          [:div.data {:style {:grid-area "data"}}
+          (when @field-errors
+            [:ul.field-errors
+             (for [e @field-errors]
+               [:li.error e])])
           [:section.load-log-file
            [:div
             [:h4 "Load log file"]
@@ -49,7 +55,9 @@
               (if (not (pos? log-file-upload-progress))
                 [button-file-upload {:id               "bayes-factor-log-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])}]
+                                     :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])
+                                     :file-accept-predicate file-formats/log-file-accept-predicate
+                                     :on-file-rejected (fn [] (swap! field-errors into ["Log file first row doesn't contain all numbers"]))}]
                 [linear-progress {:value      (* 100 log-file-upload-progress)
                                   :variant    "determinate"}])
               ;; we have a filename
@@ -64,7 +72,9 @@
               (if (not (pos? locations-file-upload-progress))
                 [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])}]
+                                     :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])
+                                     :file-accept-predicate file-formats/locations-file-accept-predicate
+                                     :on-file-rejected (fn [] (swap! field-errors into ["Locations file incorrect format"]))}]
                 [linear-progress {:value   (* 100 locations-file-upload-progress)
                                   :variant "determinate"}])
               ;; we have a filename
