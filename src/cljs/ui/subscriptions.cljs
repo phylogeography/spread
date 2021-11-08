@@ -94,11 +94,6 @@
              (get-in db [:analysis id])))))
 
 (re-frame/reg-sub
-  ::continuous-mcc-tree-field-errors
-  (fn [db]
-    (get-in db [:new-analysis :continuous-mcc-tree :errors])))
-
-(re-frame/reg-sub
   ::discrete-mcc-tree
   (fn [db]
     (let [ongoing-analysis (get-in db [:new-analysis :discrete-mcc-tree])
@@ -107,22 +102,12 @@
              (get-in db [:analysis id])))))
 
 (re-frame/reg-sub
-  ::discrete-mcc-tree-field-errors
-  (fn [db]
-    (get-in db [:new-analysis :discrete-mcc-tree :errors])))
-
-(re-frame/reg-sub
   ::bayes-factor
   (fn [db]
     (let [ongoing-analysis (get-in db [:new-analysis :bayes-factor])
           id               (:id ongoing-analysis)]
       (merge ongoing-analysis
              (get-in db [:analysis id])))))
-
-(re-frame/reg-sub
-  ::bayes-factor-field-errors
-  (fn [db]
-    (get-in db [:new-analysis :bayes-factor :errors])))
 
 (comment
   @(re-frame/subscribe [::authorized-user])

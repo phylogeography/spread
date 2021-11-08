@@ -2,11 +2,13 @@
   (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
+            [reagent.core :as r]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.date-picker :refer [date-picker]]
             [ui.component.input :refer [amount-input loaded-input text-input]]
             [ui.component.select :refer [attributes-select]]
+            [ui.new-analysis.file-formats :as file-formats]
             [ui.subscriptions :as subs]
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt debounce]]))
@@ -34,7 +36,7 @@
 
 (defn continuous-mcc-tree []
   (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])
-        field-errors        (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
+        field-errors        (r/atom nil)]
     (fn []
       (let [{:keys [id
                     readable-name
@@ -55,6 +57,10 @@
             {:keys [trees-file-name]}        time-slicer]
         [:<>
          [:div.data {}
+          (when @field-errors
+            [:section.field-errors
+             (for [e @field-errors]
+               [:div.error e])])
           [:section.load-tree-file
            [:div
             [:h4 "Load tree file"]
@@ -63,7 +69,9 @@
               (if (not (pos? tree-file-upload-progress))
                 [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
+                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])
+                                     :on-file-rejected (fn [] (swap! field-errors into ["Tree file incorrect format"]))
+                                     :file-accept-predicate file-formats/tree-file-accept-predicate}]
 
                 [linear-progress {:value   (* 100 tree-file-upload-progress)
                                   :variant "determinate"}])
@@ -82,7 +90,9 @@
               (if (not (pos? trees-file-upload-progress))
                 [button-file-upload {:id               "mcc-trees-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
+                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])
+                                     :on-file-rejected (fn [] (swap! field-errors into ["Trees file incorrect format"]))
+                                     :file-accept-predicate file-formats/trees-file-accept-predicate}]
 
                 [linear-progress {:value   (* 100 trees-file-upload-progress)
                                   :variant "determinate"}])

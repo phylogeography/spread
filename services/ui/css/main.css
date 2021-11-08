@@ -300,6 +300,17 @@ li {
 	color: #3A3668;
 }
 
+.run-new-analysis .field-errors {
+	border: 1px solid #B20707;
+	border-radius: 5px;
+	padding: 20px;
+}
+
+.run-new-analysis .field-errors li.error {
+	color: #B20707;
+	list-style: disc;
+}
+
 .run-new-analysis .load-tree-file,.load-trees-file  {
 	display:flex;    
 }
