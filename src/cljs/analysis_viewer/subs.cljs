@@ -84,7 +84,7 @@
    (:analysis/data db)))
 
 (defn color-object [obj [attr-key [from to] [color-from color-to]]]
-  
+
   (if-let [obj-attr-val (get (:attrs obj) (keyword attr-key))]
     (let [perc (/ (- obj-attr-val from)  (- to from))
           color (math-utils/calculate-color color-from color-to perc)]
@@ -95,18 +95,18 @@
 
 (defn color-data-objects [data obj-type attr]
   (->> data
-       (mapv (fn [[obj-id obj]]               
+       (mapv (fn [[obj-id obj]]
                (if (= (:type obj) obj-type)
                  [obj-id (color-object obj attr)]
                  [obj-id obj])))
        (into {})))
 
-(defn filter-pass? [{:keys [attrs]} filter]  
+(defn filter-pass? [{:keys [attrs]} filter]
   (let [filter-attr (keyword (:attribute/id filter))]
     (if-not (contains? attrs filter-attr)
       true ;; pass thru the filter objects that doesn't contain the attribute
 
-      ;; the object contains the attribute    
+      ;; the object contains the attribute
       (let [obj-val (get attrs filter-attr)]
         (case (:filter/type filter)
 
@@ -114,13 +114,13 @@
           :linear-filter (let [[rfrom rto] (:range filter)]
                            (<= rfrom obj-val rto))
 
-          ;; check the obj value is in the filter's filter-set 
+          ;; check the obj value is in the filter's filter-set
           :ordinal-filter (contains? (:filter-set filter) obj-val))))))
 
-(defn filter-data [data filters]  
+(defn filter-data [data filters]
   (let [attr-filter (fn [obj]
                       (every? (partial filter-pass? obj) filters))]
-    
+
     (if (empty? filters)
       data
       (utils/filter-map-vals data attr-filter))))
@@ -206,10 +206,10 @@
  :analysis.data/attribute-filters
  :<- [:analysis.data/filters]
  :<- [:analysis/attributes]
- (fn [[filters attributes] _]   
+ (fn [[filters attributes] _]
    (-> filters
        (utils/filter-map-vals attribute-filter?)
-       (utils/map-map-vals (fn [filter]                             
+       (utils/map-map-vals (fn [filter]
                              (let [attr (get attributes (:attribute/id filter))]
                                (assoc filter :attribute attr)))))))
 
@@ -246,7 +246,7 @@
    :text-color (if (get switch-buttons-states :map-labels?)
                  (get ui-params :map-borders-color "#079DAB")
                  :transparent)
-   :text-size (:labels-size ui-params)                         
+   :text-size (:labels-size ui-params)
    :point-color (:nodes-color ui-params)
    :point-radius (:nodes-size ui-params)
    :background-color "#ECEFF8"})
@@ -262,12 +262,6 @@
  :collapsible-tabs/tabs
  (fn [db _]
    (:ui.collapsible-tabs/tabs db)))
-
-(reg-sub
- :collapsible-tabs/open?
- :<- [:collapsible-tabs/tabs]
- (fn [tabs [_ parent-id tab-id]]
-   (get-in tabs [parent-id tab-id])))
 
 (reg-sub
  :switch-buttons/states
@@ -288,7 +282,7 @@
      (:ui/parameters db))))
 
 (reg-sub
- :parameters/selected 
+ :parameters/selected
  :<- [:ui/parameters]
  (fn [parameters [_ id]]
    (get parameters id)))

@@ -2,7 +2,7 @@
   (:require [analysis-viewer.db :as db]
             [analysis-viewer.events.filters :as events.filters]
             [analysis-viewer.events.maps :as events.maps]
-            [analysis-viewer.events.ui :as events.ui]            
+            [analysis-viewer.events.ui :as events.ui]
             [clojure.spec.alpha :as s]
             [expound.alpha :as expound]
             [re-frame.core :refer [reg-event-db reg-event-fx] :as re-frame]))
@@ -41,7 +41,6 @@
 (reg-event-db :map/hide-object-selector [sc] events.maps/hide-object-selector)
 (reg-event-db :map/highlight-object [sc] events.maps/highlight-object)
 
-(reg-event-db :collapsible-tabs/toggle [sc] events.ui/toggle-collapsible-tab)
 (reg-event-db :switch-button/toggle [sc] events.ui/toggle-switch-button)
 (reg-event-db :parameters/select [sc] events.ui/parameters-select)
 

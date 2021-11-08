@@ -32,41 +32,6 @@
 	height: 35px;
 }
 
-.spread-logo .logo-img .hex {
-	width: 16px;
-	height: 18px;
-	transform: matrix(0, 1, -1, 0, 0, 0);    
-	opacity: 1;
-	position: absolute;
-}
-.spread-logo .logo-img .hex1 {
-	top: 0px;
-	left: 10px;	
-	background: #3A3668 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #39376529;
-}
-
-.spread-logo .logo-img .hex2 {
-	top: 0px;
-	left: 30px;	
-	background: #EEBE53 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #EEBE53;
-}
-
-.spread-logo .logo-img .hex3 {
-	top: 17px;
-	left: 1px;
-	background: #3A3668 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #39376529;
-}
-
-.spread-logo .logo-img .hex4 {
-	top: 17px;
-	left: 20px;
-	background: #3A3668 0% 0% no-repeat padding-box;
-	box-shadow: 0px 3px 6px #39376529;
-}
-
 /********************/
 /* Collapsible tabs */
 /********************/
