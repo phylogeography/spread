@@ -44,14 +44,14 @@
   (let [[long lat] (*coord-transform-fn* coordinates)]
     [:circle {:cx long :cy lat :r (:point-radius opts) :fill (:data-point-color opts)}]))
 
-(defn svg-polygon [coords opts]  
+(defn svg-polygon [coords opts]
   (let [all-polys (->> coords
                        (mapv (fn [cs]
                                [:polygon
                                 {:points (->> cs
-                                              (map (fn [coord]
-                                                     (->> (*coord-transform-fn* coord)
-                                                          (str/join " "))))
+                                              (mapv (fn [coord]
+                                                      (->> (*coord-transform-fn* coord)
+                                                           (str/join " "))))
                                               (str/join ","))
                                  :stroke (:poly-stroke-color opts)
                                  :fill (:poly-fill-color opts)
@@ -94,19 +94,19 @@
             :text-anchor "middle"} text]))
 
 (defmethod geojson->svg :Feature [{:keys [geometry properties]} opts]
-  (when geometry    
-    (let [geo-box (geojson/geo-json-bounding-box geometry) ;; this is in [long lat]          
+  (when geometry
+    (let [geo-box (geojson/geo-json-bounding-box geometry) ;; this is in [long lat]
           feature-text (:name properties)]
-                  
+
       (when (or (nil? (:clip-box opts))
                 (math-utils/box-overlap? (:clip-box opts)
                                          (math-utils/map-box->proj-box geo-box)))
-        
-        (into [:g {}] (cond-> [(geojson->svg geometry opts)]                        
+
+        (into [:g {}] (cond-> [(geojson->svg geometry opts)]
                         feature-text (into [(text-for-box geo-box feature-text opts)])))))))
 
 (defmethod geojson->svg :FeatureCollection [{:keys [features]} opts]
   (into [:g {}] (mapv (fn [feat] (geojson->svg feat opts)) features)))
 
-(defmethod geojson->svg :default [x _]  
+(defmethod geojson->svg :default [x _]
   (throw (ex-info "Not implemented yet" {:type (:type x)})))
