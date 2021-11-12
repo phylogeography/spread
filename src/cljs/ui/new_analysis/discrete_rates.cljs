@@ -29,7 +29,7 @@
 
 (defn discrete-rates []
   (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
-        field-errors (r/atom nil)]
+        field-errors (r/atom #{})]
     (fn []
       (let [{:keys [id
                     readable-name
@@ -44,10 +44,6 @@
             controls-disabled? (or @field-errors (not log-file-name))]
         [:<>
          [:div.data {:style {:grid-area "data"}}
-          (when @field-errors
-            [:ul.field-errors
-             (for [e @field-errors]
-               [:li.error e])])
           [:section.load-log-file
            [:div
             [:h4 "Load log file"]
@@ -55,16 +51,19 @@
               (if (not (pos? log-file-upload-progress))
                 [button-file-upload {:id               "bayes-factor-log-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:bayes-factor/on-log-file-selected %])
+                                     :on-file-accepted #(do
+                                                          (swap! field-errors disj :log-file-error)
+                                                          (>evt [:bayes-factor/on-log-file-selected %]))
                                      :file-accept-predicate file-formats/log-file-accept-predicate
-                                     :on-file-rejected (fn [] (swap! field-errors into ["Log file first row doesn't contain all numbers"]))}]
+                                     :on-file-rejected (fn [] (swap! field-errors conj :log-file-error))}]
                 [linear-progress {:value      (* 100 log-file-upload-progress)
                                   :variant    "determinate"}])
               ;; we have a filename
               [loaded-input {:value    log-file-name
                              :on-click #(>evt [:bayes-factor/delete-log-file])}])]
-           (when (nil? log-file-name)
-             [:p.doc "Upload log file. You can then upload a matching coordinates file."])]
+           (cond
+             (contains? @field-errors :log-file-error) [:div.field-error.button-error "Log file first row doesn't contain all numbers."]
+             (nil? log-file-name) [:p.doc "Upload log file. You can then upload a matching coordinates file."])]
           [:section.load-locations-file
            [:div
             [:h4 "Load locations file"]
@@ -72,16 +71,19 @@
               (if (not (pos? locations-file-upload-progress))
                 [button-file-upload {:id               "bayes-factor-locations-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:bayes-factor/on-locations-file-selected %])
+                                     :on-file-accepted #(do
+                                                          (swap! field-errors disj :locations-file-error)
+                                                          (>evt [:bayes-factor/on-locations-file-selected %]))
                                      :file-accept-predicate file-formats/locations-file-accept-predicate
-                                     :on-file-rejected (fn [] (swap! field-errors into ["Locations file incorrect format"]))}]
+                                     :on-file-rejected (fn [] (swap! field-errors conj :locations-file-error))}]
                 [linear-progress {:value   (* 100 locations-file-upload-progress)
                                   :variant "determinate"}])
               ;; we have a filename
               [loaded-input {:value    locations-file-name
                              :on-click #(>evt [:bayes-factor/delete-locations-file])}])]
-           (when (nil? locations-file-name)
-             [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
+           (cond
+             (contains? @field-errors :locations-file-error) [:div.field-error.button-error "Locations file first row doesn't contain all numbers."]
+             (nil? locations-file-name) [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
 
           (when (and log-file-name
                      locations-file-name)
