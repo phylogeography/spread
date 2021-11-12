@@ -7,7 +7,8 @@
             [day8.re-frame.http-fx]
             [re-frame.core :as re-frame]
             [re-frame.db]
-            [reagent.dom :as rdom]))
+            [reagent.dom :as rdom]
+            [shared.events]))
 
 (defn ^:dev/before-load stop []
   (js/console.log "Stopping..."))

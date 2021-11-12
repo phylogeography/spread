@@ -300,6 +300,17 @@ li {
 	color: #3A3668;
 }
 
+.run-new-analysis .field-error {
+	color: #B20707;    
+}
+
+.run-new-analysis .field-error.button-error {
+    display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding-left: 10px; 
+}
+
 .run-new-analysis .load-tree-file,.load-trees-file  {
 	display:flex;    
 }

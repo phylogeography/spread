@@ -2,11 +2,13 @@
   (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
+            [reagent.core :as r]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.date-picker :refer [date-picker]]
             [ui.component.input :refer [amount-input loaded-input text-input]]
             [ui.component.select :refer [attributes-select]]
+            [ui.new-analysis.file-formats :as file-formats]
             [ui.subscriptions :as subs]
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt debounce]]))
@@ -35,7 +37,7 @@
 
 (defn continuous-mcc-tree []
   (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])
-        field-errors        (re-frame/subscribe [::subs/continuous-mcc-tree-field-errors])]
+        field-errors        (r/atom #{})]
     (fn []
       (let [{:keys [id
                     readable-name
@@ -64,7 +66,11 @@
               (if (not (pos? tree-file-upload-progress))
                 [button-file-upload {:id               "continuous-mcc-tree-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-tree-file-selected %])}]
+                                     :on-file-accepted #(do
+                                                          (swap! field-errors disj :tree-file-error)
+                                                          (>evt [:continuous-mcc-tree/on-tree-file-selected %]))
+                                     :on-file-rejected (fn [] (swap! field-errors conj :tree-file-error))
+                                     :file-accept-predicate file-formats/tree-file-accept-predicate}]
 
                 [linear-progress {:value   (* 100 tree-file-upload-progress)
                                   :variant "determinate"}])
@@ -73,8 +79,9 @@
               [loaded-input {:value    tree-file-name
                              :on-click #(>evt [:continuous-mcc-tree/delete-tree-file])}])]
 
-           (when (nil? tree-file-name)
-             [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select geographical coordinates and change other settings."])]
+           (cond
+             (contains? @field-errors :tree-file-error) [:div.field-error.button-error "Tree file incorrect format."]
+             (nil? tree-file-name) [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select geographical coordinates and change other settings."])]
 
           [:section.load-trees-file
            [:div
@@ -83,7 +90,11 @@
               (if (not (pos? trees-file-upload-progress))
                 [button-file-upload {:id               "mcc-trees-file-upload-button"
                                      :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:continuous-mcc-tree/on-trees-file-selected %])}]
+                                     :on-file-accepted #(do
+                                                          (swap! field-errors disj :trees-file-error)
+                                                          (>evt [:continuous-mcc-tree/on-trees-file-selected %]))
+                                     :on-file-rejected (fn [] (swap! field-errors conj :trees-file-error))
+                                     :file-accept-predicate file-formats/trees-file-accept-predicate}]
 
                 [linear-progress {:value   (* 100 trees-file-upload-progress)
                                   :variant "determinate"}])
@@ -92,8 +103,9 @@
               [loaded-input {:value    trees-file-name
                              :on-click #(>evt [:continuous-mcc-tree/delete-trees-file])}])]
 
-           (when (nil? trees-file-name)
-             [:p.doc "Optional: Select a file with corresponding trees distribution. This file will be used to compute a density interval around the MCC tree."])]
+           (cond
+             (contains? @field-errors :trees-file-error) [:div.field-error.button-error "Trees file incorrect format."]
+             (nil? trees-file-name) [:p.doc "Optional: Select a file with corresponding trees distribution. This file will be used to compute a density interval around the MCC tree."])]
 
           [:div.upload-spinner
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))

@@ -2,11 +2,13 @@
   (:require [re-frame.core :as re-frame]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.linear-progress :refer [linear-progress]]
+            [reagent.core :as r]
             [shared.components :refer [button]]
             [ui.component.button :refer [button-file-upload]]
             [ui.component.date-picker :refer [date-picker]]
             [ui.component.input :refer [amount-input loaded-input text-input]]
             [ui.component.select :refer [attributes-select]]
+            [ui.new-analysis.file-formats :as file-formats]
             [ui.subscriptions :as subs]
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt debounce]]))
@@ -33,7 +35,7 @@
 
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree (re-frame/subscribe [::subs/discrete-mcc-tree])
-        field-errors      (re-frame/subscribe [::subs/discrete-mcc-tree-field-errors])]
+        field-errors      (r/atom #{})]
     (fn []
       (let [{:keys [id
                     tree-file-name
@@ -59,8 +61,12 @@
             (if (not tree-file-name)
               (if (not (pos? tree-file-upload-progress))
                 [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
-                                   :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:discrete-mcc-tree/on-tree-file-selected %])}]
+                                     :label            "Choose a file"
+                                     :on-file-accepted #(do
+                                                          (swap! field-errors disj :tree-file-error)
+                                                          (>evt [:discrete-mcc-tree/on-tree-file-selected %]))
+                                     :file-accept-predicate file-formats/tree-file-accept-predicate
+                                     :on-file-rejected (fn [] (swap! field-errors conj :tree-file-error))}]
 
                 [linear-progress {:value      (* 100 tree-file-upload-progress)
                                   :variant    "determinate"}])
@@ -68,8 +74,10 @@
               ;; we have a file name
               [loaded-input {:value    tree-file-name
                              :on-click #(>evt [:discrete-mcc-tree/delete-tree-file])}])]
-           (when (nil? tree-file-name)
-             [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select location attribute and change other settings."])]
+           (cond
+             (contains? @field-errors :tree-file-error) [:div.field-error.button-error "Tree file incorrect format."]
+             (nil? tree-file-name) [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select location attribute and change other settings."])]
+
           [:section.load-locations-file
            [:div
             [:h4 "Load locations file"]
@@ -77,14 +85,21 @@
             (if (not locations-file-name)
               (if (not (pos? locations-file-upload-progress))
                 [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
-                                   :label            "Choose a file"
-                                     :on-file-accepted #(>evt [:discrete-mcc-tree/on-locations-file-selected %])}]
+                                     :label            "Choose a file"
+                                     :on-file-accepted #(do
+                                                          (swap! field-errors disj :locations-file-error)
+                                                          (>evt [:discrete-mcc-tree/on-locations-file-selected %]))
+                                     :on-file-rejected (fn [] (swap! field-errors conj :locations-file-error))
+                                     :file-accept-predicate file-formats/locations-file-accept-predicate}]
                 [linear-progress {:value   (* 100 locations-file-upload-progress)
                                   :variant "determinate"}])
 
               ;; we have a filename
               [loaded-input {:value    locations-file-name
-                             :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}])]]
+                             :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}])]
+           (cond
+             (contains? @field-errors :locations-file-error) [:div.field-error.button-error "Locations file first row doesn't contain all numbers."]
+             (nil? locations-file-name) [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
           [:div.upload-spinner
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
              [circular-progress {:size 100}])]
