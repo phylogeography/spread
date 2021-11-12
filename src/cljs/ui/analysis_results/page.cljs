@@ -17,6 +17,9 @@
             [ui.time :as time]
             [ui.utils :refer [<sub >evt]]))
 
+(def type->label {"CONTINUOUS_TREE"       ["Continuous:" "MCC tree"]
+                  "DISCRETE_TREE"         ["Discrete:" "MCC tree"]
+                  "BAYES_FACTOR_ANALYSIS" ["Discrete:" "Bayes factor rates"]})
 
 (defn data [{:keys [of-type error] :as analysis}]
   [:div.data
@@ -93,10 +96,6 @@
          "data"    [data @analysis]
          "results" [results @analysis]
          [results @analysis classes])])))
-
-(def type->label {"CONTINUOUS_TREE"       ["Continuous:" "MCC tree"]
-                  "DISCRETE_TREE"         ["Discrete:" "MCC tree"]
-                  "BAYES_FACTOR_ANALYSIS" ["Discrete:" "Bayes factor rates"]})
 
 (defn analysis-header [{:keys [readable-name of-type created-on]}]
   (let [[label text] (type->label of-type)

@@ -21,13 +21,14 @@
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
 (defn completed-menu-item [_]
-
-  (let [menu-open?  (reagent/atom false)
-        active-page (re-frame/subscribe [::router.subs/active-page])]
+  (let [active-page (re-frame/subscribe [::router.subs/active-page])]
     (fn [{:keys [id readable-name of-type status new?]}]
-      (let [badge-text (cond
-                         (= status "ERROR") "Error"
-                         new?               "New")]
+      (let [badge-text                       (cond
+                                               (= status "ERROR") "Error"
+                                               new?               "New")
+            [anchorElement setAnchorElement] (react/useState nil)
+            handle-close                     #(setAnchorElement nil)
+            open?                            (not (nil? anchorElement))]
         [:div.completed-menu-item.clickable {:on-click #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id :tab "results"}]
                                                                      (when new?
                                                                        [:graphql/query {:query
@@ -42,33 +43,39 @@
          [:div.badges (when badge-text
                         [:span.badge {:class (cond
                                                (= status "ERROR") "error"
-                                               new? "new")} badge-text])]
+                                               new?               "new")} badge-text])]
          [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
-         [:div {:style    {:grid-area "menu"}
-                :on-click #(swap! menu-open? not)}
-          [:img {:src "icons/icn_kebab_menu.svg"}]]
-         (when @menu-open?
-           [:ul.menu
-            [:li {:on-click #()} "Edit"]
-            [:li {:on-click #()} "Load different file"]
-            [:li {:on-click #()} "Copy settings"]
-            [:li {:on-click (fn [event]
-                              (let [{active-route-name :name query :query} @active-page]
-                                (.stopPropagation event)
 
-                                ;; if on results page for this analysis we need to nav back to home
-                                (when (and (= :route/analysis-results  active-route-name)
-                                           (= id (:id query)))
-                                  (>evt [:router/navigate :route/home]))
-
-                                (>evt [:graphql/query {:query
-                                                       "mutation DeleteAnalysisMutation($analysisId: ID!) {
+         [icon-button {:style         {:grid-area "menu"}
+                       :aria-controls "menu-appbar"
+                       :aria-haspopup true
+                       :color         "inherit"
+                       :onClick       (fn [^js event]
+                                        (setAnchorElement (.-currentTarget event)))}
+          [:img {:src (:kebab-menu icons)}]]
+         [menu {:id               "menu-appbar"
+                :anchorEl         anchorElement
+                :anchorOrigin     {:vertical   "top"
+                                   :horizontal "right"}
+                :keep-mounted     true
+                :transform-origin {:vertical   "top"
+                                   :horizontal "right"}
+                :open             open?
+                :on-close         handle-close}
+          [menu-item {:on-click (fn []
+                                  (>evt [:general/copy-analysis-settings id])
+                                  (handle-close))}
+           "Copy settings"]
+          [menu-item {:on-click (fn []
+                                  (>evt [:graphql/query {:query
+                                                         "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                                                    deleteAnalysis(id: $analysisId) {
                                                                      id
                                                                    }
                                                                  }"
-                                                       :variables {:analysisId id}}])))}
-             "Delete"]])]))))
+                                                         :variables {:analysisId id}}])
+                                  (handle-close))}
+           "Delete"]]]))))
 
 (defn completed []
   (let [search-term        (re-frame/subscribe [::subs/search])
