@@ -125,24 +125,30 @@
       data
       (utils/filter-map-vals data attr-filter))))
 
-(defn colored-and-filtered-data [data params filters]
-  (println "Total data objects " (count data))
-  (let [filtered-data (filter-data data (vals filters))
-        _ (println "Filtered data objects " (count filtered-data))
-        final-data (cond
-                     (:transitions-attribute params) (color-data-objects filtered-data :transition (get params :transitions-attribute))
-                     (:circles-attribute params)     (color-data-objects filtered-data :circle (get params :circles-attribute))
-                     (:nodes-attribute params)       (color-data-objects filtered-data :node (get params :nodes-attribute))
-                     :else filtered-data)]
-    final-data))
+(defn colored-and-filtered-data [filtered-data params]
+  (cond
+    (:transitions-attribute params) (color-data-objects filtered-data :transition (get params :transitions-attribute))
+    (:circles-attribute params)     (color-data-objects filtered-data :circle (get params :circles-attribute))
+    (:nodes-attribute params)       (color-data-objects filtered-data :node (get params :nodes-attribute))
+    :else filtered-data))
+
+
+(reg-sub
+  :analysis/filtered-data
+  :<- [:analysis/data]
+  :<- [:analysis.data/filters]
+  (fn [[data filters] _]
+    (println "Total data objects " (count data))
+    (let [r (filter-data data (vals filters))]
+      (println "Filtered data objects " (count r))
+      r)))
 
 (reg-sub
  :analysis/colored-and-filtered-data
- :<- [:analysis/data]
+ :<- [:analysis/filtered-data]
  :<- [:ui/parameters]
- :<- [:analysis.data/filters]
- (fn [[data params filters] _]
-   (colored-and-filtered-data data params filters)))
+ (fn [[filtered-data params] _]
+   (colored-and-filtered-data filtered-data params)))
 
 (reg-sub
  :analysis.data/type
@@ -286,3 +292,36 @@
  :<- [:ui/parameters]
  (fn [parameters [_ id]]
    (get parameters id)))
+
+(defn render-params-styles-string [params switch-buttons]
+  (let [polygon-stroke (if (:map-borders? switch-buttons) (:map-borders-color params) "transparent")
+        data-text-fill (if (:labels? switch-buttons) (:labels-color params) "transparent")
+        text-fill (if (:map-labels? switch-buttons) (:labels-color params) "transparent")
+        transition-stroke (if (:transitions? switch-buttons) (:transitions-color params) "transparent")
+        circle-fill (if (:circles? switch-buttons) (:circles-color params) "transparent")
+        node-fill (if (:nodes? switch-buttons) (:nodes-color params) "transparent")]
+    (str
+      (str "text { font-size: " (:labels-size params) "px; fill:" text-fill ";}")
+      (str ".data-text { fill : " data-text-fill ";}")
+      (str "polygon{ stroke: " polygon-stroke ";}")
+      (str ".data-node { fill: " node-fill "; r: " (:nodes-size params) ";}")
+      (str ".data-transition { stroke: " transition-stroke "; stroke-width: " (:transitions-width params) ";}")
+      (str ".data-polygon { fill: " (:polygons-color params) "; opacity:" (:polygons-opacity params) ";}")
+      (str ".data-circle { fill: " circle-fill ";}"))))
+
+(def hl-color "yellow")
+
+(defn render-elements-styles-string [colored-data high-obj-id]
+  (println "***" (type colored-data))
+  (->> colored-data
+       (keep (fn [[obj-id {:keys [attr-color type]}]]
+               (when-let [color (cond
+                                  (= high-obj-id obj-id) hl-color
+                                  attr-color             attr-color
+                                  :else nil)]
+                 (case type
+                   :node       (str "#" obj-id "{fill: " color ";}")
+                   :circle     (str "#" obj-id "{fill: " color ";}")
+                   :transition (str "#" obj-id "{stroke: " color ";}")
+                   :polygon    (str "#" obj-id "{fill: " color ";}")))))
+       (apply str)))
