@@ -115,7 +115,7 @@
      [tab-pane {:id         id
                 :active-tab active-tab}]]))
 
-(defn footer [{{:keys [id] :as query} :query}]
+(defn footer [{{:keys [id]} :query}]
   [:div.footer-wrapper
    [:div.footer {:style {:grid-area "footer"}}
     [button {:text "Copy settings"

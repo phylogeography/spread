@@ -1,7 +1,7 @@
 (ns ui.events.general
   (:require [taoensso.timbre :as log]
             [ui.router.queries :as router-queries]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n type->tab]]))
+            [ui.utils :as ui-utils :refer [type->tab]]))
 
 (def socket-id :default)
 
@@ -54,7 +54,7 @@
   {:db (assoc db :search text)})
 
 (defn copy-settings [{:keys [db]} [_ id]]
-  (let [{:keys [of-type] :as analysis} (get-in db [:analysis id])]
+  (let [{:keys [of-type]} (get-in db [:analysis id])]
     ;; NOTE : all the data should already be in the app-db since the event is dispatched from the analysis results page
     ;; yet we request it anyway just in case
     {:dispatch [:general/query-analysis {:id id :of-type of-type}]
@@ -62,7 +62,7 @@
 
 (defn paste-settings [{:keys [db]}]
   (when-let [id (:pastebin db)]
-    (let [{:keys [of-type] :as analysis} (get-in db [:analysis id])]
+    (let [{:keys [of-type]} (get-in db [:analysis id])]
       {:dispatch [:router/navigate :route/new-analysis nil {:tab (type->tab of-type) :id id}]})))
 
 (defn query-analysis [_ [_ {:keys [id of-type]}]]

@@ -7,7 +7,6 @@
             [reagent-material-ui.core.menu :refer [menu]]
             [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.typography :refer [typography]]
-            [reagent.core :as reagent]
             [shared.components :refer [button collapsible-tab spread-logo]]
             [ui.component.icon :refer [arg->icon icons]]
             [ui.component.search :refer [search-bar]]
@@ -21,61 +20,60 @@
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
 (defn completed-menu-item [_]
-  (let [active-page (re-frame/subscribe [::router.subs/active-page])]
-    (fn [{:keys [id readable-name of-type status new?]}]
-      (let [badge-text                       (cond
-                                               (= status "ERROR") "Error"
-                                               new?               "New")
-            [anchorElement setAnchorElement] (react/useState nil)
-            handle-close                     #(setAnchorElement nil)
-            open?                            (not (nil? anchorElement))]
-        [:div.completed-menu-item.clickable {:on-click #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id :tab "results"}]
-                                                                     (when new?
-                                                                       [:graphql/query {:query
-                                                                                        "mutation TouchAnalysisMutation($analysisId: ID!) {
-                                                                                 touchAnalysis(id: $analysisId) {
-                                                                                   id
-                                                                                   isNew
-                                                                                 }
-                                                                               }"
-                                                                                        :variables {:analysisId id}}])])}
-         [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
-         [:div.badges (when badge-text
-                        [:span.badge {:class (cond
-                                               (= status "ERROR") "error"
-                                               new?               "new")} badge-text])]
-         [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
+  (fn [{:keys [id readable-name of-type status new?]}]
+    (let [badge-text                       (cond
+                                             (= status "ERROR") "Error"
+                                             new?               "New")
+          [anchorElement setAnchorElement] (react/useState nil)
+          handle-close                     #(setAnchorElement nil)
+          open?                            (not (nil? anchorElement))]
+      [:div.completed-menu-item.clickable {:on-click #(dispatch-n [[:router/navigate :route/analysis-results nil {:id id :tab "results"}]
+                                                                   (when new?
+                                                                     [:graphql/query {:query
+                                                                                      "mutation TouchAnalysisMutation($analysisId: ID!) {
+                                                                                           touchAnalysis(id: $analysisId) {
+                                                                                             id
+                                                                                             isNew
+                                                                                           }
+                                                                                         }"
+                                                                                      :variables {:analysisId id}}])])}
+       [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
+       [:div.badges (when badge-text
+                      [:span.badge {:class (cond
+                                             (= status "ERROR") "error"
+                                             new?               "new")} badge-text])]
+       [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
 
-         [icon-button {:style         {:grid-area "menu"}
-                       :aria-controls "menu-appbar"
-                       :aria-haspopup true
-                       :color         "inherit"
-                       :onClick       (fn [^js event]
-                                        (setAnchorElement (.-currentTarget event)))}
-          [:img {:src (:kebab-menu icons)}]]
-         [menu {:id               "menu-appbar"
-                :anchorEl         anchorElement
-                :anchorOrigin     {:vertical   "top"
-                                   :horizontal "right"}
-                :keep-mounted     true
-                :transform-origin {:vertical   "top"
-                                   :horizontal "right"}
-                :open             open?
-                :on-close         handle-close}
-          [menu-item {:on-click (fn []
-                                  (>evt [:general/copy-analysis-settings id])
-                                  (handle-close))}
-           "Copy settings"]
-          [menu-item {:on-click (fn []
-                                  (>evt [:graphql/query {:query
-                                                         "mutation DeleteAnalysisMutation($analysisId: ID!) {
+       [icon-button {:style         {:grid-area "menu"}
+                     :aria-controls "menu-appbar"
+                     :aria-haspopup true
+                     :color         "inherit"
+                     :onClick       (fn [^js event]
+                                      (setAnchorElement (.-currentTarget event)))}
+        [:img {:src (:kebab-menu icons)}]]
+       [menu {:id               "menu-appbar"
+              :anchorEl         anchorElement
+              :anchorOrigin     {:vertical   "top"
+                                 :horizontal "right"}
+              :keep-mounted     true
+              :transform-origin {:vertical   "top"
+                                 :horizontal "right"}
+              :open             open?
+              :on-close         handle-close}
+        [menu-item {:on-click (fn []
+                                (>evt [:general/copy-analysis-settings id])
+                                (handle-close))}
+         "Copy settings"]
+        [menu-item {:on-click (fn []
+                                (>evt [:graphql/query {:query
+                                                       "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                                                    deleteAnalysis(id: $analysisId) {
                                                                      id
                                                                    }
                                                                  }"
-                                                         :variables {:analysisId id}}])
-                                  (handle-close))}
-           "Delete"]]]))))
+                                                       :variables {:analysisId id}}])
+                                (handle-close))}
+         "Delete"]]])))
 
 (defn completed []
   (let [search-term        (re-frame/subscribe [::subs/search])
