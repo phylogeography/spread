@@ -33,14 +33,14 @@
                                ::text-color]))
 (s/def ::svg any?)
 
-(s/fdef geojson->svg
-  :args (s/cat :gjson ::geojson
-               :opts ::opts)
-  :ret ::svg)
+;; (s/fdef geojson->svg
+;;   :args (s/cat :gjson ::geojson
+;;                :opts ::opts)
+;;   :ret ::svg)
 
-(defmulti geojson->svg (fn [{:keys [type]} _] (keyword type)))
+(declare geojson->svg)
 
-(defmethod geojson->svg :Point [{:keys [coordinates]} opts]
+(defn geojson->svg-point [{:keys [coordinates]} opts]
   (let [[long lat] (*coord-transform-fn* coordinates)]
     [:circle {:cx long :cy lat :r (:point-radius opts) :fill (:data-point-color opts)}]))
 
@@ -58,10 +58,10 @@
                                  :stroke-width (:poly-stroke-width opts)}])))]
     (into [:g {}] all-polys)))
 
-(defmethod geojson->svg :Polygon [{:keys [coordinates]} opts]
+(defn geojson->svg-polygon [{:keys [coordinates]} opts]
   (svg-polygon coordinates opts))
 
-(defmethod geojson->svg :MultiPolygon [{:keys [coordinates]} opts]
+(defn geojson->svg-multi-polygon [{:keys [coordinates]} opts]
   (let [all-paths (->> coordinates
                        (map (fn [poly-coords]
                               (svg-polygon poly-coords opts))))]
@@ -73,10 +73,10 @@
           :stroke (:line-color opts)
           :stroke-width (:line-width opts)}])
 
-(defmethod geojson->svg :LineString [{:keys [coordinates]} opts]
+(defn geojson->svg-line-string [{:keys [coordinates]} opts]
   (svg-line (map *coord-transform-fn* coordinates) opts))
 
-(defmethod geojson->svg :MultiLineString [{:keys [coordinates]} opts]
+(defn geojson->svg-multi-line-string [{:keys [coordinates]} opts]
   (let [all-lines (->> coordinates
                        (map (fn [coor]
                               (svg-line (*coord-transform-fn* coor) opts))))]
@@ -89,11 +89,11 @@
         [text-x text-y] [(+ (/ (Math/abs (- x1 x2)) 2) (min x1 x2))
                          (+ (/ (Math/abs (- y1 y2)) 2) (min y1 y2))]]
     [:text {:x text-x :y text-y
-            :font-size (str (:text-size opts) "px")
+            ;; :font-size (str (:text-size opts) "px")
             :fill (:text-color opts)
             :text-anchor "middle"} text]))
 
-(defmethod geojson->svg :Feature [{:keys [geometry properties]} opts]
+(defn geojson->svg-feature [{:keys [geometry properties]} opts]
   (when geometry
     (let [geo-box (geojson/geo-json-bounding-box geometry) ;; this is in [long lat]
           feature-text (:name properties)]
@@ -105,8 +105,20 @@
         (into [:g {}] (cond-> [(geojson->svg geometry opts)]
                         feature-text (into [(text-for-box geo-box feature-text opts)])))))))
 
-(defmethod geojson->svg :FeatureCollection [{:keys [features]} opts]
+(defn geojson->svg-feature-collection [{:keys [features]} opts]
   (into [:g {}] (mapv (fn [feat] (geojson->svg feat opts)) features)))
 
-(defmethod geojson->svg :default [x _]
+(defn geojson->svg-default [x _]
   (throw (ex-info "Not implemented yet" {:type (:type x)})))
+
+(defn geojson->svg [{:keys [type] :as geoj} opts]
+  (case (keyword type)
+    :Point             (geojson->svg-point geoj opts)
+    :Polygon           (geojson->svg-polygon geoj opts)
+    :MultiPolygon      (geojson->svg-multi-polygon geoj opts)
+    :LineString        (geojson->svg-line-string geoj opts)
+    :MultiLineString   (geojson->svg-multi-line-string geoj opts)
+    :Feature           (geojson->svg-feature geoj opts)
+    :FeatureCollection (geojson->svg-feature-collection geoj opts)
+    (geojson->svg-default geoj opts)
+    ))
