@@ -124,6 +124,11 @@
   (fn [db]
     (get-in db [:new-analysis :bayes-factor :errors])))
 
+(re-frame/reg-sub
+  ::pastebin
+  (fn [db _]
+    (get db :pastebin)))
+
 (comment
   @(re-frame/subscribe [::authorized-user])
   @(re-frame/subscribe [::discrete-tree-parsers])

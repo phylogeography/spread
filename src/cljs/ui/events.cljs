@@ -53,6 +53,8 @@
 (reg-event-fx :general/logout [(re-frame/inject-cofx :localstorage)] events.general/logout)
 (reg-event-fx :general/set-search events.general/set-search)
 (reg-event-fx :general/query-analysis events.general/query-analysis)
+(reg-event-fx :general/copy-analysis-settings events.general/copy-settings)
+(reg-event-fx :general/paste-analysis-settings events.general/paste-settings)
 
 ;;;;;;;;;;;;;;;;;
 ;; Home events ;;
@@ -93,13 +95,13 @@
 (re-frame/reg-event-fx :continuous-mcc-tree/trees-file-upload-success events.continuous-mcc-tree/trees-file-upload-success)
 (re-frame/reg-event-fx :continuous-mcc-tree/delete-trees-file events.continuous-mcc-tree/delete-trees-file)
 
-
 (re-frame/reg-event-fx :continuous-mcc-tree/start-analysis events.continuous-mcc-tree/start-analysis)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-readable-name events.continuous-mcc-tree/set-readable-name)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-y-coordinate events.continuous-mcc-tree/set-y-coordinate)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-x-coordinate events.continuous-mcc-tree/set-x-coordinate)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-most-recent-sampling-date events.continuous-mcc-tree/set-most-recent-sampling-date)
 (re-frame/reg-event-fx :continuous-mcc-tree/set-time-scale-multiplier events.continuous-mcc-tree/set-time-scale-multiplier)
+(re-frame/reg-event-fx :continuous-mcc-tree/reset events.continuous-mcc-tree/reset)
 
 (re-frame/reg-event-fx :discrete-mcc-tree/on-tree-file-selected events.discrete-mcc-tree/on-tree-file-selected)
 (re-frame/reg-event-fx :discrete-mcc-tree/s3-tree-file-upload events.discrete-mcc-tree/s3-tree-file-upload)

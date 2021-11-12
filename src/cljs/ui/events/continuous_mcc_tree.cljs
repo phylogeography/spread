@@ -4,6 +4,10 @@
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt dissoc-in]]))
 
+(defn reset [{:keys [db]} ]
+  {:dispatch [:router/navigate :route/new-analysis nil {:tab "continuous-mcc-tree"}]
+   :db (dissoc-in db [:new-analysis :continuous-mcc-tree])})
+
 (defn tree-file-upload-progress [{:keys [db]} [_ progress]]
   {:db (assoc-in db [:new-analysis :continuous-mcc-tree :tree-file-upload-progress] progress)})
 

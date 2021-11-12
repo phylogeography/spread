@@ -14,16 +14,11 @@
             [ui.format :refer [format-percentage]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
-            [ui.utils :as ui-utils :refer [>evt dispatch-n]]))
+            [ui.utils :as ui-utils :refer [>evt dispatch-n type->tab]]))
 
 (def type->label {"CONTINUOUS_TREE"       "Continuous: MCC tree"
                   "DISCRETE_TREE"         "Discrete: MCC tree"
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
-
-
-(def type->tab {"CONTINUOUS_TREE"       "continuous-mcc-tree"
-                "DISCRETE_TREE"         "discrete-mcc-tree"
-                "BAYES_FACTOR_ANALYSIS" "discrete-rates"})
 
 (defn completed-menu-item [_]
 

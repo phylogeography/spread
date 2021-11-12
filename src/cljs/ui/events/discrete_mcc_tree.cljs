@@ -4,6 +4,10 @@
             [ui.time :as time]
             [ui.utils :as ui-utils :refer [>evt dissoc-in]]))
 
+(defn reset [{:keys [db]} _]
+  {:dispatch [:router/navigate :route/new-analysis nil {:tab "discrete-mcc-tree"}]
+   :db (dissoc-in db [:new-analysis :bayes-factor])})
+
 (defn on-tree-file-selected [_ [_ file-with-meta]]
   (let [{:keys [filename]} file-with-meta
         splitted           (string/split filename ".")
@@ -221,6 +225,3 @@
                                                :locationsAttributeName locations-attribute-name
                                                :timescaleMultiplier    timescale-multiplier
                                                :mostRecentSamplingDate (time/format most-recent-sampling-date)}}]]}))
-
-(defn reset [{:keys [db]} _]
-  {:db (dissoc-in db [:new-analysis :discrete-mcc-tree])})
