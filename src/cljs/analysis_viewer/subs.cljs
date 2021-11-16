@@ -304,15 +304,14 @@
       (str "text { font-size: " (:labels-size params) "px; fill:" text-fill ";}")
       (str ".data-text { fill : " data-text-fill ";}")
       (str "polygon{ stroke: " polygon-stroke ";}")
-      (str ".data-node { fill: " node-fill "; r: " (:nodes-size params) ";}")
-      (str ".data-transition { stroke: " transition-stroke "; stroke-width: " (:transitions-width params) ";}")
-      (str ".data-polygon { fill: " (:polygons-color params) "; opacity:" (:polygons-opacity params) ";}")
-      (str ".data-circle { fill: " circle-fill ";}"))))
+      (str ".data-node > circle{ fill: " node-fill "; r: " (:nodes-size params) ";}")
+      (str ".data-transition > path { stroke: " transition-stroke "; stroke-width: " (:transitions-width params) ";}")
+      (str ".data-polygon > polygon { fill: " (:polygons-color params) "; opacity:" (:polygons-opacity params) ";}")
+      (str ".data-circle > circle { fill: " circle-fill ";}"))))
 
 (def hl-color "yellow")
 
 (defn render-elements-styles-string [colored-data high-obj-id]
-  (println "***" (type colored-data))
   (->> colored-data
        (keep (fn [[obj-id {:keys [attr-color type]}]]
                (when-let [color (cond
@@ -320,8 +319,36 @@
                                   attr-color             attr-color
                                   :else nil)]
                  (case type
-                   :node       (str "#" obj-id "{fill: " color ";}")
-                   :circle     (str "#" obj-id "{fill: " color ";}")
-                   :transition (str "#" obj-id "{stroke: " color ";}")
-                   :polygon    (str "#" obj-id "{fill: " color ";}")))))
+                   :node       (str "#" obj-id " > circle {fill: " color ";}")
+                   :circle     (str "#" obj-id " > circle {fill: " color ";}")
+                   :transition (str "#" obj-id " > path {stroke: " color ";}")
+                   :polygon    (str "#" obj-id " > polygon {fill: " color ";}")))))
        (apply str)))
+
+(defn add-obj-presentation-attrs [obj params]
+  (merge obj
+         (case (:type obj)
+           :transition (let [[x1 y1] (:from-coord obj)
+                             [x2 y2] (:to-coord obj)
+                             {:keys [f1]} (math-utils/quad-curve-focuses x1 y1 x2 y2 (:transitions-curvature params))
+                             [f1x f1y] f1
+                             c-length (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2)]
+                         {:c-length c-length
+                          :f1x f1x :f1y f1y})
+           obj)))
+
+(defn calc-obj-time-attrs [{:keys [show-start show-end] :as obj} time-perc params]
+  (let [show? (<= show-start time-perc show-end)]
+    (case (:type obj)
+      :node       {:show? (and show? (:nodes? params))}
+      :circle     {:show? (and show? (:circles? params))}
+      :polygon    {:show? (and show? (:polygons? params))}
+      :transition (let [show-trans? (and show? (:transitions? params))
+                        c-length (:c-length obj)
+                        clip-perc (when show-trans?
+                                    (/ (- time-perc show-start)
+                                       (- show-end show-start)))
+                        dashoffset (- c-length (* c-length clip-perc))]
+                    {:show? show-trans?
+                     :stroke-dashoffset dashoffset
+                     :clip-perc clip-perc}))))

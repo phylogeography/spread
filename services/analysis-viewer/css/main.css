@@ -263,6 +263,8 @@ button {
 	max-width: 300px;
 	max-height: 200px;
 	font-size: 10px;
+	overflow: auto;
+	border-radius: 5px;
 }
 
 .pop-up label {
@@ -293,7 +295,7 @@ button {
 	position: relative;
 	background-color: #DEDEE8;
 	border-radius: 10px;
-	height: 164px;
+	height: 170px;
 	width: 100%;
     text-align: center;
     
@@ -307,7 +309,11 @@ button {
 }
 
 .animation-controls .inner .buttons i.zmdi-play{
-	font-size: 40px;    
+	font-size: 45px;    
+}
+
+.animation-controls .inner .buttons i.zmdi-pause{
+	font-size: 45px;    
 }
 
 .animation-controls .timeline {
@@ -332,7 +338,7 @@ button {
     align-items: center;    
 }
 
-.animation-controls .speed {
+.animation-controls .hud {
 	position: absolute;
 	color: #3A3668;
 	font-size: 11px;

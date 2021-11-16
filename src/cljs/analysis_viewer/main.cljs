@@ -27,14 +27,19 @@
                 [(keyword pname) pval])))
        (into {})))
 
-(defn ^:dev/after-load start []
+(defn ^:dev/after-load mount-ui []
+  (rdom/render [views/main-screen]
+               (.getElementById js/document "app"))
+  ;; only for dev, take a look at `analysis-viewer.fxs/maybe-re-run-animation` comments for details
+  (analysis-viewer.fxs/maybe-re-run-animation))
+
+(defn start []
   (js/console.log "Starting..." )
   (let [{:keys [maps output]} (parse-url-qstring (subs js/window.location.search 1))]
     (re-frame/dispatch-sync [:map/initialize
                              (into ["WORLD"] (remove str/blank? (str/split maps #",")) )
                              output])
-    (rdom/render [views/main-screen]
-                 (.getElementById js/document "app"))))
+    (mount-ui)))
 
 (defn ^:export init []
   (start))

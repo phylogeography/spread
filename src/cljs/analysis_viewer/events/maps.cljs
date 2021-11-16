@@ -15,7 +15,7 @@
 (def map-proj-width  360)
 (def map-proj-height 180)
 
-(def max-scale 22)
+(def max-scale 60)
 (def min-scale 0.8)
 
 (defn initialize [_ [_ maps output]]
@@ -207,67 +207,91 @@
         delta (/ (* speed day-in-millis) (/ 1000 tick-duration))]
     (plus-or-minus timestamp delta)))
 
-(defn ticker-tick [{:keys [db]} _]
+(defn build-animation-repaint-params [db]
+  (let [params (merge (:ui/parameters db)
+                      (:ui.switch-buttons/states db))]
+    {:data-objects (->> (:analysis/data db)
+                        (map (fn [[id obj]]
+                               (subs/add-obj-presentation-attrs (assoc obj :id id)
+                                                                params))))
+     :date-range (:animation/crop db)
+     :params params}))
+
+(defn animation-prev [{:keys [db]} _]
+
+  (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
+        [crop-low _] crop
+        next-ts (advance-frame-timestamp frame-timestamp speed -)
+        frame-timestamp (if (<= next-ts crop-low)
+                          crop-low
+                          next-ts)]
+    {:db (assoc db :animation/frame-timestamp frame-timestamp)
+     :animation/repaint (assoc (build-animation-repaint-params db)
+                               :timestamp frame-timestamp)}))
+
+(defn animation-next [{:keys [db]} _]
   (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
         [_ crop-high] crop
-        next-ts (advance-frame-timestamp frame-timestamp speed +)]
+        next-ts (advance-frame-timestamp frame-timestamp speed +)
+        frame-timestamp (if (>= next-ts crop-high)
+                          crop-high
+                          next-ts)]
+    {:db (assoc db :animation/frame-timestamp frame-timestamp)
+     :animation/repaint (assoc (build-animation-repaint-params db)
+                               :timestamp frame-timestamp)}))
 
-    (if (>= next-ts crop-high)
-      {:db (assoc db :animation/frame-timestamp crop-high)
-       :ticker/stop nil}
-
-      {:db (assoc db :animation/frame-timestamp next-ts)})))
-
-(defn animation-prev [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]
-  (let [[crop-low _] crop
-        next-ts (advance-frame-timestamp frame-timestamp speed -)]
-    (if (<= next-ts crop-low)
-      (assoc db :animation/frame-timestamp crop-low)
-      (assoc db :animation/frame-timestamp next-ts))))
-
-(defn animation-next [{:keys [animation/frame-timestamp animation/crop animation/speed] :as db} _]
-  (let [[_ crop-high] crop
-        next-ts (advance-frame-timestamp frame-timestamp speed +)]
-    (if (>= next-ts crop-high)
-      (assoc db :animation/frame-timestamp crop-high)
-      (assoc db :animation/frame-timestamp next-ts))))
-
-(defn animation-reset [{:keys [animation/crop] :as db} [_ dir]]
-  (let [[crop-low crop-high] crop
+(defn animation-reset [{:keys [db]} [_ dir]]
+  (let [{:keys [animation/crop]} db
+        [crop-low crop-high] crop
         ts (case dir
              :start crop-low
              :end   crop-high)]
-    (assoc db :animation/frame-timestamp ts)))
+    {:db (assoc db :animation/frame-timestamp ts)
+     :animation/repaint (assoc (build-animation-repaint-params db)
+                               :timestamp ts)}))
 
 (defn animation-toggle-play-stop [{:keys [db]} _]
   (if (= (:animation/state db) :play)
     {:db (assoc db :animation/state :stop)
-     :ticker/stop nil}
+     :animation/stop nil}
+
     {:db (assoc db :animation/state :play)
-     :ticker/start {:millis tick-duration}}))
+     :animation/start  (assoc (build-animation-repaint-params db)
+                              :speed (:animation/speed db)
+                              :start-at-timestamp (:animation/frame-timestamp db))}))
+
+(defn animation-update-frame-timestamp [{:keys [db]} [_ ts]]
+  {:db (assoc db :animation/frame-timestamp ts)})
+
+(defn animation-finished [{:keys [db]} _]
+  ;; just loop on animation finish for now
+  (let [{:keys [animation/crop]} db
+        [crop-low-millis _] crop
+        db' (-> db
+                (assoc :animation/frame-timestamp crop-low-millis))]
+    {:db db'
+     :animation/start  (assoc (build-animation-repaint-params db')
+                              :speed (:animation/speed db')
+                              :start-at-timestamp (:animation/frame-timestamp db'))}))
 
 (defn animation-set-crop [db [_ [crop-low-millis crop-high-millis]]]
   (-> db
       (assoc :animation/crop [crop-low-millis crop-high-millis])
       (assoc :animation/frame-timestamp crop-low-millis)))
 
-(defn animation-set-speed [db [_ new-speed]]
-  (assoc db :animation/speed new-speed))
+(defn animation-set-speed [{:keys [db]} [_ new-speed]]
+  ;; For now we the animation every time we change the speed,
+  ;; we can do it live in the future
+  {:db (assoc db
+              :animation/speed new-speed
+              :animation/state :stop)
+   :animation/stop nil})
 
 (defn set-dimensions [db [_ {:keys [width height]}]]
   (println "Reseting map dimensions to " width "x" height)
   (-> db
       (assoc-in [:map/state :width] width)
       (assoc-in [:map/state :height] height)))
-
-
-(defn show-object-attributes [db [_ object-id coord]]
-  (assoc db
-         :analysis/selected-object-id object-id
-         :map/popup-coord coord))
-
-(defn hide-object-attributes [db _]
-  (dissoc db :analysis/selected-object-id :map/popup-coord))
 
 (defn show-object-selector [db [_ objects-ids coord]]
   (assoc db
@@ -279,6 +303,16 @@
           :analysis/possible-objects-ids
           :map/popup-coord
           :analysis/highlighted-object-id))
+
+(defn show-object-attributes [db [_ object-id coord]]
+
+  (-> db
+      (hide-object-selector nil)
+      (assoc :analysis/selected-object-id object-id
+             :map/popup-coord coord)))
+
+(defn hide-object-attributes [db _]
+  (dissoc db :analysis/selected-object-id :map/popup-coord))
 
 (defn highlight-object [db [_ object-id]]
   (assoc db :analysis/highlighted-object-id object-id))

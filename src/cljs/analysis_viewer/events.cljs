@@ -44,19 +44,19 @@
 (reg-event-db :switch-button/toggle [sc] events.ui/toggle-switch-button)
 (reg-event-db :parameters/select [sc] events.ui/parameters-select)
 
-(reg-event-db :animation/prev [sc] events.maps/animation-prev)
-(reg-event-db :animation/next [sc] events.maps/animation-next)
-(reg-event-db :animation/reset [sc] events.maps/animation-reset)
+(reg-event-fx :animation/prev [sc] events.maps/animation-prev)
+(reg-event-fx :animation/next [sc] events.maps/animation-next)
+(reg-event-fx :animation/reset [sc] events.maps/animation-reset)
 (reg-event-fx :animation/toggle-play-stop [sc] events.maps/animation-toggle-play-stop)
+(reg-event-fx :animation/update-frame-timestamp [] events.maps/animation-update-frame-timestamp)
+(reg-event-fx :animation/finished [] events.maps/animation-finished)
 (reg-event-db :animation/set-crop [sc] events.maps/animation-set-crop)
-(reg-event-db :animation/set-speed [sc] events.maps/animation-set-speed)
+(reg-event-fx :animation/set-speed [sc] events.maps/animation-set-speed)
 
 (reg-event-db :filters/add-attribute-filter [sc] events.filters/add-attribute-filter)
 (reg-event-db :filters/rm-attribute-filter [sc] events.filters/rm-attribute-filter)
 (reg-event-db :filters/set-linear-attribute-filter-range [sc] events.filters/set-linear-attribute-filter-range)
 (reg-event-db :filters/add-ordinal-attribute-filter-item [sc] events.filters/add-ordinal-attribute-filter-item)
 (reg-event-db :filters/rm-ordinal-attribute-filter-item [sc] events.filters/rm-ordinal-attribute-filter-item)
-
-(reg-event-fx :ticker/tick [] events.maps/ticker-tick)
 
 (reg-event-db :map/set-dimensions [sc] events.maps/set-dimensions)

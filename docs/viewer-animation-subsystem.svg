@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="51cm" height="44cm" viewBox="416 423 1017 864" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g id="Background">
+    <text font-size="12.7998" style="fill: #ff0000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="908" y="639">
+      <tspan x="908" y="639">:animation/start (FX)</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="459" y="435.5">
+      <tspan x="459" y="435.5"></tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #0000ff; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="848" y="840">
+      <tspan x="848" y="840">:animation/update-frame-timestamp (Event)</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #0000ff; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="937" y="899">
+      <tspan x="937" y="899">:animation/finished</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #ff0000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="903.5" y="691.881">
+      <tspan x="903.5" y="691.881">:animation/stop (FX)</tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #ff0000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="909.5" y="740.881">
+      <tspan x="909.5" y="740.881">:animation/repaint (FX)</tspan>
+    </text>
+    <g>
+      <ellipse style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" cx="900.933" cy="1217.47" rx="78.0673" ry="68.5336"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="900.933" y="1221.35">
+        <tspan x="900.933" y="1221.35">Dom Nodes</tspan>
+      </text>
+    </g>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="587.5" y1="938" x2="837.532" y2="1161.67"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="834.199,1165.4 844.986,1168.34 840.866,1157.95 "/>
+    </g>
+    <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="706" y="1038">
+      <tspan x="706" y="1038">Reagent create </tspan>
+      <tspan x="706" y="1054">data objects (circles, nodes, etc) </tspan>
+    </text>
+    <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1071" y="1106">
+      <tspan x="1071" y="1106">.setAttribute modifies</tspan>
+      <tspan x="1071" y="1122">object properties</tspan>
+    </text>
+    <g>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="418" y="624" width="339" height="314" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="587.5" y="784.881">
+        <tspan x="587.5" y="784.881"></tspan>
+      </text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="649" y="632" width="98" height="38" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="698" y="654.881">
+        <tspan x="698" y="654.881">Play button</tspan>
+      </text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="647.5" y="681" width="98" height="38" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="696.5" y="703.881">
+        <tspan x="696.5" y="703.881">Stop button</tspan>
+      </text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="648.5" y="731" width="98" height="38" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="697.5" y="753.881">
+        <tspan x="697.5" y="753.881">Next button</tspan>
+      </text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="430.85" y="790" width="316.3" height="118" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="589" y="812.881">
+        <tspan x="589" y="812.881">re-frame db</tspan>
+        <tspan x="589" y="828.881">{</tspan>
+        <tspan x="589" y="844.881">...</tspan>
+        <tspan x="589" y="860.881">:animation/frame-timestamp 1634698800000</tspan>
+        <tspan x="589" y="876.881">...</tspan>
+        <tspan x="589" y="892.881">}</tspan>
+      </text>
+    </g>
+    <g transform="matrix(1,0,0,0.992537,0,19.5075)">
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="1143" y="605" width="276" height="400" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1281" y="808.881">
+        <tspan x="1281" y="808.881"></tspan>
+      </text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="1190.72" y="635" width="175.6" height="38" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1278.52" y="657.881">
+        <tspan x="1278.52" y="657.881">requestAnimationFrame</tspan>
+      </text>
+      <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="1191.67" y="698" width="173.7" height="45" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1278.52" y="724.381">
+        <tspan x="1278.52" y="724.381">modify data dom nodes</tspan>
+      </text>
+      <polygon style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1277.53,801.593 1346.34,836 1277.53,870.407 1208.71,836 "/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1277.53" y="839.881">
+        <tspan x="1277.53" y="839.881">finished?</tspan>
+      </text>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="1278.52" y1="673" x2="1278.52" y2="687"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1273.52,687 1278.52,697 1283.52,687 "/>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="1278.24" y1="743.991" x2="1277.66" y2="790.594"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1272.66,790.533 1277.54,800.593 1282.66,790.656 "/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1208.71,836 1168,800 1169,655 1179.74,654.506 "/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1179.97,659.501 1189.73,654.046 1179.51,649.511 "/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1194" y="849">
+        <tspan x="1194" y="849">No</tspan>
+      </text>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1291" y="882">
+        <tspan x="1291" y="882">Yes</tspan>
+      </text>
+    </g>
+    <g>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1277.53,870.407 1278,908 774,907.021 "/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="774.01,902.021 764,907.002 773.99,912.021 "/>
+    </g>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="1212" y1="849" x2="777" y2="849.975"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="776.989,844.975 767,849.998 777.011,854.975 "/>
+    </g>
+    <g>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1365.38,720.5 1433,722 1433,1083 966.96,1167.05 "/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="966.073,1162.13 957.119,1168.83 967.847,1171.97 "/>
+    </g>
+    <g>
+      <rect style="fill: #deffcc; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="419.175" y="577" width="336.825" height="38" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="587.587" y="599.881">
+        <tspan x="587.587" y="599.881">Re-frame App</tspan>
+      </text>
+    </g>
+    <g>
+      <rect style="fill: #ffb0b0; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="1139.58" y="575" width="280.425" height="38" rx="0" ry="0"/>
+      <text font-size="12.7998" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1279.79" y="597.881">
+        <tspan x="1279.79" y="597.881">Animation System</tspan>
+      </text>
+    </g>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="745.5" y1="700" x2="1127" y2="700"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1127,705 1137,700 1127,695 "/>
+    </g>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="746.5" y1="750" x2="1130" y2="750.972"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1129.99,755.972 1140,750.997 1130.01,745.972 "/>
+    </g>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="747" y1="651" x2="1159" y2="651"/>
+      <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" fill-rule="evenodd" points="1159,656 1169,651 1159,646 "/>
+    </g>
+  </g>
+</svg>
