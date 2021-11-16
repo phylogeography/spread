@@ -11,7 +11,8 @@
             [reagent.core :as reagent]
             [reagent.dom :as rdom]
             [shared.components :refer [collapsible-tab spread-logo]]
-            [shared.math-utils :as math-utils]))
+            [shared.math-utils :as math-utils]
+            [ui.utils :as ui-utils]))
 
 (def data-box-padding
   "The padding around the databox in the final render."
@@ -23,136 +24,119 @@
 ;; which doesn't understand components                                                                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-node-object [{:keys [coord show-start show-end id]} time-perc params]
-  (let [{:keys [nodes? nodes-radius]} params
-        show? (and (<= show-start time-perc show-end)
-                   nodes?)
+(defn svg-node-object [{:keys [coord id]} _ params {:keys [visible?]}]
+  (let [{:keys [nodes-radius]} params
         [x1 y1] coord]
 
+    [:g {:id id
+         :style {:display (if visible? "block" "none")
+                 :cursor :cell}
+         :class "data-node"}
+     [:circle {:id (str id "-touchable")
+               :cx x1
+               :cy y1
+               :r (* nodes-radius 0.5)
+               :opacity 0.2}]]))
 
-    (if-not show?
-      [:g]
-      [:g {}
-       [:circle {:id id
-                 :class "data-node"
-                 :cx x1
-                 :cy y1
-                 :r (* nodes-radius 0.5)
-                 :opacity 0.2}]])))
-
-(defn svg-circle-object [{:keys [coord show-start show-end count-attr id]} time-perc params]
-  (let [{:keys [circles? circles-radius]} params
-        show? (and (<= show-start time-perc show-end)
-                   circles?)
+(defn svg-circle-object [{:keys [coord count-attr id]} _ params {:keys [visible?]}]
+  (let [{:keys [circles-radius]} params
         [x1 y1] coord]
 
-    (if-not show?
-      [:g]
-      [:g {}
-       [:circle {:id id
-                 :class "data-circle"
-                 :cx x1
-                 :cy y1
-                 :r (* circles-radius count-attr)
-                 :opacity 0.2}]])))
+    [:g {:id id
+         :style {:display (if visible? "block" "none")
+                 :cursor :cell}
+         :class "data-circle"}
+     [:circle {:id (str id "-touchable")
+               :cx x1
+               :cy y1
+               :r (* circles-radius count-attr)
+               :opacity 0.2}]]))
 
-(defn svg-polygon-object [{:keys [coords show-start show-end id]} time-perc params]
-  (let [{:keys [polygons? polygons-opacity]} params
-        show? (and (<= show-start time-perc show-end)
-                   polygons?)]
+(defn svg-polygon-object [{:keys [coords id]} _ params {:keys [visible?]}]
+  (let [{:keys [polygons-opacity]} params]
 
-    (if-not show?
-      [:g]
-      [:g {:style {:display (if show? :block :none)}}
-       [:polygon
-        :class "data-polygon"
-        {:id id
-         :points (->> coords
-                      (mapv (fn [coord] (str/join " " coord)))
-                      (str/join ","))
-         :opacity polygons-opacity}]])))
+    [:g {:id id
+         :style {:display (if visible? "block" "none")
+                 :cursor :cell}
+         :class "data-polygon"}
+     [:polygon
+      {:id (str id "-touchable")
+       :stroke-width 0.05
+       :points (->> coords
+                    (mapv (fn [coord] (str/join " " coord)))
+                    (str/join ","))
+       :opacity polygons-opacity}]]))
 
-(defn svg-transition-object [{:keys [from-coord to-coord show-start show-end id]} time-perc params]
-  (let [{:keys [transitions? transitions-width transitions-curvature missiles?]} params
-        show? (and (<= show-start time-perc show-end)
-                   transitions?)]
-    (if-not show?
-      [:g]
+(defn svg-transition-object [{:keys [from-coord to-coord id] :as transition} time-perc params {:keys [visible?]}]
+  (let [{:keys [transitions-width missiles?]} params
+        [x1 y1] from-coord
+        [x2 y2] to-coord
+        {:keys [f1x f1y c-length] :as transition} (viewer-subs/add-obj-presentation-attrs transition params)
+        {:keys [stroke-dashoffset ]} (viewer-subs/calc-obj-time-attrs transition time-perc params)
+        missile-size 0.3]
 
-      (let [clip-perc (when show?
-                        (/ (- time-perc show-start)
-                           (- show-end show-start)))
-            [x1 y1] from-coord
-            [x2 y2] to-coord
-            {:keys [f1]} (math-utils/quad-curve-focuses x1 y1 x2 y2 transitions-curvature)
-            [f1x f1y] f1
-            curve-path-info {:id id
-                             :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
-                             :stroke-width transitions-width
-                             :class "data-transition"
-                             :fill :transparent}
-            missile-size 0.3]
-        [:g {:style {:display (if show? :block :none)}}
-         [:circle {:class "data-transition-circle" :cx x1 :cy y1 :r 0.05 :fill :black}]
-         [:circle {:class "data-transition-circle" :cx x2 :cy y2 :r 0.05 :fill :black}]
-         [:path (if clip-perc
+    [:g {:id id
+         :style {:display (if visible? "block" "none")
+                 :cursor :cell}
+         :class "data-transition"}
+     [:circle {:class "data-transition-from" :cx x1 :cy y1 :r 0.05 :fill :black}]
+     [:circle {:class "data-transition-to" :cx x2 :cy y2 :r 0.05 :fill :black}]
+     [:path {:class "data-transition-path"
+             :id (str id "-touchable")
+             :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
+             :stroke-width transitions-width
+             :fill :transparent
+             :stroke-dasharray (if missiles?
+                                 [(* missile-size c-length) (* (- 1 missile-size) c-length)]
+                                 c-length)
+             :data-curve-length c-length
+             :stroke-dashoffset stroke-dashoffset}]]))
 
-                  ;; animated dashed curves
-                  (let [c-length (math-utils/quad-curve-length x1 y1 f1x f1y x2 y2)]
-                    (assoc curve-path-info
-                           :stroke-dasharray (if missiles?
-                                               [(* missile-size c-length) (* (- 1 missile-size) c-length)]
-                                               c-length)
-                           :stroke-dashoffset (- c-length (* c-length clip-perc))))
 
-                  ;; normal curves
-                  curve-path-info)]]))))
-
-(defn map-primitive-object [{:keys [type] :as primitive-object} time params]
+(defn map-primitive-object [{:keys [type] :as primitive-object} time params opts]
   (case type
-    :transition (svg-transition-object primitive-object time params)
-    :node (svg-node-object primitive-object time params)
-    :circle (svg-circle-object primitive-object time params)
-    :polygon (svg-polygon-object primitive-object time params)))
+    :transition (svg-transition-object primitive-object time params opts)
+    :node (svg-node-object primitive-object time params opts)
+    :circle (svg-circle-object primitive-object time params opts)
+    :polygon (svg-polygon-object primitive-object time params opts)))
 
-(defn text-group [data-objects time params]
+(defn text-group [data-objects _ params {:keys [visible?]}]
   (let [text-color (if (get params :labels?)
                      (get params :labels-color "#079DAB")
                      :transparent)
         font-size (str (:labels-size params) "px")]
     [:g {}
-     (for [{:keys [show-start show-end] :as obj} data-objects]
+     (for [obj data-objects]
 
-       (let [show? (<= show-start time show-end)]
-         (if-not show?
-           [:g {:key (:id obj)}]
-           [:g {:key (:id obj)}
-           (if (= :transition (:type obj))
-             ;; it is a transition add labels for src and dst
-             (let [[x1 y1] (:from-coord obj)
-                   [x2 y2] (:to-coord obj)]
-               [:g {}
-                [:text {:x x1 :y y1
-                        :class "data-text"
-                        :font-size font-size
-                        :fill text-color
-                        :text-anchor "middle"}
-                 (:from-label obj)]
-                [:text {:x x2 :y y2
-                        :class "data-text"
-                        :font-size font-size
-                        :fill text-color
-                        :text-anchor "middle"}
-                 (:to-label obj)]])
+       [:g {:id (str (:id obj) "-text")
+            :key (:id obj)
+            :style {:display (if visible? "block" "none")}}
+        (if (= :transition (:type obj))
+          ;; it is a transition add labels for src and dst
+          (let [[x1 y1] (:from-coord obj)
+                [x2 y2] (:to-coord obj)]
+            [:g {}
+             [:text {:x x1 :y y1
+                     :class "data-text"
+                     :font-size font-size
+                     :fill text-color
+                     :text-anchor "middle"}
+              (:from-label obj)]
+             [:text {:x x2 :y y2
+                     :class "data-text"
+                     :font-size font-size
+                     :fill text-color
+                     :text-anchor "middle"}
+              (:to-label obj)]])
 
-             ;; other kinds of objects only contains one label
-             (let [[x y] (:coord obj)]
-               [:text {:x x :y y
-                       :font-size font-size
-                       :fill text-color
-                       :class "data-text"
-                       :text-anchor "middle"}
-                (:label obj)]))])))]))
+          ;; other kinds of objects only contains one label
+          (let [[x y] (:coord obj)]
+            [:text {:x x :y y
+                    :font-size font-size
+                    :fill text-color
+                    :class "data-text"
+                    :text-anchor "middle"}
+             (:label obj)]))])]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -184,20 +168,23 @@
         crop-width (+ (- (date-range->px-rescale crop-high-millis) (date-range->px-rescale crop-low-millis))
                       (* 2 timeline-start)
                       (- 7))
-        frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
+        frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))
+        ]
 
     [:div.animation-controls
      [mui-slider {:inc-buttons 0.8
                   :class "speed-slider"
                   :min-val 1
-                  :max-val 200
+                  :max-val 70
                   :vertical? true
                   :subs-vec [:animation/speed]
                   :ev-vec [:animation/set-speed]}]
      (if (zero? frame-timestamp)
        [:div.loading "Loading..."]
        [:div.inner
-        [:div.speed (gstr/format "Speed: %d days/sec" speed)]
+        [:div.hud
+         [:div.speed (gstr/format "Speed: %d days/sec" speed)]
+         [:div.date (str "Date: " (ui-utils/format-date frame-timestamp))]]
         [:div.buttons
          [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/reset :start])} ""]
          [:i.zmdi.zmdi-caret-left {:on-click #(dispatch [:animation/prev])} ""]
@@ -224,7 +211,7 @@
                        :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
                        :stroke "#3A3668"}]
 
-               ;; TODO: are we going to keep this red lines? for DT?
+               ;; NOTE: Enable for debugging
                #_(when (pos? perc)
                    [:line {:x1 x :y1 ticks-bars-y-base
                            :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
@@ -248,12 +235,15 @@
   (let [params (merge @(subscribe [:ui/parameters])
                       @(subscribe [:switch-buttons/states]))]
     (fn []
-     (let [time @(re-frame/subscribe [:animation/percentage])
-           analysis-data  (vals @(re-frame/subscribe [:analysis/filtered-data]))
+      (let [analysis-data  (vals @(re-frame/subscribe [:analysis/filtered-data]))
            ;; we react/redraw only to this param changes
            circle-radius @(subscribe [:ui/parameters :circles-radius])
            transition-curvature @(subscribe [:ui/parameters :transitions-curvature])
-           missiles? @(subscribe [:switch-buttons/on? :missiles?])]
+           missiles? @(subscribe [:switch-buttons/on? :missiles?])
+           params (assoc params
+                         :circles-radius circle-radius
+                         :transitions-curvature transition-curvature
+                         :missiles? missiles?)]
        (when analysis-data
          [:g {}
           ;; for debugging the data view-box
@@ -264,24 +254,31 @@
             ^{:key (str (:id primitive-object))}
             [map-primitive-object
              primitive-object
-             time
-             (assoc params
-                    :circles-radius circle-radius
-                    :transitions-curvature transition-curvature
-                    :missiles? missiles?)])])))))
+             0 ;; time is always zero in this path since it is handled by the animation subsystem
+             params
+             {:visible? false} ;; this is the animation path so we start with all data invisible
+             ])])))))
 
 (defn text-group-component []
   (let [ui-params @(subscribe [:ui/parameters])
         switch-buttons @(subscribe [:switch-buttons/states])]
     (fn []
-      (let [time @(re-frame/subscribe [:animation/percentage])
-            data-objects (vals @(re-frame/subscribe [:analysis/filtered-data]))]
-        [text-group data-objects time (merge ui-params switch-buttons)]))))
+      (let [data-objects (vals @(re-frame/subscribe [:analysis/filtered-data]))]
+        [text-group
+         data-objects
+         0 ;; time is always zero in this path since it is handled by the animation subsystem
+         (merge ui-params switch-buttons)
+         {:visible? false}] ;; this is the animation path so we start with all data invisible
+        ))))
 
 (defn object-attributes-popup [selected-obj]
   (let [[x y] @(re-frame/subscribe [:map/popup-coord])]
     [:div.pop-up.selected-object-popup
-     {:style {:left x
+     {:on-wheel (fn [evt] (.stopPropagation evt))
+      :on-mouse-down (fn [evt] (.stopPropagation evt))
+      :on-mouse-move (fn [evt] (.stopPropagation evt))
+      :on-mouse-up (fn [evt] (.stopPropagation evt))
+      :style {:left x
               :top y}}
      (when selected-obj
        (for [[alabel aval] (:attrs selected-obj)]
@@ -332,19 +329,22 @@
                                      (= wheel-button (.-button evt))
                                      (dispatch [:map/zoom-rectangle-grab {:x x :y y}]))
                                    (reset! last-mouse-down-coord [x y])))
+        on-context-menu (fn [evt]
+                          (.preventDefault evt))
+
         on-mouse-up (fn [grab evt]
                       (.stopPropagation evt)
                       (.preventDefault evt)
 
                       (let [x (-> evt .-nativeEvent .-offsetX)
                             y (-> evt .-nativeEvent .-offsetY)]
+                        (dispatch [:map/hide-object-attributes])
+                        (dispatch [:map/hide-object-selector])
                         (cond
 
                           ;; left button pressed
                           (= left-button (.-button evt))
                           (do
-                            (dispatch [:map/hide-object-attributes])
-                            (dispatch [:map/hide-object-selector])
                             (when (= [x y] @last-mouse-down-coord)
 
                               ;; mouse was released without being moved, a click in place
@@ -354,7 +354,7 @@
                                     ids (keep (fn [e]
                                                 (let [eid (.-id e)]
                                                   (when (and eid (str/starts-with? eid "object-"))
-                                                    eid)))
+                                                    (second (re-find #"(object-[\d]+)\-touchable" eid)))))
                                               elements-under-mouse)]
                                 (cond
                                   (= (count ids) 1)
@@ -388,15 +388,17 @@
        (let [{:keys [grab translate scale zoom-rectangle]} @(re-frame/subscribe [:map/state])
              show-map? @(re-frame/subscribe [:switch-buttons/on? :show-map?])
              scale (or scale 1)
-             [translate-x translate-y] translate]
+             [translate-x translate-y] translate
+             possible-objects @(re-frame/subscribe [:analysis/possible-objects])]
          [:div.map-wrapper {:on-wheel on-data-map-wheel
                             :on-mouse-down on-data-map-mouse-down
                             :on-mouse-move (partial on-mouse-move grab zoom-rectangle)
-                            :on-mouse-up (partial on-mouse-up grab)}
+                            :on-mouse-up (partial on-mouse-up grab)
+                            :on-context-menu on-context-menu}
           (when-let [selected-obj @(re-frame/subscribe [:analysis/selected-object])]
             [object-attributes-popup selected-obj])
 
-          (when-let [possible-objects @(re-frame/subscribe [:analysis/possible-objects])]
+          (when possible-objects
             [possible-objects-selector-popup possible-objects])
 
           [:div.zoom-bar-outer
@@ -766,6 +768,7 @@
   (let [objects-styles (viewer-subs/render-elements-styles-string @(re-frame/subscribe [:analysis/colored-and-filtered-data])
                                                       @(re-frame/subscribe [:analysis/highlighted-object-id]))]
     [:style objects-styles]))
+
 
 (defn main-screen []
   (let [analysis-type @(re-frame/subscribe [:analysis.data/type])]

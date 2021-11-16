@@ -9,7 +9,6 @@
    (println "Toggling" tab-id)
    (let [tab-new-state (not (get-in db [:ui.collapsible-tabs/tabs tab-id]))
          close-all-tabs (fn [db]
-                          ;; TODO: implement
                           (update db :ui.collapsible-tabs/tabs
                                   (fn [tabs]
                                     (map-map-vals tabs (constantly false)))))]

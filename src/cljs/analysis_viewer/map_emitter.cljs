@@ -11,8 +11,8 @@
   Points        -> Nodes
   Counts        -> Circles
   Lines         -> Transitions
-  Areas         -> Polygons 
-  
+  Areas         -> Polygons
+
   Emited data is in the form of :
 
   {1 {:type :transition
@@ -32,7 +32,7 @@
       :show-start 0.2
       :show-end 0.3}
     ...}
-  
+
 
   all coordinates are in proj-coord [x y] where 0 <= x  <= 360, 0 <= y <= 180
   "
@@ -69,14 +69,14 @@
                         [id (assoc o :id id)])))
        (into {})))
 
-(defn continuous-tree-output->map-data [{:keys [timeline points lines areas]}]  
+(defn continuous-tree-output->map-data [{:keys [timeline points lines areas]}]
   (let [calc-show-percs (build-show-percentages-calculator timeline)
         points-index (build-points-index points)
         nodes-objects (->> points
                            (map (fn [{:keys [coordinate attributes] :as point}]
                                   (merge
                                    {:type :node
-                                    :coord (calc-proj-coord coordinate)                                      
+                                    :coord (calc-proj-coord coordinate)
                                     :attrs attributes}
                                    (calc-show-percs point)))))
         transitions-objects (->> lines
@@ -97,7 +97,7 @@
                                                     (mapv (fn [poly-point]
                                                             (calc-proj-coord poly-point))))
                                        :attrs {}}
-                                      (calc-show-percs area)))))        
+                                      (calc-show-percs area)))))
         objects (concat polygons-objects transitions-objects nodes-objects)]
     (println timeline)
     (println (gstr/format "Continuous tree, got %d nodes, %d transitions, %d polygons"
@@ -107,21 +107,21 @@
     (index-objects objects)))
 
 (defn discrete-tree-output->map-data [{:keys [timeline locations points lines counts]}]
-  (let [calc-show-percs (build-show-percentages-calculator timeline)         
+  (let [calc-show-percs (build-show-percentages-calculator timeline)
         locations-index (->> locations
                              (map (fn [l] [(:id l) l]))
                              (into {}))
-        points-index (build-points-index (concat points counts))        
+        points-index (build-points-index (concat points counts))
         point-location (fn [point-id]
                          (->> (get points-index point-id)
                               :locationId
                               (get locations-index)))
-        nodes-objects (->> points                           
+        nodes-objects (->> points
                            (map (fn [{:keys [id attributes] :as point}]
                                   (let [{:keys [coordinate id]} (point-location id)]
                                     (cond-> (merge
                                              {:type :node
-                                              :coord (calc-proj-coord coordinate)                                      
+                                              :coord (calc-proj-coord coordinate)
                                               :attrs attributes
                                               :label id}
                                              (calc-show-percs point)))))))
@@ -131,20 +131,22 @@
                                       (cond-> (merge
                                                {:type :circle
                                                 :label id
-                                                :coord (calc-proj-coord coordinate)                                      
+                                                :coord (calc-proj-coord coordinate)
                                                 :attrs attributes
                                                 :count-attr (get attributes :count)}
-                                               (calc-show-percs point))))))) 
+                                               (calc-show-percs point)))))))
         transitions-objects (->> lines
                                  (map (fn [{:keys [startPointId endPointId attributes] :as line}]
                                         (let [start-point (get points-index startPointId)
                                               end-point (get points-index endPointId)
                                               start-loc (point-location (:id start-point))
-                                              end-loc   (point-location (:id end-point))]
+                                              end-loc   (point-location (:id end-point))
+                                              from-coord (calc-proj-coord (:coordinate start-loc))
+                                              to-coord (calc-proj-coord (:coordinate end-loc))]
                                           (merge
                                            {:type :transition
-                                            :from-coord (calc-proj-coord (:coordinate start-loc))
-                                            :to-coord (calc-proj-coord (:coordinate end-loc))
+                                            :from-coord from-coord
+                                            :to-coord to-coord
                                             :from-label (:id start-loc)
                                             :to-label   (:id end-loc)
                                             :attrs attributes}
@@ -161,7 +163,7 @@
   (let [locations-index (->> locations
                              (map (fn [l] [(:id l) l]))
                              (into {}))
-        points-index (build-points-index points)        
+        points-index (build-points-index points)
         point-coordinate (fn [point-id]
                            (->> (get points-index point-id)
                                 :locationId
@@ -173,7 +175,7 @@
                                     {:type :node
                                      :show-start 0
                                      :show-end 1
-                                     :coord (calc-proj-coord coordinate)                                      
+                                     :coord (calc-proj-coord coordinate)
                                      :attrs attributes}))))
         transitions-objects (->> lines
                                  (map (fn [{:keys [startPointId endPointId attributes]}]

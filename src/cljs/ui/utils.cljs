@@ -60,3 +60,12 @@
   [n-str]
   (when (and n-str (re-matches #"^\d+((\.|\,)\d+)?" n-str))
     (js/parseFloat n-str)))
+
+(def month-name ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Set" "Oct" "Nov" "Dec"])
+
+(defn format-date [timestamp-millis]
+  (let [date (js/Date. timestamp-millis)
+        year (.getFullYear date)
+        month (.getMonth date)
+        day (.getDate date)]
+    (str day " " (month-name month) " " year)))

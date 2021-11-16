@@ -1,12 +1,17 @@
 (ns analysis-viewer.fxs
   (:require-macros [hiccups.core :as hiccups :refer [html]])
-  (:require [analysis-viewer.svg-renderer :as svg-renderer]
+  (:require [analysis-viewer.subs :as subs]
+            [analysis-viewer.svg-renderer :as svg-renderer]
             [analysis-viewer.views :as views]
             [goog.string :as gstr]
             [hiccups.runtime :as hiccupsrt]
             [re-frame.core :as re-frame]
+
             [shared.math-utils :as math-utils]))
 
+;;;;;;;;;;;;;;;;;;;;;;;
+;; SVG File renderer ;;
+;;;;;;;;;;;;;;;;;;;;;;;
 (defn data-map [geo-json-map analysis-data analysis-data-box time params styles]
   (let [padding 10]
     [:svg {:xmlns "http://www.w3.org/2000/svg"
@@ -41,15 +46,18 @@
          [:g {}
           (for [primitive-object analysis-data]
             ^{:key (str (:id primitive-object))}
-            (views/map-primitive-object primitive-object time params))])]
+            (views/map-primitive-object primitive-object time params {:visible? true}))])]
 
       ;; text group
-      (views/text-group analysis-data time params)]]))
+      (views/text-group analysis-data time params {:visible? true})]]))
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg
  (fn [{:keys [geo-json-map styles analysis-data data-box time params]}]
-   (let [svg-text (html (data-map geo-json-map analysis-data data-box time params styles))
+   (let [time-filtered-data (filter (fn [obj] ;; don't include in file data not for this frame
+                                      (:show? (subs/calc-obj-time-attrs obj time params)))
+                                    analysis-data)
+         svg-text (html (data-map geo-json-map time-filtered-data data-box time params styles))
          download-anchor (js/document.createElement "a")]
      (.setAttribute download-anchor "href" (str "data:image/svg+xml;charset=utf-8," (js/encodeURIComponent svg-text)))
      (.setAttribute download-anchor "download" "map.svg")
@@ -58,24 +66,108 @@
      (.click download-anchor)
      (js/document.body.removeChild download-anchor))))
 
-(def ticker-ref (atom nil))
+;;;;;;;;;;;;;;;;
+;; Animations ;;
+;;;;;;;;;;;;;;;;
 
-(defn stop-ticker []
-  (when-let [ticker @ticker-ref]
-    (js/clearInterval ticker)))
+(defonce animation-running* (atom false))
+(def report-freq-millis 1000)
+
+(defn get-dom-elements [data-objects]
+  (->> data-objects
+       (reduce (fn [r {:keys [type] :as obj}]
+                 (let [el      (js/document.getElementById (:id obj))
+                       text-el (js/document.getElementById (str (:id obj) "-text"))]
+                   (conj r (cond-> obj
+                             true                 (assoc :group-elem el)
+                             text-el              (assoc :text-elem text-el)
+                             (= type :transition) (assoc :path-elem (.querySelector el ":scope > .data-transition-path"))))))
+               [])))
+
+(defn animation-repaint [elems delta-t range-millis params]
+  (let [perc (math-utils/calc-perc 0 range-millis delta-t)]
+    (doseq [{:keys [group-elem text-elem] :as obj} elems]
+
+     (let [{:keys [show?] :as attrs} (subs/calc-obj-time-attrs obj perc params)]
+       ;; animate hide/show elements
+       (set! (-> group-elem .-style .-display ) (if show? "block" "none"))
+
+       ;; animate hide/show text elements
+       (when text-elem
+         (set! (-> text-elem .-style .-display ) (if show? "block" "none")))
+
+       ;; animate transitions by moving the stroke-dashoffset
+       (when (and show? (= :transition (:type obj)))
+         (.setAttribute (:path-elem obj)
+                        "stroke-dashoffset"
+                        (str (:stroke-dashoffset attrs))))))))
 
 (re-frame/reg-fx
- :ticker/start
- (fn [{:keys [millis]}]
-   ;; make sure no ticker is running before starting one
-   (stop-ticker)
-
-   (reset! ticker-ref
-           (js/setInterval (fn []
-                             (re-frame/dispatch [:ticker/tick]))
-                           millis))))
+  :animation/repaint
+  (fn [{:keys [data-objects timestamp date-range params]}]
+    (let [[date-from data-to] date-range
+          range-millis (- data-to date-from)
+          elems (get-dom-elements data-objects)
+          delta-t (- timestamp date-from)]
+      (animation-repaint elems delta-t range-millis params))))
 
 (re-frame/reg-fx
- :ticker/stop
+  :animation/start
+  (fn [{:keys [data-objects speed start-at-timestamp date-range params]}]
+    ;; speed is in days/sec
+    (let [seconds-in-day (* 24 60 60)
+          [date-from data-to] date-range
+          range-millis (- data-to date-from)
+          start-offset (- start-at-timestamp date-from)
+          _ (println "TOTAL DAYS" (/ range-millis 1000 60 60 24))
+          elems (get-dom-elements data-objects)
+          start-time* (atom nil)
+          last-report* (atom 0)
+          step (fn step [t]
+                 ;; `t` in millis, should be accurate to 5 µs in the fractional part of the double
+                 (let [elapsed (if-let [st @start-time*]
+                                 (- t st)
+                                 (do
+                                   (reset! start-time* t)
+                                   1))
+                       delta-t (+ (* elapsed speed seconds-in-day) start-offset) ;; millis
+                       ]
+
+                   ;; every `report-freq-millis` report to the re-frame db so the ui can keep track of
+                   ;; animation progress
+                   (when (> (- t @last-report*) report-freq-millis)
+                     (re-frame/dispatch [:animation/update-frame-timestamp (+ delta-t date-from)])
+                     (reset! last-report* t))
+
+                   ;; update all data objects dom nodes
+                   (animation-repaint elems delta-t range-millis params)
+
+                   ;; keep animating until we reach the end or someone
+                   ;; stopps us
+                   (cond
+                     ;; animation finished
+                     (>= (+ delta-t date-from) data-to)
+                     (do (re-frame/dispatch [:animation/finished])
+                         (reset! animation-running* false))
+
+                     @animation-running*
+                     (js/requestAnimationFrame step))))]
+
+      (reset! animation-running* true)
+      (js/requestAnimationFrame step))))
+
+(re-frame/reg-fx
+ :animation/stop
  (fn [_]
-   (stop-ticker)))
+   (reset! animation-running* false)))
+
+;; NOTE: this is only for dev to support hot reloading while the animation is running,
+;; nice for modifying animation code while animation keeps running.
+;; It is ment to be called only from `analysis-viewer.main/mount-ui` which is called
+;; on hot code reload, so if the animation was running we re run it again.
+(defn maybe-re-run-animation []
+  (when @animation-running*
+    (re-frame/dispatch [:animation/toggle-play-stop])
+    (js/setTimeout (fn []
+                     (re-frame/dispatch [:animation/toggle-play-stop]))
+                   500)))

@@ -160,7 +160,7 @@
                :height nil}
    :animation/frame-timestamp 0
    :animation/crop [0 1]
-   :animation/speed 100
+   :animation/speed 10
    :animation/state :stop
    :analysis.data/filters {}
    :ui.collapsible-tabs/tabs {:layer-visibility true,
@@ -172,7 +172,8 @@
                               :transitions? true
                               :circles? true
                               :nodes? true
-                              :labels? true}
+                              :labels? true
+                              :polygons? true}
    :ui/parameters {:map-borders-color "#079DAB"
                    :polygons-color "#1C58D0"
                    :polygons-opacity 0.3
