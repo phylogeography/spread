@@ -1,14 +1,14 @@
 (ns analysis-viewer.events.filters)
 
-(defn add-attribute-filter [db [_ attr-id]]  
-  (let [max-id (or (->> (:analysis.data/filters db)                          
+(defn add-attribute-filter [db [_ attr-id]]
+  (let [max-id (or (->> (:analysis.data/filters db)
                         keys
                         (apply max))
                    0)
         new-filter-id (inc max-id)
         attr (get (:analysis/attributes db) attr-id)
         new-filter-gen {:filter/id new-filter-id
-                        :attribute/id attr-id}        
+                        :attribute/id attr-id}
         new-filter-spec (case (:attribute/type attr)
                           ; filter start with the full range
                           :linear {:filter/type :linear-filter
@@ -30,5 +30,3 @@
 
 (defn rm-ordinal-attribute-filter-item [db [_ filter-id item]]
   (update-in db [:analysis.data/filters filter-id :filter-set] disj item))
-
-

@@ -20,11 +20,14 @@
       :Feature           (when-let [g (:geometry geo-json)] (all-coords g))
       (throw (ex-info (pr-str "Don't know how to find coords of " (:type geo-json)) {})))))
 
-(defn geo-json-bounding-box
+;; This doesn't change since geo-json objects we are dealing with are immutable
+;; so we can memoize it
+(def geo-json-bounding-box 
 
   "Calculates the bounding box in proj-coord for any geo-json map."
   
-  [geo-json]
+  (memoize
+    (fn [geo-json]
 
-  (let [coords (->> (all-coords geo-json))]
-    (math-utils/bounding-box coords)))
+     (let [coords (->> (all-coords geo-json))]
+       (math-utils/bounding-box coords)))))

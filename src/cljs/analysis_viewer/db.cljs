@@ -184,4 +184,4 @@
                    :nodes-color "#B20707"
                    :nodes-size 0.1
                    :labels-color "#a5387b"
-                   :labels-size 0.5}})
+                   :labels-size 0.25}})
