@@ -14,23 +14,24 @@
             [ui.utils :as ui-utils :refer [>evt debounce]]))
 
 (defn controls [{:keys [readable-name locations-attribute most-recent-sampling-date timescale-multiplier]} {:keys [disabled?]}]
-  [:div.controls-wrapper
-   [:div.controls {:style {:grid-area "controls"}}
-    [button {:text "Start analysis"
-             :on-click #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
-                                                                  :locations-attribute-name  locations-attribute
-                                                                  :most-recent-sampling-date most-recent-sampling-date
-                                                                  :timescale-multiplier      timescale-multiplier}])
-             :class "golden"
-             :disabled? disabled?}]
-    [button {:text "Paste settings"
-             :on-click #(prn "TODO")
-             :class "secondary"
-             :disabled? disabled?}]
-    [button {:text "Reset"
-             :on-click #(>evt [:discrete-mcc-tree/reset])
-             :class "danger"
-             :disabled? disabled?}]]])
+  (let [paste-disabled? (nil? @(re-frame/subscribe [::subs/pastebin]))]
+    [:div.controls-wrapper
+     [:div.controls {:style {:grid-area "controls"}}
+      [button {:text      "Start analysis"
+               :on-click  #(>evt [:discrete-mcc-tree/start-analysis {:readable-name             readable-name
+                                                                     :locations-attribute-name  locations-attribute
+                                                                     :most-recent-sampling-date most-recent-sampling-date
+                                                                     :timescale-multiplier      timescale-multiplier}])
+               :class     "golden"
+               :disabled? disabled?}]
+      [button {:text      "Paste settings"
+               :on-click  #(>evt [:general/paste-analysis-settings])
+               :class     "secondary"
+               :disabled? paste-disabled?}]
+      [button {:text      "Reset"
+               :on-click  #(>evt [:discrete-mcc-tree/reset])
+               :class     "danger"
+               :disabled? disabled?}]]]))
 
 (defn discrete-mcc-tree []
   (let [discrete-mcc-tree (re-frame/subscribe [::subs/discrete-mcc-tree])

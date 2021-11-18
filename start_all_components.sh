@@ -27,6 +27,11 @@ tmux new-window -t "spread:3";
 tmux send-keys -t "spread:3" 'source env/dev' Enter;
 tmux send-keys -t "spread:3" 'yarn watch' Enter;
 
+# start viewer
+tmux new-window -t "spread:4";
+tmux send-keys -t "spread:4" 'source env/dev' Enter;
+tmux send-keys -t "spread:4" 'yarn watch:viewer' Enter;
+
 tmux a;
 
 exit $?

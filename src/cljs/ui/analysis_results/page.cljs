@@ -17,6 +17,9 @@
             [ui.time :as time]
             [ui.utils :refer [<sub >evt]]))
 
+(def type->label {"CONTINUOUS_TREE"       ["Continuous:" "MCC tree"]
+                  "DISCRETE_TREE"         ["Discrete:" "MCC tree"]
+                  "BAYES_FACTOR_ANALYSIS" ["Discrete:" "Bayes factor rates"]})
 
 (defn data [{:keys [of-type error] :as analysis}]
   [:div.data
@@ -39,8 +42,6 @@
      [discrete-rates analysis]
      nil)])
 
-;; NOTE : the results tab
-;; https://app.zeplin.io/project/6075ecb45aa2eb47e1384d0b/screen/6075ed3112972c3f62905120
 (defn results [{:keys [bayes-factors] :as analysis}]
   (let [config @(re-frame/subscribe [::subs/config])
         viewer-host (:analysis-viewer-url config)
@@ -59,7 +60,7 @@
             [:div.export
              [:span "Support values"]
              [button {:text "Export To CSV"
-                      :on-click #()
+                      :on-click #(prn "TODO")
                       :class "secondary"}]]
             ;; TODO : table with sorting https://material-ui.com/components/tables/#sorting-amp-selecting
             [table-container {}
@@ -96,15 +97,10 @@
          "results" [results @analysis]
          [results @analysis classes])])))
 
-(def type->label {"CONTINUOUS_TREE"       ["Continuous:" "MCC tree"]
-                  "DISCRETE_TREE"         ["Discrete:" "MCC tree"]
-                  "BAYES_FACTOR_ANALYSIS" ["Discrete:" "Bayes factor rates"]})
-
 (defn analysis-header [{:keys [readable-name of-type created-on]}]
   (let [[label text] (type->label of-type)
         date (when created-on (time/format-date-str created-on))
-        time (when created-on (time/format-time-str created-on))
-        ]
+        time (when created-on (time/format-time-str created-on))]
     [:div.analysis-header {:style {:grid-area "header"}}
      [:div.readable-name {:style {:grid-area "readable-name"}} readable-name]
      [:div.sub-name {:style {:grid-area "sub-name"}}
@@ -119,17 +115,20 @@
      [tab-pane {:id         id
                 :active-tab active-tab}]]))
 
-(defn footer []
+(defn footer [{{:keys [id]} :query}]
   [:div.footer-wrapper
    [:div.footer {:style {:grid-area "footer"}}
-    [button {:text "Edit"
-             :on-click #()
-             :class "golden"}]
     [button {:text "Copy settings"
-             :on-click #()
+             :on-click #(>evt [:general/copy-analysis-settings id])
              :class "secondary"}]
     [button {:text "Delete"
-             :on-click #()
+             :on-click #(>evt [:graphql/query {:query
+                                               "mutation DeleteAnalysisMutation($analysisId: ID!) {
+                                                                   deleteAnalysis(id: $analysisId) {
+                                                                     id
+                                                                   }
+                                                                 }"
+                                               :variables {:analysisId id}}])
              :class "danger"}]]])
 
 (defmethod page :route/analysis-results []
@@ -143,4 +142,4 @@
            [:div.analysis-results
             [analysis-header analysis]
             [analysis-body @active-page]
-            [footer]]])))))
+            [footer @active-page]]])))))

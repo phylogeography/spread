@@ -7,6 +7,7 @@
             [clojure.string :as string]
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
+            [ui.router.queries :as router-queries]
             [ui.utils :refer [>evt dissoc-in]]))
 
 (defn gql-name->kw [gql-name]
@@ -305,7 +306,12 @@
 
 (defmethod handler :delete-analysis
   [{:keys [db]} _ {:keys [id]}]
-  {:db (dissoc-in db [:analysis id])})
+  (let [{active-route-name :name query :query} (router-queries/active-page db)]
+    ;; if on results page for this analysis we need to nav back to home
+    (when (and (= :route/analysis-results active-route-name)
+               (= id (:id query)))
+      (>evt [:router/navigate :route/home]))
+    {:db (dissoc-in db [:analysis id])}))
 
 (defmethod handler :delete-file
   [_ _ _]

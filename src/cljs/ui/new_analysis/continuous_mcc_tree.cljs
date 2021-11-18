@@ -15,24 +15,25 @@
 
 (defn controls [{:keys [readable-name y-coordinate-attribute-name x-coordinate-attribute-name most-recent-sampling-date timescale-multiplier]}
                 {:keys [disabled?]}]
-  [:div.controls-wrapper
-   [:div.controls {:style {:grid-area "controls"}}
-    [button {:text      "Start analysis"
-             :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name               readable-name
-                                                                     :y-coordinate-attribute-name y-coordinate-attribute-name
-                                                                     :x-coordinate-attribute-name x-coordinate-attribute-name
-                                                                     :most-recent-sampling-date   most-recent-sampling-date
-                                                                     :timescale-multiplier        timescale-multiplier}])
-             :class     "golden"
-             :disabled? disabled?}]
-    [button {:text      "Paste settings"
-             :on-click  #()
-             :class     "secondary"
-             :disabled? disabled?}]
-    [button {:text      "Reset"
-             :on-click  #()
-             :class     "danger"
-             :disabled? disabled?}]]])
+  (let [paste-disabled? (nil? @(re-frame/subscribe [::subs/pastebin]))]
+    [:div.controls-wrapper
+     [:div.controls {:style {:grid-area "controls"}}
+      [button {:text      "Start analysis"
+               :on-click  #(>evt [:continuous-mcc-tree/start-analysis {:readable-name               readable-name
+                                                                       :y-coordinate-attribute-name y-coordinate-attribute-name
+                                                                       :x-coordinate-attribute-name x-coordinate-attribute-name
+                                                                       :most-recent-sampling-date   most-recent-sampling-date
+                                                                       :timescale-multiplier        timescale-multiplier}])
+               :class     "golden"
+               :disabled? disabled?}]
+      [button {:text      "Paste settings"
+               :on-click  #(>evt [:general/paste-analysis-settings])
+               :class     "secondary"
+               :disabled? paste-disabled?}]
+      [button {:text      "Reset"
+               :on-click  #(>evt [:continuous-mcc-tree/reset])
+               :class     "danger"
+               :disabled? disabled?}]]]))
 
 (defn continuous-mcc-tree []
   (let [continuous-mcc-tree (re-frame/subscribe [::subs/continuous-mcc-tree])

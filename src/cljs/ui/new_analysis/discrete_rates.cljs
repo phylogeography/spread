@@ -11,21 +11,22 @@
             [ui.utils :as ui-utils :refer [>evt debounce]]))
 
 (defn controls [{:keys [readable-name burn-in]} {:keys [disabled?]}]
-  [:div.controls-wrapper
-   [:div.controls {:style {:grid-area "controls"}}
-    [button {:text      "Start analysis"
-             :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name readable-name
-                                                              :burn-in       (/ burn-in 100)}])
-             :class     "golden"
-             :disabled? disabled?}]
-    [button {:text      "Paste settings"
-             :on-click  #(prn "TODO")
-             :class     "secondary"
-             :disabled? disabled?}]
-    [button {:text      "Reset"
-             :on-click  #(>evt [:bayes-factor/reset])
-             :class     "danger"
-             :disabled? disabled?}]]])
+  (let [paste-disabled? (nil? @(re-frame/subscribe [::subs/pastebin]))]
+    [:div.controls-wrapper
+     [:div.controls {:style {:grid-area "controls"}}
+      [button {:text      "Start analysis"
+               :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name readable-name
+                                                                :burn-in       (/ burn-in 100)}])
+               :class     "golden"
+               :disabled? disabled?}]
+      [button {:text      "Paste settings"
+               :on-click  #(>evt [:general/paste-analysis-settings])
+               :class     "secondary"
+               :disabled? paste-disabled?}]
+      [button {:text      "Reset"
+               :on-click  #(>evt [:bayes-factor/reset])
+               :class     "danger"
+               :disabled? disabled?}]]]))
 
 (defn discrete-rates []
   (let [bayes-factor (re-frame/subscribe [::subs/bayes-factor])
