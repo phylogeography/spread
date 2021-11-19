@@ -84,7 +84,8 @@
                                             }
                                             timescaleMultiplier
                                             analysis {
-                                                viewerUrlParams
+                                              error
+                                              viewerUrlParams
                                             }
                                           }
                                         }"
@@ -102,6 +103,7 @@
                                             mostRecentSamplingDate
                                             timescaleMultiplier
                                             analysis {
+                                              error
                                               viewerUrlParams
                                             }
                                           }
@@ -123,6 +125,7 @@
                                             }
                                             outputFileUrl
                                             analysis {
+                                              error
                                               viewerUrlParams
                                             }
                                           }

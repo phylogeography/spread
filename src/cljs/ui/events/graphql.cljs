@@ -167,6 +167,7 @@
   (let [most-recent-sampling-date (when most-recent-sampling-date
                                     (new js/Date most-recent-sampling-date))]
     {:db (-> db
+             (update-in [:analysis id] merge (:analysis analysis))
              (update-in [:analysis id] merge analysis)
              (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
@@ -195,6 +196,7 @@
   (let [most-recent-sampling-date (when most-recent-sampling-date
                                     (new js/Date most-recent-sampling-date))]
     {:db (-> db
+             (update-in [:analysis id] merge (:analysis analysis))
              (update-in [:analysis id] merge analysis)
              (assoc-in [:analysis id :most-recent-sampling-date] most-recent-sampling-date))}))
 
@@ -235,7 +237,10 @@
 
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id] :as analysis}]
-  {:db (update-in db [:analysis id] merge analysis)})
+  {:db
+   (-> db
+       (update-in [:analysis id] merge (:analysis analysis))
+       (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id] :as analysis}]
