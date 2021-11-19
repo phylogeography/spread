@@ -41,13 +41,13 @@
 	min-height: 0px;    
 }
 
-.tab {
+.collapsible-tabs .tab {
 	min-height: 50px;
     display: flex;
     flex-direction: column;    
 }
 
-.tab > .title {
+.collapsible-tabs .tab > .title {
     font-weight: bold;
     display: flex;
 	justify-content: space-between;
@@ -58,37 +58,37 @@
 	cursor: pointer;    
 }
 
-.tab > .title > .text {
+.collapsible-tabs .tab > .title > .text {
 	display: flex;
 	align-items: center;
 }
 
-.tab > .title > .text img {
+.collapsible-tabs .tab > .title > .text img {
 	margin-right: 10px;
 }
 
-.tab > .title img.arrow.open {
+.collapsible-tabs .tab > .title img.arrow.open {
     transform: rotateZ(180deg);
 }
 
-.tab-body {
+.collapsible-tabs .tab-body {
 	min-height: 0px;
     padding: 10px;
 	overflow: hidden;
 	border-bottom: 1px solid #E2E2EA;
 }
 
-.tab-body.open {    
+.collapsible-tabs .tab-body.open {    
 	min-height: 0px;
 	overflow: auto;    
 }
 
-.tab-body.collapsed {
+.collapsible-tabs .tab-body.collapsed {
     
     display: none;
 }
 
-.tab .badge {
+.collapsible-tabs .tab .badge {
 	border: 1px solid;
 	padding: 3px;
 	border-radius: 5px;
@@ -96,11 +96,11 @@
 	background-color: #FBFCFE;
 }
 
-.tab .badge.new {
+.collapsible-tabs .tab .badge.new {
 	color: #3428CA;
 }
 
-.tab .badge.error {
+.collapsible-tabs .tab .badge.error {
 	color: #B20707;
 }
 
@@ -200,7 +200,7 @@
 }
 
 .tabs .tab-wrapper {
-	color: #bbb;
+	color: #3A3668;
 	display: inline-block;
 }
 
