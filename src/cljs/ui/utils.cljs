@@ -6,6 +6,10 @@
 (def <sub (comp deref re-frame/subscribe))
 (def >evt re-frame/dispatch)
 
+(def type->tab {"CONTINUOUS_TREE"       "continuous-mcc-tree"
+                "DISCRETE_TREE"         "discrete-mcc-tree"
+                "BAYES_FACTOR_ANALYSIS" "discrete-rates"})
+
 (defn debounce [f millis]
   (let [dbnc (Debouncer. f millis)]
     (fn [& args] (.apply (.-fire dbnc) dbnc (to-array args)))))

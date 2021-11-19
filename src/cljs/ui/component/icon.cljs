@@ -3,7 +3,7 @@
 (def icons {:dropdown   "icons/icn_dropdown.svg"
             :run-new    "icons/icn_run_analysis.svg"
             :completed  "icons/icn_previous_analysis.svg"
-            :kebab-menu "icons/icn_kebab menu.svg"
+            :kebab-menu "icons/icn_kebab_menu.svg"
             :delete     "icons/icn_delete.svg"
             :user       "icons/icn_user.svg"
             :queue      "icons/icn_queue.svg"

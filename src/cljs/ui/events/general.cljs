@@ -1,22 +1,9 @@
 (ns ui.events.general
   (:require [taoensso.timbre :as log]
-            [ui.router.queries :as router-queries]))
+            [ui.router.queries :as router-queries]
+            [ui.utils :as ui-utils :refer [type->tab]]))
 
 (def socket-id :default)
-
-(defn active-page-changed [{:keys [db]}]
-  (let [{:keys [name] :as active-page} (router-queries/active-page db)]
-    (log/debug "Active page changed" active-page)
-    (case name
-      :route/splash           {:dispatch [:splash/initialize-page]}
-      :route/home             {:dispatch [:home/initialize-page]}
-      :route/analysis-results {:dispatch [:analysis-results/initialize-page]}
-      :route/new-analysis     {:dispatch [:new-analysis/initialize-page]}
-      nil)))
-
-(defn logout [{:keys [localstorage]}]
-  {:localstorage (dissoc localstorage :access-token)
-   :dispatch     [:router/navigate :route/splash]})
 
 (def initial-user-data-query "query SearchAnalysis {
                                         getAuthorizedUser {
@@ -34,6 +21,21 @@
                                         }
                                       }")
 
+(defn active-page-changed [{:keys [db]}]
+  (let [{:keys [name] :as active-page} (router-queries/active-page db)]
+    (log/debug "Active page changed" active-page)
+    (case name
+      :route/splash           {:dispatch [:splash/initialize-page]}
+      :route/home             {:dispatch [:home/initialize-page]}
+      :route/analysis-results {:dispatch [:analysis-results/initialize-page]}
+      :route/new-analysis     {:dispatch [:new-analysis/initialize-page]}
+      nil)))
+
+(defn logout [{:keys [localstorage]}]
+  {:localstorage (dissoc localstorage :access-token)
+   :dispatch     [:router/navigate :route/splash]})
+
+
 (defn initialize [{:keys [db localstorage]} [_ config]]
   (let [{:keys [access-token]} localstorage]
     {:db             (assoc db :config config)
@@ -50,6 +52,18 @@
 
 (defn set-search [{:keys [db]} [_ text]]
   {:db (assoc db :search text)})
+
+(defn copy-settings [{:keys [db]} [_ id]]
+  (let [{:keys [of-type]} (get-in db [:analysis id])]
+    ;; NOTE : all the data should already be in the app-db since the event is dispatched from the analysis results page
+    ;; yet we request it anyway just in case
+    {:dispatch [:general/query-analysis {:id id :of-type of-type}]
+     :db       (assoc db :pastebin id)}))
+
+(defn paste-settings [{:keys [db]}]
+  (when-let [id (:pastebin db)]
+    (let [{:keys [of-type]} (get-in db [:analysis id])]
+      {:dispatch [:router/navigate :route/new-analysis nil {:tab (type->tab of-type) :id id}]})))
 
 (defn query-analysis [_ [_ {:keys [id of-type]}]]
   {:dispatch [:graphql/query {:query (case (keyword of-type)

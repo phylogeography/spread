@@ -109,6 +109,11 @@
       (merge ongoing-analysis
              (get-in db [:analysis id])))))
 
+(re-frame/reg-sub
+  ::pastebin
+  (fn [db _]
+    (get db :pastebin)))
+
 (comment
   @(re-frame/subscribe [::authorized-user])
   @(re-frame/subscribe [::discrete-tree-parsers])
