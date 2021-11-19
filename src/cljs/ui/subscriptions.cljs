@@ -72,7 +72,7 @@
 (re-frame/reg-sub
   ::new-completed-analysis
   :<- [::completed-analysis]
-  (fn [[completed-analysis]]
+  (fn [completed-analysis]
     (filter (fn [elem]
               (:new? elem))
             completed-analysis)))
