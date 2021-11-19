@@ -8,7 +8,7 @@
 (defn log-field?
   "Function to determine whether to log fields"
   [field-name _]
-  (contains? #{:file :line #_:ns} field-name))
+  (contains? #{:file :line} field-name))
 
 (defn start [config]
   (let [{:keys [level pretty?]} (:logging config)]
