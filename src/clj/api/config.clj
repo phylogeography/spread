@@ -22,9 +22,9 @@
 
     {:env     environment
      :version "1.0.3"
-     :logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug)}
+     :logging {:level (or (keyword (get-env-variable "LOGGING_LEVEL")) :debug) :pretty? dev-env?}
      :api     {:port            (Integer/parseInt (or (get-env-variable "API_PORT") "3001"))
-               :host (or (get-env-variable "API_HOST") "0.0.0.0")
+               :host            (or (get-env-variable "API_HOST") "0.0.0.0")
                :allowed-origins #{"http://localhost:8020"
                                   "http://127.0.0.1:8020"
                                   "https://studio.apollographql.com"
