@@ -13,12 +13,13 @@
 (defn start [config]
   (let [{:keys [level pretty?]} (:logging config)]
     (timbre/merge-config!
-     {:level (keyword level)
-      :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ssX"}
-      :appenders {:json (json/json-appender {:pretty #_false pretty?
-                                             :inline-args? true
-                                             :should-log-field-fn log-field?})
-                  :println false}})))
+      {:level          (keyword level)
+       :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ssX"}
+       :appenders      {:json    (json/json-appender {:pretty              pretty?
+                                                      :msg-key             :message
+                                                      :inline-args?        true
+                                                      :should-log-field-fn log-field?})
+                        :println false}})))
 
 (defstate logging
   :start (start (mount/args)))
