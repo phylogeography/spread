@@ -43,7 +43,7 @@
                     burn-in]
              :or   {burn-in 0.1}}
             @bayes-factor
-            controls-disabled? (or (not (empty? @field-errors))
+            controls-disabled? (or (seq? @field-errors)
                                    (not log-file-name))]
         [:<>
          [:div.data {:style {:grid-area "data"}}
