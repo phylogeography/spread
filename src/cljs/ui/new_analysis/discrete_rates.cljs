@@ -10,7 +10,8 @@
             [ui.subscriptions :as subs]
             [ui.utils :as ui-utils :refer [>evt debounce]]))
 
-(defn controls [{:keys [readable-name burn-in]} {:keys [disabled?]}]
+(defn controls [{:keys [readable-name burn-in]}
+                {:keys [disabled?]}]
   (let [paste-disabled? (nil? @(re-frame/subscribe [::subs/pastebin]))]
     [:div.controls-wrapper
      [:div.controls {:style {:grid-area "controls"}}
@@ -42,7 +43,8 @@
                     burn-in]
              :or   {burn-in 0.1}}
             @bayes-factor
-            controls-disabled? (or @field-errors (not log-file-name))]
+            controls-disabled? (or (not (empty? @field-errors))
+                                   (not log-file-name))]
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-log-file
