@@ -12,7 +12,6 @@
 <!-- Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes. -->
 </p>
 
-<!-- TODO: screenshot here -->
 <p align="center">
   <img height="400" src="https://www.blog.nodrama.io/images/2020-12-11-spread/ebov_final_cut.png" class="attachment-full size-full" alt="Spread" loading="lazy" />
 </p>
