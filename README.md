@@ -12,7 +12,7 @@
 </p>
 
 <!-- TODO: screenshot here -->
-<!-- ![Viz]() -->
+![Viz](https://www.blog.nodrama.io/images/2020-12-11-spread/ebov_final_cut.png)
 
 [![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
 ![Issues](https://img.shields.io/github/issues/fbielejec/spread)
