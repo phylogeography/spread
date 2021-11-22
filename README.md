@@ -3,10 +3,10 @@
   <img width="132" height="101" src="https://raw.githubusercontent.com/fbielejec/spread/master/services/ui/icons/icn_spread.svg" class="attachment-full size-full" alt="Spread" loading="lazy" /></a>
 </p>
 
-<h2 align="center">[Spread](https://spreadviz.org)</h2>
+<h2 align="center">Spread</h2>
 
 <p align="center">
-  Spread vizualizes how viruses are spreading in time and space. It produces shareable, iteractive and time-animated vizualisation. 
+  Spread vizualizes how viruses are spreading in time and space. It produces shareable, interactive and time-animated vizualisation. 
 </p>
 
 <!-- TODO: screenshot here -->
@@ -17,9 +17,11 @@
 ![Issues](https://img.shields.io/github/issues/fbielejec/spread)
 ![Pull Request](https://img.shields.io/github/issues-pr/fbielejec/spread)
 ![GitHub last commit](https://img.shields.io/github/last-commit/fbielejec/spread)
-![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
+![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)]
 
-Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes.
+<!-- (https://circleci.com/gh/fbielejec/spread/tree/master) -->
+
+<!-- Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes. -->
 
 ## Table of Contents
 
