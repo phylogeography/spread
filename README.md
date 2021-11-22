@@ -1,6 +1,7 @@
 <p align="center">
   <a href="https://spreadviz.org">
-  <img width="132" height="101" src="https://raw.githubusercontent.com/fbielejec/spread/master/services/ui/icons/icn_spread.svg" class="attachment-full size-full" alt="Spread" loading="lazy" /></a>
+  <img width="132" height="101" src="https://raw.githubusercontent.com/fbielejec/spread/master/services/ui/icons/icn_spread.svg" class="attachment-full size-full" alt="Spread" loading="lazy" />
+  </a>
 </p>
 
 <h2 align="center">Spread</h2>
@@ -12,7 +13,7 @@
 </p>
 
 <!-- TODO: screenshot here -->
-<img height="300" src="https://www.blog.nodrama.io/images/2020-12-11-spread/ebov_final_cut.png" class="attachment-full size-full" alt="Spread" loading="lazy" /></a>
+<img height="400" src="https://www.blog.nodrama.io/images/2020-12-11-spread/ebov_final_cut.png" class="attachment-full size-full" alt="Spread" loading="lazy" />
 
 [![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
 ![Issues](https://img.shields.io/github/issues/fbielejec/spread)
