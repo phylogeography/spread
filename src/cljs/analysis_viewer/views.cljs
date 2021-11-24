@@ -171,7 +171,10 @@
         frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))
         ]
 
-    [:div.animation-controls
+    ;; IMPORTANT ! For some reason in chrome when the animation-controls get updated (when :animation/frame-timestamp) changes for example,
+    ;; the entire map is being redraw, making some animations a lot less smooth.
+    ;; {:contain :strict} prevents just that, tells the browser that changes inside this element shouldn't affect elements outside.
+    [:div.animation-controls {:style {:contain :strict}}
      [mui-slider {:inc-buttons 0.8
                   :class "speed-slider"
                   :min-val 1
