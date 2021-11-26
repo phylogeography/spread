@@ -90,7 +90,7 @@
                                  [(* missile-size c-length) (* (- 1 missile-size) c-length)]
                                  c-length)
              :data-curve-length c-length
-             :stroke-dashoffset stroke-dashoffset}]]))
+             :stroke-dashoffset (if (nil? time-perc) 0 stroke-dashoffset)}]]))
 
 
 (defn map-primitive-object [{:keys [type] :as primitive-object} time params opts]
@@ -171,7 +171,10 @@
         frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))
         ]
 
-    [:div.animation-controls
+    ;; IMPORTANT ! For some reason in chrome when the animation-controls get updated (when :animation/frame-timestamp) changes for example,
+    ;; the entire map is being redraw, making some animations a lot less smooth.
+    ;; {:contain :strict} prevents just that, tells the browser that changes inside this element shouldn't affect elements outside.
+    [:div.animation-controls {:style {:contain :strict}}
      [mui-slider {:inc-buttons 0.8
                   :class "speed-slider"
                   :min-val 1
@@ -236,6 +239,7 @@
                       @(subscribe [:switch-buttons/states]))]
     (fn []
       (let [analysis-data  (vals @(re-frame/subscribe [:analysis/filtered-data]))
+            analysis-type @(re-frame/subscribe [:analysis.data/type])
            ;; we react/redraw only to this param changes
            circle-radius @(subscribe [:ui/parameters :circles-radius])
            transition-curvature @(subscribe [:ui/parameters :transitions-curvature])
@@ -244,7 +248,7 @@
                          :circles-radius circle-radius
                          :transitions-curvature transition-curvature
                          :missiles? missiles?)]
-       (when analysis-data
+        (when analysis-data
          [:g {}
           ;; for debugging the data view-box
           #_(let [{:keys [x1 y1 x2 y2]} (events.maps/get-analysis-objects-view-box analysis-data)]
@@ -254,10 +258,11 @@
             ^{:key (str (:id primitive-object))}
             [map-primitive-object
              primitive-object
-             0 ;; time is always zero in this path since it is handled by the animation subsystem
-             params
-             {:visible? false} ;; this is the animation path so we start with all data invisible
-             ])])))))
+             (if (= analysis-type :BayesFactor) nil 0) ;; - time is always zero in the animation path since it is handled by the animation subsystem
+             params                                    ;; bayes factor analysis doesn't have time
+             {:visible? (= analysis-type :BayesFactor)} ;; - this is the animation path so we start with all data invisible unless it is the BayesFactor
+             ])])))))                                   ;; analysis in which doesn't have animation
+
 
 (defn text-group-component []
   (let [ui-params @(subscribe [:ui/parameters])
@@ -779,4 +784,5 @@
       [params-styles]
       [data-elements-styles]
       [data-map]
-      [animation-controls]]]))
+      (when (not= analysis-type :BayesFactor)
+        [animation-controls])]]))

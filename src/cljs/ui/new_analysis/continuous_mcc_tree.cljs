@@ -75,7 +75,7 @@
                 [linear-progress {:value   (* 100 tree-file-upload-progress)
                                   :variant "determinate"}])
 
-              ;; we have a  filename
+              ;; we have a filename
               [loaded-input {:value    tree-file-name
                              :on-click #(>evt [:continuous-mcc-tree/delete-tree-file])}])]
 
