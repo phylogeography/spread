@@ -194,7 +194,7 @@
                                                        (subs/render-elements-styles-string colored-data
                                                                                            nil))
                                           :data-box (:analysis/data-box db)
-                                          :time (let [[df dt] (:analysis/date-range db)]
+                                          :time (when-let [[df dt] (:analysis/date-range db)]
                                                   (math-utils/calc-perc df dt (:animation/frame-timestamp db)))
                                           :params (merge ui-params
                                                          map-params
