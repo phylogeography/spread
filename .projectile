@@ -5,3 +5,6 @@
 -/js/
 -/services/ui/js/
 -/.serverless/
+-/.clj-kondo/
+-/.shadow-cljs/
+-/services/
