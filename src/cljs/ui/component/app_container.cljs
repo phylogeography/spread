@@ -20,9 +20,9 @@
                   "BAYES_FACTOR_ANALYSIS" "Discrete: Bayes Factor Rates"})
 
 (defn completed-menu-item [{:keys [id readable-name of-type status new?]}]
-  (let [badge-text         (cond
-                             (= status "ERROR") "Error"
-                             new?               "New")
+  (let [badges (cond-> []
+                 (= status "ERROR") (conj :error)
+                 new?               (conj :new))
         anchor-element     (r/atom nil)
         set-anchor-element #(reset! anchor-element %)
         handle-close       #(set-anchor-element nil)]
@@ -38,39 +38,43 @@
                                                                                            }
                                                                                          }"
                                                                                         :variables {:analysisId id}}])])}
-         [:div.readable-name {:style {:grid-area "readable-name"}} (or readable-name "Unknown")]
-         [:div.badges (when badge-text
-                        [:span.badge {:class (cond
-                                               (= status "ERROR") "error"
-                                               new?               "new")} badge-text])]
-         [:div.sub-name {:style {:grid-area "sub-name"}} (type->label of-type)]
-         [:div {:style {:grid-area "menu"}}
-          [button {:on-click (fn [^js event]
-                               (set-anchor-element (.-currentTarget event)))
-                   :icon     (:kebab-menu icons)}]]
-         [menu {:id               "menu-appbar"
-                :anchorEl         @anchor-element
-                :anchorOrigin     {:vertical   "top"
-                                   :horizontal "right"}
-                :keep-mounted     true
-                :transform-origin {:vertical   "top"
-                                   :horizontal "right"}
-                :open             open?
-                :on-close         handle-close}
-          [menu-item {:on-click (fn []
-                                  (>evt [:general/copy-analysis-settings id])
-                                  (handle-close))}
-           "Copy settings"]
-          [menu-item {:on-click (fn []
-                                  (>evt [:graphql/query {:query
-                                                         "mutation DeleteAnalysisMutation($analysisId: ID!) {
+         [:div.header
+          [:div.readable-name {} (or readable-name "Unknown")]
+          [:div.right-side
+           [:div.badges (when (seq badges)
+                          (for [b-key badges]
+                            ^{:key (str b-key)}
+                            [:span.badge {:class (case b-key :error "error" :new "new")}
+                             (case b-key :error "Error" :new "New")]))]
+           [:div {}
+            [button {:on-click (fn [^js event]
+                                 (set-anchor-element (.-currentTarget event)))
+                     :icon     (:kebab-menu icons)}]]
+           [menu {:id               "menu-appbar"
+                  :anchorEl         @anchor-element
+                  :anchorOrigin     {:vertical   "top"
+                                     :horizontal "right"}
+                  :keep-mounted     true
+                  :transform-origin {:vertical   "top"
+                                     :horizontal "right"}
+                  :open             open?
+                  :on-close         handle-close}
+            [menu-item {:on-click (fn []
+                                    (>evt [:general/copy-analysis-settings id])
+                                    (handle-close))}
+             "Copy settings"]
+            [menu-item {:on-click (fn []
+                                    (>evt [:graphql/query {:query
+                                                           "mutation DeleteAnalysisMutation($analysisId: ID!) {
                                                                    deleteAnalysis(id: $analysisId) {
                                                                      id
                                                                    }
                                                                  }"
-                                                         :variables {:analysisId id}}])
-                                  (handle-close))}
-           "Delete"]]]))))
+                                                           :variables {:analysisId id}}])
+                                    (handle-close))}
+             "Delete"]]]]
+
+         [:div.sub-name {} (type->label of-type)]]))))
 
 (defn completed []
   (let [search-term        (re-frame/subscribe [::subs/search])
@@ -257,11 +261,15 @@
 
 (defn app-container []
   (fn [child-page]
-    [:div.app-container-grid
-     [:div.app-header-spacer-1]
-     [header-logo]
-     [header-menu]
-     [:div.app-header-spacer-2]
-     [main-menu]
-     [:div.app-body.panel
-      child-page]]))
+    [:div.app-container
+     ;; NOTE: this .app-header-background div is there just to hide the gaps we are creating in app-container-grid with grid-column-gap.
+     ;; Kind of hacky but it is the only way I found to have the side-bar and body aligned with the header elements (spread-logo and account)
+     [:div.app-header-background]
+     [:div.app-container-grid
+      [:div.app-header-spacer-1]
+      [header-logo]
+      [header-menu]
+      [:div.app-header-spacer-2]
+      [main-menu]
+      [:div.app-body.panel
+       child-page]]]))
