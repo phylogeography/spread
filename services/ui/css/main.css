@@ -376,13 +376,13 @@ li {
 .analysis-results {
     height: 100%;
 	display: grid;
-	grid-template-rows: 120px 1fr 120px;
+	grid-template-rows: 120px minmax(0,1fr) 120px;
 	grid-template-columns: 100%;
 	grid-template-areas:
 		"header"
 		"body"
 		"footer";
-	color: #3A3668;		
+	color: #3A3668;    
 }
 
 .analysis-results .field-table {
@@ -420,6 +420,7 @@ li {
 .analysis-results .body {
     border-top: 1px solid #DEDEE8;
 	border-bottom: 1px solid #DEDEE8;
+	overflow: auto;
 }
 
 .analysis-results .body .tabs-wrapper {
@@ -432,7 +433,7 @@ li {
 	align-items: center;
 	flex-direction: column;
 	width: 100%;
-    color: #3A3668;
+    color: #3A3668;    
 }
 	
 .analysis-results .results .visualization {

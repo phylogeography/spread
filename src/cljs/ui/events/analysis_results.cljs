@@ -1,4 +1,6 @@
-(ns ui.events.analysis-results)
+(ns ui.events.analysis-results
+  (:require [clojure.string :as str]
+   [ui.file-fxs]))
 
 (defn initialize-page
   [_]
@@ -16,3 +18,18 @@
         {:keys [of-type]} (get-in db [:analysis id])]
     (when of-type
       {:dispatch [:general/query-analysis {:id id :of-type of-type}]})))
+
+(defn export-bayes-table-to-csv [_ [_ bayes-factors]]
+  (let [first-row (first bayes-factors)
+        headers (keys first-row)
+        headers-row (str/join "," (map name headers))
+        data (->> bayes-factors
+                  (map (fn [row]
+                         (->> headers
+                              (map #(get row %))
+                              (str/join ","))))
+                  (str/join "\n"))
+        file-content (str headers-row "\n" data )]
+    {:spread/download-text-as-file {:text file-content
+                                    :file-name "bayes-data.csv"
+                                    :file-type "data:text/csv;charset=utf-8"}}))

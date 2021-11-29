@@ -1,5 +1,5 @@
 (ns ui.analysis-results.page
-  (:require [re-frame.core :as re-frame]
+  (:require [re-frame.core :as re-frame :refer [dispatch]]
             [reagent-material-ui.core.table :refer [table]]
             [reagent-material-ui.core.table-body :refer [table-body]]
             [reagent-material-ui.core.table-cell :refer [table-cell]]
@@ -57,29 +57,30 @@
                 :class "golden"}]]]
      [:section.table
       (when bayes-factors
-            [:div.export
-             [:span "Support values"]
-             [button {:text "Export To CSV"
-                      :on-click #(prn "TODO")
-                      :class "secondary"}]]
-            ;; TODO : table with sorting https://material-ui.com/components/tables/#sorting-amp-selecting
-            [table-container {}
-             [table {}
-              [table-head
-               [table-row
-                [table-cell {:align :right} "From"]
-                [table-cell {:align :right} "To"]
-                [table-cell {:align :right} "Bayes Factor"]
-                [table-cell {:align :right} "Posterior probability"]]]
-              [table-body
-               (doall
-                (map (fn [{:keys [from to bayes-factor posterior-probability]}]
-                       [table-row {:key (str from to)}
-                        [table-cell {:align :right} from]
-                        [table-cell {:align :right} to]
-                        [table-cell {:align :right} bayes-factor]
-                        [table-cell {:align :right} posterior-probability]])
-                     bayes-factors))]]])]]))
+        [:div
+         [:div.export
+          [:span "Support values"]
+          [button {:text "Export To CSV"
+                   :on-click #(dispatch [:analysis-results/export-bayes-table-to-csv bayes-factors])
+                   :class "secondary"}]]
+         ;; TODO : table with sorting https://material-ui.com/components/tables/#sorting-amp-selecting
+         [table-container {}
+          [table {}
+           [table-head
+            [table-row
+             [table-cell {:align :right} "From"]
+             [table-cell {:align :right} "To"]
+             [table-cell {:align :right} "Bayes Factor"]
+             [table-cell {:align :right} "Posterior probability"]]]
+           [table-body
+            (doall
+              (map (fn [{:keys [from to bayes-factor posterior-probability]}]
+                     [table-row {:key (str from to)}
+                      [table-cell {:align :right} from]
+                      [table-cell {:align :right} to]
+                      [table-cell {:align :right} bayes-factor]
+                      [table-cell {:align :right} posterior-probability]])
+                   bayes-factors))]]]])]]))
 
 (defn tab-pane [{:keys [id]}]
   (let [analysis (re-frame/subscribe [::subs/analysis-results id])]
