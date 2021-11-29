@@ -740,14 +740,21 @@
                                 :id :attributes-range-filters
                                 :child [discrete-attributes-filters]}]}]])
 
+(def bayes-transitions-settings continuous-transitions-settings)
+(def bayes-attributes-filters continuous-attributes-filters)
+
 (defn bayes-factor-side-bar []
   [:div.tabs
    [collapsible-tabs {:title "Settings"
                       :id :parameters
-                      :childs []}]
+                      :childs [{:title "Transitions"
+                                :id :transitions
+                                :child [bayes-transitions-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
-                      :childs []}]])
+                      :childs [{:title "Attributes"
+                                :id :attributes-range-filters
+                                :child [bayes-attributes-filters]}]}]])
 
 (defn controls-side-bar [analysis-type]
   (if-not analysis-type
