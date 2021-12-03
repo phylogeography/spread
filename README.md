@@ -1,8 +1,30 @@
-# [spread](https://github.com/fbielejec/spread)
+<p align="center">
+  <a href="https://spreadviz.org">
+  <img width="132" height="101" src="https://raw.githubusercontent.com/fbielejec/spread/master/services/ui/icons/icn_spread.svg" class="attachment-full size-full" alt="Spread" loading="lazy" />
+  </a>
+</p>
+
+<h2 align="center">Spread</h2>
+
+<p align="center">
+  Spread vizualizes how viruses and other pathogens are spreading in time and space.
+  It creates shareable, interactive and time-animated vizualisation.
+<!-- Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes. -->
+</p>
+
+<!-- <p align="center"> -->
+<!-- [![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.png)](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.mp4) -->
+<!-- ![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif) -->
+<!-- </p> -->
+
+<p align="center">
+  <img src="https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif">
+</p>
 
 [![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
-
-Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes.
+![Issues](https://img.shields.io/github/issues/fbielejec/spread)
+![Pull Request](https://img.shields.io/github/issues-pr/fbielejec/spread)
+![GitHub last commit](https://img.shields.io/github/last-commit/fbielejec/spread)
 
 ## Table of Contents
 
@@ -34,6 +56,11 @@ The diagram below presents an overview of the architecture of spread:
 - Visualization engine accepts S3 stored output, animates and displays it on the geographical map.
 
 ## Development
+
+### Start all
+
+Make sure you have [tmux](https://github.com/tmux/tmux) multiplexer installed.
+Execute `./start_all_components` in your temrinal window and it will start all the components in separate tmux windows.
 
 ### Backend services
 
@@ -111,6 +138,13 @@ M+x cider-connect-cljs
 
 Select `localhost` and the nREPL port printed by the watcher (e.g. 46000), select `shadow` and `:ui` as the build.
 
+### Viewer browser client
+
+Start watcher and local server
+
+```bash
+yarn watch:viewer
+```
 
 ## Tests
 
