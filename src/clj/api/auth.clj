@@ -74,14 +74,14 @@
    Clients are supposed to store that token safely and include in every request
    that requires authorization"
   [user-id private-key]
-  {:access-token (generate-token user-id
-                                 2.628e6 ;; now + 1 month
-                                 private-key)})
+  (generate-token user-id
+                  2.628e6 ;; now + 1 month
+                  private-key))
 
 (defn generate-spread-email-token
   "Generates a short-lived spread token signed with our private key.
   If client can prove it is in control of the email it was sent to it can be swapped for a long lived access token"
   [email private-key]
-  {:access-token (generate-token email
-                                 900 ;; 15 mins
-                                 private-key)})
+  (generate-token email
+                  900 ;; 15 mins
+                  private-key))

@@ -18,28 +18,23 @@
             [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
             [taoensso.timbre :as log]))
 
-;; TODO
-(defn send-login-email [{:keys [db private-key sendgrid]} {:keys [email redirect-uri] :as args} _]
-  ;; generate token
-  ;; send email with a redirect link with a token
-  ;; <http://localhost:8020>/?auth=email&token=eEyDFFD
+(defn send-login-email [{:keys [db private-key sendgrid]} {email        :email
+                                                           redirect-uri :redirectUri
+                                                           :as          args} _]
   (try
     (log/info "send-login-email" args)
     (if-not (banned-domains (second (string/split email #"@")))
-      (let [token (auth/generate-spread-email-token email private-key)
+      (let [token                         (auth/generate-spread-email-token email private-key)
             {:keys [api-key template-id]} sendgrid]
-
-        (sendgrid/send-email
-          {:from        "noreply@spreadviz.org"
-           :to          email
-           :template-id template-id
-           :dynamic-template-data
-           {"header"       "Login to Spread"
-            "body"         "You requested a login link to Spread. Click on the button below"
-            "button-title" "Login"
-            "button-href"  (str redirect-uri "?auth=email&token=" token)}
-           :api-key     api-key})
-
+        (sendgrid/send-email {:from                  "noreply@spreadviz.org"
+                              :to                    email
+                              :template-id           template-id
+                              :dynamic-template-data {"header"       "Login to Spread"
+                                                      "body"         "You requested a login link to Spread. Click on the button below"
+                                                      "button-title" "Login"
+                                                      "button-href"  (str redirect-uri "?auth=email&token=" token)}
+                              :api-key               api-key
+                              :print-mode?           false})
         (clj->gql {:status :OK}))
       (log/warn "Not sending to one of the blacklisted domains" args))
     (catch Exception e
@@ -47,10 +42,17 @@
       (throw e))))
 
 ;; TODO
-(defn email-login [{:keys [db private-key]} {:keys [token]}]
+(defn email-login [{:keys [db private-key]} {:keys [token] :as args} _]
   ;; check token
   ;; read email from token
-  )
+  (try
+    (log/info "email-login" args)
+
+
+
+    (catch Exception e
+      (log/error "Sending login email failed" {:error e})
+      (throw e))))
 
 (defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri} _]
   (try
@@ -72,12 +74,12 @@
           {:keys [id]}                      (user-model/get-user-by-email db {:email email})]
       (log/info "google-login" {:email email :id id})
       (if id
-        (clj->gql (auth/generate-spread-access-token id private-key))
+        (clj->gql {:access-token (auth/generate-spread-access-token id private-key)})
         ;; create user if not exists
         (let [new-user-id (new-uuid)]
           (user-model/upsert-user db {:email email
                                       :id    new-user-id})
-          (clj->gql (auth/generate-spread-access-token new-user-id private-key)))))
+          (clj->gql {:access-token (auth/generate-spread-access-token new-user-id private-key)}))))
     (catch Exception e
       (log/error "Login with google failed" {:error e})
       (throw e))))

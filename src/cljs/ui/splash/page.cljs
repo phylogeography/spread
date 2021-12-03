@@ -76,21 +76,27 @@
                                        })))
 
 (defmethod page :route/splash []
-  (let [{:keys [google root-url]}                 (<sub [::subs/config])
-        {:keys [query]}                  (<sub [::router.subs/active-page])
-        {:keys [client-id redirect-uri]} google
-        email?                           (fn [email]
-                                           (and (string? email) (re-matches email-pattern email)))
-        [email setEmail]                 (react/useState nil)
-        [error setError]                 (react/useState false)
-        _                                (react/useEffect (fn []
-                                                            (log/debug "component-did-mount" query)
-                                                            (when-let [code (:code query)]
-                                                              (case (-> query :auth keyword)
-                                                                :google
-                                                                (>evt [:splash/send-google-verification-code code redirect-uri])
-                                                                nil))))
-        classes                          (use-styles)]
+  (let [{:keys [google root-url]}               (<sub [::subs/config])
+        {{:keys [code token] :as query} :query} (<sub [::router.subs/active-page])
+        {:keys [client-id redirect-uri]}        google
+        email?                                  (fn [email]
+                                                  (and (string? email) (re-matches email-pattern email)))
+        [email setEmail]                        (react/useState nil)
+        [error setError]                        (react/useState false)
+        _                                       (react/useEffect (fn []
+                                                                   (log/debug "component-did-mount" query)
+
+                                                                   (case (-> query :auth keyword)
+                                                                     :google
+                                                                     (when code
+                                                                       (>evt [:splash/google-login code redirect-uri]))
+
+                                                                     :email
+                                                                     (when token
+                                                                       (>evt [:splash/email-login token]))
+
+                                                                     nil)))
+        classes (use-styles)]
     (if (:auth query) ;; if we have :auth key on query means google is redirecting so show a loading-spinner
       [:div.loading-spinner
        [circular-progress {:size 100}]]
@@ -137,9 +143,9 @@
          [button {:class-name (:send-button classes)
                   :variant    "contained"
                   :disabled   error
-                  :on-click (fn []
-                              (>evt [:splash/send-login-email email root-url])
-                              (setEmail nil))}
+                  :on-click   (fn []
+                                (>evt [:splash/send-login-email email root-url])
+                                (setEmail nil))}
           "Send magic link"]
 
          [:h2 {:style {:width         "325px"

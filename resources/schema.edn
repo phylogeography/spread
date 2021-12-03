@@ -212,6 +212,11 @@
                              :redirectUri {:type (non-null String)}}
                    :resolve :mutation/sendLoginEmail}
 
+  :emailLogin {:type        :JWT
+               :description "Validates short-lived email token and returns a long-lived spread JWT access-token."
+               :args        {:token {:type (non-null String)}}
+               :resolve     :mutation/emailLogin}
+
   :getUploadUrls {:type        (list String)
                   :description "Returns one-time POST urls."
                   :args        {:files {:type (non-null (list :File))}}

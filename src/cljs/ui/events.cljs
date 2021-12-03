@@ -68,13 +68,15 @@
 ;;;;;;;;;;;;;;;;;;;
 
 (reg-event-fx :splash/initialize-page [(re-frame/inject-cofx :localstorage)] events.splash/initialize-page)
-(reg-event-fx :splash/send-google-verification-code events.splash/send-google-verification-code)
+(reg-event-fx :splash/google-login events.splash/google-login)
 (reg-event-fx :splash/send-login-email events.splash/send-login-email)
+(reg-event-fx :splash/email-login events.splash/email-login)
 (reg-event-fx :splash/login-success [(re-frame/inject-cofx :localstorage)] events.splash/login-success)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Analysis results events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (re-frame/reg-event-fx :analysis-results/initialize-page events.analysis-results/initialize-page)
 (re-frame/reg-event-fx :analysis-results/initial-query events.analysis-results/initial-query)
 (re-frame/reg-event-fx :analysis-results/export-bayes-table-to-csv events.analysis-results/export-bayes-table-to-csv)
@@ -82,6 +84,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (re-frame/reg-event-fx :new-analysis/initialize-page events.new-analysis/initialize-page)
 (re-frame/reg-event-fx :new-analysis/initial-query events.new-analysis/initial-query)
 
