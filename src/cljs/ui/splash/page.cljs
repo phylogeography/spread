@@ -19,6 +19,8 @@
             [ui.subscriptions :as subs]
             [ui.utils :as utils :refer [<sub >evt]]))
 
+(def email-pattern #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
+
 (def use-styles (styles/make-styles (fn [_]
                                       {:grid {:background "#ECEFF8"
                                               :min-width  "100%"
@@ -77,6 +79,10 @@
   (let [{:keys [google]}                 (<sub [::subs/config])
         {:keys [query]}                  (<sub [::router.subs/active-page])
         {:keys [client-id redirect-uri]} google
+        email?                           (fn [email]
+                                           (and (string? email) (re-matches email-pattern email)))
+        [email setEmail]                 (react/useState "")
+        [error setError]                 (react/useState false)
         _                                (react/useEffect (fn []
                                                             (log/debug "component-did-mount" query)
                                                             (when-let [code (:code query)]
@@ -112,23 +118,22 @@
 
          [typography {:class-name (:sign-in-sub classes)} "Enter your email address. We will send you a special link that you can sign in with instantly."]
 
-         [text-input {;;:class-name (:email-input classes)
-                      :label       "E-mail address"
+         [text-input {:label       "E-mail address"
                       :opts        {:style {:width   "325px"
                                             :margin  "10px"
-                                            :padding "10px"
-                                            ;; :border        "1px solid #DD0808"
-                                            ;; :border-radius "10px"
-                                            ;; :height        "50px"
-                                            }}
-                      :error?      true
-                      :helper-text "Enter valid email address"
-                      ;; :value :todo
-                      ;; :on-change (fn [value] )
-                      }]
+                                            :padding "10px"}}
+                      :error?      error
+                      :helper-text (when error "Enter valid email address")
+                      :value       email
+                      :on-change   (fn [value]
+                                     (if (email? value)
+                                       (setError false)
+                                       (setError true))
+                                     (setEmail value))}]
 
          [button {:class-name (:send-button classes)
                   :variant    "contained"
+                  :disabled error
                   :on-click   (fn [] (prn "TODO" ))}
           "Send magic link"]
 
