@@ -14,7 +14,7 @@
 
 <!-- <p align="center"> -->
 <!-- [![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.png)](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.mp4) -->
-![preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif)
+![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif)
 <!-- </p> -->
 
 [![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
@@ -52,6 +52,11 @@ The diagram below presents an overview of the architecture of spread:
 - Visualization engine accepts S3 stored output, animates and displays it on the geographical map.
 
 ## Development
+
+### Start all
+
+Make sure you have [tmux](https://github.com/tmux/tmux) multiplexer installed. 
+Execute `./start_all_components` in your temrinal window and it will start all the components in separate tmux windows.
 
 ### Backend services
 
@@ -129,6 +134,13 @@ M+x cider-connect-cljs
 
 Select `localhost` and the nREPL port printed by the watcher (e.g. 46000), select `shadow` and `:ui` as the build.
 
+### Viewer browser client
+
+Start watcher and local server
+
+```bash
+yarn watch:viewer
+```
 
 ## Tests
 
