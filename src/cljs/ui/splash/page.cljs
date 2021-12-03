@@ -24,36 +24,35 @@
                                               :min-width  "100%"
                                               :min-height "100vh"}
 
-                                       :card {:width         "720px"
+                                       :card {:min-width     "720px"
                                               :box-shadow    "0px 30px 60px #313B5833"
                                               :border-radius "20px"}
 
                                        :card-header {:margin-left "35%"}
 
-                                       :card-header-title {:width          "134px"
-                                                           :height         "35px"
-                                                           :text-align     "left"
+                                       :card-header-title {:text-align     "left"
                                                            :font           "normal normal 900 30px/35px Roboto"
                                                            :letter-spacing "3.9px"
                                                            :color          "#3A3668"
                                                            :text-transform "uppercase"}
 
-                                       :card-content {:display        "flex"
-                                                      :flex-direction "column"
-                                                      :align-items    :center}
+                                       :card-content {:display         "flex"
+                                                      :flex-direction  "column"
+                                                      :align-items     :center
+                                                      :justify-content :space-evenly}
 
                                        :sign-in {:text-align :center
                                                  :font       "normal normal 900 24px/28px Roboto"
-                                                 :color      "#3A3668"}
+                                                 :color      "#3A3668"
+                                                 :margin     "10px"
+                                                 :padding    "10px"}
 
                                        :sign-in-sub {:width      "440px"
                                                      :text-align :left
                                                      :font       "normal normal medium 16px/19px Roboto"
-                                                     :color      "#757295"}
-
-                                       :email-input {:height        "50px"
-                                                     :border        "1px solid #DD0808"
-                                                     :border-radius "10px"}
+                                                     :color      "#757295"
+                                                     :margin     "10px"
+                                                     :padding    "10px"}
 
                                        :send-button {:width          "325px"
                                                      :height         "50px"
@@ -61,8 +60,7 @@
                                                      :font           "normal normal medium 16px/19px Roboto"
                                                      :text-transform :none
                                                      :color          "white"
-                                                     :background     "#3428CA"
-                                                     }
+                                                     :background     "#3428CA"}
 
                                        :google-button {:width          "325px"
                                                        :height         "50px"
@@ -114,22 +112,31 @@
 
          [typography {:class-name (:sign-in-sub classes)} "Enter your email address. We will send you a special link that you can sign in with instantly."]
 
-         [text-input {:class-name (:email-input classes)
-                      :label      "E-mail address"
+         [text-input {;;:class-name (:email-input classes)
+                      :label       "E-mail address"
+                      :opts        {:style {:width   "325px"
+                                            :margin  "10px"
+                                            :padding "10px"
+                                            ;; :border        "1px solid #DD0808"
+                                            ;; :border-radius "10px"
+                                            ;; :height        "50px"
+                                            }}
+                      :error?      true
+                      :helper-text "Enter valid email address"
                       ;; :value :todo
                       ;; :on-change (fn [value] )
                       }]
 
          [button {:class-name (:send-button classes)
                   :variant    "contained"
-                  }
+                  :on-click   (fn [] (prn "TODO" ))}
           "Send magic link"]
 
-         [:h2 {:style {:width         "100%"
+         [:h2 {:style {:width         "325px"
                        :text-align    "center" ;
                        :border-bottom "2px solid #757295"
                        :line-height   "0.1em"
-                       :margin        "10px 0 20px"}}
+                       :margin        "30px 0 30px"}}
           [:span {:style {:background "#fff"
                           :padding    "0 10px"
                           :color      "#757295"}} "or"]]
