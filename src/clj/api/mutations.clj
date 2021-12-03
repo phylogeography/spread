@@ -3,6 +3,8 @@
             [api.models.analysis :as analysis-model]
             [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
+            [api.emailer.sendgrid :as sendgrid]
+            [api.emailer.banned :refer [banned-domains]]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
@@ -15,6 +17,40 @@
             [shared.time :as time]
             [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
             [taoensso.timbre :as log]))
+
+;; TODO
+(defn send-login-email [{:keys [db private-key sendgrid]} {:keys [email redirect-uri] :as args} _]
+  ;; generate token
+  ;; send email with a redirect link with a token
+  ;; <http://localhost:8020>/?auth=email&token=eEyDFFD
+  (try
+    (log/info "send-login-email" args)
+    (if-not (banned-domains (second (string/split email #"@")))
+      (let [token (auth/generate-spread-email-token email private-key)
+            {:keys [api-key template-id]} sendgrid]
+
+        (sendgrid/send-email
+          {:from        "noreply@spreadviz.org"
+           :to          email
+           :template-id template-id
+           :dynamic-template-data
+           {"header"       "Login to Spread"
+            "body"         "You requested a login link to Spread. Click on the button below"
+            "button-title" "Login"
+            "button-href"  (str redirect-uri "?auth=email&token=" token)}
+           :api-key     api-key})
+
+        (clj->gql {:status :OK}))
+      (log/warn "Not sending to one of the blacklisted domains" args))
+    (catch Exception e
+      (log/error "Sending login email failed" {:error e})
+      (throw e))))
+
+;; TODO
+(defn email-login [{:keys [db private-key]} {:keys [token]}]
+  ;; check token
+  ;; read email from token
+  )
 
 (defn google-login [{:keys [google db private-key]} {code :code redirect-uri :redirectUri} _]
   (try

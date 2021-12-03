@@ -59,17 +59,29 @@
             (buddy.keys/str->private-key private-key)
             {:alg :rs256}))
 
+(defn- generate-token [subject expires-in-seconds private-key ]
+  (let [now     (int (/ (time/millis (time/now)) 1000)) ;; in seconds
+        expires (+ now expires-in-seconds)]
+    (token-encode {:private-key private-key
+                   :claims      {:iss "spread"
+                                 :iat now
+                                 :exp expires
+                                 :aud "spread-client"
+                                 :sub subject}})))
+
 (defn generate-spread-access-token
   "Generates a long-lived spread token signed with our private key.
    Clients are supposed to store that token safely and include in every request
    that requires authorization"
   [user-id private-key]
-  (let [now     (int (/ (time/millis (time/now)) 1000)) ;; in seconds
-        expires (+ now 2.628e6)                         ;; now + 1 month
-        token   (token-encode {:private-key private-key
-                               :claims      {:iss "spread"
-                                             :iat now
-                                             :exp expires
-                                             :aud "spread-client"
-                                             :sub user-id}})]
-    {:access-token token}))
+  {:access-token (generate-token user-id
+                                 2.628e6 ;; now + 1 month
+                                 private-key)})
+
+(defn generate-spread-email-token
+  "Generates a short-lived spread token signed with our private key.
+  If client can prove it is in control of the email it was sent to it can be swapped for a long lived access token"
+  [email private-key]
+  {:access-token (generate-token email
+                                 900 ;; 15 mins
+                                 private-key)})

@@ -43,8 +43,9 @@
    :scalar/serialize-big-int scalars/serialize-big-int})
 
 (defn resolver-map []
-  {:mutation/googleLogin   mutations/google-login
-   :mutation/getUploadUrls (auth-decorator mutations/get-upload-urls)
+  {:mutation/googleLogin    mutations/google-login
+   :mutation/sendLoginEmail mutations/send-login-email
+   :mutation/getUploadUrls  (auth-decorator mutations/get-upload-urls)
 
    :query/pong              resolvers/pong
    :resolve/pong->status    resolvers/pong->status
@@ -167,7 +168,7 @@
   {:body   {"status" "OK"}
    :status 200})
 
-(defn start [{:keys [api aws db env google public-key private-key] :as config}]
+(defn start [{:keys [api aws db env google sendgrid public-key private-key] :as config}]
   (let [dev?                                    (= "dev" env)
         {:keys [port host allowed-origins]}     api
         {:keys [workers-queue-url bucket-name]} aws
@@ -183,6 +184,7 @@
                                                  :workers-queue-url workers-queue-url
                                                  :bucket-name       bucket-name
                                                  :google            google
+                                                 :sendgrid          sendgrid
                                                  :private-key       private-key
                                                  :public-key        public-key}
         compiled-schema                         (-> schema

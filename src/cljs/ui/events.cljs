@@ -69,6 +69,7 @@
 
 (reg-event-fx :splash/initialize-page [(re-frame/inject-cofx :localstorage)] events.splash/initialize-page)
 (reg-event-fx :splash/send-google-verification-code events.splash/send-google-verification-code)
+(reg-event-fx :splash/send-login-email events.splash/send-login-email)
 (reg-event-fx :splash/login-success [(re-frame/inject-cofx :localstorage)] events.splash/login-success)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

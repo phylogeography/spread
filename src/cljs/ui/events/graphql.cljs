@@ -338,6 +338,11 @@
            (dissoc-in [:users :authorized-user])
            (dissoc-in [:users user-id]))})
 
+(defmethod handler :send-login-email
+  [_ _ {:keys [status]}]
+  ;; TODO : create subscription for email status (when its implemented on the API side)
+  )
+
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]
   (re-frame/dispatch [:splash/login-success access-token]))

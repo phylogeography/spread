@@ -76,12 +76,12 @@
                                        })))
 
 (defmethod page :route/splash []
-  (let [{:keys [google]}                 (<sub [::subs/config])
+  (let [{:keys [google root-url]}                 (<sub [::subs/config])
         {:keys [query]}                  (<sub [::router.subs/active-page])
         {:keys [client-id redirect-uri]} google
         email?                           (fn [email]
                                            (and (string? email) (re-matches email-pattern email)))
-        [email setEmail]                 (react/useState "")
+        [email setEmail]                 (react/useState nil)
         [error setError]                 (react/useState false)
         _                                (react/useEffect (fn []
                                                             (log/debug "component-did-mount" query)
@@ -114,16 +114,19 @@
 
         [card-content {:class-name (:card-content classes)}
 
-         [typography {:class-name (:sign-in classes)} "Sign in with email"]
+         [typography {:class-name (:sign-in classes)}
+          "Sign in with email"]
 
-         [typography {:class-name (:sign-in-sub classes)} "Enter your email address. We will send you a special link that you can sign in with instantly."]
+         [typography {:class-name (:sign-in-sub classes)}
+          "Enter your email address. We will send you a special link that you can sign in with instantly."]
 
          [text-input {:label       "E-mail address"
                       :opts        {:style {:width   "325px"
                                             :margin  "10px"
                                             :padding "10px"}}
                       :error?      error
-                      :helper-text (when error "Enter valid email address")
+                      :helper-text (when error
+                                     "Enter valid email address")
                       :value       email
                       :on-change   (fn [value]
                                      (if (email? value)
@@ -133,8 +136,10 @@
 
          [button {:class-name (:send-button classes)
                   :variant    "contained"
-                  :disabled error
-                  :on-click   (fn [] (prn "TODO" ))}
+                  :disabled   error
+                  :on-click (fn []
+                              (>evt [:splash/send-login-email email root-url])
+                              (setEmail nil))}
           "Send magic link"]
 
          [:h2 {:style {:width         "325px"

@@ -36,3 +36,4 @@ EOF
 # export DB_PASSWORD=
 # export API_AWS_ACCESS_KEY_ID=
 # export API_AWS_SECRET_ACCESS_KEY=
+# export SENDGRID_API_KEY=
