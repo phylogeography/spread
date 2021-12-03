@@ -4,7 +4,7 @@
 :root {
 	--header-bg-color: white;
 }
-html,body,#app,.app-container-grid {
+html,body,#app,.app-container,.app-container-grid {
     height: 100%;
 	font-family: 'Roboto', sans-serif;
 	background-color: #ECEFF8;
@@ -52,6 +52,15 @@ li {
 /********************************/
 
 /* Header */
+.app-header-background {
+	height: 100px;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-color: var(--header-bg-color);
+}
+
 .app-header-spacer-1 {
 	grid-area: app-header-spacer-1;
 	background-color: var(--header-bg-color);
@@ -84,9 +93,7 @@ li {
 .app-sidebar {
 	display: grid;
 	grid-template-rows: 1fr 120px;
-	grid-area: app-sidebar;
-	margin-right: 25px;
-	padding-top: 10px;
+	grid-area: app-sidebar;    
 }
 
 .app-sidebar .readable-name {
@@ -146,22 +153,32 @@ li {
 }
 
 .app-sidebar .completed {
-	display: grid;
-	grid-row-gap: 10px;    
+    max-width: 279px;
 }
 
 .app-sidebar .completed-menu-item {
-	display: grid;
-	position: relative;
 	background-color: #FBFCFE;
 	padding: 15px;
 	border-radius: 10px;
-	grid-row-gap: 5px;
-	grid-template-columns: 75% 15% 10%;
-	grid-template-rows: 50% 50%;
-	grid-template-areas:
-		"readable-name badges   menu"
-		"sub-name      sub-name sub-name";        
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.app-sidebar .completed-menu-item .header {
+	display: flex;	
+	justify-content: space-between;
+}
+
+.app-sidebar .completed-menu-item .badge {
+	margin-left: 2px;
+}
+
+.app-sidebar .completed-menu-item .header .right-side {
+    display: flex;
+}
+
+.app-sidebar .completed-menu-item .header .right-side .button {
+	padding: 0;
 }
 
 .app-sidebar .ongoing {
@@ -196,7 +213,7 @@ li {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	border-top: 1px solid #E2E2EA;
+	border-top: 1px solid #E2E2EA;    
 }
 
 .app-sidebar .footer .button {
@@ -217,6 +234,7 @@ li {
 	grid-template-columns : 1fr 300px 70% 1fr;
 	grid-template-rows : 100px 80% 1fr;
 	grid-row-gap: 25px;
+	grid-column-gap: 25px;
     grid-template-areas :
 		"app-header-spacer-1 app-header-logo  app-header-menu app-header-spacer-2"
 		".                   app-sidebar      app-body        .";
@@ -376,13 +394,13 @@ li {
 .analysis-results {
     height: 100%;
 	display: grid;
-	grid-template-rows: 120px 1fr 120px;
+	grid-template-rows: 120px minmax(0,1fr) 120px;
 	grid-template-columns: 100%;
 	grid-template-areas:
 		"header"
 		"body"
 		"footer";
-	color: #3A3668;		
+	color: #3A3668;    
 }
 
 .analysis-results .field-table {
@@ -420,6 +438,7 @@ li {
 .analysis-results .body {
     border-top: 1px solid #DEDEE8;
 	border-bottom: 1px solid #DEDEE8;
+	overflow: auto;
 }
 
 .analysis-results .body .tabs-wrapper {
@@ -432,7 +451,7 @@ li {
 	align-items: center;
 	flex-direction: column;
 	width: 100%;
-    color: #3A3668;
+    color: #3A3668;    
 }
 	
 .analysis-results .results .visualization {
