@@ -14,7 +14,7 @@
 
 <p align="center">
 <!-- [![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.png)](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.mp4) -->
-  ![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif)
+![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif)
 </p>
 
 [![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
