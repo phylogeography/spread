@@ -12,10 +12,10 @@
 <!-- Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes. -->
 </p>
 
-<!-- <p align="center"> -->
+<p align="center">
 <!-- [![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.png)](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.mp4) -->
-![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif)
-<!-- </p> -->
+  ![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif)
+</p>
 
 [![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
 ![Issues](https://img.shields.io/github/issues/fbielejec/spread)
@@ -55,7 +55,7 @@ The diagram below presents an overview of the architecture of spread:
 
 ### Start all
 
-Make sure you have [tmux](https://github.com/tmux/tmux) multiplexer installed. 
+Make sure you have [tmux](https://github.com/tmux/tmux) multiplexer installed.
 Execute `./start_all_components` in your temrinal window and it will start all the components in separate tmux windows.
 
 ### Backend services
