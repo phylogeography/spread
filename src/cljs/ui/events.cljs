@@ -76,6 +76,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (re-frame/reg-event-fx :analysis-results/initialize-page events.analysis-results/initialize-page)
 (re-frame/reg-event-fx :analysis-results/initial-query events.analysis-results/initial-query)
+(re-frame/reg-event-fx :analysis-results/export-bayes-table-to-csv events.analysis-results/export-bayes-table-to-csv)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;
