@@ -13,7 +13,7 @@
             [reagent.core :as reagent]
             [taoensso.timbre :as log]
             [ui.component.icon :refer [arg->icon icons]]
-            [ui.component.input :refer [amount-input loaded-input text-input]]
+            [ui.component.input :refer [text-input]]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]

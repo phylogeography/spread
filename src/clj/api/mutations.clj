@@ -1,10 +1,10 @@
 (ns api.mutations
   (:require [api.auth :as auth]
+            [api.emailer.banned :refer [banned-domains]]
+            [api.emailer.sendgrid :as sendgrid]
             [api.models.analysis :as analysis-model]
             [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
-            [api.emailer.sendgrid :as sendgrid]
-            [api.emailer.banned :refer [banned-domains]]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
@@ -18,9 +18,9 @@
             [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
             [taoensso.timbre :as log]))
 
-(defn send-login-email [{:keys [db private-key sendgrid]} {email        :email
-                                                           redirect-uri :redirectUri
-                                                           :as          args} _]
+(defn send-login-email [{:keys [private-key sendgrid]} {email        :email
+                                                        redirect-uri :redirectUri
+                                                        :as          args} _]
   (try
     (log/info "send-login-email" args)
     (if-not (banned-domains (second (string/split email #"@")))
@@ -41,7 +41,6 @@
       (log/error "Sending login email failed" {:error e})
       (throw e))))
 
-;; TODO
 (defn email-login [{:keys [db private-key public-key]} {:keys [token] :as args} _]
   (try
     (log/info "email-login" args)

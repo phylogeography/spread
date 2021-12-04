@@ -339,7 +339,7 @@
            (dissoc-in [:users user-id]))})
 
 (defmethod handler :send-login-email
-  [_ _ {:keys [status]}]
+  [_ _ _]
   ;; TODO : create subscription for email status (when its implemented on the API side)
   )
 

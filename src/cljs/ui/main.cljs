@@ -11,7 +11,7 @@
             [ui.analysis-results.page]
             [ui.config :as config]
             [ui.documentation.page]
-            [ui.events]                        
+            [ui.events]
             [ui.home.page]
             [ui.logging :as logging]
             [ui.new-analysis.page]
@@ -20,7 +20,7 @@
             [ui.splash.page]
             [ui.storage]
             [ui.utils]
-            [ui.websocket-fx :as websocket]
+            [ui.websocket-fx]
             ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))

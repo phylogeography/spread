@@ -1,6 +1,4 @@
-(ns ui.events.home
-  (:require [re-frame.core :as re-frame]
-            [taoensso.timbre :as log]))
+(ns ui.events.home)
 
 (defn initialize-page [_]
   {:forward-events {:register    :websocket-authorized?
@@ -32,7 +30,7 @@
   (re-frame/reg-event-fx
     ::on-message
     (fn [_ [_ message]]
-      (log/debug "home/on-message" message)))
+      (taoensso.timbre/debug "home/on-message" message)))
   (re-frame/dispatch [:websocket/subscribe :default
                       "home-page"
                       {:message
