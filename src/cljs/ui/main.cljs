@@ -49,7 +49,7 @@
 
 (comment
   (re-frame/dispatch [:utils/app-db])
-  @(re-frame/subscribe [::websocket/status :default])
+  @(re-frame/subscribe [:ui.websocket-fx/status :default])
   (re-frame/dispatch [:graphql/ws-authorize])
-  @(re-frame/subscribe [::websocket/open-subscriptions :default])
+  @(re-frame/subscribe [:ui.websocket-fx/open-subscriptions :default])
   (re-frame/dispatch [:router/navigate :route/home]))
