@@ -13,11 +13,11 @@
   (buddy.sign/decode-header token))
 
 (defn verify-token
-  "Verifies a JWT token, automatically verifyes :exp claim
+  "Verifies a JWT token, automatically verifies :exp claim
   Parameters:
   :token, the token string
   :public-key, the public key to validate the token
-  :claims a map of claims to verify (:iss :aud)"
+  :claims, a map of claims to verify (:iss :aud)"
   [{:keys [token public-key claims]}]
   (jwt/unsign token
               (if-not (instance? BCRSAPublicKey public-key)

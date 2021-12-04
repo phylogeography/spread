@@ -42,14 +42,25 @@
       (throw e))))
 
 ;; TODO
-(defn email-login [{:keys [db private-key]} {:keys [token] :as args} _]
-  ;; check token
-  ;; read email from token
+(defn email-login [{:keys [db private-key public-key]} {:keys [token] :as args} _]
   (try
     (log/info "email-login" args)
-
-
-
+    (let [{email :sub
+           :as   claims} (auth/verify-token {:token      token
+                                             :public-key public-key})
+          _              (log/info "succesfully verified email token" claims)
+          {:keys [id]}   (user-model/get-user-by-email db {:email email})]
+      (if id
+        (do
+          (log/info "Found an existing user" {:email email
+                                              :id    id})
+          (clj->gql {:access-token (auth/generate-spread-access-token id private-key)}))
+        (let [new-user-id (new-uuid)]
+          (log/info "Creating new user" {:email email
+                                         :id    new-user-id})
+          (user-model/upsert-user db {:email email
+                                      :id    new-user-id})
+          (clj->gql {:access-token (auth/generate-spread-access-token new-user-id private-key)}))))
     (catch Exception e
       (log/error "Sending login email failed" {:error e})
       (throw e))))
@@ -74,9 +85,14 @@
           {:keys [id]}                      (user-model/get-user-by-email db {:email email})]
       (log/info "google-login" {:email email :id id})
       (if id
-        (clj->gql {:access-token (auth/generate-spread-access-token id private-key)})
+        (do
+          (log/info "Found an existing user" {:email email
+                                              :id    id})
+          (clj->gql {:access-token (auth/generate-spread-access-token id private-key)}))
         ;; create user if not exists
         (let [new-user-id (new-uuid)]
+          (log/info "Creating new user" {:email email
+                                         :id    new-user-id})
           (user-model/upsert-user db {:email email
                                       :id    new-user-id})
           (clj->gql {:access-token (auth/generate-spread-access-token new-user-id private-key)}))))

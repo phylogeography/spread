@@ -343,6 +343,10 @@
   ;; TODO : create subscription for email status (when its implemented on the API side)
   )
 
+(defmethod handler :email-login
+  [_ _ {:keys [access-token]}]
+  (re-frame/dispatch [:splash/login-success access-token]))
+
 (defmethod handler :google-login
   [_ _ {:keys [access-token]}]
   (re-frame/dispatch [:splash/login-success access-token]))
