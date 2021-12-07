@@ -124,13 +124,13 @@
         status        :UPLOADED
         readable-name (first (string/split tree-file-name #"\."))]
     (try
-      ;; TODO : in a transaction
       (analysis-model/upsert! db {:id            id
                                   :user-id       authed-user-id
                                   :readable-name readable-name
                                   :created-on    (time/millis (time/now))
                                   :status        status
                                   :of-type       :CONTINUOUS_TREE})
+
       (continuous-tree-model/upsert! db {:id             id
                                          :tree-file-url  tree-file-url
                                          :tree-file-name tree-file-name})
@@ -141,7 +141,8 @@
       (clj->gql (continuous-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! db id e)))))
+        (errors/handle-analysis-error! db id e)
+        (throw e)))))
 
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id                          :id
@@ -156,7 +157,6 @@
                                       :args    args})
   (try
     (let [status :ARGUMENTS_SET]
-      ;; TODO : in a transaction
       (continuous-tree-model/upsert! db {:id                          id
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
                                          :y-coordinate-attribute-name y-coordinate-attribute-name
@@ -168,7 +168,8 @@
     (clj->gql (continuous-tree-model/get-tree db {:id id}))
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! db id e))))
+      (errors/handle-analysis-error! db id e)
+      (throw e))))
 
 (defn start-continuous-tree-parser
   [{:keys [db sqs workers-queue-url]} {id                          :id
@@ -181,7 +182,6 @@
   (log/info "start-continuous-tree-parser" args)
   (let [status :QUEUED]
     (try
-      ;; TODO : in a tx
       (continuous-tree-model/upsert! db {:id                          id
                                          :readable-name               readable-name
                                          :x-coordinate-attribute-name x-coordinate-attribute-name
@@ -195,7 +195,8 @@
       (clj->gql (continuous-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (errors/handle-analysis-error! db id e)))))
+        (errors/handle-analysis-error! db id e)
+        (throw e)))))
 
 (defn upload-discrete-tree [{:keys [sqs workers-queue-url authed-user-id db]}
                             {tree-file-url  :treeFileUrl
@@ -207,7 +208,6 @@
     (try
       (let [status        :UPLOADED
             readable-name (first (string/split tree-file-name #"\."))]
-        ;; TODO : in a transaction
         (analysis-model/upsert! db {:id            id
                                     :user-id       authed-user-id
                                     :readable-name readable-name
@@ -224,7 +224,8 @@
         (clj->gql (discrete-tree-model/get-tree db {:id id})))
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! db id e)))))
+        (errors/handle-analysis-error! db id e)
+        (throw e)))))
 
 (defn update-discrete-tree
   [{:keys [authed-user-id db]} {id                        :id
@@ -240,7 +241,6 @@
                                     :args    args})
   (try
     (let [status :ARGUMENTS_SET]
-      ;; in transaction
       (discrete-tree-model/upsert! db {:id                        id
                                        :locations-file-url        locations-file-url
                                        :locations-file-name       locations-file-name
@@ -253,7 +253,8 @@
       (clj->gql (discrete-tree-model/get-tree db {:id id})))
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! db id e))))
+      (errors/handle-analysis-error! db id e)
+      (throw e))))
 
 (defn start-discrete-tree-parser
   [{:keys [db sqs workers-queue-url]} {id                        :id
@@ -265,7 +266,6 @@
   (log/info "start-discrete-tree-parser" args)
   (let [status :QUEUED]
     (try
-      ;; TODO : in a tx
       (discrete-tree-model/upsert! db {:id                        id
                                        :readable-name             readable-name
                                        :locations-attribute-name  locations-attribute-name
@@ -278,7 +278,8 @@
       (clj->gql (discrete-tree-model/get-tree db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (errors/handle-analysis-error! db id e)))))
+        (errors/handle-analysis-error! db id e)
+        (throw e)))))
 
 (defn upload-time-slicer [{:keys [authed-user-id db]}
                           {continuous-tree-id      :continuousTreeId
@@ -292,7 +293,6 @@
   (let [id     (s3-url->id trees-file-url authed-user-id)
         status :UPLOADED]
     (try
-      ;; TODO : in a transaction
       (analysis-model/upsert! db {:id         id
                                   :user-id    authed-user-id
                                   :created-on (time/millis (time/now))
@@ -307,7 +307,8 @@
       (clj->gql (time-slicer-model/get-time-slicer db {:id id}))
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! db id e)))))
+        (errors/handle-analysis-error! db id e)
+        (throw e)))))
 
 (defn update-time-slicer
   [{:keys [authed-user-id db]} {id                                      :id
@@ -327,7 +328,6 @@
                                   :args    args})
   (try
     (let [status :ARGUMENTS_SET]
-      ;; TODO : in a transaction
       (time-slicer-model/upsert! db {:id                                      id
                                      :burn-in                                 burn-in
                                      :number-of-intervals                     number-of-intervals
@@ -343,7 +343,8 @@
        :status status})
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! db id e))))
+      (errors/handle-analysis-error! db id e)
+      (throw e))))
 
 (defn upload-bayes-factor-analysis [{:keys [authed-user-id db]}
                                     {log-file-url  :logFileUrl
@@ -355,7 +356,6 @@
     (try
       (let [status        :UPLOADED
             readable-name (first (string/split log-file-name #"\."))]
-        ;; TODO : in a transaction
         (analysis-model/upsert! db {:id            id
                                     :user-id       authed-user-id
                                     :readable-name readable-name
@@ -368,7 +368,8 @@
         (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
       (catch Exception e
         (log/error "Exception occured" {:error e})
-        (errors/handle-analysis-error! db id e)))))
+        (errors/handle-analysis-error! db id e)
+        (throw e)))))
 
 (defn update-bayes-factor-analysis
   [{:keys [authed-user-id db]} {id                  :id
@@ -383,7 +384,6 @@
                                             :args    args})
   (try
     (let [status :ARGUMENTS_SET]
-      ;; TODO : in a transaction
       (bayes-factor-model/upsert! db {:id                  id
                                       :locations-file-url  locations-file-url
                                       :locations-file-name locations-file-name
@@ -395,7 +395,8 @@
       (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
     (catch Exception e
       (log/error "Exception occured" {:error e})
-      (errors/handle-analysis-error! db id e))))
+      (errors/handle-analysis-error! db id e)
+      (throw e))))
 
 (defn start-bayes-factor-parser
   [{:keys [db sqs workers-queue-url]} {id            :id
@@ -405,7 +406,6 @@
   (log/info "start-bayes-factor-parser" args)
   (let [status :QUEUED]
     (try
-      ;; TODO : in a transaction
       (bayes-factor-model/upsert! db {:id            id
                                       :readable-name readable-name
                                       :burn-in       burn-in})
@@ -416,7 +416,8 @@
       (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id}))
       (catch Exception e
         (log/error "Exception when sending message to worker" {:error e})
-        (errors/handle-analysis-error! db id e)))))
+        (errors/handle-analysis-error! db id e)
+        (throw e)))))
 
 (defn touch-analysis
   [{:keys [authed-user-id db]} {id :id :as args} _]
@@ -428,7 +429,8 @@
      :isNew false}
     (catch Exception e
       (log/error "Exception occured when marking analysis as touched" {:analysis/id id
-                                                                       :error       e}))))
+                                                                       :error       e})
+      (throw e))))
 
 (defn- delete-s3-object! [{:keys [s3 bucket url user-id]}]
   (let [object-id  (s3-url->id url user-id)
@@ -447,7 +449,7 @@
                                                  :trees-file-url  trees-file-url})
     (doseq [url (remove nil? [tree-file-url output-file-url trees-file-url])]
       (delete-s3-object! {:url url :user-id user-id :s3 s3 :bucket bucket-name}))
-    ;; TODO : in a transaction
+
     (analysis-model/delete-analysis db {:id id})
     (when time-slicer-analysis-id
       (analysis-model/delete-analysis db {:id time-slicer-analysis-id}))))
@@ -491,7 +493,8 @@
       {:id id})
     (catch Exception e
       (log/error "Exception occured when deleting analysis" {:analysis/id id
-                                                             :error       e}))))
+                                                             :error       e})
+      (throw e))))
 
 (defn delete-file [{:keys [authed-user-id s3 bucket-name]} {url :url :as args} _]
   (try
@@ -501,7 +504,8 @@
       {:key object-key})
     (catch Exception e
       (log/error "Exception occured when deleting file" {:url   url
-                                                         :error e}))))
+                                                         :error e})
+      (throw e))))
 
 (defn- delete-user-data!
   [{:keys [user-id db s3 bucket-name]}]
@@ -518,7 +522,8 @@
     (clj->gql {:user-id authed-user-id})
     (catch Exception e
       (log/error "Exception occured when deleting user data" {:user/id authed-user-id
-                                                              :error   e}))))
+                                                              :error   e})
+      (throw e))))
 
 (defn delete-user-account
   [{:keys [authed-user-id db s3 bucket-name]} _ _]
@@ -529,4 +534,5 @@
     (clj->gql {:user-id authed-user-id})
     (catch Exception e
       (log/error "Exception occured when deleting user account" {:user/id authed-user-id
-                                                                 :error   e}))))
+                                                                 :error   e})
+      (throw e))))

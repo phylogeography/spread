@@ -20,6 +20,7 @@
             [io.pedestal.interceptor :refer [interceptor]]
             [io.pedestal.interceptor.error :as interceptor.error]
             [mount.core :as mount :refer [defstate]]
+            [next.jdbc :as jdbc]
             [taoensso.timbre :as log]))
 
 (declare server)
@@ -37,51 +38,63 @@
         (resolver-fn (merge context {:authed-user-id sub}) args value))
       (throw (Exception. "Authorization required")))))
 
+(defn tx-decorator
+  "Wraps the request in a transaction.
+  Replaces the :db key with a transaction (This works because our SQL execution works independently of passing a data-source, connection or transaction).
+  Commits before sending the response or rollback the entire thing if anything throws.
+  "
+  [resolver-fn]
+  (fn [{:keys [db] :as context} args value]
+    (jdbc/with-transaction [tx db {}]
+      (resolver-fn (merge context {:db tx}) args value))))
+
+(def mutation-decorator (comp auth-decorator tx-decorator))
+
 (defn scalar-map
   []
   {:scalar/parse-big-int     scalars/parse-big-int
    :scalar/serialize-big-int scalars/serialize-big-int})
 
 (defn resolver-map []
-  {:mutation/googleLogin    mutations/google-login
+  {:mutation/googleLogin   mutations/google-login
    :mutation/sendLoginEmail mutations/send-login-email
    :mutation/emailLogin     mutations/email-login
-   :mutation/getUploadUrls  (auth-decorator mutations/get-upload-urls)
+   :mutation/getUploadUrls (mutation-decorator mutations/get-upload-urls)
 
    :query/pong              resolvers/pong
    :resolve/pong->status    resolvers/pong->status
    :query/getAuthorizedUser (auth-decorator resolvers/get-authorized-user)
 
-   :mutation/uploadContinuousTree        (auth-decorator mutations/upload-continuous-tree)
-   :mutation/updateContinuousTree        (auth-decorator mutations/update-continuous-tree)
+   :mutation/uploadContinuousTree        (mutation-decorator mutations/upload-continuous-tree)
+   :mutation/updateContinuousTree        (mutation-decorator mutations/update-continuous-tree)
    :query/getContinuousTree              resolvers/get-continuous-tree
    :resolve/continuous-tree->attributes  resolvers/continuous-tree->attributes
    :resolve/continuous-tree->time-slicer resolvers/continuous-tree->time-slicer
-   :mutation/startContinuousTreeParser   (auth-decorator mutations/start-continuous-tree-parser)
+   :mutation/startContinuousTreeParser   (mutation-decorator mutations/start-continuous-tree-parser)
 
-   :mutation/uploadDiscreteTree       (auth-decorator mutations/upload-discrete-tree)
-   :mutation/updateDiscreteTree       (auth-decorator mutations/update-discrete-tree)
+   :mutation/uploadDiscreteTree       (mutation-decorator mutations/upload-discrete-tree)
+   :mutation/updateDiscreteTree       (mutation-decorator mutations/update-discrete-tree)
    :query/getDiscreteTree             resolvers/get-discrete-tree
    :resolve/discrete-tree->attributes resolvers/discrete-tree->attributes
-   :mutation/startDiscreteTreeParser  (auth-decorator mutations/start-discrete-tree-parser)
+   :mutation/startDiscreteTreeParser  (mutation-decorator mutations/start-discrete-tree-parser)
 
-   :mutation/uploadTimeSlicer       (auth-decorator mutations/upload-time-slicer)
-   :mutation/updateTimeSlicer       (auth-decorator mutations/update-time-slicer)
+   :mutation/uploadTimeSlicer       (mutation-decorator mutations/upload-time-slicer)
+   :mutation/updateTimeSlicer       (mutation-decorator mutations/update-time-slicer)
    :resolve/time-slicer->attributes resolvers/time-slicer->attributes
 
-   :mutation/uploadBayesFactorAnalysis           (auth-decorator mutations/upload-bayes-factor-analysis)
-   :mutation/updateBayesFactorAnalysis           (auth-decorator mutations/update-bayes-factor-analysis)
-   :mutation/startBayesFactorParser              (auth-decorator mutations/start-bayes-factor-parser)
+   :mutation/uploadBayesFactorAnalysis           (mutation-decorator mutations/upload-bayes-factor-analysis)
+   :mutation/updateBayesFactorAnalysis           (mutation-decorator mutations/update-bayes-factor-analysis)
+   :mutation/startBayesFactorParser              (mutation-decorator mutations/start-bayes-factor-parser)
    :query/getBayesFactorAnalysis                 resolvers/get-bayes-factor-analysis
    :resolve/bayes-factor-analysis->bayes-factors resolvers/bayes-factor-analysis->bayes-factors
 
    :query/getUserAnalysis       (auth-decorator resolvers/get-user-analysis)
    :resolve/analysis->error     resolvers/analysis->error
-   :mutation/touchAnalysis      (auth-decorator mutations/touch-analysis)
-   :mutation/deleteFile         (auth-decorator mutations/delete-file)
-   :mutation/deleteAnalysis     (auth-decorator mutations/delete-analysis)
-   :mutation/deleteUserData     (auth-decorator mutations/delete-user-data)
-   :mutation/deleteUserAccount  (auth-decorator mutations/delete-user-account)
+   :mutation/touchAnalysis      (mutation-decorator mutations/touch-analysis)
+   :mutation/deleteFile         (mutation-decorator mutations/delete-file)
+   :mutation/deleteAnalysis     (mutation-decorator mutations/delete-analysis)
+   :mutation/deleteUserData     (mutation-decorator mutations/delete-user-data)
+   :mutation/deleteUserAccount  (mutation-decorator mutations/delete-user-account)
    :resolve/tree->user-analysis resolvers/tree->user-analysis})
 
 (defn streamer-map []

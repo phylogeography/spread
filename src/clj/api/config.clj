@@ -50,7 +50,7 @@
 
      :google
      {:client-id     (or (get-env-variable "GOOGLE_CLIENT_ID") "806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com")
-      :client-secret (or (get-env-variable "GOOGLE_CLIENT_SECRET") client-secret)}
+      :client-secret (or client-secret (get-env-variable "GOOGLE_CLIENT_SECRET"))}
 
      :sendgrid
      {:template-id "d-02dda5f4b9e94948aedcec04b0e37abc"
@@ -59,4 +59,4 @@
      :public-key
      (or (get-env-variable "PUBLIC_KEY")
          "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJliLjOIAqGbnjGBM1RJml/l0MHayaRH\ncgEg00O9wBYvoNXrstFSzKTCKtG5MayUKgdG7C/98nu/TEzhvRFjINcCAwEAAQ==\n-----END PUBLIC KEY-----\n")
-     :private-key (or (get-env-variable "PRIVATE_KEY") private-key)}))
+     :private-key (or private-key (get-env-variable "PRIVATE_KEY"))}))
