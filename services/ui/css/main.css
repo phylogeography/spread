@@ -311,6 +311,20 @@ li {
   margin-bottom: 30px;
 }
 
+div.divider > h2 {
+  width:         325px;
+  text-align:    center;
+  border-bottom: 2px solid #757295;
+  line-height:   0.1em;
+  margin:        30px 0 30px;
+}
+
+div.divider > h2 > span {
+  background: #fff;
+  padding:    0 10px;
+  color:      #757295;
+}
+
 /* Home page */
 
 .home-page {

@@ -62,14 +62,8 @@
                    :on-click  (fn []
                                 (>evt [:splash/send-login-email @email root-url])
                                 (set-email nil))}]
-          [:h2 {:style {:width         "325px"
-                        :text-align    "center"
-                        :border-bottom "2px solid #757295"
-                        :line-height   "0.1em"
-                        :margin        "30px 0 30px"}}
-           [:span {:style {:background "#fff"
-                           :padding    "0 10px"
-                           :color      "#757295"}} "or"]]
+          [:div.divider
+           [:h2 [:span "or"]]]
           [:a.button.clickable {:class "google-button"
                                 :href  (str "https://accounts.google.com/o/oauth2/v2/auth"
                                             "?client_id=" client-id
