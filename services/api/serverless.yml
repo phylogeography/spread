@@ -90,8 +90,8 @@ resources:
                 Value: ${env:GOOGLE_CLIENT_ID}
               - Name: 'GOOGLE_CLIENT_SECRET'
                 Value: ${env:GOOGLE_CLIENT_SECRET}
-              - Name: 'SERVERLESS_ACCESS_KEY'
-                Value: ${env:SERVERLESS_ACCESS_KEY}
+              - Name: 'SENDGRID_API_KEY'
+                Value: ${env:SENDGRID_API_KEY}
 
     # The service. The service is a resource which allows you to run multiple
     # copies of a type of task, and gather up their logs and metrics, as well
