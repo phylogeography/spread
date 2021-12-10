@@ -1,18 +1,8 @@
 (ns ui.splash.page
-  (:require ["react" :as react]
-            [reagent-material-ui.core.avatar :refer [avatar]]
-            ;; [reagent-material-ui.core.button :refer [button]]
-            [reagent-material-ui.core.card :refer [card]]
-            [reagent-material-ui.core.card-content :refer [card-content]]
-            [reagent-material-ui.core.card-header :refer [card-header]]
-            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
-            [reagent-material-ui.core.divider :refer [divider]]
-            [reagent-material-ui.core.grid :refer [grid]]
-            [reagent-material-ui.core.typography :refer [typography]]
-            [reagent-material-ui.styles :as styles]
+  (:require [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent.core :as reagent]
-            [taoensso.timbre :as log]
             [shared.components :refer [button spread-logo]]
+            [taoensso.timbre :as log]
             [ui.component.icon :refer [arg->icon icons]]
             [ui.component.input :refer [text-input]]
             [ui.router.component :refer [page]]
@@ -56,8 +46,7 @@
           [:span.sign-in-sub
            "Enter your email address. We will send you a special link that you can sign in with instantly."]
           [text-input {:label       "E-mail address"
-                       :opts        {:style {:height "50px"}
-                                     :class "email-input"}
+                       :opts        {:class "email-input"}
                        :error?      @error
                        :helper-text (when @error
                                       "Enter valid email address")
@@ -87,6 +76,5 @@
                                             "&scope=email%20profile"
                                             "&response_type=code"
                                             "&redirect_uri=" (utils/url-encode redirect-uri))}
-
            [:img {:src (arg->icon (:google icons))}]
            [:span "Continue with Google"]]]]))))

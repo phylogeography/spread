@@ -250,7 +250,6 @@ li {
   display: flex;
   flex-direction: column;
   height: 100%;
-  /* width: 100%;   */
   justify-content: center;
   align-items: center;
   color: #757295;
@@ -261,17 +260,17 @@ li {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  width: 448px;
-  height: 500px;
+  width: 720px;
+  height: 600px;
   background: white;
-  border-radius: 8px;
+  border-radius: 20px;
   box-shadow: rgba(60, 66, 87, 0.12) 0px 7px 14px 0px, rgba(0, 0, 0, 0.12) 0px 3px 6px 0px;
 }
 
 .card-header {
   width: 100%;
   padding: 20px;
-  border-bottom: 1px solid #bbb;
+  border-bottom: 1px solid #313B5833;
 }
 
 .sign-in {
@@ -285,15 +284,10 @@ li {
   text-align: left;
   font:       normal normal medium 16px/19px Roboto;
   color:      #757295;
-  /* margin-left: 50px; */
-  /* margin-right: 50px;   */
 }
 
 .email-input {
   width:   325px;
-  height: 50px;
-  margin:  10px;
-  padding: 10px;
 }
 
 .send-button {
@@ -314,6 +308,7 @@ li {
   background:     #F0F0F0 0% 0% no-repeat padding-box;
   border:         1px solid #F0F0F0;
   border-radius:  8px;
+  margin-bottom: 30px;
 }
 
 /* Home page */
