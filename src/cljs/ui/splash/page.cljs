@@ -45,17 +45,18 @@
            "Sign in with email"]
           [:span.sign-in-sub
            "Enter your email address. We will send you a special link that you can sign in with instantly."]
-          [text-input {:label       "E-mail address"
-                       :opts        {:class "email-input"}
-                       :error?      @error
-                       :helper-text (when @error
-                                      "Enter valid email address")
-                       :value       @email
-                       :on-change   (fn [value]
-                                      (if (email? value)
-                                        (set-error false)
-                                        (set-error true))
-                                      (set-email value))}]
+          [:div.email-input-outer
+           [text-input {:label       "E-mail address"
+                        :opts        {:class "email-input"}
+                        :error?      @error
+                        :helper-text (when @error
+                                       "Enter valid email address")
+                        :value       @email
+                        :on-change   (fn [value]
+                                       (if (email? value)
+                                         (set-error false)
+                                         (set-error true))
+                                       (set-email value))}]]
           [button {:text      "Send magic link"
                    :class     "send-button"
                    :disabled? (or (nil? @email) @error)
