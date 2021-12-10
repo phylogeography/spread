@@ -1,5 +1,5 @@
 export SPREAD_ENV="prod"
-export LOGGING_LEVEL="debug"
+export LOGGING_LEVEL="info"
 export FLOW_STORM=false
 
 export API_AWS_REGION="us-east-2"
