@@ -45,7 +45,7 @@
 (defn resolver-map []
   {:mutation/googleLogin    mutations/google-login
    :mutation/sendLoginEmail mutations/send-login-email
-   :mutation/emailLogin    mutations/email-login
+   :mutation/emailLogin     mutations/email-login
    :mutation/getUploadUrls  (auth-decorator mutations/get-upload-urls)
 
    :query/pong              resolvers/pong
