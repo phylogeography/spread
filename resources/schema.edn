@@ -29,6 +29,8 @@
 
   :JWT {:fields {:accessToken {:type (non-null String)}}}
 
+  :sendLoginEmailStatus {:fields {:status {:type (non-null Status)}}}
+
   :TouchAnalysisReturnType {:description "Returned by the touch analysis mutation."
                             :fields      {:id    {:type (non-null ID)}
                                           :isNew {:type (non-null Boolean)}}}
@@ -204,6 +206,16 @@
                 :args        {:code        {:type String}
                               :redirectUri {:type String}}
                 :resolve     :mutation/googleLogin}
+
+  :sendLoginEmail {:type    :sendLoginEmailStatus
+                   :args    {:email       {:type (non-null String)}
+                             :redirectUri {:type (non-null String)}}
+                   :resolve :mutation/sendLoginEmail}
+
+  :emailLogin {:type        :JWT
+               :description "Validates short-lived email token and returns a long-lived spread JWT access-token."
+               :args        {:token {:type (non-null String)}}
+               :resolve     :mutation/emailLogin}
 
   :getUploadUrls {:type        (list String)
                   :description "Returns one-time POST urls."

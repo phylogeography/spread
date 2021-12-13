@@ -14,7 +14,7 @@
                (* 1000 exp))
         {:dispatch [:router/navigate :route/home]}))))
 
-(defn send-google-verification-code [_ [_ code redirect-uri]]
+(defn google-login [_ [_ code redirect-uri]]
   (log/debug {:code code :uri redirect-uri})
   {:dispatch [:graphql/query {:query
                               "mutation GoogleLogin($googleCode: String!, $redirectUri: String!) {
@@ -24,6 +24,25 @@
                                   }"
                               :variables {:googleCode code :redirectUri redirect-uri}}]})
 
+(defn send-login-email [_ [_ email redirect-uri]]
+  (log/debug {:email email :uri redirect-uri})
+  {:dispatch [:graphql/query {:query
+                              "mutation SendLoginEmail($email: String!, $redirectUri: String!) {
+                                    sendLoginEmail(email: $email, redirectUri: $redirectUri) {
+                                      status
+                                    }
+                                  }"
+                              :variables {:email email :redirectUri redirect-uri}}]})
+
+(defn email-login [_ [_ token]]
+  (log/debug {:token token})
+  {:dispatch [:graphql/query {:query
+                              "mutation emailLogin($token: String!) {
+                                    emailLogin(token: $token) {
+                                      accessToken
+                                    }
+                                  }"
+                              :variables {:token token}}]})
 
 ;; TODO : this event likely should also connect the WS
 ;; see general/initialize

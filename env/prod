@@ -1,5 +1,5 @@
 export SPREAD_ENV="prod"
-export LOGGING_LEVEL="debug"
+export LOGGING_LEVEL="info"
 export FLOW_STORM=false
 
 export API_AWS_REGION="us-east-2"
@@ -36,3 +36,4 @@ EOF
 # export DB_PASSWORD=
 # export API_AWS_ACCESS_KEY_ID=
 # export API_AWS_SECRET_ACCESS_KEY=
+# export SENDGRID_API_KEY=

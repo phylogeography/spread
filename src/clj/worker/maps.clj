@@ -3,8 +3,7 @@
             [clojure.set :as set]
             [clojure.string :as str]
             [shared.math-utils :as math-utils]
-            [shared.output-data :as output-data]
-            [shared.utils :as shared-utils]))
+            [shared.output-data :as output-data]))
 
 (def max-url-details-map-count 7)
 

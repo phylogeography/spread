@@ -11,7 +11,7 @@
             [ui.analysis-results.page]
             [ui.config :as config]
             [ui.documentation.page]
-            [ui.events]                        
+            [ui.events]
             [ui.home.page]
             [ui.logging :as logging]
             [ui.new-analysis.page]
@@ -20,7 +20,7 @@
             [ui.splash.page]
             [ui.storage]
             [ui.utils]
-            [ui.websocket-fx :as websocket]
+            [ui.websocket-fx]
             ))
 
 (def functional-compiler (r/create-compiler {:function-components true}))
@@ -49,7 +49,7 @@
 
 (comment
   (re-frame/dispatch [:utils/app-db])
-  @(re-frame/subscribe [::websocket/status :default])
+  @(re-frame/subscribe [:ui.websocket-fx/status :default])
   (re-frame/dispatch [:graphql/ws-authorize])
-  @(re-frame/subscribe [::websocket/open-subscriptions :default])
+  @(re-frame/subscribe [:ui.websocket-fx/open-subscriptions :default])
   (re-frame/dispatch [:router/navigate :route/home]))

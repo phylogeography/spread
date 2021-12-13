@@ -16,6 +16,7 @@
   (let [environment (or (get-env-variable "SPREAD_ENV") "dev")
         dev-env?    (= "dev" environment)
         {{:keys [client-secret]} :google
+         {:keys [api-key]}       :sendgrid
          :keys                   [private-key]}
         (when dev-env?
           (try-secrets "secrets.edn"))]
@@ -50,6 +51,10 @@
      :google
      {:client-id     (or (get-env-variable "GOOGLE_CLIENT_ID") "806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com")
       :client-secret (or (get-env-variable "GOOGLE_CLIENT_SECRET") client-secret)}
+
+     :sendgrid
+     {:template-id "d-02dda5f4b9e94948aedcec04b0e37abc"
+      :api-key     (or (get-env-variable "SENDGRID_API_KEY") api-key)}
 
      :public-key
      (or (get-env-variable "PUBLIC_KEY")
