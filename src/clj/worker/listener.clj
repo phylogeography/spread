@@ -11,6 +11,7 @@
             [clojure.core.match :refer [match]]
             [clojure.data.json :as json]
             [mount.core :as mount :refer [defstate]]
+            [next.jdbc :as jdbc]
             [shared.errors :as errors]
             [shared.utils :refer [file-exists? longest-common-substring round decode-json
                                   tree-object-extension
@@ -55,9 +56,10 @@
           attributes      (json/read-str (.parseAttributes parser))]
       (log/info "Parsed attributes" {:id         id
                                      :attributes attributes})
-      (discrete-tree-model/insert-attributes! db id attributes)
-      (analysis-model/upsert! db {:id     id
-                                  :status :ATTRIBUTES_PARSED}))
+      (jdbc/with-transaction [tx db {}]
+        (discrete-tree-model/insert-attributes! tx id attributes)
+        (analysis-model/upsert! tx {:id     id
+                                    :status :ATTRIBUTES_PARSED})))
     (catch Exception e
       (log/error "Exception when handling discrete-tree-upload" {:error e})
       (errors/handle-analysis-error! db id e))))
@@ -108,13 +110,14 @@
                                                        :key       output-object-key
                                                        :file-path output-object-path})
           url                  (aws-s3/build-url aws-config bucket-name output-object-key)]
-      ;; TODO : in a transaction
-      (discrete-tree-model/upsert! db {:id              id
-                                       :output-file-url url})
 
-      (analysis-model/upsert! db {:id                id
-                                  :status            :SUCCEEDED
-                                  :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes (decode-json output-json-str))}))
+      (jdbc/with-transaction [tx db {}]
+        (discrete-tree-model/upsert! tx {:id              id
+                                         :output-file-url url})
+
+        (analysis-model/upsert! tx {:id                id
+                                    :status            :SUCCEEDED
+                                    :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes (decode-json output-json-str))})))
     (catch Exception e
       (log/error "Exception when handling parse-discrete-tree" {:error e})
       (errors/handle-analysis-error! db id e))))
@@ -133,10 +136,11 @@
           attributes      (json/read-str (.parseAttributes parser))]
       (log/info "Parsed attributes and hpd-levels" {:id         id
                                                     :attributes attributes})
-      ;; TODO : in a transaction
-      (continuous-tree-model/insert-attributes! db id attributes)
-      (analysis-model/upsert! db {:id     id
-                                  :status :ATTRIBUTES_PARSED}))
+
+      (jdbc/with-transaction [tx db {}]
+        (continuous-tree-model/insert-attributes! tx id attributes)
+        (analysis-model/upsert! tx {:id     id
+                                    :status :ATTRIBUTES_PARSED})))
     (catch Exception e
       (log/error "Exception when handling continuous-tree-upload" {:error e})
       (errors/handle-analysis-error! db id e))))
@@ -231,12 +235,13 @@
                                                      :file-path output-object-path})
           url                (aws-s3/build-url aws-config bucket-name output-object-key)
           _                  (log/info "Continuous tree output URL" {:url url})]
-      ;; TODO : in a transaction
-      (continuous-tree-model/upsert! db {:id              id
-                                         :output-file-url url})
-      (analysis-model/upsert! db {:id                id
-                                  :status            :SUCCEEDED
-                                  :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes data)}))
+
+      (jdbc/with-transaction [tx db {}]
+        (continuous-tree-model/upsert! tx {:id              id
+                                           :output-file-url url})
+        (analysis-model/upsert! tx {:id                id
+                                    :status            :SUCCEEDED
+                                    :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes data)})))
     (catch Exception e
       (log/error "Exception when handling parse-continuous-tree" {:error e})
       (errors/handle-analysis-error! db id e))))
@@ -345,14 +350,15 @@
                                                                     :key       output-object-key
                                                                     :file-path output-object-path})
           url                               (aws-s3/build-url aws-config bucket-name output-object-key)]
-      ;; TODO : in a transaction
-      (bayes-factor-model/insert-bayes-factors db {:id            id
-                                                   :bayes-factors (json/write-str bayesFactors)})
-      (bayes-factor-model/upsert! db {:id              id
-                                      :output-file-url url})
-      (analysis-model/upsert! db {:id                id
-                                  :status            :SUCCEEDED
-                                  :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes spreadData)}))
+
+      (jdbc/with-transaction [tx db {}]
+        (bayes-factor-model/insert-bayes-factors tx {:id            id
+                                                    :bayes-factors (json/write-str bayesFactors)})
+       (bayes-factor-model/upsert! tx {:id              id
+                                       :output-file-url url})
+       (analysis-model/upsert! tx {:id                id
+                                   :status            :SUCCEEDED
+                                   :viewer-url-params (maps/build-viewer-url-params user-id id maps-boxes spreadData)})))
     (catch Exception e
       (log/error "Exception when handling parse-bayes-factors" {:error e})
       (errors/handle-analysis-error! db id e))))

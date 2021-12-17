@@ -75,7 +75,7 @@
 
   :lint
   {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.09.25"}}
-   :main-opts  ["-m" "clj-kondo.main" "--lint src/clj"]}
+   :main-opts  ["-m" "clj-kondo.main" "--lint" "src/clj"]}
 
   :repl
   {:extra-deps {refactor-nrepl/refactor-nrepl {:mvn/version "2.5.0"}}}
