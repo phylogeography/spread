@@ -13,7 +13,7 @@
 (defn start [config]
   (let [{:keys [level pretty?]} (:logging config)]
     (timbre/merge-config!
-      {:level          (keyword level)
+      {:min-level      (keyword level)
        :timestamp-opts {:pattern "yyyy-MM-dd'T'HH:mm:ssX"}
        :appenders      {:json    (json/json-appender {:pretty              pretty?
                                                       :msg-key             :message
