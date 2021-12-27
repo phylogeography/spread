@@ -1,5 +1,6 @@
 mod backlog;
 mod config;
+mod scaling;
 
 use config::Config;
 use log::{debug, info};
@@ -19,6 +20,16 @@ async fn main() -> Result<(), anyhow::Error> {
             backlog::publish(Config::load())
                 .await
                 .expect("backlog publish failed unexpectedly");
+            interval.tick().await;
+        }
+    }));
+
+    tasks.push(tokio::spawn(async {
+        let mut interval = time::interval(Duration::from_secs(600));
+        loop {
+            scaling::run(Config::load())
+                .await
+                .expect("scaling failed unexpectedly");
             interval.tick().await;
         }
     }));

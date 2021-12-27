@@ -6,7 +6,6 @@ use aws_sdk_cloudwatch::{
 use aws_sdk_ecs::Client as EcsClient;
 use aws_sdk_sqs::{model::QueueAttributeName, Client as SqsClient};
 use log::{debug, info};
-use std::env;
 
 pub async fn publish(config: Config) -> Result<(), anyhow::Error> {
     let Config {
