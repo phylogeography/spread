@@ -41,6 +41,7 @@ dependencies = [
  "anyhow",
  "aws-config",
  "aws-sdk-cloudwatch",
+ "aws-sdk-ecs",
  "aws-sdk-sqs",
  "env_logger",
  "log",
@@ -112,6 +113,27 @@ dependencies = [
  "aws-smithy-query",
  "aws-smithy-types",
  "aws-smithy-xml",
+ "aws-types",
+ "bytes",
+ "http",
+ "tower",
+]
+
+[[package]]
+name = "aws-sdk-ecs"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a605ac2af04780fbcbc2825c5df1b071e49b60bbc8b2ab0628d1b84b7d822c13"
+dependencies = [
+ "aws-endpoint",
+ "aws-http",
+ "aws-sig-auth",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-json",
+ "aws-smithy-types",
  "aws-types",
  "bytes",
  "http",
