@@ -47,7 +47,7 @@
   ;; NOTE : we just delete the object from S3 and dissoc the app-db values
   ;; there is no need to change the analysis settings in the DB as they are not set yet
   ;; this happens only when the analysis is started
-  (let [{:keys [locations-file-url]} (get-in db [:new-analysis :bayes-factor])]
+  (let [{:keys [locations-file-url id]} (get-in db [:new-analysis :bayes-factor])]
     {:dispatch [:graphql/query {:query
                                 "mutation DeleteFile($url: String!) {
                                      deleteFile(url: $url) {
@@ -56,9 +56,12 @@
                                    }"
                                 :variables {:url locations-file-url}}]
      :db       (-> db
-                   (dissoc-in [:new-analysis :bayes-factor :locations-file])
+                   (dissoc-in [:new-analysis :bayes-factor :locations-file-name])
                    (dissoc-in [:new-analysis :bayes-factor :locations-file-url])
-                   (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress]))}))
+                   (dissoc-in [:new-analysis :bayes-factor :locations-file-upload-progress])
+                   (dissoc-in [:analysis id :locations-file-url])
+                   (dissoc-in [:analysis id :locations-file-name])
+                   (dissoc-in [:analysis id :locations-file-upload-progress]))}))
 
 (defn log-file-upload-success [_ [_ {:keys [url filename]}]]
   (let [[url _] (string/split url "?")]
@@ -119,7 +122,8 @@
                                             }"
                                 :variables {:id                id
                                             :locationsFileName filename
-                                            :locationsFileUrl  url}}]}))
+                                            :locationsFileUrl  url}}]
+     :db (assoc-in db [:new-analysis :bayes-factor :locations-file-url] url)}))
 
 (defn set-readable-name [{:keys [db]} [_ readable-name]]
   (let [id (get-in db [:new-analysis :bayes-factor :id])]
