@@ -6,7 +6,7 @@
 
 (defn reset [{:keys [db]} _]
   {:dispatch [:router/navigate :route/new-analysis nil {:tab "discrete-mcc-tree"}]
-   :db (dissoc-in db [:new-analysis :bayes-factor])})
+   :db (dissoc-in db [:new-analysis :discrete-mcc-tree])})
 
 (defn on-tree-file-selected [_ [_ file-with-meta]]
   (let [{:keys [filename]} file-with-meta
