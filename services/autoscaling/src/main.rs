@@ -13,16 +13,15 @@ async fn main() -> Result<(), anyhow::Error> {
     init_logging();
     let mut tasks = Vec::with_capacity(2);
 
-    // let config_ptr1 = Arc::clone(&config);
-    tasks.push(tokio::spawn(async {
-        let mut interval = time::interval(Duration::from_secs(60));
-        loop {
-            backlog::publish(Config::load())
-                .await
-                .expect("backlog publish failed unexpectedly");
-            interval.tick().await;
-        }
-    }));
+    // tasks.push(tokio::spawn(async {
+    //     let mut interval = time::interval(Duration::from_secs(60));
+    //     loop {
+    //         backlog::publish(Config::load())
+    //             .await
+    //             .expect("backlog publish failed unexpectedly");
+    //         interval.tick().await;
+    //     }
+    // }));
 
     tasks.push(tokio::spawn(async {
         let mut interval = time::interval(Duration::from_secs(600));

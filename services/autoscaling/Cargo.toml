@@ -4,12 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0"
 aws-config = "0.3.0"
 aws-sdk-cloudwatch = "0.3.0"
-aws-sdk-sqs = "0.3.0"
 aws-sdk-ecs = "0.3.0"
-tokio = { version = "1", features = ["full"] }
-anyhow = "^1.0"
-# clap = {version = "3.0.0-beta.5", features = ["derive"]}
+aws-sdk-sqs = "0.3.0"
+# aws-smithy-types = "0.32.0"
+# aws-smithy-types-convert = { version = "0.33.1", features = ["convert-chrono"] }
+# chrono = "0.4.19"
 env_logger = "0.8"
 log = "0.4"
+tokio = { version = "1", features = ["full"] }

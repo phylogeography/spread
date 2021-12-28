@@ -14,7 +14,8 @@ pub async fn publish(config: Config) -> Result<(), anyhow::Error> {
         ecs_service,
         metric_namespace,
         metric_name,
-        queue_name,
+        metric_dimension_name,
+        metric_dimension_value,
         ..
     } = config;
 
@@ -66,11 +67,11 @@ pub async fn publish(config: Config) -> Result<(), anyhow::Error> {
     // aws cloudwatch put-metric-data --namespace ECS-SQS-Autoscaling --metric-name BacklogPerECSTask --unit None --value 1 --dimensions SQS-Queue=spread-prod-worker
 
     let dimension = Dimension::builder()
-        .set_name(Some("SQS-Queue".to_owned()))
-        .set_value(Some(queue_name.to_string()))
+        .set_name(Some(metric_dimension_name))
+        .set_value(Some(metric_dimension_value))
         .build();
     let datum = MetricDatum::builder()
-        .set_metric_name(Some(metric_name.to_string()))
+        .set_metric_name(Some(metric_name))
         .set_unit(None)
         .set_value(Some(backlog_per_worker as f64))
         .set_dimensions(Some(vec![dimension]))
@@ -80,7 +81,7 @@ pub async fn publish(config: Config) -> Result<(), anyhow::Error> {
     cloudwatch_client
         .put_metric_data()
         .set_metric_data(Some(data))
-        .set_namespace(Some(metric_namespace.to_string()))
+        .set_namespace(Some(metric_namespace))
         .send()
         .await
         .expect("Could not send metric data");
