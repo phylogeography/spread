@@ -4,18 +4,15 @@
   </a>
 </p>
 
-<h2 align="center">Spread</h2>
+<h2 align="center">
+  <a href="https://spreadviz.org">Spread</a>
+</h2>
 
 <p align="center">
   Spread vizualizes how viruses and other pathogens are spreading in time and space.
   It creates shareable, interactive and time-animated vizualisation.
 <!-- Spread is a web application for analyzing and visualizing pathogen phylodynamic reconstructions resulting from Bayesian inference of sequence and trait evolutionary processes. -->
 </p>
-
-<!-- <p align="center"> -->
-<!-- [![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.png)](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.mp4) -->
-<!-- ![Preview](https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif) -->
-<!-- </p> -->
 
 <p align="center">
   <img src="https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif">
