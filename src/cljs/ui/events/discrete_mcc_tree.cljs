@@ -73,7 +73,10 @@
                                 :variables {:url locations-file-url}}]
      :db       (-> db
                    (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-url])
-                   (dissoc-in [:analysis id :locations-file])
+                   (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-name])
+                   (dissoc-in [:new-analysis :discrete-mcc-tree :locations-file-upload-progress])
+                   (dissoc-in [:analysis id :locations-file-url])
+                   (dissoc-in [:analysis id :locations-file-name])
                    (dissoc-in [:analysis id :locations-file-upload-progress]))}))
 
 (defn on-locations-file-selected [_ [_ file-with-meta]]
@@ -119,7 +122,8 @@
                                               }"
                                 :variables {:id                id
                                             :locationsFileUrl  url
-                                            :locationsFileName filename}}]}))
+                                            :locationsFileName filename}}]
+     :db (assoc-in db [:new-analysis :discrete-mcc-tree :locations-file-url] url)}))
 
 (defn set-readable-name [{:keys [db]} [_ readable-name]]
   (let [id (get-in db [:new-analysis :discrete-mcc-tree :id])]
