@@ -80,15 +80,24 @@
                                     :attrs attributes}
                                    (calc-show-percs point)))))
         transitions-objects (->> lines
-                                 (map (fn [{:keys [startPointId endPointId attributes] :as line}]
-                                        (let [start-point (get points-index startPointId)
-                                              end-point (get points-index endPointId)]
-                                          (merge
-                                           {:type :transition
-                                            :from-coord (calc-proj-coord (:coordinate start-point))
-                                            :to-coord (calc-proj-coord (:coordinate end-point))
-                                            :attrs attributes}
-                                           (calc-show-percs line))))))
+                                 (keep (fn [{:keys [startPointId endPointId attributes] :as line}]
+                                         (let [start-point (get points-index startPointId)
+                                               end-point (get points-index endPointId)
+                                               from-coord (calc-proj-coord (:coordinate start-point))
+                                               to-coord (calc-proj-coord (:coordinate end-point))]
+
+                                           ;; there is data that contains zero length transitions
+                                           ;; remove it here since it doesn't make sense
+                                           (if (zero? (math-utils/distance from-coord to-coord))
+
+                                             (js/console.warn "Skipping zero length transition" (str line))
+
+                                             (merge
+                                               {:type :transition
+                                                :from-coord from-coord
+                                                :to-coord to-coord
+                                                :attrs attributes}
+                                               (calc-show-percs line)))))))
         polygons-objects (->> areas
                               (map (fn [{:keys [polygon] :as area}]
                                      (merge
@@ -136,21 +145,28 @@
                                                 :count-attr (get attributes :count)}
                                                (calc-show-percs point)))))))
         transitions-objects (->> lines
-                                 (map (fn [{:keys [startPointId endPointId attributes] :as line}]
+                                 (keep (fn [{:keys [startPointId endPointId attributes] :as line}]
                                         (let [start-point (get points-index startPointId)
                                               end-point (get points-index endPointId)
                                               start-loc (point-location (:id start-point))
                                               end-loc   (point-location (:id end-point))
                                               from-coord (calc-proj-coord (:coordinate start-loc))
                                               to-coord (calc-proj-coord (:coordinate end-loc))]
-                                          (merge
-                                           {:type :transition
-                                            :from-coord from-coord
-                                            :to-coord to-coord
-                                            :from-label (:id start-loc)
-                                            :to-label   (:id end-loc)
-                                            :attrs attributes}
-                                           (calc-show-percs line))))))
+
+                                          ;; there is data that contains zero length transitions
+                                          ;; remove it here since it doesn't make sense
+                                          (if (zero? (math-utils/distance from-coord to-coord))
+
+                                            (js/console.warn "Skipping zero length transition" (str line))
+
+                                            (merge
+                                              {:type :transition
+                                               :from-coord from-coord
+                                               :to-coord to-coord
+                                               :from-label (:id start-loc)
+                                               :to-label   (:id end-loc)
+                                               :attrs attributes}
+                                              (calc-show-percs line)))))))
         objects (concat transitions-objects nodes-objects circles-objects)]
     (println timeline)
     (println (gstr/format "Discrete tree, got %d nodes, %d transitions, %d circles"
