@@ -60,3 +60,4 @@
 (reg-event-db :filters/rm-ordinal-attribute-filter-item [sc] events.filters/rm-ordinal-attribute-filter-item)
 
 (reg-event-db :map/set-dimensions [sc] events.maps/set-dimensions)
+(reg-event-db :analysis.timeline/set-width [sc] events.ui/set-timeline-width)
