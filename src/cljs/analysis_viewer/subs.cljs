@@ -225,21 +225,32 @@
    (:map/popup-coord db)))
 
 (reg-sub
- :analysis/data-timeline
- :<- [:analysis/date-range]
- (fn [[from-millis to-millis] _]
-   (let [tick-gap 7
-         start-date (js/Date. from-millis)
-         start-month (.getUTCMonth start-date)
-         start-year (.getUTCFullYear start-date)
-         end-year   (.getUTCFullYear (js/Date. to-millis))]
-     (->> (range start-year end-year)
-          (mapcat (fn [year]
-                    (-> (repeatedly 11 (fn [] {:label nil :type :short}))
-                        (into [{:label (str year) :type :long}]))))
-          (drop start-month) ;; discard start-month ticks from the biggining since they contain no data
-          (map-indexed (fn [idx tick]
-                         (assoc tick :x (* idx tick-gap))))))))
+  :analysis/data-timeline-width
+  (fn [db _]
+    (:analysis/timeline-width db)))
+
+(reg-sub
+  :analysis/data-timeline
+  :<- [:analysis/date-range]
+  :<- [:analysis/data-timeline-width]
+  (fn [[[from-millis to-millis] timeline-px-width]  _]
+    (let [start-date (js/Date. from-millis)
+          start-month (.getUTCMonth start-date)
+          start-year (.getUTCFullYear start-date)
+          end-year   (.getUTCFullYear (js/Date. to-millis))
+          ticks (->> (range start-year end-year)
+                     (mapcat (fn [year]
+                               (-> (repeatedly 11 (fn [] {:label nil :type :short}))
+                                   (into [{:label (str year) :type :long}]))))
+                     (drop start-month)) ;; discard start-month ticks from the biggining since they contain no data
+          ticks-cnt (count ticks)
+          margin 50
+          tick-gap (when (and timeline-px-width (pos? ticks-cnt))
+                     (/ (- timeline-px-width margin) (count ticks)))]
+      (when tick-gap
+        (->> ticks
+             (map-indexed (fn [idx tick]
+                            (assoc tick :x (* idx tick-gap)))))))))
 
 (defn build-map-parameters [ui-params switch-buttons-states]
   {:poly-fill-color "#ffffff"
@@ -301,7 +312,7 @@
         circle-fill (if (:circles? switch-buttons) (:circles-color params) "transparent")
         node-fill (if (:nodes? switch-buttons) (:nodes-color params) "transparent")]
     (str
-      (str "text { font-size: " (:labels-size params) "px; fill:" text-fill ";}")
+      (str "text.label { font-size: " (:labels-size params) "px; fill:" text-fill ";}")
       (str ".data-text { fill : " data-text-fill ";}")
       (str "polygon{ stroke: " polygon-stroke ";}")
       (str ".data-node > circle{ fill: " node-fill "; r: " (:nodes-size params) ";}")
