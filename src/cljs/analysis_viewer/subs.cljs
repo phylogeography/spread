@@ -338,7 +338,9 @@
            obj)))
 
 (defn calc-obj-time-attrs [{:keys [show-start show-end] :as obj} time-perc params]
-  (let [show? (<= show-start time-perc show-end)]
+  (let [show-end (if (:missiles? params) show-end 1)
+        show? (<= show-start time-perc show-end)]
+
     (case (:type obj)
       :node       {:show? (and show? (:nodes? params))}
       :circle     {:show? (and show? (:circles? params))}
