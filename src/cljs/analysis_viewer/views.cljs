@@ -563,6 +563,7 @@
 (defn continuous-animation-settings []
   (let [[from-millis to-millis] @(subscribe [:analysis/date-range])
         [crop-from-millis crop-to-millis] @(subscribe [:animation/crop])
+        playing? (= :play @(subscribe [:animation/state]))
         df (js/Date. from-millis)
         dt (js/Date. to-millis)
         cf (js/Date. crop-from-millis)
@@ -577,6 +578,7 @@
     [:div.animation-settings
      [:label "From:"]
      [:input {:type :date
+              :disabled playing?
               :on-change (fn [evt]
                            (set-new-crop [(js/Date.parse (.-value (.-target evt)))
                                           crop-to-millis]))
@@ -585,6 +587,7 @@
               :value crop-min-date-str}]
      [:label "To:"]
      [:input {:type :date
+              :disabled playing?
               :on-change (fn [evt]
                            (set-new-crop [crop-from-millis
                                           (js/Date.parse (.-value (.-target evt)))]))
