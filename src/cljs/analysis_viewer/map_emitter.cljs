@@ -90,13 +90,13 @@
                                             :attrs attributes}
                                            (calc-show-percs line))))))
         polygons-objects (->> areas
-                              (map (fn [{:keys [polygon] :as area}]
+                              (map (fn [{:keys [polygon attributes] :as area}]
                                      (merge
                                       {:type :polygon
                                        :coords (->> (:coordinates polygon)
                                                     (mapv (fn [poly-point]
                                                             (calc-proj-coord poly-point))))
-                                       :attrs {}}
+                                       :attrs attributes}
                                       (calc-show-percs area)))))
         objects (concat polygons-objects transitions-objects nodes-objects)]
     (println timeline)
