@@ -12,7 +12,7 @@
     ;; close all the tabs before toggleing so we don't have more than one collapsible tab open at a time
     ;; this is so we don't overflow vertical space. Making it scrollable is tricky, since we can't fix a max-height
     (-> db
-        close-all-tabs 
+        close-all-tabs
         (assoc-in [:ui.collapsible-tabs/tabs parent-id tab-id] tab-new-state))))
 
 (defn toggle-switch-button [db [_ button-id]]
@@ -21,3 +21,5 @@
 (defn parameters-select [db [_ param-id value]]
   (assoc-in db [:ui/parameters param-id] value))
 
+(defn set-timeline-width [db [_ width]]
+  (assoc db :analysis/timeline-width width))
