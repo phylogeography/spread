@@ -79,8 +79,10 @@
          :style {:display (if visible? "block" "none")
                  :cursor :cell}
          :class "data-transition"}
-     [:circle {:class "data-transition-from" :cx x1 :cy y1 :r 0.05 :fill :black}]
-     [:circle {:class "data-transition-to" :cx x2 :cy y2 :r 0.05 :fill :black}]
+     ;; Let's comment out source and destination of a transition since they
+     ;; don't make much sense. Maybe we can use them for debugging or something.
+     #_[:circle {:class "data-transition-from" :cx x1 :cy y1 :r 0.05 :fill :black}]
+     #_[:circle {:class "data-transition-to" :cx x2 :cy y2 :r 0.05 :fill :black}]
      [:path {:class "data-transition-path"
              :id (str id "-touchable")
              :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
