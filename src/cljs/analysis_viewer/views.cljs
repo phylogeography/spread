@@ -79,8 +79,10 @@
          :style {:display (if visible? "block" "none")
                  :cursor :cell}
          :class "data-transition"}
-     [:circle {:class "data-transition-from" :cx x1 :cy y1 :r 0.05 :fill :black}]
-     [:circle {:class "data-transition-to" :cx x2 :cy y2 :r 0.05 :fill :black}]
+     ;; Let's comment out source and destination of a transition since they
+     ;; don't make much sense. Maybe we can use them for debugging or something.
+     #_[:circle {:class "data-transition-from" :cx x1 :cy y1 :r 0.05 :fill :black}]
+     #_[:circle {:class "data-transition-to" :cx x2 :cy y2 :r 0.05 :fill :black}]
      [:path {:class "data-transition-path"
              :id (str id "-touchable")
              :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
@@ -150,26 +152,64 @@
 (def animation-delta-t 50)
 (def animation-increment 0.02)
 
+(defn timeline []
+  (let [crop-sides 20
+        ticks-y-base 80
+        timeline-start crop-sides
+        update-after-render (fn [div-cmp]
+                              (let [dom-node (rdom/dom-node div-cmp)
+                                    brect (.getBoundingClientRect dom-node)]
+                                (dispatch [:analysis.timeline/set-width (.-width brect)])))]
+    (reagent/create-class
+      {:component-did-mount (fn [this] (update-after-render this))
+       :reagent-render
+       (fn []
+         (let [frame-timestamp @(subscribe [:animation/frame-timestamp])
+               ticks-data @(subscribe [:analysis/data-timeline])
+               [date-from-millis date-to-millis] @(subscribe [:analysis/date-range])
+               full-length-px (apply max (map :x ticks-data))
+               date-range->px-rescale (math-utils/build-scaler date-from-millis date-to-millis 0 full-length-px)
+               [crop-low-millis crop-high-millis] @(subscribe [:animation/crop])
+               crop-left (date-range->px-rescale crop-low-millis)
+               crop-width (+ (- (date-range->px-rescale crop-high-millis) (date-range->px-rescale crop-low-millis))
+                             (* 2 timeline-start)
+                             (- 7))
+               frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))]
+           [:div.timeline {:width "100%" :height "100%"}
+            (when ticks-data
+              [:<>
+               [:div.crop-box {:style {:left crop-left
+                                       :width crop-width}}
+                [:i.left.zmdi.zmdi-chevron-left   {:style {:width (str crop-sides "px")}}]
+                [:i.right.zmdi.zmdi-chevron-right {:style {:width (str crop-sides "px")}}]]
+               [:svg {:width "100%" :height "110px"}
+                [:g
+                 [:line {:x1 frame-line-x :y1 0
+                         :x2 frame-line-x :y2 120
+                         :stroke "#EEBE53"
+                         :stroke-width 2}]
+                 (for [{:keys [label x type]} ticks-data]
+                   (let [x (+ x timeline-start)]
+                     ^{:key (str x)}
+                     [:g
+                      [:line {:x1 x :y1 ticks-y-base
+                              :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
+                              :stroke "#3A3668"}]
 
+                      ;; NOTE: Enable for debugging
+                      #_(when (pos? perc)
+                          [:line {:x1 x :y1 ticks-bars-y-base
+                                  :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
+                                  :stroke "red"}])
+
+                      (when label
+                        [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
+                         label])]))]]])]))})))
 
 (defn animation-controls []
   (let [frame-timestamp @(subscribe [:animation/frame-timestamp])
         speed @(subscribe [:animation/speed])
-        [date-from-millis date-to-millis] @(subscribe [:analysis/date-range])
-        [crop-low-millis crop-high-millis] @(subscribe [:animation/crop])
-        playing? (= :play @(subscribe [:animation/state]))
-        ticks-data @(subscribe [:analysis/data-timeline])
-        full-length-px (apply max (map :x ticks-data))
-        date-range->px-rescale (math-utils/build-scaler date-from-millis date-to-millis 0 full-length-px)
-        crop-sides 20
-        ticks-y-base 80
-        timeline-start crop-sides
-        crop-left (date-range->px-rescale crop-low-millis)
-        crop-width (+ (- (date-range->px-rescale crop-high-millis) (date-range->px-rescale crop-low-millis))
-                      (* 2 timeline-start)
-                      (- 7))
-        frame-line-x (+ timeline-start (date-range->px-rescale frame-timestamp))
-        ]
+        playing? (= :play @(subscribe [:animation/state]))]
 
     ;; IMPORTANT ! For some reason in chrome when the animation-controls get updated (when :animation/frame-timestamp) changes for example,
     ;; the entire map is being redraw, making some animations a lot less smooth.
@@ -195,34 +235,7 @@
                    :class (if playing? "zmdi-pause" "zmdi-play")}]
          [:i.zmdi.zmdi-caret-right {:on-click #(dispatch [:animation/next])} ""]
          [:i.zmdi.zmdi-skip-next {:on-click #(dispatch [:animation/reset :end])} ""]]
-        [:div.timeline {:width "100%" :height "100%"}
-         [:div.crop-box {:style {:left crop-left
-                                 :width crop-width}}
-          [:i.left.zmdi.zmdi-chevron-left   {:style {:width (str crop-sides "px")}}]
-          [:i.right.zmdi.zmdi-chevron-right {:style {:width (str crop-sides "px")}}]]
-         [:svg {:width "100%" :height "110px"}
-          [:g
-           [:line {:x1 frame-line-x :y1 0
-                   :x2 frame-line-x :y2 120
-                   :stroke "#EEBE53"
-                   :stroke-width 2}]
-           (for [{:keys [label x type]} ticks-data]
-             (let [x (+ x timeline-start)]
-              ^{:key (str x)}
-              [:g
-               [:line {:x1 x :y1 ticks-y-base
-                       :x2 x :y2 (- ticks-y-base (if (= type :short) 5 10))
-                       :stroke "#3A3668"}]
-
-               ;; NOTE: Enable for debugging
-               #_(when (pos? perc)
-                   [:line {:x1 x :y1 ticks-bars-y-base
-                           :x2 x :y2 (- ticks-bars-y-base (/ (* perc ticks-bars-full) 100))
-                           :stroke "red"}])
-
-               (when label
-                 [:text {:x x :y (+ ticks-y-base 10) :font-size 10 :fill "#3A3668" :stroke :transparent :text-anchor :middle}
-                  label])]))]]]])]))
+        [timeline]])]))
 
 (defn map-group []
   (let [map-options @(re-frame/subscribe [:map/parameters])]
@@ -551,6 +564,7 @@
 (defn continuous-animation-settings []
   (let [[from-millis to-millis] @(subscribe [:analysis/date-range])
         [crop-from-millis crop-to-millis] @(subscribe [:animation/crop])
+        playing? (= :play @(subscribe [:animation/state]))
         df (js/Date. from-millis)
         dt (js/Date. to-millis)
         cf (js/Date. crop-from-millis)
@@ -565,6 +579,7 @@
     [:div.animation-settings
      [:label "From:"]
      [:input {:type :date
+              :disabled playing?
               :on-change (fn [evt]
                            (set-new-crop [(js/Date.parse (.-value (.-target evt)))
                                           crop-to-millis]))
@@ -573,6 +588,7 @@
               :value crop-min-date-str}]
      [:label "To:"]
      [:input {:type :date
+              :disabled playing?
               :on-change (fn [evt]
                            (set-new-crop [crop-from-millis
                                           (js/Date.parse (.-value (.-target evt)))]))
