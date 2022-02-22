@@ -204,3 +204,7 @@
     (and (overlap-1d? (:min-x box-1) (:max-x box-1) (:min-x box-2) (:max-x box-2))
          (overlap-1d? (:min-y box-1) (:max-y box-1) (:min-y box-2) (:max-y box-2))))) 
 
+(defn distance [[x1 y1] [x2 y2]]
+  (sqrt
+    (+ (pow (- x2 x1) 2)
+       (pow (- y2 y1) 2))))
