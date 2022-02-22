@@ -88,10 +88,10 @@
         [x2 y2] (*coord-transform-fn* [max-x max-y])
         [text-x text-y] [(+ (/ (Math/abs (- x1 x2)) 2) (min x1 x2))
                          (+ (/ (Math/abs (- y1 y2)) 2) (min y1 y2))]]
-    [:text {:x text-x :y text-y
-            ;; :font-size (str (:text-size opts) "px")
-            :fill (:text-color opts)
-            :text-anchor "middle"} text]))
+    [:text.label {:x text-x :y text-y
+                  ;; :font-size (str (:text-size opts) "px")
+                  :fill (:text-color opts)
+                  :text-anchor "middle"} text]))
 
 (defn geojson->svg-feature [{:keys [geometry properties]} opts]
   (when geometry

@@ -34,6 +34,7 @@
 (s/def :analysis.data.object/id string?)
 (s/def :analysis.data/type #{:ContinuousTree :DiscreteTree :BayesFactor})
 (s/def :analysis/data (s/map-of :analysis.data.object/id :analysis.data/object))
+(s/def :analysis/timeline-width number?)
 (s/def :analysis/data-box :cartesian/box)
 
 (s/def :attribute/id string?)
@@ -143,6 +144,7 @@
                           :analysis.data/filters]
                     :opt [:map/data
                           :analysis/data
+                          :analysis/timeline-width ;; optional since it is unknown until component mounted
                           :analysis/data-box
                           :analysis.data/type
                           :analysis/attributes
