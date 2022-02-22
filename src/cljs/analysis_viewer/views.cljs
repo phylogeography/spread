@@ -524,10 +524,11 @@
   [:div.map-settings
    [color-chooser {:param-name :map-borders-color}]])
 
-(defn continuous-transitions-settings []
+(defn transitions-settings [{:keys [missiles-switch?]}]
   [:div.transitions-settings
-   [:div
-    [:label.missile "Missiles"] [switch-button {:id :missiles?}]]
+   (when missiles-switch?
+     [:div
+      [:label.missile "Missiles"] [switch-button {:id :missiles?}]])
 
    [color-chooser {:param-name :transitions-color}]
 
@@ -658,7 +659,7 @@
                                 :child [continuous-tree-map-settings]}
                                {:title "Transitions"
                                 :id :transitions
-                                :child [continuous-transitions-settings]}
+                                :child [transitions-settings {:missiles-switch? true}]}
                                {:title "Polygons"
                                 :id :polygons
                                 :child [continuous-polygons-settings]}
@@ -686,7 +687,6 @@
    [:label "Labels"]      [switch-button {:id :labels?}]])
 
 (def discrete-tree-map-settings continuous-tree-map-settings)
-(def discrete-transitions-settings continuous-transitions-settings)
 (def discrete-animation-settings continuous-animation-settings)
 (def discrete-attributes-filters continuous-attributes-filters)
 
@@ -737,7 +737,7 @@
                                 :child [discrete-tree-map-settings]}
                                {:title "Transitions"
                                 :id :transitions
-                                :child [discrete-transitions-settings]}
+                                :child [transitions-settings {:missiles-switch? true}]}
                                {:title "Circles"
                                 :id :circles
                                 :child [discrete-circles-settings]}
@@ -756,16 +756,39 @@
                                 :id :attributes-range-filters
                                 :child [discrete-attributes-filters]}]}]])
 
-(def bayes-transitions-settings continuous-transitions-settings)
+(defn bayes-tree-layers-settings []
+  [:div.layers-settings
+   [:label "Map"]         [switch-button {:id :show-map?}]
+   [:label "Map Borders"] [switch-button {:id :map-borders?}]
+   [:label "Map Labels"]  [switch-button {:id :map-labels?}]
+   [:label "Transitions"] [switch-button {:id :transitions?}]
+   [:label "Nodes"]       [switch-button {:id :nodes?}]
+   [:label "Labels"]      [switch-button {:id :labels?}]])
+
+(def bayes-tree-map-settings discrete-tree-map-settings)
 (def bayes-attributes-filters continuous-attributes-filters)
+(def bayes-nodes-settings discrete-nodes-settings)
+(def bayes-labels-settings discrete-labels-settings)
 
 (defn bayes-factor-side-bar []
   [:div.tabs
    [collapsible-tabs {:title "Settings"
                       :id :parameters
-                      :childs [{:title "Transitions"
+                      :childs [{:title "Layers"
+                                :id :discrete-tree-layer-settings
+                                :child [bayes-tree-layers-settings]}
+                               {:title "Map"
+                                :id :discrete-tree-map-settings
+                                :child [bayes-tree-map-settings]}
+                               {:title "Transitions"
                                 :id :transitions
-                                :child [bayes-transitions-settings]}]}]
+                                :child [transitions-settings {:missiles-switch? false}]}
+                               {:title "Nodes"
+                                :id :nodes
+                                :child [bayes-nodes-settings]}
+                               {:title "Labels"
+                                :id :labels
+                                :child [bayes-labels-settings]}]}]
    [collapsible-tabs {:title "Filters"
                       :id :filters
                       :childs [{:title "Attributes"
