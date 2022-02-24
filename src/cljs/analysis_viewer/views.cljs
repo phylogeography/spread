@@ -1,7 +1,7 @@
 (ns analysis-viewer.views
   "Render maps and analysis data as hiccup svg vectors.
   Also handles animations."
-  (:require [analysis-viewer.components :refer [switch-button slider mui-slider]]
+  (:require [analysis-viewer.components :refer [slider switch-button]]
             [analysis-viewer.events.maps :as events.maps]
             [analysis-viewer.subs :as viewer-subs]
             [analysis-viewer.svg-renderer :as svg-renderer]
@@ -10,7 +10,7 @@
             [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [reagent.core :as reagent]
             [reagent.dom :as rdom]
-            [shared.components :refer [collapsible-tab spread-logo]]
+            [shared.components :refer [collapsible-tab mui-slider spread-logo]]
             [shared.math-utils :as math-utils]
             [ui.utils :as ui-utils]))
 

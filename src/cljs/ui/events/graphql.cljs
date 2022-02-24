@@ -236,11 +236,10 @@
   {:db (update-in db [:analysis id] merge analysis)})
 
 (defmethod handler :get-bayes-factor-analysis
-  [{:keys [db]} _ {:keys [id] :as analysis}]
-  {:db
-   (-> db
-       (update-in [:analysis id] merge (:analysis analysis))
-       (update-in [:analysis id] merge analysis))})
+  [{:keys [db]} _ {:keys [id burn-in] :as analysis}]
+  {:db (-> db
+           (update-in [:analysis id] merge (:analysis analysis))
+           (update-in [:analysis id] merge analysis))})
 
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id] :as analysis}]

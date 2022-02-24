@@ -70,7 +70,9 @@
 (defn get-bayes-factor-analysis
   [{:keys [db]} {id :id :as args} _]
   (log/info "get-bayes-factor-analysis query" args)
-  (clj->gql (bayes-factor-model/get-bayes-factor-analysis db {:id id})))
+  (let [response (bayes-factor-model/get-bayes-factor-analysis db {:id id})]
+    (log/info "get-bayes-factor-analysis response" response)
+    (clj->gql response)))
 
 (defn bayes-factor-analysis->bayes-factors
   [{:keys [db]} _ {bayes-factor-analysis-id :id :as parent}]
