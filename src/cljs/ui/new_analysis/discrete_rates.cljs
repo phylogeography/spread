@@ -16,7 +16,7 @@
      [:div.controls {:style {:grid-area "controls"}}
       [button {:text      "Start analysis"
                :on-click  #(>evt [:bayes-factor/start-analysis {:readable-name readable-name
-                                                                :burn-in       (/ burn-in 100)}])
+                                                                :burn-in       burn-in}])
                :class     "golden"
                :disabled? disabled?}]
       [button {:text      "Paste settings"
@@ -45,7 +45,11 @@
             controls-disabled? (or (seq? @field-errors)
                                    (not log-file-name))
             ;; weird JS behaviour, where it will parse floats with full precision
-            burn-in (round burn-in 2)]
+            burn-in (round burn-in 2)
+            ]
+
+        (prn "BURN-IN" burn-in)
+
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-log-file
@@ -100,9 +104,8 @@
                             :value     readable-name
                             :on-change (fn [value]
                                          (debounce (>evt [:bayes-factor/set-readable-name value]) 10))}]]
-              [:div.field-card {:style {:background-color :red}}
+              [:div.field-card
                [:h4 "Select burn-in"]
-               ;; TODO : slider
                [mui-slider {:step      0.1
                             :class     "speed-slider"
                             :min-val   0

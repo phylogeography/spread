@@ -8,7 +8,7 @@
             [re-frame.core :as re-frame]
             [taoensso.timbre :as log]
             [ui.router.queries :as router-queries]
-            [ui.utils :refer [>evt dissoc-in]]))
+            [ui.utils :refer [>evt dissoc-in round]]))
 
 (defn gql-name->kw [gql-name]
   (when gql-name
@@ -235,11 +235,21 @@
   [{:keys [db]} _ {:keys [id] :as analysis}]
   {:db (update-in db [:analysis id] merge analysis)})
 
+;; TODO: fixit
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id burn-in] :as analysis}]
-  {:db (-> db
-           (update-in [:analysis id] merge (:analysis analysis))
-           (update-in [:analysis id] merge analysis))})
+
+  (prn "@ handler1" burn-in)
+
+  (let [;; fix for weird JS behaviour, where it will parse floats with full precision
+        burn-in (round burn-in 2)]
+
+  (prn "@ handler2" burn-in)
+
+    {:db (-> db
+             (update-in [:analysis id] merge (:analysis analysis))
+             (update-in [:analysis id] merge analysis)
+             (assoc-in [:analysis id :burn-in] burn-in))}))
 
 (defmethod handler :start-bayes-factor-parser
   [{:keys [db]} _ {:keys [id] :as analysis}]

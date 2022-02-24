@@ -70,7 +70,12 @@
         day (.getDate date)]
     (str day " " (month-name month) " " year)))
 
+(defn round-number
+   [f precision]
+  (let [c (js/Math.pow 10 precision)]
+    (/ (.round js/Math (* c f)) c)))
+
 (defn round [number precision]
   (if (number? number)
-    (.toFixed number precision)
+    (round-number number precision)
     number))
