@@ -235,17 +235,12 @@
   [{:keys [db]} _ {:keys [id] :as analysis}]
   {:db (update-in db [:analysis id] merge analysis)})
 
-;; TODO: fixit
 (defmethod handler :get-bayes-factor-analysis
   [{:keys [db]} _ {:keys [id burn-in] :as analysis}]
-
-  (prn "@ handler1" burn-in)
-
+    (prn "@handler 1" burn-in)
   (let [;; fix for weird JS behaviour, where it will parse floats with full precision
         burn-in (round burn-in 2)]
-
-  (prn "@ handler2" burn-in)
-
+    (prn "@handler 2" burn-in)
     {:db (-> db
              (update-in [:analysis id] merge (:analysis analysis))
              (update-in [:analysis id] merge analysis)

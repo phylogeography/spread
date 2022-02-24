@@ -47,9 +47,7 @@
             ;; weird JS behaviour, where it will parse floats with full precision
             burn-in (round burn-in 2)
             ]
-
         (prn "BURN-IN" burn-in)
-
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-log-file
@@ -108,7 +106,7 @@
                [:h4 "Select burn-in"]
                [mui-slider {:step      0.1
                             :class     "speed-slider"
-                            :min-val   0
+                            :min-val   0.0
                             :max-val   0.9
                             :vertical? false
                             :value     burn-in
