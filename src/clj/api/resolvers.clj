@@ -71,7 +71,7 @@
   [{:keys [db]} {id :id :as args} _]
   (log/info "get-bayes-factor-analysis query" args)
   (let [response (bayes-factor-model/get-bayes-factor-analysis db {:id id})]
-    (log/info "get-bayes-factor-analysis response" response)
+    (log/debug "get-bayes-factor-analysis response" response)
     (clj->gql response)))
 
 (defn bayes-factor-analysis->bayes-factors

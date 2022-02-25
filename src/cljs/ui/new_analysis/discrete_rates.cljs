@@ -45,9 +45,7 @@
             controls-disabled? (or (seq? @field-errors)
                                    (not log-file-name))
             ;; weird JS behaviour, where it will parse floats with full precision
-            burn-in (round burn-in 2)
-            ]
-        (prn "BURN-IN" burn-in)
+            burn-in (round burn-in 2)]
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-log-file
