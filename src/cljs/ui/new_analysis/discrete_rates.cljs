@@ -103,7 +103,6 @@
               [:div.field-card
                [:h4 "Select burn-in"]
                [mui-slider {:step      0.1
-                            :class     "speed-slider"
                             :min-val   0.0
                             :max-val   0.9
                             :vertical? false
