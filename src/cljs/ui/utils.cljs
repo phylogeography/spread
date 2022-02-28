@@ -1,7 +1,7 @@
 (ns ui.utils
   (:require [clojure.string :as string]
             [re-frame.core :as re-frame])
-  (:import [goog.async Debouncer]))
+  (:import goog.async.Debouncer))
 
 (def <sub (comp deref re-frame/subscribe))
 (def >evt re-frame/dispatch)
@@ -69,3 +69,13 @@
         month (.getMonth date)
         day (.getDate date)]
     (str day " " (month-name month) " " year)))
+
+(defn round-number
+   [f precision]
+  (let [c (js/Math.pow 10 precision)]
+    (/ (.round js/Math (* c f)) c)))
+
+(defn round [number precision]
+  (if (number? number)
+    (round-number number precision)
+    number))
