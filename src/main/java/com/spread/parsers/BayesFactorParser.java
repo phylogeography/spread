@@ -360,11 +360,11 @@ public class BayesFactorParser implements IProgressReporter {
 
         Double[] xCoordinateRange = new Double[2];
         xCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
-        xCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+        xCoordinateRange[Attribute.MAX_INDEX] = Double.NEGATIVE_INFINITY;
 
         Double[] yCoordinateRange = new Double[2];
         yCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
-        yCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+        yCoordinateRange[Attribute.MAX_INDEX] = Double.NEGATIVE_INFINITY;
 
         for (Location location : locationsList) {
 
