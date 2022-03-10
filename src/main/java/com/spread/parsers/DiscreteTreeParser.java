@@ -203,7 +203,7 @@ public class DiscreteTreeParser implements IProgressReporter {
         // create Points list with count attributes
         Double[] countRange = new Double[2];
         countRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
-        countRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+        countRange[Attribute.MAX_INDEX] = Double.NEGATIVE_INFINITY;
 
         progressStepSize = 0.25 / (double) locationCounts.length;
         for (int sliceIndex = 0; sliceIndex < locationCounts.length; sliceIndex++) {
@@ -393,11 +393,11 @@ public class DiscreteTreeParser implements IProgressReporter {
 
         Double[] xCoordinateRange = new Double[2];
         xCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
-        xCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+        xCoordinateRange[Attribute.MAX_INDEX] = Double.NEGATIVE_INFINITY;
 
         Double[] yCoordinateRange = new Double[2];
         yCoordinateRange[Attribute.MIN_INDEX] = Double.MAX_VALUE;
-        yCoordinateRange[Attribute.MAX_INDEX] = Double.MIN_VALUE;
+        yCoordinateRange[Attribute.MAX_INDEX] = Double.NEGATIVE_INFINITY;
 
         for (Location location : locationsList) {
 
