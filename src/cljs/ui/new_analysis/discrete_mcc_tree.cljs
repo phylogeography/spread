@@ -60,23 +60,23 @@
             [:h4 "Load tree file"]
             (if (not tree-file-name)
               (if (not (pos? tree-file-upload-progress))
-                [button-file-upload {:id               "discrete-mcc-tree-file-upload-button"
-                                     :label            "Choose a file"
-                                     :on-file-accepted #(do
-                                                          (swap! field-errors disj :tree-file-error)
-                                                          (>evt [:discrete-mcc-tree/on-tree-file-selected %]))
+                [button-file-upload {:id                    "discrete-mcc-tree-file-upload-button"
+                                     :label                 "Choose a file"
+                                     :on-file-accepted      #(do
+                                                               (swap! field-errors disj :tree-file-error)
+                                                               (>evt [:discrete-mcc-tree/on-tree-file-selected %]))
                                      :file-accept-predicate file-formats/tree-file-accept-predicate
-                                     :on-file-rejected (fn [] (swap! field-errors conj :tree-file-error))}]
+                                     :on-file-rejected      (fn [] (swap! field-errors conj :tree-file-error))}]
 
-                [linear-progress {:value      (* 100 tree-file-upload-progress)
-                                  :variant    "determinate"}])
+                [linear-progress {:value   (* 100 tree-file-upload-progress)
+                                  :variant "determinate"}])
 
               ;; we have a file name
               [loaded-input {:value    tree-file-name
                              :on-click #(>evt [:discrete-mcc-tree/delete-tree-file])}])]
            (cond
              (contains? @field-errors :tree-file-error) [:div.field-error.button-error "Tree file incorrect format."]
-             (nil? tree-file-name) [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select location attribute and change other settings."])]
+             (nil? tree-file-name)                      [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select location attribute and change other settings."])]
 
           [:section.load-locations-file
            [:div
@@ -84,12 +84,13 @@
 
             (if (not locations-file-name)
               (if (not (pos? locations-file-upload-progress))
-                [button-file-upload {:id               "discrete-mcc-locations-file-upload-button"
-                                     :label            "Choose a file"
-                                     :on-file-accepted #(do
-                                                          (swap! field-errors disj :locations-file-error)
-                                                          (>evt [:discrete-mcc-tree/on-locations-file-selected %]))
-                                     :on-file-rejected (fn [] (swap! field-errors conj :locations-file-error))
+                [button-file-upload {:id                    "discrete-mcc-locations-file-upload-button"
+                                     :label                 "Choose a file"
+                                     :disabled?             (nil? id)
+                                     :on-file-accepted      #(do
+                                                               (swap! field-errors disj :locations-file-error)
+                                                               (>evt [:discrete-mcc-tree/on-locations-file-selected %]))
+                                     :on-file-rejected      (fn [] (swap! field-errors conj :locations-file-error))
                                      :file-accept-predicate file-formats/locations-file-accept-predicate}]
                 [linear-progress {:value   (* 100 locations-file-upload-progress)
                                   :variant "determinate"}])
@@ -99,7 +100,7 @@
                              :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}])]
            (cond
              (contains? @field-errors :locations-file-error) [:div.field-error.button-error "Locations file first row doesn't contain all numbers."]
-             (nil? locations-file-name) [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
+             (nil? locations-file-name)                      [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
           [:div.upload-spinner
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))
              [circular-progress {:size 100}])]
@@ -125,10 +126,10 @@
              [:div.field-line
               [:div.field-card
                [:h4 "Most recent sampling date"]
-               [date-picker {:date-format      time/date-format
-                             :on-change        (fn [value]
-                                                 (debounce (>evt [:discrete-mcc-tree/set-most-recent-sampling-date value]) 10))
-                             :selected         most-recent-sampling-date}]]
+               [date-picker {:date-format time/date-format
+                             :on-change   (fn [value]
+                                            (debounce (>evt [:discrete-mcc-tree/set-most-recent-sampling-date value]) 10))
+                             :selected    most-recent-sampling-date}]]
               [:div.field-card
                [:h4 "Time scale"]
                [amount-input {:label       "Multiplier"
@@ -138,10 +139,10 @@
                               :on-change   (fn [value]
                                              (debounce (>evt [:discrete-mcc-tree/set-time-scale-multiplier value]) 10))}]]]])]
 
-         [controls {:id id
-                    :readable-name readable-name
-                    :locations-attribute locations-attribute-name
-                    :locations-file-url locations-file-url
+         [controls {:id                        id
+                    :readable-name             readable-name
+                    :locations-attribute       locations-attribute-name
+                    :locations-file-url        locations-file-url
                     :most-recent-sampling-date most-recent-sampling-date
-                    :timescale-multiplier timescale-multiplier}
+                    :timescale-multiplier      timescale-multiplier}
           {:disabled? controls-disabled?}]]))))

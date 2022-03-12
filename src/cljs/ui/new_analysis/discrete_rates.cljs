@@ -45,7 +45,7 @@
             controls-disabled? (or (seq? @field-errors)
                                    (not log-file-name))
             ;; weird JS behaviour, where it will parse floats with full precision
-            burn-in (round burn-in 2)]
+            burn-in            (round burn-in 2)]
         [:<>
          [:div.data {:style {:grid-area "data"}}
           [:section.load-log-file
@@ -56,8 +56,8 @@
                 [button-file-upload {:id                    "bayes-factor-log-file-upload-button"
                                      :label                 "Choose a file"
                                      :on-file-accepted      #(do
-                                                          (swap! field-errors disj :log-file-error)
-                                                          (>evt [:bayes-factor/on-log-file-selected %]))
+                                                               (swap! field-errors disj :log-file-error)
+                                                               (>evt [:bayes-factor/on-log-file-selected %]))
                                      :file-accept-predicate file-formats/log-file-accept-predicate
                                      :on-file-rejected      (fn [] (swap! field-errors conj :log-file-error))}]
                 [linear-progress {:value   (* 100 log-file-upload-progress)
@@ -75,9 +75,10 @@
               (if (not (pos? locations-file-upload-progress))
                 [button-file-upload {:id                    "bayes-factor-locations-file-upload-button"
                                      :label                 "Choose a file"
+                                     :disabled?             (nil? id)
                                      :on-file-accepted      #(do
-                                                          (swap! field-errors disj :locations-file-error)
-                                                          (>evt [:bayes-factor/on-locations-file-selected %]))
+                                                               (swap! field-errors disj :locations-file-error)
+                                                               (>evt [:bayes-factor/on-locations-file-selected %]))
                                      :file-accept-predicate file-formats/locations-file-accept-predicate
                                      :on-file-rejected      (fn [] (swap! field-errors conj :locations-file-error))}]
                 [linear-progress {:value   (* 100 locations-file-upload-progress)
