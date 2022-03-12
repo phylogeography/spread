@@ -28,7 +28,6 @@
     :or   {file-accept-predicate (constantly true)}}]
   [:div.file-upload-button
    [:input {:type      :file
-            :disabled  disabled?
             :id        (or id "file-upload-button")
             :hidden    true
             :on-change (fn [^js event]
@@ -45,5 +44,6 @@
                                                  :on-file-rejected      on-file-rejected})))}]
    [:label {:for (or id "file-upload-button")}
     [button {:text label
+             :disabled?  disabled?
              :icon "icons/icn_upload_white.svg"
              :class "primary"}]]])
