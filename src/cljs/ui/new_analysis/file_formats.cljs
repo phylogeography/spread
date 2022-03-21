@@ -40,3 +40,11 @@
                        (not (js/isNaN (js/parseFloat n1)))
                        (not (js/isNaN (js/parseFloat n2)))))
                  (catch js/Error _ false))))))
+
+(defn custom-map-file-accept-predicate [{:keys [file]}]
+  (-> (.text file)
+      (.then (fn [file-content]
+               (try
+                 (let [map-json (js/JSON.parse file-content)]
+                   (boolean (#{"FeatureCollection" "Feature"} (.-type map-json))))
+                 (catch js/Error _ false))))))

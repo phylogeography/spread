@@ -87,6 +87,10 @@
                                               error
                                               viewerUrlParams
                                             }
+                                            customMap {
+                                              fileName
+                                              fileUrl
+                                            }
                                           }
                                         }"
 
@@ -105,6 +109,10 @@
                                             analysis {
                                               error
                                               viewerUrlParams
+                                            }
+                                            customMap {
+                                              fileName
+                                              fileUrl
                                             }
                                           }
                                         }"
@@ -127,6 +135,10 @@
                                             analysis {
                                               error
                                               viewerUrlParams
+                                            }
+                                            customMap {
+                                              fileName
+                                              fileUrl
                                             }
                                           }
                                         }"

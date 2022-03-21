@@ -81,6 +81,11 @@
 (re-frame/reg-event-fx :analysis-results/initial-query events.analysis-results/initial-query)
 (re-frame/reg-event-fx :analysis-results/export-bayes-table-to-csv events.analysis-results/export-bayes-table-to-csv)
 
+(re-frame/reg-event-fx :analysis-results/on-custom-map-file-selected events.analysis-results/on-custom-map-file-selected)
+(re-frame/reg-event-fx :analysis-results/upload-custom-map-file events.analysis-results/upload-custom-map-file)
+(re-frame/reg-event-fx :analysis-results/custom-map-file-success events.analysis-results/custom-map-file-success)
+(re-frame/reg-event-fx :analysis-results/delete-custom-map events.analysis-results/delete-custom-map)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New analysis events ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;

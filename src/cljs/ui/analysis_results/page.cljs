@@ -11,6 +11,8 @@
             [ui.analysis-results.discrete-mcc-tree :refer [discrete-mcc-tree]]
             [ui.analysis-results.discrete-rates :refer [discrete-rates]]
             [ui.component.app-container :refer [app-container]]
+            [ui.component.button :refer [button-file-upload]]
+            [ui.new-analysis.file-formats :as file-formats]
             [ui.router.component :refer [page]]
             [ui.router.subs :as router.subs]
             [ui.subscriptions :as subs]
@@ -42,11 +44,13 @@
      [discrete-rates analysis]
      nil)])
 
-(defn results [{:keys [bayes-factors] :as analysis}]
+(defn results [{:keys [bayes-factors custom-map] :as analysis}]
   (let [config @(re-frame/subscribe [::subs/config])
         viewer-host (:analysis-viewer-url config)
         {:keys [viewer-url-params]} (:analysis analysis)
-        viewer-url (str viewer-host "/" viewer-url-params)]
+        [_ custom-map-url] (when custom-map (re-find #".+://.+?/.+?/(.+)" (:file-url custom-map)))
+        viewer-url (cond-> (str viewer-host "/" viewer-url-params)
+                     custom-map-url (str "&custom_map=" custom-map-url))]
     [:div.results
      [:section.visualization
       [:h4 "Visualisations on a geographical map"]
@@ -55,6 +59,29 @@
        [button {:text "Copy"
                 :on-click #(js/navigator.clipboard.writeText viewer-url)
                 :class "golden"}]]]
+
+     [:section.custom-map
+      [:h4 "Custom map"]
+      (if custom-map
+        [:div.map
+         [:div.map-data
+          [:div
+           [:span.label "File name:"] [:span (:file-name custom-map)]]
+          [:div
+           [:span.label "Url:"] [:span.link (:file-url custom-map)]]]
+         [button {:text "Remove"
+                  :on-click #(>evt [:analysis-results/delete-custom-map (:id analysis)])
+                  :class "danger"}]]
+        [button-file-upload {:id               "custom-map-upload-button"
+                             :label            "Upload custom map"
+                             :on-file-accepted (fn [file-meta]
+                                                 (js/console.log (str (assoc file-meta
+                                                                             :analysis-id (:id analysis))))
+                                                 (>evt [:analysis-results/on-custom-map-file-selected (assoc file-meta
+                                                                                                             :analysis-id (:id analysis))]))
+                             :on-file-rejected (fn [])
+                             :file-accept-predicate file-formats/custom-map-file-accept-predicate}])]
+
      [:section.table
       (when bayes-factors
         [:div

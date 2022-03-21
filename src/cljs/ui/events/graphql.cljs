@@ -153,6 +153,17 @@
            (assoc-in [:new-analysis :continuous-mcc-tree :id] id)
            (update-in [:analysis id] merge analysis))})
 
+(defmethod handler :upload-custom-map
+  [{:keys [db]} _ {:keys [analysis-id] :as custom-map}]
+  (js/console.log "Custom map uploaded" custom-map)
+  {:db (assoc-in db [:analysis analysis-id :custom-map] custom-map)})
+
+(defmethod handler :delete-custom-map
+  [{:keys [db]} _ analysis-id]
+  (js/console.log "Custom map deleter" analysis-id)
+  {:db (update-in db [:analysis analysis-id] dissoc :custom-map)})
+
+
 (defmethod handler :update-continuous-tree
   [{:keys [db]} _ {:keys [id] :as analysis}]
   ;; NOTE : parse date to an internal representation

@@ -4,7 +4,6 @@
             [analysis-viewer.db :as db]
             [analysis-viewer.map-emitter :as map-emitter]
             [analysis-viewer.subs :as subs]
-            [clojure.string :as string]
             [shared.math-utils :as math-utils]
             [shared.output-data :as output-data]))
 
@@ -25,10 +24,13 @@
         {:keys [s3-bucket-url]} config
         analysis-data-url (str s3-bucket-url output)
         load-maps-events (->> maps
-                              (mapv (fn [map-code]
-                                      (let [world-map? (string/ends-with? map-code "WORLD")]
-                                        [:map/load-map (cond-> {:map/url (str s3-bucket-url "maps/country-code-maps/" map-code ".json")}
-                                                         world-map? (assoc :map/z-index 0))]))))
+                              (mapv (fn [{:keys [kind] :as map}]
+                                      [:map/load-map
+                                       (case kind
+                                         :world          {:map/url (str s3-bucket-url "maps/country-code-maps/WORLD.json") :map/z-index 0}
+                                         :country-detail {:map/url (str s3-bucket-url "maps/country-code-maps/" (:code map) ".json")}
+                                         :custom         {:map/url (str s3-bucket-url (:path map))})])))
+        _ (prn load-maps-events)
         load-data-event [:map/load-data analysis-data-url]]
     {:db db
      :fx (->> (conj load-maps-events load-data-event)

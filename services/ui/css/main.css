@@ -548,7 +548,7 @@ div.divider > h2 > span {
         justify-content: space-between;
 }
 
-.analysis-results .results .visualization .link {
+.analysis-results .results .link {
     padding: 5px;
         border-radius: 10px;
         background-color: #FBFCFE;
@@ -556,8 +556,36 @@ div.divider > h2 > span {
         width: 600px;
 }
 
+.analysis-results .results section.custom-map {
+	width: 800px;
+}
+
+.analysis-results .results section.custom-map .map{
+    margin-top: 20px;
+	display: flex;
+	justify-content: space-between;
+}
+
+.analysis-results .results section.custom-map .button {
+	max-height: 40px;
+	max-width: 200px;
+}
+
+.analysis-results .results section.custom-map .map .map-data {
+	width: 650px;
+}
+
+.analysis-results .results section.custom-map .map .map-data > div {
+	margin-bottom: 5px;
+}
+.analysis-results .results section.custom-map .map .map-data .label{
+    font-weight: bold;
+	margin-right: 5px;    
+}
+
 .analysis-results .results section.visualization .button {
-        width: 150px;
+    width: 150px;
+	max-height: 40px;
 }
 
 .analysis-results .results section.table {

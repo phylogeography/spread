@@ -1,0 +1,30 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet author="juan" id="9.0-1">
+    <createTable tableName="custom_map">
+
+	  <column name="analysis_id" type="VARCHAR(36)">
+		<constraints nullable="false" primaryKey="true"/>
+      </column>
+
+	  <column name="file_name" type="VARCHAR(200)"/>
+	  
+	  <column name="file_url" type="VARCHAR(200)"/>
+	  
+	</createTable>
+
+	<addForeignKeyConstraint constraintName="custom_map_SLASH_analysis_FK"
+                             baseColumnNames="analysis_id"
+                             baseTableName="custom_map"
+                             referencedColumnNames="id"
+                             referencedTableName="analysis"
+                             onDelete="CASCADE"
+                             onUpdate="RESTRICT"
+                             deferrable="false"
+                             initiallyDeferred="false"
+                             validate="true"/>	
+  </changeSet>
+
+  
+</databaseChangeLog>
