@@ -30,7 +30,6 @@
                                          :world          {:map/url (str s3-bucket-url "maps/country-code-maps/WORLD.json") :map/z-index 0}
                                          :country-detail {:map/url (str s3-bucket-url "maps/country-code-maps/" (:code map) ".json")}
                                          :custom         {:map/url (str s3-bucket-url (:path map))})])))
-        _ (prn load-maps-events)
         load-data-event [:map/load-data analysis-data-url]]
     {:db db
      :fx (->> (conj load-maps-events load-data-event)

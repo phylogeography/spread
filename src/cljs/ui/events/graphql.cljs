@@ -163,7 +163,6 @@
   (js/console.log "Custom map deleter" analysis-id)
   {:db (update-in db [:analysis analysis-id] dissoc :custom-map)})
 
-
 (defmethod handler :update-continuous-tree
   [{:keys [db]} _ {:keys [id] :as analysis}]
   ;; NOTE : parse date to an internal representation
