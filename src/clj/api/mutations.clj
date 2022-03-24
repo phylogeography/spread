@@ -5,6 +5,7 @@
             [api.models.analysis :as analysis-model]
             [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
+            [api.models.custom-map :as custom-map-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.time-slicer :as time-slicer-model]
             [api.models.user :as user-model]
@@ -143,6 +144,40 @@
         (log/error "Exception occured" {:error e})
         (errors/handle-analysis-error! db id e)
         (throw e)))))
+
+(defn upload-custom-map [{:keys [authed-user-id db]}
+                         {file-url    :fileUrl
+                          file-name   :fileName
+                          analysis-id :analysisId
+                          :as            args} _]
+  (log/info "Upserting custom map" {:user/id authed-user-id
+                                    :args    args})
+
+  (try
+    (custom-map-model/upsert! db {:analysis-id analysis-id
+                                  :file-name file-name
+                                  :file-url file-url})
+    (clj->gql (custom-map-model/get-custom-map db {:analysis-id analysis-id}))
+    (catch Exception e
+      (log/error "Couldn't upsert custom map" {:analysis-id analysis-id
+                                               :file-name file-name
+                                               :file-url file-url
+                                               :error e})
+      (throw e))))
+
+(defn delete-custom-map [{:keys [authed-user-id db]}
+                         {analysis-id :analysisId
+                          :as            args} _]
+  (log/info "Deleting custom map" {:user/id authed-user-id
+                                   :args    args})
+
+  (try
+    (custom-map-model/delete-custom-map db {:analysis-id analysis-id})
+    analysis-id
+    (catch Exception e
+      (log/error "Couldn't upsert custom map" {:analysis-id analysis-id
+                                               :error e})
+      (throw e))))
 
 (defn update-continuous-tree
   [{:keys [authed-user-id db]} {id                          :id

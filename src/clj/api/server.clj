@@ -65,6 +65,10 @@
    :resolve/pong->status    resolvers/pong->status
    :query/getAuthorizedUser (auth-decorator resolvers/get-authorized-user)
 
+   :resolve/custom-map                   resolvers/tree->custom-map
+   :mutation/uploadCustomMap             (mutation-decorator mutations/upload-custom-map)
+   :mutation/deleteCustomMap             (mutation-decorator mutations/delete-custom-map)
+
    :mutation/uploadContinuousTree        (mutation-decorator mutations/upload-continuous-tree)
    :mutation/updateContinuousTree        (mutation-decorator mutations/update-continuous-tree)
    :query/getContinuousTree              resolvers/get-continuous-tree

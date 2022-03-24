@@ -2,6 +2,7 @@
   (:require [api.models.analysis :as analysis-model]
             [api.models.bayes-factor :as bayes-factor-model]
             [api.models.continuous-tree :as continuous-tree-model]
+            [api.models.custom-map :as custom-map-model]
             [api.models.discrete-tree :as discrete-tree-model]
             [api.models.error :as error-model]
             [api.models.time-slicer :as time-slicer-model]
@@ -101,3 +102,7 @@
 (defn tree->user-analysis [{:keys [db]} _ {:keys [id]}]
   (log/info "tree->user-analysis" {:analysis-id id})
   (clj->gql (analysis-model/get-analysis db {:id id})))
+
+(defn tree->custom-map [{:keys [db]} _ {:keys [id]}]
+  (log/info "tree->custom-map" {:analysis-id id})
+  (clj->gql (custom-map-model/get-custom-map db {:analysis-id id})))

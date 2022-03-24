@@ -72,6 +72,11 @@
   :User {:fields {:id    {:type (non-null ID)}
                   :email {:type (non-null String)}}}
 
+  :CustomMap {:description "Represents a custom map file."
+              :fields {:analysisId {:type (non-null ID)}
+                       :fileUrl    {:type String}
+                       :fileName   {:type String}}}
+
   :ContinuousTree {:description "Represents ContinuousTree entity."
                    :fields      {:id                       {:description "Unique identifier."
                                                             :type        (non-null ID)}
@@ -92,7 +97,9 @@
                                                             :resolver :resolve/continuous-tree->time-slicer}
                                  :outputFileUrl            {:type String}
                                  :analysis                 {:type    (non-null :Analysis)
-                                                            :resolve :resolve/tree->user-analysis}}}
+                                                            :resolve :resolve/tree->user-analysis}
+                                 :customMap                {:type :CustomMap
+                                                            :resolve :resolve/custom-map}}}
 
   :DiscreteTree {:description "Represents DiscreteTree entity."
                  :fields      {:id                     {:type (non-null ID)}
@@ -112,7 +119,9 @@
                                                         :resolve :resolve/discrete-tree->attributes}
                                :outputFileUrl          {:type String}
                                :analysis               {:type    (non-null :Analysis)
-                                                        :resolve :resolve/tree->user-analysis}}}
+                                                        :resolve :resolve/tree->user-analysis}
+                               :customMap              {:type :CustomMap
+                                                        :resolve :resolve/custom-map}}}
 
   :TimeSlicer {:description "Represents TimeSlicer entity."
                :fields      {:id                                 {:type (non-null ID)}
@@ -137,7 +146,8 @@
                                                                   :resolve :resolve/time-slicer->attributes}
                              :outputFileUrl                      {:type String}
                              :analysis                           {:type    (non-null :Analysis)
-                                                                  :resolve :resolve/tree->user-analysis}}}
+                                                                  :resolve :resolve/tree->user-analysis}
+                             }}
 
   :BayesFactor {:description "Represents BSSVS support for a single connection."
                 :fields      {:from                 {:type String}
@@ -160,6 +170,8 @@
                                       :outputFileUrl     {:type String}
                                       :analysis          {:type    (non-null :Analysis)
                                                           :resolve :resolve/tree->user-analysis}
+                                      :customMap         {:type :CustomMap
+                                                          :resolve :resolve/custom-map}
                                       :bayesFactors      {:type    (list :BayesFactor)
                                                           :resolve :resolve/bayes-factor-analysis->bayes-factors}}}}
 
@@ -221,6 +233,18 @@
                   :description "Returns one-time POST urls."
                   :args        {:files {:type (non-null (list :File))}}
                   :resolve     :mutation/getUploadUrls}
+
+  :uploadCustomMap {:type        :CustomMap
+                    :description "Persists custom map file."
+                    :args        {:analysisId {:type (non-null ID)}
+                                  :fileUrl    {:type (non-null String)}
+                                  :fileName   {:type (non-null String)}}
+                    :resolve     :mutation/uploadCustomMap}
+
+  :deleteCustomMap {:type (non-null ID)
+                    :description "Deletes the custom map file for analysisId. Returns analysis id."
+                    :args {:analysisId {:type (non-null ID)}}
+                    :resolve :mutation/deleteCustomMap}
 
   :uploadContinuousTree {:type        :ContinuousTree
                          :description "Persists continuous tree."

@@ -35,9 +35,16 @@
 
 (defn start []
   (js/console.log "Starting..." )
-  (let [{:keys [maps output]} (parse-url-qstring (subs js/window.location.search 1))]
+  (let [{:keys [maps output custom_map]} (parse-url-qstring (subs js/window.location.search 1))
+        country-details-maps (->> (str/split maps #",")
+                                  (remove str/blank?)
+                                  (map (fn [code] {:kind :country-detail
+                                                   :code code})))
+        effective-maps (if custom_map
+                         [{:kind :custom :path custom_map}]
+                         (into [{:kind :world}] country-details-maps))]
     (re-frame/dispatch-sync [:map/initialize
-                             (into ["WORLD"] (remove str/blank? (str/split maps #",")) )
+                             effective-maps
                              output])
     (mount-ui)))
 
