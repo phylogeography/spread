@@ -44,16 +44,19 @@
      [discrete-rates analysis]
      nil)])
 
-(defn get-custom-map-path [url]
+(defn get-custom-map-file-id [url]
   (when url
-    (let [[_ path] (re-find #".+://.+?/.+?/(.+)" url)]
-      path)))
+    (let [[_ file-id] (re-find #".+/(.+.json)" url)]
+      file-id)))
 
 (defn results [{:keys [bayes-factors custom-map] :as analysis}]
   (let [config @(re-frame/subscribe [::subs/config])
+        user @(re-frame/subscribe [::subs/authorized-user])
         viewer-host (:analysis-viewer-url config)
         {:keys [viewer-url-params]} (:analysis analysis)
-        custom-map-path (get-custom-map-path (:file-url custom-map))
+        custom-map-path (when custom-map
+                          (let [custom-map-file-id (get-custom-map-file-id (:file-url custom-map))]
+                            (str (:id user) "/" custom-map-file-id)))
         viewer-url (cond-> (str viewer-host "/" viewer-url-params)
                      custom-map-path (str "&custom_map=" custom-map-path))]
     [:div.results
