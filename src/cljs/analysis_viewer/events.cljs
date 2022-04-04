@@ -61,3 +61,5 @@
 
 (reg-event-db :map/set-dimensions [sc] events.maps/set-dimensions)
 (reg-event-db :analysis.timeline/set-width [sc] events.ui/set-timeline-width)
+
+(reg-event-fx :log/error [] (fn [e] (js/console.log "ERROR" e)))

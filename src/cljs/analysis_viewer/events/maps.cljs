@@ -81,7 +81,7 @@
 (defn load-map [_ [_ map-data]]
   {:http-xhrio {:method          :get
                 :uri             (:map/url map-data)
-                :timeout         8000
+                :timeout         20000
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map/map-loaded map-data]
                 :on-failure      [:log-error]}})
@@ -89,7 +89,7 @@
 (defn load-data [_ [_ analysis-data-url]]
   {:http-xhrio {:method          :get
                 :uri             analysis-data-url
-                :timeout         8000
+                :timeout         20000
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success      [:map/data-loaded]
                 :on-failure      [:log-error]}})
