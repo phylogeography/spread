@@ -143,12 +143,28 @@
       (println "Filtered data objects " (count r))
       r)))
 
+(defn render-sort-data-objects [data-objects]
+  (let [obj-order {:polygon 0
+                   :circle 1
+                   :transition 2
+                   :node 3}]
+    (->> data-objects
+         (sort-by :type (fn [a b] (compare (obj-order a) (obj-order b)))))))
+
+(reg-sub
+  :analysis/filtered-data-sorted
+  :<- [:analysis/filtered-data]
+  (fn [data _]
+    (-> (vals data)
+        render-sort-data-objects)))
+
 (reg-sub
  :analysis/colored-and-filtered-data
  :<- [:analysis/filtered-data]
  :<- [:ui/parameters]
  (fn [[filtered-data params] _]
-   (colored-and-filtered-data filtered-data params)))
+   (-> (colored-and-filtered-data filtered-data params)
+       render-sort-data-objects)))
 
 (reg-sub
  :analysis.data/type

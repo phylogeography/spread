@@ -189,7 +189,7 @@
         colored-data (subs/colored-and-filtered-data (subs/filter-data (:analysis/data db) (:analysis.data/filters db))
                                                      (:ui/parameters db))]
     {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps/data db))
-                                          :analysis-data (vals colored-data)
+                                          :analysis-data colored-data
                                           :styles (str (subs/render-params-styles-string (:ui/parameters db)
                                                                                          (:ui.switch-buttons/states db))
                                                        (subs/render-elements-styles-string colored-data
