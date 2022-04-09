@@ -251,30 +251,30 @@
   (let [params (merge @(subscribe [:ui/parameters])
                       @(subscribe [:switch-buttons/states]))]
     (fn []
-      (let [analysis-data  (vals @(re-frame/subscribe [:analysis/filtered-data]))
+      (let [analysis-data  @(re-frame/subscribe [:analysis/filtered-data-sorted])
             analysis-type @(re-frame/subscribe [:analysis.data/type])
-           ;; we react/redraw only to this param changes
-           circle-radius @(subscribe [:ui/parameters :circles-radius])
-           transition-curvature @(subscribe [:ui/parameters :transitions-curvature])
-           missiles? @(subscribe [:switch-buttons/on? :missiles?])
-           params (assoc params
-                         :circles-radius circle-radius
-                         :transitions-curvature transition-curvature
-                         :missiles? missiles?)]
+            ;; we react/redraw only to this param changes
+            circle-radius @(subscribe [:ui/parameters :circles-radius])
+            transition-curvature @(subscribe [:ui/parameters :transitions-curvature])
+            missiles? @(subscribe [:switch-buttons/on? :missiles?])
+            params (assoc params
+                          :circles-radius circle-radius
+                          :transitions-curvature transition-curvature
+                          :missiles? missiles?)]
         (when analysis-data
-         [:g {}
-          ;; for debugging the data view-box
-          #_(let [{:keys [x1 y1 x2 y2]} (events.maps/get-analysis-objects-view-box analysis-data)]
-              [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke :red :stroke-width 0.1 :fill :transparent}])
+          [:g {}
+           ;; for debugging the data view-box
+           #_(let [{:keys [x1 y1 x2 y2]} (events.maps/get-analysis-objects-view-box analysis-data)]
+               [:rect {:x x1 :y y1 :width (- x2 x1) :height (- y2 y1) :stroke :red :stroke-width 0.1 :fill :transparent}])
 
-          (for [primitive-object analysis-data]
-            ^{:key (str (:id primitive-object))}
-            [map-primitive-object
-             primitive-object
-             (if (= analysis-type :BayesFactor) nil 0) ;; - time is always zero in the animation path since it is handled by the animation subsystem
-             params                                    ;; bayes factor analysis doesn't have time
-             {:visible? (= analysis-type :BayesFactor)} ;; - this is the animation path so we start with all data invisible unless it is the BayesFactor
-             ])])))))                                   ;; analysis in which doesn't have animation
+           (for [primitive-object analysis-data]
+             ^{:key (str (:id primitive-object))}
+             [map-primitive-object
+              primitive-object
+              (if (= analysis-type :BayesFactor) nil 0) ;; - time is always zero in the animation path since it is handled by the animation subsystem
+              params                                    ;; bayes factor analysis doesn't have time
+              {:visible? (= analysis-type :BayesFactor)} ;; - this is the animation path so we start with all data invisible unless it is the BayesFactor
+              ])])))))                                   ;; analysis in which doesn't have animation
 
 
 (defn text-group-component []
