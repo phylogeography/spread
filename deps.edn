@@ -41,7 +41,6 @@
 
   ;; UTILS
   mount/mount           {:mvn/version "0.1.16"}
-  jpmonettas/flow-storm {:mvn/version "0.5.0"}
   tick/tick             {:mvn/version "0.4.9-alpha"}
 
   ;; SPEC
@@ -86,4 +85,8 @@
 
   :outdated
   {:extra-deps {olical/depot {:mvn/version "2.1.0"}}
-   :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}
+   :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}
+
+  :dev
+  {:extra-deps {aysylu/loom {:mvn/version "1.0.2"}}
+   :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]}}}

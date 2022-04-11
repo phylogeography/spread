@@ -24,7 +24,7 @@
 ;; which doesn't understand components                                                                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn svg-node-object [{:keys [coord id]} _ params {:keys [visible?]}]
+(defn svg-node-object [{:keys [coord id]} params {:keys [visible?]}]
   (let [{:keys [nodes-radius]} params
         [x1 y1] coord]
 
@@ -38,7 +38,7 @@
                :r (* nodes-radius 0.5)
                :opacity 0.2}]]))
 
-(defn svg-circle-object [{:keys [coord count-attr id]} _ params {:keys [visible?]}]
+(defn svg-circle-object [{:keys [coord count-attr id]} params {:keys [visible?]}]
   (let [{:keys [circles-radius]} params
         [x1 y1] coord]
 
@@ -52,7 +52,7 @@
                :r (* circles-radius count-attr)
                :opacity 0.2}]]))
 
-(defn svg-polygon-object [{:keys [coords id]} _ params {:keys [visible?]}]
+(defn svg-polygon-object [{:keys [coords id]} params {:keys [visible?]}]
   (let [{:keys [polygons-opacity]} params]
 
     [:g {:id id
@@ -67,12 +67,12 @@
                     (str/join ","))
        :opacity polygons-opacity}]]))
 
-(defn svg-transition-object [{:keys [from-coord to-coord id] :as transition} time-perc params {:keys [visible?]}]
+(defn svg-transition-object [{:keys [from-coord to-coord id] :as transition} curr-timestamp params {:keys [visible?]}]
   (let [{:keys [transitions-width missiles?]} params
         [x1 y1] from-coord
         [x2 y2] to-coord
         {:keys [f1x f1y c-length] :as transition} (viewer-subs/add-obj-presentation-attrs transition params)
-        {:keys [stroke-dashoffset ]} (viewer-subs/calc-obj-time-attrs transition time-perc params)
+        {:keys [stroke-dashoffset]} (viewer-subs/calc-obj-time-attrs transition curr-timestamp params)
         missile-size 0.3]
 
     [:g {:id id
@@ -83,6 +83,8 @@
      ;; don't make much sense. Maybe we can use them for debugging or something.
      #_[:circle {:class "data-transition-from" :cx x1 :cy y1 :r 0.05 :fill :black}]
      #_[:circle {:class "data-transition-to" :cx x2 :cy y2 :r 0.05 :fill :black}]
+     #_[:text {:x x1 :y y1 :fill :black :font-size 0.2} (:from-point-id transition)]
+     #_[:text {:x x2 :y y2 :fill :black :font-size 0.2} (:to-point-id transition)]
      [:path {:class "data-transition-path"
              :id (str id "-touchable")
              :d (str "M " x1 " " y1 " Q " f1x " " f1y " " x2 " " y2)
@@ -92,17 +94,17 @@
                                  [(* missile-size c-length) (* (- 1 missile-size) c-length)]
                                  c-length)
              :data-curve-length c-length
-             :stroke-dashoffset (if (nil? time-perc) 0 stroke-dashoffset)}]]))
+             :stroke-dashoffset (if (nil? curr-timestamp) 0 stroke-dashoffset)}]]))
 
 
-(defn map-primitive-object [{:keys [type] :as primitive-object} time params opts]
+(defn map-primitive-object [{:keys [type] :as primitive-object} curr-timestamp params opts]
   (case type
-    :transition (svg-transition-object primitive-object time params opts)
-    :node (svg-node-object primitive-object time params opts)
-    :circle (svg-circle-object primitive-object time params opts)
-    :polygon (svg-polygon-object primitive-object time params opts)))
+    :transition (svg-transition-object primitive-object curr-timestamp params opts)
+    :node (svg-node-object primitive-object params opts)
+    :circle (svg-circle-object primitive-object params opts)
+    :polygon (svg-polygon-object primitive-object params opts)))
 
-(defn text-group [data-objects _ params {:keys [visible?]}]
+(defn text-group [data-objects params {:keys [visible?]}]
   (let [text-color (if (get params :labels?)
                      (get params :labels-color "#079DAB")
                      :transparent)
@@ -271,8 +273,8 @@
              ^{:key (str (:id primitive-object))}
              [map-primitive-object
               primitive-object
-              (if (= analysis-type :BayesFactor) nil 0) ;; - time is always zero in the animation path since it is handled by the animation subsystem
-              params                                    ;; bayes factor analysis doesn't have time
+              (if (= analysis-type :BayesFactor) nil 0) ;; - time is always zero in the animation path since it is handled by the animation subsystem params, bayes factor analysis doesn't have time
+              params
               {:visible? (= analysis-type :BayesFactor)} ;; - this is the animation path so we start with all data invisible unless it is the BayesFactor
               ])])))))                                   ;; analysis in which doesn't have animation
 
@@ -284,7 +286,6 @@
       (let [data-objects (vals @(re-frame/subscribe [:analysis/filtered-data]))]
         [text-group
          data-objects
-         0 ;; time is always zero in this path since it is handled by the animation subsystem
          (merge ui-params switch-buttons)
          {:visible? false}] ;; this is the animation path so we start with all data invisible
         ))))

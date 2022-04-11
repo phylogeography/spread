@@ -12,7 +12,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; SVG File renderer ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
-(defn data-map [geo-json-map analysis-data analysis-data-box time params styles]
+(defn data-map [geo-json-map analysis-data analysis-data-box curr-timestamp params styles]
   (let [padding 10]
     [:svg {:xmlns "http://www.w3.org/2000/svg"
            :xmlns:amcharts "http://amcharts.com/ammap"
@@ -46,18 +46,18 @@
          [:g {}
           (for [primitive-object analysis-data]
             ^{:key (str (:id primitive-object))}
-            (views/map-primitive-object primitive-object time params {:visible? true}))])]
+            (views/map-primitive-object primitive-object curr-timestamp params {:visible? true}))])]
 
       ;; text group
-      (views/text-group analysis-data time params {:visible? true})]]))
+      (views/text-group analysis-data params {:visible? true})]]))
 
 (re-frame/reg-fx
  :spread/download-current-map-as-svg
- (fn [{:keys [geo-json-map styles analysis-data data-box time params]}]
+ (fn [{:keys [geo-json-map styles analysis-data data-box curr-timestamp params]}]
    (let [time-filtered-data (filter (fn [obj] ;; don't include in file data not for this frame
-                                      (:show? (subs/calc-obj-time-attrs obj time params)))
+                                      (:show? (subs/calc-obj-time-attrs obj curr-timestamp params)))
                                     analysis-data)
-         svg-text (html (data-map geo-json-map time-filtered-data data-box time params styles))
+         svg-text (html (data-map geo-json-map time-filtered-data data-box curr-timestamp params styles))
          download-anchor (js/document.createElement "a")]
      (.setAttribute download-anchor "href" (str "data:image/svg+xml;charset=utf-8," (js/encodeURIComponent svg-text)))
      (.setAttribute download-anchor "download" "map.svg")
@@ -84,32 +84,30 @@
                              (= type :transition) (assoc :path-elem (.querySelector el ":scope > .data-transition-path"))))))
                [])))
 
-(defn animation-repaint [elems delta-t range-millis params]
-  (let [perc (math-utils/calc-perc 0 range-millis delta-t)]
-    (doseq [{:keys [group-elem text-elem] :as obj} elems]
+(defn animation-repaint [elems curr-timestamp params]
+  (doseq [{:keys [group-elem text-elem] :as obj} elems]
 
-     (let [{:keys [show?] :as attrs} (subs/calc-obj-time-attrs obj perc params)]
-       ;; animate hide/show elements
-       (set! (-> group-elem .-style .-display ) (if show? "block" "none"))
+    (let [{:keys [show? in-change-range?] :as attrs} (subs/calc-obj-time-attrs obj curr-timestamp params)]
 
-       ;; animate hide/show text elements
-       (when text-elem
-         (set! (-> text-elem .-style .-display ) (if show? "block" "none")))
+      ;; animate hide/show text elements
+      (when text-elem
+        (set! (-> text-elem .-style .-display ) (if show? "block" "none")))
 
-       ;; animate transitions by moving the stroke-dashoffset
-       (when (and show? (= :transition (:type obj)))
-         (.setAttribute (:path-elem obj)
-                        "stroke-dashoffset"
-                        (str (:stroke-dashoffset attrs))))))))
+      ;; animate hide/show elements
+      (set! (-> group-elem .-style .-display ) (if show? "block" "none"))
+
+      (when in-change-range?
+        ;; animate transitions by moving the stroke-dashoffset
+        (when (and show? (= :transition (:type obj)))
+          (.setAttribute (:path-elem obj)
+                         "stroke-dashoffset"
+                         (str (:stroke-dashoffset attrs))))))))
 
 (re-frame/reg-fx
   :animation/repaint
-  (fn [{:keys [data-objects timestamp date-range params]}]
-    (let [[date-from data-to] date-range
-          range-millis (- data-to date-from)
-          elems (get-dom-elements data-objects)
-          delta-t (- timestamp date-from)]
-      (animation-repaint elems delta-t range-millis params))))
+  (fn [{:keys [data-objects timestamp params]}]
+    (let [elems (get-dom-elements data-objects)]
+      (animation-repaint elems timestamp params))))
 
 (re-frame/reg-fx
   :animation/start
@@ -117,9 +115,7 @@
     ;; speed is in days/sec
     (let [seconds-in-day (* 24 60 60)
           [date-from data-to] date-range
-          range-millis (- data-to date-from)
-          start-offset (- start-at-timestamp date-from)
-          _ (println "TOTAL DAYS" (/ range-millis 1000 60 60 24))
+          _ (println "TOTAL DAYS" (/ (- data-to date-from) 1000 60 60 24))
           elems (get-dom-elements data-objects)
           start-time* (atom nil)
           last-report* (atom 0)
@@ -130,23 +126,25 @@
                                  (do
                                    (reset! start-time* t)
                                    1))
-                       delta-t (+ (* elapsed speed seconds-in-day) start-offset) ;; millis
-                       ]
+                       ;; since last time the user pressed start
+                       ;; so milliseconds of animation since start-at-timestamp
+                       elapsed-since-start (* elapsed speed seconds-in-day)
+                       curr-frame-timestamp (+ elapsed-since-start start-at-timestamp)]
 
                    ;; every `report-freq-millis` report to the re-frame db so the ui can keep track of
                    ;; animation progress
                    (when (> (- t @last-report*) report-freq-millis)
-                     (re-frame/dispatch [:animation/update-frame-timestamp (+ delta-t date-from)])
+                     (re-frame/dispatch [:animation/update-frame-timestamp curr-frame-timestamp])
                      (reset! last-report* t))
 
                    ;; update all data objects dom nodes
-                   (animation-repaint elems delta-t range-millis params)
+                   (animation-repaint elems curr-frame-timestamp params)
 
                    ;; keep animating until we reach the end or someone
                    ;; stopps us
                    (cond
                      ;; animation finished
-                     (>= (+ delta-t date-from) data-to)
+                     (>= curr-frame-timestamp data-to)
                      (do (re-frame/dispatch [:animation/finished])
                          (reset! animation-running* false))
 

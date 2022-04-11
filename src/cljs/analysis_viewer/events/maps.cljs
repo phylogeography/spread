@@ -189,14 +189,15 @@
         colored-data (subs/colored-and-filtered-data (subs/filter-data (:analysis/data db) (:analysis.data/filters db))
                                                      (:ui/parameters db))]
     {:spread/download-current-map-as-svg {:geo-json-map (subs/geo-json-data-map (:maps/data db))
-                                          :analysis-data colored-data
+                                          :analysis-data (-> (vals colored-data)
+                                                             (subs/render-sort-data-objects))
                                           :styles (str (subs/render-params-styles-string (:ui/parameters db)
                                                                                          (:ui.switch-buttons/states db))
                                                        (subs/render-elements-styles-string colored-data
                                                                                            nil))
                                           :data-box (:analysis/data-box db)
-                                          :time (when-let [[df dt] (:analysis/date-range db)]
-                                                  (math-utils/calc-perc df dt (:animation/frame-timestamp db)))
+                                          :date-range (:analysis/date-range db)
+                                          :curr-timestamp (:animation/frame-timestamp db)
                                           :params (merge ui-params
                                                          map-params
                                                          (:ui.switch-buttons/states db))}}))

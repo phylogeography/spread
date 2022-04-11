@@ -182,7 +182,7 @@
                    :transitions-color "#266C08"
                    :transitions-curvature 1
                    :transitions-width 0.1
-                   :circles-radius 1
+                   :circles-radius 0.072
                    :circles-color "#EEBE53"
                    :nodes-color "#B20707"
                    :nodes-size 0.1
