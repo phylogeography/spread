@@ -87,6 +87,6 @@
   {:extra-deps {olical/depot {:mvn/version "2.1.0"}}
    :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}
 
-  :dev
-  {:extra-deps {aysylu/loom {:mvn/version "1.0.2"}}
-   :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]}}}
+  :dbg {:extra-deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"}
+                     com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0"}}}
+  }}
