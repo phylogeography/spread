@@ -1,9 +1,13 @@
 (ns analysis-viewer.scripts
   (:require [api.config :as config]
             [aws.s3 :as aws-s3]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.set :as set]
             [clojure.string :as string]
+            [loom.attr :as gattr]
+            [loom.graph :as graph]
+            [loom.io :as gio]
             [shared.geojson :as geojson]
             [shared.utils :as shared-utils]))
 
@@ -61,3 +65,24 @@
                        (apply str))]
     (spit output (format "[%s]" boxes-str))
     (println (format "Done, wrote %d boxes in %s" (count boxes) output))))
+
+;; Run with :
+;; clj -X:dev analysis-viewer.scripts/draw-graph :file-path '"/home/jmonetta/my-projects/SPREAD/tmp-issue/81458fa5-2a2f-49e0-8f65-13b8b7fced1e.json"' :top-n 20
+(defn draw-graph [{:keys [file-path top-n]}]
+  (let [{:keys [lines]} (-> (slurp file-path)
+                            (json/read-str :key-fn keyword))
+        edges (->> lines
+                   (sort-by (juxt :startTime :endTime))
+                   (take top-n)
+                   (map (fn [l]
+                          {:edge [(:startPointId l) (:endPointId l)]
+                           :attr (format "%s -> %s" (:startTime l) (:endTime l))})))
+        all-nodes (into #{} (mapcat (fn [e] (:edge e)) edges))
+        all-edges (map :edge edges)
+        g-w-nodes (apply graph/add-nodes (into [(graph/digraph)] all-nodes))
+        g-w-edges (apply graph/add-edges (into [g-w-nodes] all-edges))
+        g-w-attrs (reduce (fn [rg ne]
+                            (gattr/add-attr-to-edges rg :label (:attr ne) [(:edge ne)]))
+                          g-w-edges
+                          edges)]
+    (gio/view g-w-attrs)))

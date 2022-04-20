@@ -125,12 +125,20 @@
       data
       (utils/filter-map-vals data attr-filter))))
 
+(defn render-sort-data-objects [data-objects]
+  (let [obj-order {:polygon 0
+                   :circle 1
+                   :transition 2
+                   :node 3}]
+    (->> data-objects
+         (sort-by :type (fn [a b] (compare (obj-order a) (obj-order b)))))))
+
 (defn colored-and-filtered-data [filtered-data params]
-  (cond
-    (:transitions-attribute params) (color-data-objects filtered-data :transition (get params :transitions-attribute))
-    (:circles-attribute params)     (color-data-objects filtered-data :circle (get params :circles-attribute))
-    (:nodes-attribute params)       (color-data-objects filtered-data :node (get params :nodes-attribute))
-    :else filtered-data))
+  (-> (cond
+        (:transitions-attribute params) (color-data-objects filtered-data :transition (get params :transitions-attribute))
+        (:circles-attribute params)     (color-data-objects filtered-data :circle (get params :circles-attribute))
+        (:nodes-attribute params)       (color-data-objects filtered-data :node (get params :nodes-attribute))
+        :else filtered-data)))
 
 
 (reg-sub
@@ -143,14 +151,6 @@
       (println "Filtered data objects " (count r))
       r)))
 
-(defn render-sort-data-objects [data-objects]
-  (let [obj-order {:polygon 0
-                   :circle 1
-                   :transition 2
-                   :node 3}]
-    (->> data-objects
-         (sort-by :type (fn [a b] (compare (obj-order a) (obj-order b)))))))
-
 (reg-sub
   :analysis/filtered-data-sorted
   :<- [:analysis/filtered-data]
@@ -159,12 +159,11 @@
         render-sort-data-objects)))
 
 (reg-sub
- :analysis/colored-and-filtered-data
- :<- [:analysis/filtered-data]
- :<- [:ui/parameters]
- (fn [[filtered-data params] _]
-   (-> (colored-and-filtered-data filtered-data params)
-       render-sort-data-objects)))
+  :analysis/colored-and-filtered-data
+  :<- [:analysis/filtered-data]
+  :<- [:ui/parameters]
+  (fn [[filtered-data params] _]
+    (colored-and-filtered-data filtered-data params)))
 
 (reg-sub
  :analysis.data/type
@@ -364,20 +363,28 @@
                           :f1x f1x :f1y f1y})
            obj)))
 
-(defn calc-obj-time-attrs [{:keys [show-start show-end] :as obj} time-perc params]
-  (let [show-end (if (:missiles? params) show-end 1)
-        show? (<= show-start time-perc show-end)]
+(defn calc-obj-time-attrs [{:keys [show-start show-end] :as obj} curr-timestamp params]
+  (let [in-range? (<= show-start curr-timestamp show-end)
+        show? (or (and (nil? show-start) (nil? show-end)) ;; both nils means show always
+                  (if (:missiles? params)
+                    in-range?
+                    (<= show-start curr-timestamp)))]
 
     (case (:type obj)
-      :node       {:show? (and show? (:nodes? params))}
-      :circle     {:show? (and show? (:circles? params))}
-      :polygon    {:show? (and show? (:polygons? params))}
+      :node       {:show? (and show? (:nodes? params))
+                   :in-change-range? in-range?}
+      :circle     {:show? (and show? (:circles? params))
+                   :in-change-range? in-range?}
+      :polygon    {:show? (and show? (:polygons? params))
+                   :in-change-range? in-range?}
       :transition (let [show-trans? (and show? (:transitions? params))
                         c-length (:c-length obj)
+                        total-millis (- show-end show-start)
+                        delta-t (- curr-timestamp show-start)
                         clip-perc (when show-trans?
-                                    (/ (- time-perc show-start)
-                                       (- show-end show-start)))
+                                    (min 1 (/ delta-t total-millis)))
                         dashoffset (- c-length (* c-length clip-perc))]
                     {:show? show-trans?
+                     :in-change-range? in-range?
                      :stroke-dashoffset dashoffset
                      :clip-perc clip-perc}))))
