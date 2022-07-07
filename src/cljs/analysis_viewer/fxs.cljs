@@ -37,8 +37,7 @@
      [:g {}
       [:g {}
        (binding [svg-renderer/*coord-transform-fn* math-utils/map-coord->proj-coord]
-         (svg-renderer/geojson->svg geo-json-map
-                                    (assoc params :clip-box analysis-data-box)))]
+         (svg-renderer/geojson->svg geo-json-map params))]
 
       ;; data group
       [:g {}
