@@ -250,14 +250,23 @@
   :<- [:analysis/data-timeline-width]
   (fn [[[from-millis to-millis] timeline-px-width]  _]
     (let [start-date (js/Date. from-millis)
-          start-month (.getUTCMonth start-date)
+          end-date (js/Date. to-millis)
+          start-month (.getUTCMonth start-date) ; 0-11 damn js
           start-year (.getUTCFullYear start-date)
-          end-year   (.getUTCFullYear (js/Date. to-millis))
-          ticks (->> (range start-year end-year)
-                     (mapcat (fn [year]
-                               (-> (repeatedly 11 (fn [] {:label nil :type :short}))
-                                   (into [{:label (str year) :type :long}]))))
-                     (drop start-month)) ;; discard start-month ticks from the biggining since they contain no data
+          end-month (.getUTCMonth end-date) ; 0-11
+          end-year   (.getUTCFullYear end-date)
+          ticks (let [all-ticks (->> (range start-year (inc end-year))
+                                     (mapcat (fn [year]
+                                               (-> (repeatedly 11 (fn [] {:label nil :type :short}))
+                                                   (into [{:label (str year) :type :long}]))))
+                                     (into []))]
+                  ;; all-ticks are months for the years range.
+                  ;; Since data doesn't start in Jan and ends on Dec we need to cut
+                  ;; some months from the beginning of first year and the end of the last year
+                  (subvec all-ticks
+                          start-month
+                          (min (inc (- (count all-ticks) (- 11 end-month))) ; the outer inc is because subvec exclusive in the end
+                               (count all-ticks))))  ; clamp it so we don't try to show "after december"
           ticks-cnt (count ticks)
           margin 50
           tick-gap (when (and timeline-px-width (pos? ticks-cnt))
