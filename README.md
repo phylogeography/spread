@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://spreadviz.org">
-  <img width="132" height="101" src="https://raw.githubusercontent.com/fbielejec/spread/master/services/ui/icons/icn_spread.svg" class="attachment-full size-full" alt="Spread" loading="lazy" />
+  <img width="132" height="101" src="https://raw.githubusercontent.com/phylogeography/spread/master/services/ui/icons/icn_spread.svg" class="attachment-full size-full" alt="Spread" loading="lazy" />
   </a>
 </p>
 
@@ -18,10 +18,10 @@
   <img src="https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif">
 </p>
 
-[![CircleCI](https://circleci.com/gh/fbielejec/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/fbielejec/spread/tree/master)
-![Issues](https://img.shields.io/github/issues/fbielejec/spread)
-![Pull Request](https://img.shields.io/github/issues-pr/fbielejec/spread)
-![GitHub last commit](https://img.shields.io/github/last-commit/fbielejec/spread)
+[![CircleCI](https://circleci.com/gh/phylogeography/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/phylogeography/spread/tree/master)
+![Issues](https://img.shields.io/github/issues/phylogeography/spread)
+![Pull Request](https://img.shields.io/github/issues-pr/phylogeography/spread)
+![GitHub last commit](https://img.shields.io/github/last-commit/phylogeography/spread)
 
 ## Table of Contents
 
@@ -44,10 +44,10 @@ To be able to easily pick up stack used to build spread, one should be familiar 
 
 The diagram below presents an overview of the architecture of spread:
 
-![alt text](https://github.com/fbielejec/spread/blob/master/docs/system_architecture.png?raw=true)
+![alt text](https://github.com/phylogeography/spread/blob/master/docs/system_architecture.png?raw=true)
 
 - API is a gateway service, exposing [graphql](https://graphql.org/) endpoints and publishing messages to the [SQS queue](https://aws.amazon.com/sqs/).
-- Worker is a messaging service wrapping the phylogeographic tree graphs parsing library [libspread](https://github.com/fbielejec/spread/tree/master/src/main/java/com/spread), multiple workers compete for the messages published by the API.
+- Worker is a messaging service wrapping the phylogeographic tree graphs parsing library [libspread](https://github.com/phylogeography/spread/tree/master/src/main/java/com/spread), multiple workers compete for the messages published by the API.
 - Relational Database and S3 object storage are used for persistance.
 - User-facing interface facilitates communicating with the API from the client.
 - Visualization engine accepts S3 stored output, animates and displays it on the geographical map.
