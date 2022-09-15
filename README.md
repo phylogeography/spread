@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="https://www.blog.nodrama.io/images/2021-11-26-spread-progress-update/usa.gif">
+  <img src="https://www.blog.nodrama.io/2022-09-15-spread-published/screenshot.gif">
 </p>
 
 [![CircleCI](https://circleci.com/gh/phylogeography/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/phylogeography/spread/tree/master)
