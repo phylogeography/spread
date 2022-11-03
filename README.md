@@ -25,10 +25,30 @@
 
 ## Table of Contents
 
+- [Citing Spread](#citing-spread)
 - [Technical Overview](#technical-overview)
 - [Development](#development)
 - [Contributors](#contributors)
 - [License](#license)
+
+## Citing Spread
+
+```bibtex
+@article{10.1093/ve/veac088,
+    author = {Nahata, Kanika D and Bielejec, Filip and Monetta, Juan and Dellicour, Simon and Rambaut, Andrew and Suchard, Marc A and Baele, Guy and Lemey, Philippe},
+    title = "{SPREAD 4: online visualisation of pathogen phylogeographic reconstructions}",
+    journal = {Virus Evolution},
+    volume = {8},
+    number = {2},
+    year = {2022},
+    month = {09},
+    issn = {2057-1577},
+    doi = {10.1093/ve/veac088},
+    url = {https://doi.org/10.1093/ve/veac088},
+    note = {veac088},
+    eprint = {https://academic.oup.com/ve/article-pdf/8/2/veac088/46671630/veac088.pdf},
+}
+```
 
 ## Technical Overview
 
