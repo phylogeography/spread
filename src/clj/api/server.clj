@@ -41,8 +41,7 @@
 (defn tx-decorator
   "Wraps the request in a transaction.
   Replaces the :db key with a transaction (This works because our SQL execution works independently of passing a data-source, connection or transaction).
-  Commits before sending the response or rollback the entire thing if anything throws.
-  "
+  Commits before sending the response or rollback the entire thing if anything throws."
   [resolver-fn]
   (fn [{:keys [db] :as context} args value]
     (jdbc/with-transaction [tx db {}]
@@ -56,18 +55,18 @@
    :scalar/serialize-big-int scalars/serialize-big-int})
 
 (defn resolver-map []
-  {:mutation/googleLogin   mutations/google-login
+  {:mutation/googleLogin    mutations/google-login
    :mutation/sendLoginEmail mutations/send-login-email
    :mutation/emailLogin     mutations/email-login
-   :mutation/getUploadUrls (mutation-decorator mutations/get-upload-urls)
+   :mutation/getUploadUrls  (mutation-decorator mutations/get-upload-urls)
 
    :query/pong              resolvers/pong
    :resolve/pong->status    resolvers/pong->status
    :query/getAuthorizedUser (auth-decorator resolvers/get-authorized-user)
 
-   :resolve/custom-map                   resolvers/tree->custom-map
-   :mutation/uploadCustomMap             (mutation-decorator mutations/upload-custom-map)
-   :mutation/deleteCustomMap             (mutation-decorator mutations/delete-custom-map)
+   :resolve/custom-map       resolvers/tree->custom-map
+   :mutation/uploadCustomMap (mutation-decorator mutations/upload-custom-map)
+   :mutation/deleteCustomMap (mutation-decorator mutations/delete-custom-map)
 
    :mutation/uploadContinuousTree        (mutation-decorator mutations/upload-continuous-tree)
    :mutation/updateContinuousTree        (mutation-decorator mutations/update-continuous-tree)
@@ -120,7 +119,6 @@
     {:name ::auth-interceptor
      :enter
      (fn [{{:keys [headers uri request-method]} :request :as context}]
-       ;; (log/debug "auth-interceptor" headers)
        (if-not (and (= uri "/api")
                     (= request-method :post)) ;; Authenticate only GraphQL endpoint
          context
@@ -130,6 +128,14 @@
                                     last
                                     string/trim)]
            (assoc-in context [:request :lacinia-app-context :access-token] access-token))))}))
+
+(defn- request-headers-interceptor
+  []
+  (interceptor
+    {:name ::request-headers
+     :enter
+     (fn [{{:keys [headers]} :request :as context}]
+       (assoc-in context [:request :lacinia-app-context :headers] headers))}))
 
 (defn- ws-auth-interceptor
   "Extracts access token from the connection parameters."
@@ -150,7 +156,8 @@
   [schema extra-context]
   (-> (pedestal/default-interceptors schema nil)
       (inject (context-interceptor extra-context) :after ::pedestal/inject-app-context)
-      (inject (auth-interceptor) :after ::extra-context)))
+      (inject (auth-interceptor) :after ::extra-context)
+      (inject (request-headers-interceptor) :after ::auth-interceptor)))
 
 (defn- subscription-interceptors
   [schema extra-context]

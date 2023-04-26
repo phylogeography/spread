@@ -19,11 +19,11 @@
             [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
             [taoensso.timbre :as log]))
 
-(defn send-login-email [{:keys [private-key sendgrid]} {email        :email
-                                                        redirect-uri :redirectUri
-                                                        :as          args} _]
+(defn send-login-email [{:keys [private-key sendgrid headers] :as context} {email        :email
+                                                                            redirect-uri :redirectUri
+                                                                            :as          args} _]
   (try
-    (log/info "send-login-email" args)
+    (log/info "send-login-email" {:args args :headers headers})
     (if-not (banned-domains (second (string/split email #"@")))
       (let [token                         (auth/generate-spread-email-token email private-key)
             {:keys [api-key template-id]} sendgrid]
