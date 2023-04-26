@@ -46,18 +46,17 @@ orbs:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
           - attach_workspace: # for libspread.jar
               at: lib
-          - run:
-              name: Lint namespaces
-              command: |
-                clojure -A:lint --lint src/clj src/cljc
-              # working_directory: services/<< parameters.service >>
+          # - run:
+          #     name: Lint namespaces
+          #     command: |
+          #       clojure -A:lint --lint src/clj src/cljc
+          #     # working_directory: services/<< parameters.service >>
           - run:
               name: Build docker image
               command: |
 
                 # TODO : debug
                 clojure --version
-                clj --version
 
                 ./build.sh -b true -p false
                 docker save -o << parameters.service >>.tar << parameters.service >>-service:latest

@@ -37,13 +37,7 @@ IMG=$NAME:$TAG
 if [ $BUILD = true ]
 then
     cd ../../
-    # TODO : this overwrites libspread pom.xml in the root dir
-    # not sure how to fix that (build libspread with deps.edn?)
-    # clojure -Spom;
-    # clojure -A:uberjar api-service.jar -C -m api.main;
-
     clojure -T:uberjar api-service
-
     docker build --tag $IMG -f services/api/Dockerfile .
 fi
 
