@@ -62,7 +62,7 @@ orbs:
               paths:
                 - ~/.m2/repository
           - persist_to_workspace:
-              root: .
+              root: services
               paths:
                 - << parameters.service >>/<< parameters.service >>.tar
       deploy:
@@ -221,7 +221,7 @@ jobs:
                 command: |
                   mvn clean package
       - persist_to_workspace:
-          root: target
+          root: .
           paths:
             - libspread-1.0.0-SNAPSHOT.jar
 
