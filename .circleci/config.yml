@@ -398,42 +398,42 @@ workflows:
       # - Build db migration lambda
       # ~~~ DEPLOY ~~~
       # PROD
-      - "[PROD] Approve deployment":
-          type: approval
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - Build db migration lambda
-            - Build Analysis Viewer
-            - Build UI
-            - Test API
-      - Instrument DB:
-          spread-env: "prod"
-          requires:
-            - "[PROD] Approve deployment"
-      - clj-service/deploy:
-          name: "Deploy API service"
-          spread-env: "prod"
-          service: "api"
-          requires:
-            - "[PROD] Approve deployment"
-      - clj-service/deploy:
-          name: "Deploy worker service"
-          spread-env: "prod"
-          service: "worker"
-          requires:
-            - "[PROD] Approve deployment"
-      - cljs-service/deploy:
-          name: "Deploy UI service"
-          spread-env: "prod"
-          service: "ui"
-          requires:
-            - "[PROD] Approve deployment"
-      - cljs-service/deploy:
-          name: "Deploy analysis-viewer service"
-          spread-env: "prod"
-          service: "analysis-viewer"
-          requires:
-            - "[PROD] Approve deployment"
+      # - "[PROD] Approve deployment":
+      #     type: approval
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      #     requires:
+      #       - Build db migration lambda
+      #       - Build Analysis Viewer
+      #       - Build UI
+      #       - Test API
+      # - Instrument DB:
+      #     spread-env: "prod"
+      #     requires:
+      #       - "[PROD] Approve deployment"
+      # - clj-service/deploy:
+      #     name: "Deploy API service"
+      #     spread-env: "prod"
+      #     service: "api"
+      #     requires:
+      #       - "[PROD] Approve deployment"
+      # - clj-service/deploy:
+      #     name: "Deploy worker service"
+      #     spread-env: "prod"
+      #     service: "worker"
+      #     requires:
+      #       - "[PROD] Approve deployment"
+      # - cljs-service/deploy:
+      #     name: "Deploy UI service"
+      #     spread-env: "prod"
+      #     service: "ui"
+      #     requires:
+      #       - "[PROD] Approve deployment"
+      # - cljs-service/deploy:
+      #     name: "Deploy analysis-viewer service"
+      #     spread-env: "prod"
+      #     service: "analysis-viewer"
+      #     requires:
+      #       - "[PROD] Approve deployment"
