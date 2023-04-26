@@ -384,55 +384,55 @@ workflows:
           requires:
             - Build worker service
             - Build api service
-      # - cljs-service/build:
-      #     name: Build UI
-      #     # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
-      #     spread-env: "prod"
-      #     service: "ui"
-      # - cljs-service/build:
-      #     name: Build Analysis Viewer
-      #     # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
-      #     spread-env: "prod"
-      #     service: "analysis-viewer"
-      # - Build db migration lambda
+      - cljs-service/build:
+          name: Build UI
+          # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
+          spread-env: "prod"
+          service: "ui"
+      - cljs-service/build:
+          name: Build Analysis Viewer
+          # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
+          spread-env: "prod"
+          service: "analysis-viewer"
+      - Build db migration lambda
       # ~~~ DEPLOY ~~~
       # PROD
-      # - "[PROD] Approve deployment":
-      #     type: approval
-      #     filters:
-      #       branches:
-      #         only:
-      #           - master
-      #     requires:
-      #       - Build db migration lambda
-      #       - Build Analysis Viewer
-      #       - Build UI
-      #       - Test API
-      # - Instrument DB:
-      #     spread-env: "prod"
-      #     requires:
-      #       - "[PROD] Approve deployment"
-      # - clj-service/deploy:
-      #     name: "Deploy API service"
-      #     spread-env: "prod"
-      #     service: "api"
-      #     requires:
-      #       - "[PROD] Approve deployment"
-      # - clj-service/deploy:
-      #     name: "Deploy worker service"
-      #     spread-env: "prod"
-      #     service: "worker"
-      #     requires:
-      #       - "[PROD] Approve deployment"
-      # - cljs-service/deploy:
-      #     name: "Deploy UI service"
-      #     spread-env: "prod"
-      #     service: "ui"
-      #     requires:
-      #       - "[PROD] Approve deployment"
-      # - cljs-service/deploy:
-      #     name: "Deploy analysis-viewer service"
-      #     spread-env: "prod"
-      #     service: "analysis-viewer"
-      #     requires:
-      #       - "[PROD] Approve deployment"
+      - "[PROD] Approve deployment":
+          type: approval
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - Build db migration lambda
+            - Build Analysis Viewer
+            - Build UI
+            - Test API
+      - Instrument DB:
+          spread-env: "prod"
+          requires:
+            - "[PROD] Approve deployment"
+      - clj-service/deploy:
+          name: "Deploy API service"
+          spread-env: "prod"
+          service: "api"
+          requires:
+            - "[PROD] Approve deployment"
+      - clj-service/deploy:
+          name: "Deploy worker service"
+          spread-env: "prod"
+          service: "worker"
+          requires:
+            - "[PROD] Approve deployment"
+      - cljs-service/deploy:
+          name: "Deploy UI service"
+          spread-env: "prod"
+          service: "ui"
+          requires:
+            - "[PROD] Approve deployment"
+      - cljs-service/deploy:
+          name: "Deploy analysis-viewer service"
+          spread-env: "prod"
+          service: "analysis-viewer"
+          requires:
+            - "[PROD] Approve deployment"
