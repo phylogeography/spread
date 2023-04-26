@@ -25,6 +25,50 @@
 
 (declare server)
 
+;; NOTE: this is not ideal as every copy of the ECS service will maintain it's own copy
+;; It would be best to persist it to the RDB
+;; however as we are currently running only one task per service it will suffice
+(def jailed-ips (atom {}))
+
+(defn update-ip [ip timestamp]
+  (swap! jailed-ips update-in [ip :timestamps] conj timestamp))
+
+(defn is-jailed? [ip now]
+  (let [info       (@jailed-ips ip)
+        timestamps (:timestamps info)]
+    (and info
+         ;; 5 times
+         (> (count timestamps) 4)
+         ;; within 10 minutes
+         (< (- now (last timestamps)) (* 10 60 1000))
+         (not (:jail-lift-time info))
+         ;; jailed for 20 minutes
+         (swap! jailed-ips update-in [ip :jail-lift-time] (fn [_] (+ now (* 20 60 1000)))))))
+
+(defn is-temporarily-jailed? [ip now]
+  (let [info           (@jailed-ips ip)
+        jail-lift-time (:jail-lift-time info)]
+    (and info
+         jail-lift-time
+         (> now jail-lift-time)
+         (swap! jailed-ips update-in [ip] dissoc :jail-lift-time))))
+
+(defn ip-jail-decorator [resolver-fn]
+  (fn [{{ip "headers.x-forwarded-for"} :headers :as context} args value]
+    (let [now (System/currentTimeMillis)]
+      (log/info "verifying IP status" {ip (get @jailed-ips ip)})
+
+      (update-ip ip now)
+
+      (when (is-jailed? ip now)
+        (log/warn "IP banned" {:ip ip})
+        (throw (Exception. "Too many consecutive requests. IP banned!")))
+
+      (when (is-temporarily-jailed? ip now)
+        (log/warn "IP un-banned" {:ip ip}))
+
+      (resolver-fn context args value))))
+
 (defn auth-decorator [resolver-fn]
   (fn [{:keys [access-token public-key] :as context} args value]
     (log/info "verifying auth token claims" {:access-token access-token})
@@ -56,7 +100,7 @@
 
 (defn resolver-map []
   {:mutation/googleLogin    mutations/google-login
-   :mutation/sendLoginEmail mutations/send-login-email
+   :mutation/sendLoginEmail (ip-jail-decorator mutations/send-login-email)
    :mutation/emailLogin     mutations/email-login
    :mutation/getUploadUrls  (mutation-decorator mutations/get-upload-urls)
 
