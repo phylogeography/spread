@@ -36,7 +36,7 @@
 
   ;; PARSERS
   jebl/jebl             {:mvn/version "2.0"}
-  libspread/libspread   {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
+  libspread/libspread   {:local/root "./libspread-1.0.0-SNAPSHOT.jar"}
   org.clojure/data.json {:mvn/version "2.0.1"}
 
   ;; UTILS
@@ -52,7 +52,7 @@
  :mvn/repos
  {"central" {:url "https://repo1.maven.org/maven2/"}
   "clojars" {:url "https://repo.clojars.org/"}
-  "jebl2"   {:url           "http://www.stat.ubc.ca/~bouchard/maven/"
+  "jebl2"   {:url           "https://www.stat.ubc.ca/~bouchard/maven/"
              :snapshots     false
              :sign-releases false
              :checksum      :fail
@@ -69,8 +69,10 @@
   {:main-opts ["-m" "worker.main"]}
 
   :uberjar
-  {:extra-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
-   :main-opts  ["-m" "hf.depstar.uberjar"]}
+  {:deps       {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
+   :ns-default build}
+  ;; {:extra-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
+  ;;  :main-opts  ["-m" "hf.depstar.uberjar"]}
 
   :lint
   {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.09.25"}}

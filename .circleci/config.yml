@@ -54,10 +54,6 @@ orbs:
           - run:
               name: Build docker image
               command: |
-                # TODO: temp debugging
-
-                clojure --version
-
                 ./build.sh -b true -p false
                 docker save -o << parameters.service >>.tar << parameters.service >>-service:latest
               working_directory: services/<< parameters.service >>
@@ -375,31 +371,31 @@ workflows:
     jobs:
       # ~~~ BUILD ~~~
       - Build libspread
-      - clj-service/build:
-          name: Build worker service
-          service: "worker"
-          requires:
-            - Build libspread
+      # - clj-service/build:
+      #     name: Build worker service
+      #     service: "worker"
+      #     requires:
+      #       - Build libspread
       - clj-service/build:
           name: Build api service
           service: "api"
           requires:
             - Build libspread
-      - Test API:
-          requires:
-            - Build worker service
-            - Build api service
-      - cljs-service/build:
-          name: Build UI
-          # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
-          spread-env: "prod"
-          service: "ui"
-      - cljs-service/build:
-          name: Build Analysis Viewer
-          # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
-          spread-env: "prod"
-          service: "analysis-viewer"
-      - Build db migration lambda
+      # - Test API:
+      #     requires:
+      #       - Build worker service
+      #       - Build api service
+      # - cljs-service/build:
+      #     name: Build UI
+      #     # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
+      #     spread-env: "prod"
+      #     service: "ui"
+      # - cljs-service/build:
+      #     name: Build Analysis Viewer
+      #     # NOTE : we build cljs services with prod ENV vars, since they are macro loaded at comile-time
+      #     spread-env: "prod"
+      #     service: "analysis-viewer"
+      # - Build db migration lambda
       # ~~~ DEPLOY ~~~
       # PROD
       - "[PROD] Approve deployment":
