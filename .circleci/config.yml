@@ -54,6 +54,10 @@ orbs:
           - run:
               name: Build docker image
               command: |
+                # TODO: temp debugging
+
+                clojure --version
+
                 ./build.sh -b true -p false
                 docker save -o << parameters.service >>.tar << parameters.service >>-service:latest
               working_directory: services/<< parameters.service >>

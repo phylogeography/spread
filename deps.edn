@@ -69,7 +69,7 @@
   {:main-opts ["-m" "worker.main"]}
 
   :uberjar
-  {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
+  {:extra-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
    :main-opts  ["-m" "hf.depstar.uberjar"]}
 
   :lint
