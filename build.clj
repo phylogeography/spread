@@ -12,29 +12,40 @@
   (b/delete {:path "target"})
   (println (format "Build folder \"%s\" removed" build-folder)))
 
-(defn- uberjar [app-name uber-file-name]
-  (clean nil)
-
-  (b/copy-dir {:src-dirs   ["resources"]         ; copy resources
-               :target-dir jar-content})
-
-  (b/compile-clj {:basis     basis               ; compile clojure code
-                  :src-dirs  ["src/clj/api"]
-                  :class-dir jar-content})
-
-  (b/uber {:class-dir jar-content                ; create uber file
-           :uber-file uber-file-name
-           :basis     basis
-           :main      'api.main})                ; here we specify the entry point for uberjar
-
-  (println (format "Uber file created: \"%s\"" uber-file-name)))
-
 (defn api-service [_]
   (let [app-name       "api-service"
         uber-file-name "api-service.jar"]
-    (uberjar app-name uber-file-name )))
+    (clean nil)
+
+    (b/copy-dir {:src-dirs   ["resources"]         ; copy resources
+                 :target-dir jar-content})
+
+    (b/compile-clj {:basis     basis               ; compile clojure code
+                    :src-dirs  ["src/clj/api"]
+                    :class-dir jar-content})
+
+    (b/uber {:class-dir jar-content                ; create uber file
+             :uber-file uber-file-name
+             :basis     basis
+             :main      'api.main})                ; here we specify the entry point for uberjar
+
+    (println (format "Uber file created: \"%s\"" uber-file-name))))
 
 (defn worker-service [_]
   (let [app-name       "worker-service"
         uber-file-name "worker-service.jar"]
-    (uberjar app-name uber-file-name )))
+    (clean nil)
+
+    (b/copy-dir {:src-dirs   ["resources"]         ; copy resources
+                 :target-dir jar-content})
+
+    (b/compile-clj {:basis     basis               ; compile clojure code
+                    :src-dirs  ["src/clj/worker"]
+                    :class-dir jar-content})
+
+    (b/uber {:class-dir jar-content                ; create uber file
+             :uber-file uber-file-name
+             :basis     basis
+             :main      'worker.main})                ; here we specify the entry point for uberjar
+
+    (println (format "Uber file created: \"%s\"" uber-file-name))))
