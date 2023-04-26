@@ -45,7 +45,7 @@ orbs:
           - restore_cache:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
           - attach_workspace: # for libspread.jar
-              at: target
+              at: lib
           - run:
               name: Lint namespaces
               command: |
@@ -220,9 +220,8 @@ jobs:
                 name: Compile
                 command: |
                   mvn clean package
-                # working_directory: services/db-migration
       - persist_to_workspace:
-          root: target
+          root: lib
           paths:
             - libspread-1.0.0-SNAPSHOT.jar
 
@@ -308,7 +307,7 @@ jobs:
             source $BASH_ENV
             echo "env: $SPREAD_ENV"
       - attach_workspace: # for libspread.jar
-          at: target
+          at: lib
       - attach_workspace:
           at: services
       - run:

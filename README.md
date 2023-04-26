@@ -18,7 +18,7 @@
   <img src="https://www.blog.nodrama.io/images/2022-09-15-spread-published/screenshot.gif">
 </p>
 
-[![CircleCI](https://circleci.com/gh/phylogeography/spread/tree/master.svg?style=svg&circle-token=d17b2167dc7180da1a984417b8de235c9412cb42)](https://circleci.com/gh/phylogeography/spread/tree/master)
+[![CircleCI](https://circleci.com/gh/phylogeography/spread/tree/master.svg?style=svg)](https://circleci.com/gh/phylogeography/spread/?branch=master)
 ![Issues](https://img.shields.io/github/issues/phylogeography/spread)
 ![Pull Request](https://img.shields.io/github/issues-pr/phylogeography/spread)
 ![GitHub last commit](https://img.shields.io/github/last-commit/phylogeography/spread)

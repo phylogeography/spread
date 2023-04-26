@@ -1,7 +1,8 @@
 (ns api.emailer.banned)
 
 (def banned-domains
-  #{"0815.ru"
+  #{
+    "0815.ru"
     "0wnd.net"
     "0wnd.org"
     "10minutemail.co.za"
@@ -141,6 +142,7 @@
     "fantasymail.de"
     "fightallspam.com"
     "filzmail.com"
+    "findours.com"
     "fivemail.de"
     "fleckens.hu"
     "frapmail.com"
@@ -398,8 +400,8 @@
     "sneakmail.de"
     "snkmail.com"
     "sofimail.com"
-    "solvemail.info"
     "sogetthis.com"
+    "solvemail.info"
     "soodonims.com"
     "spam4.me"
     "spamail.de"
@@ -546,4 +548,5 @@
     "zehnminutenmail.de"
     "zippymail.info"
     "zoemail.net"
-    "zomg.info"})
+    "zomg.info"
+    })

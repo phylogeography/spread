@@ -14,8 +14,8 @@ tmux send-keys -t "spread:1" 'source env/dev' Enter;
 tmux send-keys -t "spread:1" 'clj -A:run-worker' Enter;
 
 # start API
-# NOTE: api needs two more ENV vars exported for the login to work properly
-# PRIVATE_KEY_DEV and GOOGLE_CLIENT_SECRET
+# NOTE: api needs three more ENV vars exported for the login to work properly
+# PRIVATE_KEY_DEV, GOOGLE_CLIENT_SECRET and SENDGRID_API_KEY
 # which are NOT under source version control for security reasons
 # ask for them before running the software locally
 tmux new-window -t "spread:2";

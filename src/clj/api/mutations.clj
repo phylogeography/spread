@@ -19,11 +19,11 @@
             [shared.utils :refer [clj->gql decode-json file-extension new-uuid]]
             [taoensso.timbre :as log]))
 
-(defn send-login-email [{:keys [private-key sendgrid]} {email        :email
-                                                        redirect-uri :redirectUri
-                                                        :as          args} _]
+(defn send-login-email [{:keys [private-key sendgrid headers]} {email        :email
+                                                                redirect-uri :redirectUri
+                                                                :as          args} _]
   (try
-    (log/info "send-login-email" args)
+    (log/info "send-login-email" {:args args :headers headers})
     (if-not (banned-domains (second (string/split email #"@")))
       (let [token                         (auth/generate-spread-email-token email private-key)
             {:keys [api-key template-id]} sendgrid]
@@ -149,25 +149,25 @@
                          {file-url    :fileUrl
                           file-name   :fileName
                           analysis-id :analysisId
-                          :as            args} _]
+                          :as         args} _]
   (log/info "Upserting custom map" {:user/id authed-user-id
                                     :args    args})
 
   (try
     (custom-map-model/upsert! db {:analysis-id analysis-id
-                                  :file-name file-name
-                                  :file-url file-url})
+                                  :file-name   file-name
+                                  :file-url    file-url})
     (clj->gql (custom-map-model/get-custom-map db {:analysis-id analysis-id}))
     (catch Exception e
       (log/error "Couldn't upsert custom map" {:analysis-id analysis-id
-                                               :file-name file-name
-                                               :file-url file-url
-                                               :error e})
+                                               :file-name   file-name
+                                               :file-url    file-url
+                                               :error       e})
       (throw e))))
 
 (defn delete-custom-map [{:keys [authed-user-id db]}
                          {analysis-id :analysisId
-                          :as            args} _]
+                          :as         args} _]
   (log/info "Deleting custom map" {:user/id authed-user-id
                                    :args    args})
 
@@ -176,7 +176,7 @@
     analysis-id
     (catch Exception e
       (log/error "Couldn't upsert custom map" {:analysis-id analysis-id
-                                               :error e})
+                                               :error       e})
       (throw e))))
 
 (defn update-continuous-tree
@@ -186,7 +186,7 @@
                                 y-coordinate-attribute-name :yCoordinateAttributeName
                                 timescale-multiplier        :timescaleMultiplier
                                 most-recent-sampling-date   :mostRecentSamplingDate
-                                :or                         {timescale-multiplier     1.0}
+                                :or                         {timescale-multiplier 1.0}
                                 :as                         args} _]
   (log/info "update continuous tree" {:user/id authed-user-id
                                       :args    args})

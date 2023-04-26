@@ -17,7 +17,7 @@
   org.bouncycastle/bcpkix-jdk15on {:mvn/version "1.68"}
 
   ;; LOGGING
-  com.taoensso/timbre {:mvn/version "5.1.2"}
+  com.taoensso/timbre         {:mvn/version "5.1.2"}
   viesti/timbre-json-appender {:mvn/version "0.2.5"}
 
   ;; DB
@@ -36,12 +36,12 @@
 
   ;; PARSERS
   jebl/jebl             {:mvn/version "2.0"}
-  libspread/libspread   {:local/root "./target/libspread-1.0.0-SNAPSHOT.jar"}
+  libspread/libspread   {:local/root "./lib/libspread-1.0.0-SNAPSHOT.jar"}
   org.clojure/data.json {:mvn/version "2.0.1"}
 
   ;; UTILS
-  mount/mount           {:mvn/version "0.1.16"}
-  tick/tick             {:mvn/version "0.4.9-alpha"}
+  mount/mount {:mvn/version "0.1.16"}
+  tick/tick   {:mvn/version "0.4.9-alpha"}
 
   ;; SPEC
   org.clojure/spec.alpha     {:mvn/version "0.2.194"}
@@ -52,7 +52,7 @@
  :mvn/repos
  {"central" {:url "https://repo1.maven.org/maven2/"}
   "clojars" {:url "https://repo.clojars.org/"}
-  "jebl2"   {:url           "http://www.stat.ubc.ca/~bouchard/maven/"
+  "jebl2"   {:url           "https://www.stat.ubc.ca/~bouchard/maven/"
              :snapshots     false
              :sign-releases false
              :checksum      :fail
@@ -69,8 +69,8 @@
   {:main-opts ["-m" "worker.main"]}
 
   :uberjar
-  {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
-   :main-opts  ["-m" "hf.depstar.uberjar"]}
+  {:deps       {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
+   :ns-default build}
 
   :lint
   {:extra-deps {clj-kondo/clj-kondo {:mvn/version "2021.09.25"}}
@@ -87,6 +87,6 @@
   {:extra-deps {olical/depot {:mvn/version "2.1.0"}}
    :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}
 
-  :dbg {:extra-deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"}
+  :dbg {:extra-deps {com.github.jpmonettas/flow-storm-dbg  {:mvn/version "2.0.0"}
                      com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0"}}}
   }}
