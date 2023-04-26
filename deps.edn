@@ -59,7 +59,8 @@
              :update        :never}}
  :aliases
  {:test
-  {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}
+  {:exclusions [libspread/libspread]
+   :extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}
                 clj-http/clj-http   {:mvn/version "3.12.1"}}}
 
   :run-api
