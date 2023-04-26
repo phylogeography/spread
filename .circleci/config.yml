@@ -62,7 +62,7 @@ orbs:
               paths:
                 - ~/.m2/repository
           - persist_to_workspace:
-              root: services
+              root: .
               paths:
                 - << parameters.service >>/<< parameters.service >>.tar
       deploy:
@@ -220,7 +220,6 @@ jobs:
                 name: Compile
                 command: |
                   mvn clean package
-                # working_directory: services/db-migration
       - persist_to_workspace:
           root: target
           paths:
