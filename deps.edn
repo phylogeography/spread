@@ -36,7 +36,7 @@
 
   ;; PARSERS
   jebl/jebl             {:mvn/version "2.0"}
-  libspread/libspread   {:local/root "./libspread-1.0.0-SNAPSHOT.jar"}
+  libspread/libspread   {:local/root "./lib/libspread-1.0.0-SNAPSHOT.jar"}
   org.clojure/data.json {:mvn/version "2.0.1"}
 
   ;; UTILS

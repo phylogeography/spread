@@ -45,7 +45,7 @@ orbs:
           - restore_cache:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
           - attach_workspace: # for libspread.jar
-              at: target
+              at: lib
           - run:
               name: Lint namespaces
               command: |
@@ -221,7 +221,7 @@ jobs:
                 command: |
                   mvn clean package
       - persist_to_workspace:
-          root: .
+          root: lib
           paths:
             - libspread-1.0.0-SNAPSHOT.jar
 
