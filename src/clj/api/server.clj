@@ -7,6 +7,7 @@
             [api.subscriptions :as subscriptions]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
+            [clojure.core.match :refer [match]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -37,7 +38,7 @@
   (let [info       (@jailed-ips ip)
         timestamps (:timestamps info)]
     (and info
-         ;; 5 times
+         ;; 5 times or more
          (> (count timestamps) 4)
          ;; within 10 minutes
          (< (- now (last timestamps)) (* 10 60 1000))
