@@ -42,9 +42,6 @@
 (defn init-state [ip]
   {:ip ip :timestamps [] :state :free})
 
-(defn log-ip! [ip timestamp]
-  (swap! ips update-in [ip :timestamps] conj timestamp))
-
 (defn transition [state now]
   (let [timestamps           (:timestamps state)
         last-timestamp       (last timestamps)
@@ -65,9 +62,12 @@
   (fn [{{ip "headers.x-forwarded-for"} :headers :as context} args value]
     (let [now           (System/currentTimeMillis)
           current-state (or (@ips ip) (init-state ip))
-          _             (log/info "verifying IP state" {ip current-state})
-          _             (log-ip! ip now)
-          new-state     (transition current-state)]
+          _             (log/info "verifying IP state" current-state)
+
+          current-state (update current-state :timestamps conj now)
+
+          new-state (transition current-state now)
+          _         (log/info "updating IP state" new-state)]
       (case (:state new-state)
         :free               (do
                               (update-ip-state! ip new-state)
