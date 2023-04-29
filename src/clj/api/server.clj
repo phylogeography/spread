@@ -31,13 +31,13 @@
 ;; however as we are currently running only one task per service it will suffice
 (def ips (atom {}))
 
-;; 1 minute
-;; if within this time period the sam eIP is seen 4 times it will be banned
-(def offending-time-window-length (* 1 60 1000))
+;; 10 minutes
+;; if within this time period the same IP is seen 4 times it will be banned
+(def offending-time-window-length (* 10 60 1000))
 
-;; 2 minutes
+;; 60 minutes
 ;; ip is banned for this long
-(def jail-sentence (* 2 60 1000))
+(def jail-time (* 60 60 1000))
 
 (defn init-state [ip]
   {:ip ip :timestamps [] :state :free})
@@ -45,7 +45,7 @@
 (defn transition [state now]
   (let [timestamps           (:timestamps state)
         last-timestamp       (last timestamps)
-        ban-lift-time        (+ last-timestamp jail-sentence)
+        ban-lift-time        (+ last-timestamp jail-time)
         offending-timestamps (filter #(<= (- last-timestamp %) offending-time-window-length) timestamps)]
     (case (:state state)
       :free               (if (> (count offending-timestamps) 4)
@@ -59,22 +59,22 @@
   (swap! ips assoc ip new-state))
 
 (defn ip-jail-decorator [resolver-fn]
-  (fn [{{ip "headers.x-forwarded-for"} :headers :as context} args value]
-    (let [now           (System/currentTimeMillis)
+  (fn [{{x-forwarded-for "headers.x-forwarded-for"
+         origin          "origin"} :headers :as context} args value]
+    (let [ip            (or x-forwarded-for origin "127.0.0.1")
+          now           (System/currentTimeMillis)
           current-state (or (@ips ip) (init-state ip))
           _             (log/info "verifying IP state" current-state)
-
           current-state (update current-state :timestamps conj now)
-
-          new-state (transition current-state now)
-          _         (log/info "updating IP state" new-state)]
+          new-state     (transition current-state now)
+          _             (log/info "updating IP state" new-state)]
       (case (:state new-state)
         :free               (do
                               (update-ip-state! ip new-state)
                               (resolver-fn context args value))
         :temporarily-jailed (do
                               (update-ip-state! ip new-state)
-                              (throw (Exception. "too many consecutive requests. IP banned")))))))
+                              (throw (Exception. "Too many consecutive requests. IP banned")))))))
 
 (defn auth-decorator [resolver-fn]
   (fn [{:keys [access-token public-key] :as context} args value]
