@@ -1,6 +1,6 @@
 (ns tests.unit.ip-jailer-test
-  (:require [clojure.test :refer [deftest is use-fixtures testing]]
-            [api.server :refer [init-state transition jail-time]]))
+  (:require [api.server :refer [init-state jail-time transition]]
+            [clojure.test :refer [deftest is testing]]))
 
 (deftest jailer []
 
@@ -13,7 +13,7 @@
       (is (= :free (:state new-state)))))
 
   (testing "Process same IP four times in a row"
-    (let [ips           (atom {})
+    (let [
           ip            "192.168.1.100"
           now           (System/currentTimeMillis)
           current-state {:ip ip :state :free :timestamps [now
@@ -24,8 +24,7 @@
       (is (= :free (:state new-state)))))
 
   (testing "Process same IP five times in a row"
-    (let [ips           (atom {})
-          ip            "192.168.1.100"
+    (let [ip            "192.168.1.100"
           now           (System/currentTimeMillis)
           current-state {:ip ip :state :free :timestamps [now
                                                           (+ 1 now)
@@ -38,8 +37,7 @@
              (:jail-lift-time new-state)))))
 
   (testing "Process jailed IP after it's jail time has passed"
-    (let [ips           (atom {})
-          ip            "192.168.1.100"
+    (let [ip            "192.168.1.100"
           now           (System/currentTimeMillis)
           current-state {:ip ip :state :free :timestamps [now
                                                           (+ 1 now)
