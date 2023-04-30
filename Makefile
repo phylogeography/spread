@@ -10,5 +10,8 @@ debug-api:
 debug-worker:
 	clj -X:dbg flow-storm.api/cli-run :instrument-ns '#{"worker." "aws." "api."}' :fn-symb 'worker.main/-main' :fn-args '[]'
 
-lint:
+lint-clj:
 	clj -M:lint --lint src/clj src/cljc
+
+unit-tests:
+	./bin/kaocha unit
