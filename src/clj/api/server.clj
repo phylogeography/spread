@@ -7,12 +7,13 @@
             [api.subscriptions :as subscriptions]
             [aws.s3 :as aws-s3]
             [aws.sqs :as aws-sqs]
-            [clojure.core.match :refer [match]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as string]
             [com.walmartlabs.lacinia.pedestal :refer [inject]]
-            [com.walmartlabs.lacinia.pedestal.subscriptions :as pedestal-subscriptions]
+            [com.walmartlabs.lacinia.pedestal.subscriptions
+             :as
+             pedestal-subscriptions]
             [com.walmartlabs.lacinia.pedestal2 :as pedestal]
             [com.walmartlabs.lacinia.schema :as schema]
             [com.walmartlabs.lacinia.util :as lacinia-util]
