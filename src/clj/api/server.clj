@@ -61,8 +61,8 @@
 
 (defn ip-jail-decorator [resolver-fn]
   (fn [{{x-forwarded-for         "x-forwarded-for"
-         headers.x-forwarded-for "headers.x-forwarded-for"} :headers :as context} args value]
-    (let [ip            (or x-forwarded-for headers.x-forwarded-for "127.0.0.1")
+         headers-x-forwarded-for "headers.x-forwarded-for"} :headers :as context} args value]
+    (let [ip            (or x-forwarded-for headers-x-forwarded-for "127.0.0.1")
           now           (System/currentTimeMillis)
           current-state (or (@ips ip) (init-state ip))
           _             (log/info "verifying IP state" current-state)
