@@ -157,7 +157,8 @@
 (defn timeline []
   (let [crop-sides 20
         ticks-y-base 80
-        timeline-start crop-sides
+        timeline-left-margin 10
+        timeline-start (+ timeline-left-margin crop-sides)
         update-after-render (fn [div-cmp]
                               (let [dom-node (rdom/dom-node div-cmp)
                                     brect (.getBoundingClientRect dom-node)]
