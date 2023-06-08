@@ -110,11 +110,10 @@
 
 (re-frame/reg-fx
   :animation/start
-  (fn [{:keys [data-objects speed start-at-timestamp date-range params]}]
-    ;; speed is in days/sec
-    (let [seconds-in-day (* 24 60 60)
-          [date-from data-to] date-range
-          _ (println "TOTAL DAYS" (/ (- data-to date-from) 1000 60 60 24))
+  (fn [{:keys [data-objects desired-duration date-range params]}]
+    (let [[date-from date-to] date-range
+          date-range-millis (- date-to date-from)
+          _ (println "TOTAL DAYS" (/ date-range-millis 1000 60 60 24))
           elems (get-dom-elements data-objects)
           start-time* (atom nil)
           last-report* (atom 0)
@@ -125,10 +124,9 @@
                                  (do
                                    (reset! start-time* t)
                                    1))
-                       ;; since last time the user pressed start
-                       ;; so milliseconds of animation since start-at-timestamp
-                       elapsed-since-start (* elapsed speed seconds-in-day)
-                       curr-frame-timestamp (+ elapsed-since-start start-at-timestamp)]
+
+                       curr-frame-timestamp (+ date-from (* (/ elapsed desired-duration)
+                                                            date-range-millis))]
 
                    ;; every `report-freq-millis` report to the re-frame db so the ui can keep track of
                    ;; animation progress
@@ -143,7 +141,7 @@
                    ;; stopps us
                    (cond
                      ;; animation finished
-                     (>= curr-frame-timestamp data-to)
+                     (>= curr-frame-timestamp date-to)
                      (do (re-frame/dispatch [:animation/finished])
                          (reset! animation-running* false))
 

@@ -38,9 +38,9 @@
    (:animation/crop db)))
 
 (reg-sub
- :animation/speed
+ :animation/desired-duration
  (fn [db _]
-   (:animation/speed db)))
+   (:animation/desired-duration db)))
 
 (reg-sub
  :analysis/date-range
