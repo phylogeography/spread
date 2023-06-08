@@ -162,7 +162,7 @@
                :height nil}
    :animation/frame-timestamp 0
    :animation/crop [0 1]
-   :animation/desired-duration 10000 ;; 10 seconds
+   :animation/desired-duration 10 ;; 10 seconds
    :animation/state :stop
    :analysis.data/filters {}
    :ui.collapsible-tabs/tabs {:layer-visibility true,

@@ -217,10 +217,10 @@
     ;; the entire map is being redraw, making some animations a lot less smooth.
     ;; {:contain :strict} prevents just that, tells the browser that changes inside this element shouldn't affect elements outside.
     [:div.animation-controls {:style {:contain :strict}}
-     [mui-slider {:inc-buttons 1000
+     [mui-slider {:inc-buttons 1
                   :class "desired-duration-slider"
                   :min-val 1
-                  :max-val 300000 ;; 5 minutes max
+                  :max-val 300 ;; 5 minutes max
                   :vertical? true
                   :subs-vec [:animation/desired-duration]
                   :ev-vec [:animation/set-desired-duration]}]
@@ -228,7 +228,7 @@
        [:div.loading "Loading..."]
        [:div.inner
         [:div.hud
-         [:div.speed (gstr/format "Total animation duration: %d sec" (/ desired-duration 1000))]
+         [:div.speed (gstr/format "Total animation duration: %d sec" desired-duration)]
          [:div.date (str "Date: " (ui-utils/format-date frame-timestamp))]]
         [:div.buttons
          [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/reset :start])} ""]

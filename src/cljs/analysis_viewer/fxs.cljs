@@ -125,7 +125,7 @@
                                    (reset! start-time* t)
                                    1))
 
-                       curr-frame-timestamp (+ date-from (* (/ elapsed desired-duration)
+                       curr-frame-timestamp (+ date-from (* (/ elapsed (* 1000 desired-duration))
                                                             date-range-millis))]
 
                    ;; every `report-freq-millis` report to the re-frame db so the ui can keep track of
