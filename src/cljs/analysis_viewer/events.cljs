@@ -51,7 +51,7 @@
 (reg-event-fx :animation/update-frame-timestamp [] events.maps/animation-update-frame-timestamp)
 (reg-event-fx :animation/finished [] events.maps/animation-finished)
 (reg-event-db :animation/set-crop [sc] events.maps/animation-set-crop)
-(reg-event-fx :animation/set-speed [sc] events.maps/animation-set-speed)
+(reg-event-fx :animation/set-desired-duration [sc] events.maps/animation-set-desired-duration)
 
 (reg-event-db :filters/add-attribute-filter [sc] events.filters/add-attribute-filter)
 (reg-event-db :filters/rm-attribute-filter [sc] events.filters/rm-attribute-filter)

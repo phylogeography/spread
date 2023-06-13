@@ -38,9 +38,9 @@
    (:animation/crop db)))
 
 (reg-sub
- :animation/speed
+ :animation/desired-duration
  (fn [db _]
-   (:animation/speed db)))
+   (int (:animation/desired-duration db))))
 
 (reg-sub
  :analysis/date-range
@@ -255,18 +255,31 @@
           start-year (.getUTCFullYear start-date)
           end-month (.getUTCMonth end-date) ; 0-11
           end-year   (.getUTCFullYear end-date)
-          ticks (let [all-ticks (->> (range start-year (inc end-year))
-                                     (mapcat (fn [year]
-                                               (-> (repeatedly 11 (fn [] {:label nil :type :short}))
-                                                   (into [{:label (str year) :type :long}]))))
+          years-span (- end-year start-year)
+          ticks (let [months-ticks? (< years-span 5)
+                      year-lbl-multiple-of (cond
+                                           (<= years-span 20) 1
+                                           (<= 21 years-span 40) 5
+                                           (>= years-span 41) 10)
+                      years (range start-year (inc end-year))
+                      all-ticks (->> (mapcat (fn [year]
+                                               (let [year-lbl (when (zero? (mod year year-lbl-multiple-of))
+                                                                (str year))]
+                                                 (cond-> [{:label year-lbl :type :long}]
+                                                   months-ticks? (into (repeatedly 11 (fn [] {:label nil :type :short}))))))
+                                             years)
                                      (into []))]
-                  ;; all-ticks are months for the years range.
-                  ;; Since data doesn't start in Jan and ends on Dec we need to cut
-                  ;; some months from the beginning of first year and the end of the last year
-                  (subvec all-ticks
-                          start-month
-                          (min (inc (- (count all-ticks) (- 11 end-month))) ; the outer inc is because subvec exclusive in the end
-                               (count all-ticks))))  ; clamp it so we don't try to show "after december"
+                  (if months-ticks?
+                    ;; all-ticks are months for the years range.
+                    ;; Since data doesn't start in Jan and ends on Dec we need to cut
+                    ;; some months from the beginning of first year and the end of the last year
+
+                    (subvec all-ticks
+                            start-month
+                            (min (inc (- (count all-ticks) (- 11 end-month))) ; the outer inc is because subvec exclusive in the end
+                                 (count all-ticks)))  ; clamp it so we don't try to show "after december"
+                    all-ticks))
+
           ticks-cnt (count ticks)
           margin 50
           tick-gap (when (and timeline-px-width (pos? ticks-cnt))

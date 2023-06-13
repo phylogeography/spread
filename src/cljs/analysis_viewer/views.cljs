@@ -157,7 +157,8 @@
 (defn timeline []
   (let [crop-sides 20
         ticks-y-base 80
-        timeline-start crop-sides
+        timeline-left-margin 10
+        timeline-start (+ timeline-left-margin crop-sides)
         update-after-render (fn [div-cmp]
                               (let [dom-node (rdom/dom-node div-cmp)
                                     brect (.getBoundingClientRect dom-node)]
@@ -210,25 +211,25 @@
 
 (defn animation-controls []
   (let [frame-timestamp @(subscribe [:animation/frame-timestamp])
-        speed @(subscribe [:animation/speed])
+        desired-duration @(subscribe [:animation/desired-duration])
         playing? (= :play @(subscribe [:animation/state]))]
 
     ;; IMPORTANT ! For some reason in chrome when the animation-controls get updated (when :animation/frame-timestamp) changes for example,
     ;; the entire map is being redraw, making some animations a lot less smooth.
     ;; {:contain :strict} prevents just that, tells the browser that changes inside this element shouldn't affect elements outside.
     [:div.animation-controls {:style {:contain :strict}}
-     [mui-slider {:inc-buttons 0.8
-                  :class "speed-slider"
+     [mui-slider {:inc-buttons 1
+                  :class "desired-duration-slider"
                   :min-val 1
-                  :max-val 70
+                  :max-val 300 ;; 5 minutes max
                   :vertical? true
-                  :subs-vec [:animation/speed]
-                  :ev-vec [:animation/set-speed]}]
+                  :subs-vec [:animation/desired-duration]
+                  :ev-vec [:animation/set-desired-duration]}]
      (if (zero? frame-timestamp)
        [:div.loading "Loading..."]
        [:div.inner
         [:div.hud
-         [:div.speed (gstr/format "Speed: %d days/sec" speed)]
+         [:div.speed (gstr/format "Total animation duration: %d sec" desired-duration)]
          [:div.date (str "Date: " (ui-utils/format-date frame-timestamp))]]
         [:div.buttons
          [:i.zmdi.zmdi-skip-previous {:on-click #(dispatch [:animation/reset :start])} ""]

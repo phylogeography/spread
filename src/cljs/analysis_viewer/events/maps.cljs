@@ -202,13 +202,6 @@
                                                          map-params
                                                          (:ui.switch-buttons/states db))}}))
 
-(def tick-duration 50) ;; milliseconds
-
-(defn advance-frame-timestamp [timestamp speed plus-or-minus]
-  (let [day-in-millis (* 24 60 60 1000)
-        delta (/ (* speed day-in-millis) (/ 1000 tick-duration))]
-    (plus-or-minus timestamp delta)))
-
 (defn build-animation-repaint-params [db]
   (let [params (merge (:ui/parameters db)
                       (:ui.switch-buttons/states db))]
@@ -219,11 +212,19 @@
      :date-range (:animation/crop db)
      :params params}))
 
+(def animation-single-step-precentage
+
+  "Size of the step when the user clicks previous/next single step in the
+  animations control. How it advances depends on the length of the crop"
+
+  (/ 1 50))
+
 (defn animation-prev [{:keys [db]} _]
 
-  (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
-        [crop-low _] crop
-        next-ts (advance-frame-timestamp frame-timestamp speed -)
+  (let [{:keys [animation/frame-timestamp animation/crop]} db
+        [crop-low crop-high] crop
+        next-ts (- frame-timestamp (* (- crop-high crop-low) animation-single-step-precentage))
+
         frame-timestamp (if (<= next-ts crop-low)
                           crop-low
                           next-ts)]
@@ -231,10 +232,11 @@
      :animation/repaint (assoc (build-animation-repaint-params db)
                                :timestamp frame-timestamp)}))
 
+
 (defn animation-next [{:keys [db]} _]
-  (let [{:keys [animation/frame-timestamp animation/crop animation/speed]} db
-        [_ crop-high] crop
-        next-ts (advance-frame-timestamp frame-timestamp speed +)
+  (let [{:keys [animation/frame-timestamp animation/crop]} db
+        [crop-low crop-high] crop
+        next-ts (+ frame-timestamp (* (- crop-high crop-low) animation-single-step-precentage))
         frame-timestamp (if (>= next-ts crop-high)
                           crop-high
                           next-ts)]
@@ -259,7 +261,7 @@
 
     {:db (assoc db :animation/state :play)
      :animation/start  (assoc (build-animation-repaint-params db)
-                              :speed (:animation/speed db)
+                              :desired-duration (:animation/desired-duration db)
                               :start-at-timestamp (:animation/frame-timestamp db))}))
 
 (defn animation-update-frame-timestamp [{:keys [db]} [_ ts]]
@@ -273,7 +275,7 @@
                 (assoc :animation/frame-timestamp crop-low-millis))]
     {:db db'
      :animation/start  (assoc (build-animation-repaint-params db')
-                              :speed (:animation/speed db')
+                              :desired-duration (:animation/desired-duration db')
                               :start-at-timestamp (:animation/frame-timestamp db'))}))
 
 (defn animation-set-crop [db [_ [crop-low-millis crop-high-millis]]]
@@ -281,11 +283,11 @@
       (assoc :animation/crop [crop-low-millis crop-high-millis])
       (assoc :animation/frame-timestamp crop-low-millis)))
 
-(defn animation-set-speed [{:keys [db]} [_ new-speed]]
-  ;; For now we the animation every time we change the speed,
+(defn animation-set-desired-duration [{:keys [db]} [_ new-desired-duration]]
+  ;; For now we the animation every time we change the desired-duration,
   ;; we can do it live in the future
   {:db (assoc db
-              :animation/speed new-speed
+              :animation/desired-duration new-desired-duration
               :animation/state :stop)
    :animation/stop nil})
 

@@ -346,7 +346,7 @@ button {
 	left: 10px;
 }
 
-.animation-controls .speed-slider {
+.animation-controls .desired-duration-slider {
     height: 80% !important;
 }
 
