@@ -40,7 +40,7 @@
 (reg-sub
  :animation/desired-duration
  (fn [db _]
-   (:animation/desired-duration db)))
+   (int (:animation/desired-duration db))))
 
 (reg-sub
  :analysis/date-range
