@@ -828,7 +828,8 @@
     [:div.main-screen
      [top-bar]
      [controls-side-bar analysis-type]
-     [:div.animated-data-map
+     [:canvas {:id "glcanvas" :width "1000" :height "800"}]
+     #_[:div.animated-data-map
       [params-styles]
       [data-elements-styles]
       [data-map]

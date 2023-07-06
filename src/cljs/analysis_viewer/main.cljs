@@ -19,7 +19,7 @@
 ;; [CT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/3e18cc4c-6be8-46b7-b039-ec286f9e8e0d.json&maps=
 ;; [DT] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/37f2cc7a-b3fc-4054-87d8-fd596cea22e2.json&maps=
 ;; [BF] http://localhost:8021/?output=a1195874-0bbe-4a8c-96f5-14cdf9097e02/e4d05649-98d8-41af-a0e5-a0f1e5f63c26.json&maps=
-
+;; http://localhost:8021/?output=e8294aad-29c2-4e2d-8003-a4e84e8d06ce/443f53db-b71d-4f84-8697-b82fdb6c1a7f.json
 (defn parse-url-qstring [qstring]
   (->> (str/split qstring #"&")
        (map (fn [s]
@@ -46,7 +46,8 @@
     (re-frame/dispatch-sync [:map/initialize
                              effective-maps
                              output])
-    (mount-ui)))
+    (mount-ui)
+    (re-frame/dispatch-sync [:map/initialize-gpu])))
 
 (defn ^:export init []
   (start))

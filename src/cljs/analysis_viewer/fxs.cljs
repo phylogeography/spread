@@ -6,7 +6,7 @@
             [goog.string :as gstr]
             [hiccups.runtime :as hiccupsrt]
             [re-frame.core :as re-frame]
-
+            [analysis-viewer.gl-utils :as gl-utils]
             [shared.math-utils :as math-utils]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -166,3 +166,74 @@
     (js/setTimeout (fn []
                      (re-frame/dispatch [:animation/toggle-play-stop]))
                    500)))
+
+
+(def entities-desc
+  {:first {:vertices [ 0.0  1.0 0.0
+                       1.0 -1.0 0.0
+                      -1.0 -1.0 0.0]
+           :attributes [{:name "aPos" :num-components 3}]
+           :uniforms [{:name "ourColor" :type :vec4}]
+           :vert-source "
+attribute lowp vec3 aPos;
+
+void main() {
+  gl_Position = vec4(aPos, 1.0);
+}"
+
+           :frag-source "
+uniform lowp vec4 ourColor;
+
+void main() {
+  gl_FragColor = ourColor;
+}"}})
+
+(def compiled-entities (atom {}))
+
+(defn compile-entities [^js gl]
+  (doseq [[shk {:keys [vertices vert-source frag-source attribues uniforms]}] entities-desc]
+    (let [^js ent-program (gl-utils/link-shader-program gl vert-source frag-source)
+          VBO (.createBuffer gl)]
+
+      (.bindBuffer gl (.-ARRAY_BUFFER gl) VBO)
+      (.bufferData gl (.-ARRAY_BUFFER gl) (js/Float32Array. (clj->js vertices)) (.-STATIC_DRAW gl))
+
+      (swap! compiled-entities assoc shk {:program ent-program
+                                          :draw (fn [& uniforms-vals]
+                                                  (let [attr-loc (.getAttribLocation gl ent-program "aPos") ]
+                                                    (.bindBuffer gl (.-ARRAY_BUFFER gl) VBO)
+                                                    (.vertexAttribPointer gl attr-loc 3 (.-FLOAT gl) false 0 0)
+                                                    (.enableVertexAttribArray gl attr-loc)
+                                                    (.useProgram gl ent-program)
+                                                    (doseq [{:keys [name type]} uniforms]
+                                                      (case type
+                                                        :vec4 (let [[x y z w] uniforms-vals]
+                                                                (.uniform4f gl (.getUniformLocation gl ent-program name) x y z w))))
+                                                    (.drawArrays gl (.-TRIANGLE_STRIP gl) 0 (/ (count vertices) 3))))
+                                          }))))
+
+(defn gpu-init [_]
+  (let [canvas (js/document.querySelector "#glcanvas")
+        gl (.getContext canvas "webgl")]
+
+    (compile-entities gl)
+
+    ;; draw scene
+    (let [draw-scene (fn draw-scene [t]
+                       (doto gl
+                         (.clearColor 0.5 0.0 0.0 1.0)
+                         (.clearDepth 1.0)
+                         (.enable (.-DEPTH_TEST gl))
+                         (.depthFunc (.-LEQUAL gl))
+                         (.clear (or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl))))
+                       (doseq [[ent-key {:keys [draw]}] @compiled-entities]
+                         (let [color (+ 0.5 (/ (js/Math.sin (* t 0.001)) 2))]
+                           (draw color 0.2 0.3 1.0)))
+                       (js/requestAnimationFrame draw-scene))]
+      (js/requestAnimationFrame draw-scene)
+      )
+    ))
+
+(re-frame/reg-fx
+ :gpu/init
+ gpu-init)

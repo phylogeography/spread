@@ -94,6 +94,9 @@
                 :on-success      [:map/data-loaded]
                 :on-failure      [:log-error]}})
 
+(defn initialize-gpu [_ _]
+  {:gpu/init nil})
+
 (defn calc-proj-scale [{:keys [map/state]}]
   ;; TODO: this is correct on wide windows, make it work
   ;; on windows that are higher than wider

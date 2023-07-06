@@ -22,6 +22,7 @@
 (reg-event-fx :map/load-map [sc] events.maps/load-map)
 (reg-event-fx :map/load-data [sc] events.maps/load-data)
 (reg-event-fx :map/download-current-as-svg [sc] events.maps/download-current-as-svg)
+(reg-event-fx :map/initialize-gpu [sc] events.maps/initialize-gpu)
 
 ;; map graphics manipulation
 (reg-event-db :map/set-view-box [sc] events.maps/set-view-box)
