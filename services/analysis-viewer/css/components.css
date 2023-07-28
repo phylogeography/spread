@@ -103,6 +103,10 @@
     border-radius: 10% !important;
 }
 
+.MuiSlider-valueLabel > span > span {
+    color: #3A3668 !important;
+}
+
 .MuiSlider-rail {
     background-color: #DEDEE8 !important;
 }
