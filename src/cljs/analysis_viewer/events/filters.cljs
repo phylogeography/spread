@@ -12,7 +12,8 @@
         new-filter-spec (case (:attribute/type attr)
                           ; filter start with the full range
                           :linear {:filter/type :linear-filter
-                                   :range (:range attr)}
+                                   :full-range (:range attr)
+                                   :range      (:range attr)}
                           ; filter start with empty domain checked
                           :ordinal {:filter/type :ordinal-filter
                                     :filter-set #{}})]
