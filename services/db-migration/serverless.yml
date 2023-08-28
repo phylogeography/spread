@@ -10,7 +10,7 @@ provider:
   region: us-east-2
   stage: prod
   deploymentBucket: spread-${self:custom.stage}-serverlessdeploymentbucket
-  runtime: java8
+  runtime: java17
   logRetentionInDays: 14
 
 functions:
