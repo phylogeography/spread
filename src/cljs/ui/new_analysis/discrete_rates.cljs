@@ -66,7 +66,7 @@
               [loaded-input {:value    log-file-name
                              :on-click #(>evt [:bayes-factor/delete-log-file])}])]
            (cond
-             (contains? @field-errors :log-file-error) [:div.field-error.button-error "Log file first row doesn't contain all numbers."]
+             (contains? @field-errors :log-file-error) [:div.field-error.button-error (str "Log file name is over " file-formats/name-length-limit " or the file content has an incorrect format.")]
              (nil? log-file-name)                      [:p.doc "Upload log file. You can then upload a matching coordinates file."])]
           [:section.load-locations-file
            [:div
@@ -87,7 +87,7 @@
               [loaded-input {:value    locations-file-name
                              :on-click #(>evt [:bayes-factor/delete-locations-file])}])]
            (cond
-             (contains? @field-errors :locations-file-error) [:div.field-error.button-error "Locations file first row doesn't contain all numbers."]
+             (contains? @field-errors :locations-file-error) [:div.field-error.button-error (str "Locations file name is over " file-formats/name-length-limit " characters or the file content has an incorrect format.")]
              (nil? locations-file-name)                      [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
 
           (when (and log-file-name

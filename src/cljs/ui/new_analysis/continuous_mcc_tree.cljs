@@ -80,7 +80,7 @@
                              :on-click #(>evt [:continuous-mcc-tree/delete-tree-file])}])]
 
            (cond
-             (contains? @field-errors :tree-file-error) [:div.field-error.button-error "Tree file incorrect format."]
+             (contains? @field-errors :tree-file-error) [:div.field-error.button-error (str "Tree file name is over " file-formats/name-length-limit " characters long or the file content has an incorrect format.")]
              (nil? tree-file-name) [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select geographical coordinates and change other settings."])]
 
           [:section.load-trees-file
@@ -104,7 +104,7 @@
                              :on-click #(>evt [:continuous-mcc-tree/delete-trees-file])}])]
 
            (cond
-             (contains? @field-errors :trees-file-error) [:div.field-error.button-error "Trees file incorrect format."]
+             (contains? @field-errors :trees-file-error) [:div.field-error.button-error (str "Trees file name is over " file-formats/name-length-limit " characters long or the file content has an incorrect format.")]
              (nil? trees-file-name) [:p.doc "Optional: Select a file with corresponding trees distribution. This file will be used to compute a density interval around the MCC tree."])]
 
           [:div.upload-spinner
