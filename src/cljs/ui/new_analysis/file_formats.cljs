@@ -52,6 +52,9 @@
       (.then (fn [file-content]
                (try
                  (let [map-json (js/JSON.parse file-content)]
-                   (and (<= (count (.-name file)) 200) ;; see db.changelog-9.0.xml
+                   (and
+                     ;; limit is 200 (see db.changelog-9.0.xml)
+                     ;; but we set it to 50 for consistency
+                     (<= (count (.-name file)) name-length-limit)
                      (boolean (#{"FeatureCollection" "Feature"} (.-type map-json)))))
                  (catch js/Error _ false))))))
