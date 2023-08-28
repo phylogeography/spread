@@ -54,7 +54,8 @@
                  (let [map-json (js/JSON.parse file-content)]
                    (and
                      ;; limit is 200 (see db.changelog-9.0.xml)
-                     ;; but we set it to 50 for consistency
+                     ;; but we check it to 50 for consistency
+                     ;; this column could be migrated at some point
                      (<= (count (.-name file)) name-length-limit)
                      (boolean (#{"FeatureCollection" "Feature"} (.-type map-json)))))
                  (catch js/Error _ false))))))
