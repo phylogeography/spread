@@ -75,7 +75,7 @@
               [loaded-input {:value    tree-file-name
                              :on-click #(>evt [:discrete-mcc-tree/delete-tree-file])}])]
            (cond
-             (contains? @field-errors :tree-file-error) [:div.field-error.button-error "Tree file incorrect format."]
+             (contains? @field-errors :tree-file-error) [:div.field-error.button-error (str "Tree file name is over " file-formats/name-length-limit " characters long or the file content has an incorrect format.")]
              (nil? tree-file-name)                      [:p.doc "When upload is complete all unique attributes will be automatically filled. You can then select location attribute and change other settings."])]
 
           [:section.load-locations-file
@@ -99,7 +99,7 @@
               [loaded-input {:value    locations-file-name
                              :on-click #(>evt [:discrete-mcc-tree/delete-locations-file])}])]
            (cond
-             (contains? @field-errors :locations-file-error) [:div.field-error.button-error "Locations file first row doesn't contain all numbers."]
+             (contains? @field-errors :locations-file-error) [:div.field-error.button-error (str "Locations file name is over " file-formats/name-length-limit " characters or the file content has an incorrect format.")]
              (nil? locations-file-name)                      [:p.doc "Select a file that maps geographical coordinates to the log file columns. Once this file is uploaded you can start your analysis."])]
           [:div.upload-spinner
            (when (and (= 1 tree-file-upload-progress) (nil? attribute-names))

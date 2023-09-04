@@ -77,7 +77,7 @@ The diagram below presents an overview of the architecture of spread:
 ### Start all
 
 Make sure you have [tmux](https://github.com/tmux/tmux) multiplexer installed.
-Execute `./start_all_components` in your temrinal window and it will start all the components in separate tmux windows.
+Execute `./start_all_components` in your terminal window and it will start all the components in separate tmux windows.
 
 ### Backend services
 

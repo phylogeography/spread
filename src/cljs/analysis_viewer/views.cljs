@@ -616,14 +616,14 @@
                   :checked (boolean (checked-set item))}]
          [:span.text item]]])]))
 
-(defn linear-attribute-filter [f]
-  [:div.linear-attribute-filter
-   [mui-slider {:inc-buttons 0.1
-                :min-val 0
-                :max-val 1
-                :vertical? false
-                :subs-vec [:analysis.data/linear-attribute-filter-range (:filter/id f)]
-                :ev-vec [:filters/set-linear-attribute-filter-range (:filter/id f)]}]])
+(defn linear-attribute-filter [{:keys [filter/id full-range]}]
+  (let [[full-range-min full-range-max] full-range]
+    [:div.linear-attribute-filter
+     [mui-slider {:min-val full-range-min
+                  :max-val full-range-max
+                  :vertical? false
+                  :subs-vec [:analysis.data/linear-attribute-filter-range id]
+                  :ev-vec [:filters/set-linear-attribute-filter-range id]}]]))
 
 (defn continuous-attributes-filters []
   (let [attributes (subscribe [:analysis/attributes])
