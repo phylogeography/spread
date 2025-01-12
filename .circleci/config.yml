@@ -39,8 +39,7 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
+          - setup_remote_docker
           - checkout
           - restore_cache:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
@@ -78,8 +77,6 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
           - checkout
           - attach_workspace:
               at: services
@@ -115,7 +112,7 @@ orbs:
 #
   cljs-service:
     orbs:
-      node: circleci/node@4.1.0
+      node: circleci/node@7.0.0
     jobs:
       build:
         working_directory: ~/ci-spread
@@ -128,8 +125,6 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
           - checkout
           - run:
               name: set ENV variables
@@ -178,8 +173,6 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
           - checkout
           - attach_workspace:
               at: services
@@ -258,8 +251,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: services
-      - setup_remote_docker:
-          version: 19.03.13
       - run:
           name: Source environment variables
           command: |
@@ -296,7 +287,7 @@ jobs:
     # openjdk 11.0.8 (default)
     # yarn 1.22.5
     machine:
-      image: ubuntu-2004:202008-01
+      image: ubuntu-2204:2024.11.1
     steps:
       - checkout
       - run:
