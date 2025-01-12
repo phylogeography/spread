@@ -286,6 +286,11 @@ li {
   color:      #757295;
 }
 
+.deprecation-warning {
+  text-align: center;
+  color:      #FF6347;
+}
+
 .email-input-outer {
   height: 55px;
 }
@@ -557,35 +562,35 @@ div.divider > h2 > span {
 }
 
 .analysis-results .results section.custom-map {
-	width: 800px;
+        width: 800px;
 }
 
 .analysis-results .results section.custom-map .map{
     margin-top: 20px;
-	display: flex;
-	justify-content: space-between;
+        display: flex;
+        justify-content: space-between;
 }
 
 .analysis-results .results section.custom-map .button {
-	max-height: 40px;
-	max-width: 200px;
+        max-height: 40px;
+        max-width: 200px;
 }
 
 .analysis-results .results section.custom-map .map .map-data {
-	width: 650px;
+        width: 650px;
 }
 
 .analysis-results .results section.custom-map .map .map-data > div {
-	margin-bottom: 5px;
+        margin-bottom: 5px;
 }
 .analysis-results .results section.custom-map .map .map-data .label{
     font-weight: bold;
-	margin-right: 5px;    
+        margin-right: 5px;
 }
 
 .analysis-results .results section.visualization .button {
     width: 150px;
-	max-height: 40px;
+        max-height: 40px;
 }
 
 .analysis-results .results section.table {

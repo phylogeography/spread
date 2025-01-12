@@ -41,6 +41,9 @@
          [:div.card
           [:div.card-header
            [spread-logo]]
+          [:div.deprecation-warning
+           [:span "SPREAD support on AWS will discontinue at the end of this year due to funding issues. For other phylogeographic visualisation options, please visit "]
+           [:a.deprecation-warning {:href "https://beast.community/spread4"} "https://beast.community/spread4"]]
           [:span.sign-in
            "Sign in with email"]
           [:span.sign-in-sub
