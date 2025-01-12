@@ -119,8 +119,6 @@ orbs:
     jobs:
       build:
         working_directory: ~/ci-spread
-#        docker:
-#          - image: nodrama/cljs:latest
         shell: /bin/bash -eo pipefail
         parameters:
           spread-env:
