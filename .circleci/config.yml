@@ -39,8 +39,6 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
           - checkout
           - restore_cache:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
@@ -78,8 +76,6 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
           - checkout
           - attach_workspace:
               at: services
@@ -176,8 +172,6 @@ orbs:
           service:
             type: string
         steps:
-          - setup_remote_docker:
-              version: 19.03.13
           - checkout
           - attach_workspace:
               at: services
@@ -256,8 +250,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: services
-      - setup_remote_docker:
-          version: 19.03.13
       - run:
           name: Source environment variables
           command: |
