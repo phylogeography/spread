@@ -39,6 +39,7 @@ orbs:
           service:
             type: string
         steps:
+          - setup_remote_docker
           - checkout
           - restore_cache:
               key: maven-<< parameters.service >>-{{ checksum "deps.edn" }}
