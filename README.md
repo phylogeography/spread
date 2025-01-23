@@ -1,6 +1,6 @@
 > [!WARNING]
 > SPREAD hosting on AWS will be discontinued at the end of year 2025 due to funding issues.
-> For other phylogeographic visualisation options, please visit [https://beast.community/spread4](https://beast.community/spread4)
+> For other phylogeographic visualisation options, please visit [https://beast.community/spread4](https://beast.community/spread4).
 
 <p align="center">
   <a href="https://spreadviz.org">
