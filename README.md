@@ -1,3 +1,7 @@
+> [!WARNING]
+> Hosted SPREAD version on AWS will be discontinued at the end of year 2025 due to funding issues.
+> For other phylogeographic visualisation options, please visit [https://beast.community/spread4](https://beast.community/spread4)
+
 <p align="center">
   <a href="https://spreadviz.org">
   <img width="132" height="101" src="https://raw.githubusercontent.com/phylogeography/spread/master/services/ui/icons/icn_spread.svg" class="attachment-full size-full" alt="Spread" loading="lazy" />
