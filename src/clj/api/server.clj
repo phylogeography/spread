@@ -1,5 +1,6 @@
 (ns api.server
   (:require [api.auth :as auth]
+            [api.config :as config]
             [api.db :as db]
             [api.mutations :as mutations]
             [api.resolvers :as resolvers]
@@ -295,7 +296,7 @@
         runnable-service                        (-> (http/create-server opts)
                                                     http/start)]
 
-    (log/info "Starting server" config)
+    (log/info "Starting server" (config/redact config))
 
     (when-not (contains? (set (:Buckets (aws-s3/list-buckets s3))) bucket-name)
       (aws-s3/create-bucket s3 {:bucket-name bucket-name}))

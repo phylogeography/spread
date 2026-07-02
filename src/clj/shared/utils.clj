@@ -60,6 +60,25 @@
   (let [f (fn [[k v]] [(t k) v])]
     (walk/postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) coll)))
 
+(def redacted-placeholder "[REDACTED]")
+
+(defn redact-secrets
+  "Recursively replaces, in the (possibly nested) map `m`, the value of every
+  key contained in `secret-keys` with `redacted-placeholder`. Used to keep
+  credentials (private keys, passwords, API keys) out of logs."
+  [m secret-keys]
+  (walk/postwalk
+   (fn [x]
+     (if (map? x)
+       (reduce (fn [acc k]
+                 (if (contains? acc k)
+                   (assoc acc k redacted-placeholder)
+                   acc))
+               x
+               secret-keys)
+       x))
+   m))
+
 (defn ->camelCase [^String s]
   (string/replace s #"-(\w)"
                   #(string/upper-case (second %1))))

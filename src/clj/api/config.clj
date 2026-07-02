@@ -1,7 +1,17 @@
 (ns api.config
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [shared.utils :refer [get-env-variable]]))
+            [shared.utils :refer [get-env-variable redact-secrets]]))
+
+(def sensitive-keys
+  "Config keys whose values are credentials and must never be logged."
+  #{:private-key :secret-access-key :access-key-id :password :client-secret :api-key})
+
+(defn redact
+  "Returns `config` with all credential values replaced by a placeholder,
+  safe for logging."
+  [config]
+  (redact-secrets config sensitive-keys))
 
 (defn try-secrets [path]
   (try

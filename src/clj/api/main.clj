@@ -13,7 +13,7 @@
         (mount/with-args config)
         (mount/start)
         (as-> $ (log/warn "Started" {:components $
-                                     :config config})))))
+                                     :config (config/redact config)})))))
 
 (defn stop []
   (mount/stop))
