@@ -1,6 +1,6 @@
-.PHONY: help
-help: # Show help for each of the Makefile recipes
-	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | sort | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
+.PHONY: help # Show help for each of the Makefile recipes
+help:
+	@grep -E '^\.PHONY: .+ #' Makefile | sort | while read -r l; do printf "\033[1;32m%s\033[00m:%s\n" "$$(echo "$$l" | sed -E 's/^\.PHONY: ([^ ]+).*/\1/')" "$$(echo "$$l" | cut -f 2- -d'#')"; done
 
 .PHONY: run-api # starts the api server
 run-api:
@@ -25,3 +25,7 @@ lint-clj:
 .PHONY: unit-tests # lint all unit tests
 unit-tests:
 	./bin/kaocha unit
+
+.PHONY: deploy-images # build and push the CI docker images (needs DOCKER_USERNAME/DOCKER_PASSWORD)
+deploy-images:
+	cd docker-images && for img in clj cljs deploy; do ./deploy.sh $$img || exit 1; done
