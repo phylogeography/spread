@@ -49,7 +49,7 @@
       :host     (or (get-env-variable "DB_HOST") "127.0.0.1")}
 
      :google
-     {:client-id     (or (get-env-variable "GOOGLE_CLIENT_ID") "806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com")
+     {:client-id     (or (get-env-variable "GOOGLE_CLIENT_ID") "846917714826-hsju0hfgdb5h4pp5kt9bcv489kg3mcoj.apps.googleusercontent.com")
       :client-secret (or client-secret (get-env-variable "GOOGLE_CLIENT_SECRET"))}
 
      :sendgrid
