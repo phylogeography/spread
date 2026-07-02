@@ -17,7 +17,7 @@ export API_PORT=3001
 
 export WORKERS_QUEUE_URL="http://localhost:9324/queue/workers"
 
-export GOOGLE_CLIENT_ID=806052757605-5sbubbk9ubj0tq95dp7b58v36tscqv1r.apps.googleusercontent.com
+export GOOGLE_CLIENT_ID=846917714826-hsju0hfgdb5h4pp5kt9bcv489kg3mcoj.apps.googleusercontent.com
 
 export PUBLIC_KEY=$(cat <<EOF
 -----BEGIN PUBLIC KEY-----
