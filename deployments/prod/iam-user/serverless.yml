@@ -40,7 +40,7 @@ resources:
           Statement:
           - Sid: "UploadsBucketAccess"
             Effect: Allow
-            Action: ['s3:PutObject']
+            Action: ['s3:*']
             Resource: arn:aws:s3:::spread-${self:custom.stage}-uploads
         Groups: [!Ref 'IamUserGroup']
 
